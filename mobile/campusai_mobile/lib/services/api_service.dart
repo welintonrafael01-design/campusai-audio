@@ -205,6 +205,36 @@ class ApiService {
     return decodeResponse(response);
   }
 
+
+
+  // =========================
+  // GENERATE AUDIO
+  // =========================
+
+  static Future<Map<String, dynamic>>
+      generateAudioFromText({
+    required String text,
+  }) async {
+    final cleanText = requireValue(
+      text,
+      'No hay texto para generar audio.',
+    );
+
+    final uri = Uri.parse(
+      '$baseUrl/documents/audio',
+    ).replace(
+      queryParameters: {
+        'text': cleanText,
+      },
+    );
+
+    final response = await http
+        .post(uri)
+        .timeout(timeoutDuration);
+
+    return decodeResponse(response);
+  }
+
   // =========================
   // AUDIO URL
   // =========================

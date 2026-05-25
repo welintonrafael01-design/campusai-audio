@@ -33,6 +33,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   bool isLoading = false;
   bool isPlaying = false;
+  bool isGeneratingAudio = false;
 
   String documentId = '';
   String summary = '';
@@ -150,6 +151,39 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       if (mounted) {
         setState(() {
           isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> generateAudio() async {
+    if (summary.trim().isEmpty || isGeneratingAudio) return;
+
+    setState(() {
+      isGeneratingAudio = true;
+      errorMessage = '';
+    });
+
+    try {
+      final data = await ApiService.generateAudioFromText(
+        text: summary,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        audioUrl = data['audio_url'] ?? '';
+      });
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() {
+        errorMessage = 'No se pudo generar el audio: $error';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          isGeneratingAudio = false;
         });
       }
     }
@@ -411,8 +445,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           fileName: fileName,
           fullAudioUrl: fullAudioUrl,
           isPlaying: isPlaying,
+          isGeneratingAudio: isGeneratingAudio,
+          hasSummary: summary.trim().isNotEmpty,
           currentPosition: currentPosition,
           totalDuration: totalDuration,
+          onGenerateAudio: generateAudio,
           onPlayPause: isPlaying ? pauseAudio : playAudio,
           onReplay: replayAudio,
           onSeek: (value) {

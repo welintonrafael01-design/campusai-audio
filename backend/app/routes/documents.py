@@ -1,3 +1,4 @@
+import time
 import asyncio
 from pathlib import Path
 from uuid import uuid4
@@ -150,55 +151,43 @@ def build_document_context(
 async def upload_document(
     file: UploadFile = File(...),
 ):
+    start_time = time.perf_counter()
+
     try:
+        step = time.perf_counter()
         file_path = await save_upload_file(file)
+        print(f"[UPLOAD] save_file: {time.perf_counter() - step:.2f}s")
 
-        extracted_text = (
-            extract_text_from_pdf(
-                str(file_path)
-            )
-        )
+        step = time.perf_counter()
+        extracted_text = extract_text_from_pdf(str(file_path))
+        print(f"[UPLOAD] extract_text: {time.perf_counter() - step:.2f}s")
 
-        document_id = (
-            index_document_for_rag(
-                extracted_text
-            )
-        )
+        step = time.perf_counter()
+        document_id = index_document_for_rag(extracted_text)
+        print(f"[UPLOAD] rag_index: {time.perf_counter() - step:.2f}s")
 
-        ai_summary = (
-            generate_ai_summary(
-                extracted_text
-            )
-        )
+        step = time.perf_counter()
+        ai_summary = generate_ai_summary(extracted_text)
+        print(f"[UPLOAD] ai_summary: {time.perf_counter() - step:.2f}s")
 
-        audio_filename = (
-            generate_audio_from_text(
-                ai_summary
-            )
-        )
+        print(f"[UPLOAD] total: {time.perf_counter() - start_time:.2f}s")
 
         return {
             "filename": file.filename,
             "file_name": file.filename,
             "document_id": document_id,
-            "message": (
-                "Documento procesado "
-                "correctamente."
-            ),
-            "text_preview": (
-                extracted_text[:1000]
-            ),
+            "message": "Documento procesado correctamente.",
+            "text_preview": extracted_text[:1000],
             "ai_summary": ai_summary,
-            "audio_file": audio_filename,
-            "audio_url": build_audio_url(
-                audio_filename
-            ),
+            "audio_file": "",
+            "audio_url": "",
         }
 
     except HTTPException:
         raise
 
     except Exception as error:
+        print(f"[UPLOAD] error after {time.perf_counter() - start_time:.2f}s: {error}")
         raise HTTPException(
             status_code=500,
             detail=str(error),
@@ -496,3 +485,36 @@ async def stream_chat_document(
             detail=str(error),
         )
 
+
+
+@router.post("/audio")
+async def generate_audio_endpoint(
+    text: str = Query(default=""),
+):
+    start_time = time.perf_counter()
+
+    try:
+        if not text.strip():
+            raise HTTPException(
+                status_code=400,
+                detail="El texto para generar audio está vacío.",
+            )
+
+        audio_filename = generate_audio_from_text(text)
+
+        print(f"[AUDIO] total: {time.perf_counter() - start_time:.2f}s")
+
+        return {
+            "audio_file": audio_filename,
+            "audio_url": build_audio_url(audio_filename),
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        print(f"[AUDIO] error after {time.perf_counter() - start_time:.2f}s: {error}")
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )

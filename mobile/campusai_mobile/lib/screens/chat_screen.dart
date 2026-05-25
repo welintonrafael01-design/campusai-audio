@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../layout/responsive_layout.dart';
@@ -27,6 +28,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   bool isLoading = false;
   String errorMessage = '';
+  Timer? fakeStreamTimer;
 
   final List<ChatMessageModel> messages = [];
 
@@ -49,6 +51,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    fakeStreamTimer?.cancel();
     questionController.dispose();
     super.dispose();
   }
@@ -57,6 +60,8 @@ class _ChatScreenState extends State<ChatScreen> {
     final question = questionController.text.trim();
 
     if (question.isEmpty || isLoading) return;
+
+    fakeStreamTimer?.cancel();
 
     setState(() {
       isLoading = true;
@@ -84,15 +89,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
       if (!mounted) return;
 
-      setState(() {
-        messages.add(
-          ChatMessageModel(
-            text: response,
-            isUser: false,
-            createdAt: DateTime.now(),
-          ),
-        );
-      });
+      await renderFakeStreaming(response);
     } catch (error) {
       if (!mounted) return;
 
@@ -114,6 +111,73 @@ class _ChatScreenState extends State<ChatScreen> {
         });
       }
     }
+  }
+
+  Future<void> renderFakeStreaming(String response) async {
+    final completer = Completer<void>();
+
+    final words = response
+        .split(RegExp(r'(\s+)'))
+        .where((word) => word.isNotEmpty)
+        .toList();
+
+    var index = 0;
+    var currentText = '';
+
+    setState(() {
+      messages.add(
+        ChatMessageModel(
+          text: '',
+          isUser: false,
+          createdAt: DateTime.now(),
+          isStreaming: true,
+        ),
+      );
+    });
+
+    fakeStreamTimer = Timer.periodic(
+      const Duration(milliseconds: 35),
+      (timer) {
+        if (!mounted) {
+          timer.cancel();
+          if (!completer.isCompleted) completer.complete();
+          return;
+        }
+
+        if (index >= words.length) {
+          timer.cancel();
+
+          final lastIndex = messages.length - 1;
+          final current = messages[lastIndex];
+
+          setState(() {
+            messages[lastIndex] = current.copyWith(
+              text: currentText.trim(),
+              isStreaming: false,
+            );
+          });
+
+          if (!completer.isCompleted) completer.complete();
+          return;
+        }
+
+        currentText += '${words[index]} ';
+
+        final lastIndex = messages.length - 1;
+        final current = messages[lastIndex];
+
+        setState(() {
+          messages[lastIndex] = current.copyWith(
+            text: currentText,
+            isStreaming: true,
+          );
+        });
+
+        index++;
+      },
+    );
+
+    return completer.future;
   }
 
   String cleanMarkdown(String text) {
