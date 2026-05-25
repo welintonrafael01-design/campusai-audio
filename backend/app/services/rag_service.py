@@ -1,0 +1,201 @@
+from dotenv import load_dotenv
+from langchain_openai import OpenAIEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from pathlib import Path
+
+import chromadb
+import hashlib
+import os
+
+
+load_dotenv()
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+CHROMA_PATH = BASE_DIR / "chroma_db"
+
+CHROMA_PATH.mkdir(
+    parents=True,
+    exist_ok=True,
+)
+
+client = chromadb.PersistentClient(
+    path=str(CHROMA_PATH)
+)
+
+embedding_function = OpenAIEmbeddings(
+    api_key=os.getenv("OPENAI_API_KEY")
+)
+
+CHUNK_SIZE = 1200
+CHUNK_OVERLAP = 200
+DEFAULT_TOP_K = 5
+
+
+def normalize_text(text: str) -> str:
+    return " ".join(
+        text.replace("\x00", " ")
+        .replace("\t", " ")
+        .replace("\r", " ")
+        .split()
+    )
+
+
+def generate_document_id(text: str) -> str:
+    clean_text = normalize_text(text)
+
+    if not clean_text:
+        raise ValueError(
+            "No se puede generar ID: el documento no contiene texto válido."
+        )
+
+    return hashlib.sha256(
+        clean_text.encode("utf-8")
+    ).hexdigest()[:24]
+
+
+def create_document_chunks(text: str) -> list[str]:
+    clean_text = normalize_text(text)
+
+    if not clean_text:
+        raise ValueError(
+            "No se pueden crear chunks: el texto está vacío."
+        )
+
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=CHUNK_SIZE,
+        chunk_overlap=CHUNK_OVERLAP,
+        separators=[
+            "\n\n",
+            "\n",
+            ". ",
+            " ",
+            "",
+        ],
+    )
+
+    chunks = splitter.split_text(clean_text)
+
+    return [
+        chunk.strip()
+        for chunk in chunks
+        if chunk.strip()
+    ]
+
+
+def get_collection_name(document_id: str) -> str:
+    clean_id = document_id.strip()
+
+    if not clean_id:
+        raise ValueError(
+            "document_id inválido."
+        )
+
+    return f"doc_{clean_id}"
+
+
+def collection_exists(collection_name: str) -> bool:
+    collections = client.list_collections()
+
+    return any(
+        collection.name == collection_name
+        for collection in collections
+    )
+
+
+def store_document_embeddings(text: str) -> str:
+    document_id = generate_document_id(text)
+    collection_name = get_collection_name(document_id)
+
+    if collection_exists(collection_name):
+        return document_id
+
+    chunks = create_document_chunks(text)
+
+    if not chunks:
+        raise ValueError(
+            "No se generaron fragmentos válidos del documento."
+        )
+
+    collection = client.create_collection(
+        name=collection_name,
+        metadata={
+            "document_id": document_id,
+            "chunk_size": CHUNK_SIZE,
+            "chunk_overlap": CHUNK_OVERLAP,
+        },
+    )
+
+    embeddings = embedding_function.embed_documents(chunks)
+
+    ids = [
+        str(index)
+        for index, _ in enumerate(chunks)
+    ]
+
+    metadatas = [
+        {
+            "document_id": document_id,
+            "chunk_index": index,
+        }
+        for index, _ in enumerate(chunks)
+    ]
+
+    collection.add(
+        ids=ids,
+        documents=chunks,
+        embeddings=embeddings,
+        metadatas=metadatas,
+    )
+
+    return document_id
+
+
+def search_similar_chunks(
+    document_id: str,
+    question: str,
+    top_k: int = DEFAULT_TOP_K,
+) -> str:
+    clean_question = question.strip()
+
+    if not clean_question:
+        raise ValueError(
+            "La pregunta está vacía."
+        )
+
+    collection_name = get_collection_name(document_id)
+
+    if not collection_exists(collection_name):
+        raise ValueError(
+            "El documento no está indexado en la base vectorial."
+        )
+
+    collection = client.get_collection(
+        name=collection_name
+    )
+
+    question_embedding = embedding_function.embed_query(
+        clean_question
+    )
+
+    results = collection.query(
+        query_embeddings=[question_embedding],
+        n_results=top_k,
+        include=[
+            "documents",
+            "metadatas",
+            "distances",
+        ],
+    )
+
+    documents = results.get("documents", [[]])[0]
+
+    valid_documents = [
+        document.strip()
+        for document in documents
+        if document and document.strip()
+    ]
+
+    if not valid_documents:
+        return ""
+
+    return "\n\n".join(valid_documents)

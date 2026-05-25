@@ -1,0 +1,130 @@
+name: campusai_mobile
+
+description: >
+  StudyBook AI - Plataforma inteligente de estudio
+  impulsada por Inteligencia Artificial.
+
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+# =========================================================
+# DEPENDENCIES
+# =========================================================
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # =========================
+  # Routing
+  # =========================
+  go_router: ^16.3.0
+
+  # =========================
+  # State Management
+  # =========================
+  flutter_riverpod: ^2.6.1
+
+  # =========================
+  # UI / Icons
+  # =========================
+  cupertino_icons: ^1.0.8
+  flutter_svg: ^2.2.0
+
+  # =========================
+  # Networking
+  # =========================
+  http: ^1.6.0
+
+  # =========================
+  # Files
+  # =========================
+  file_picker: ^8.0.7
+
+  # =========================
+  # Audio
+  # =========================
+  just_audio: ^0.9.44
+
+  # =========================
+  # Local Storage
+  # =========================
+  shared_preferences: ^2.5.5
+
+  # =========================
+  # Formatting
+  # =========================
+  intl: ^0.20.2
+
+  # =========================
+  # Flashcards
+  # =========================
+  flip_card: ^0.7.0
+
+  # =========================
+  # Animations
+  # =========================
+  animated_text_kit: ^4.2.3
+
+  # =========================
+  # Markdown Rendering
+  # =========================
+  flutter_markdown: ^0.7.7+1
+
+# =========================================================
+# DEV DEPENDENCIES
+# =========================================================
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+  # =========================
+  # Branding
+  # =========================
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.7
+
+# =========================================================
+# FLUTTER
+# =========================================================
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/branding/app_icon.png
+    - assets/branding/app_icon_foreground.png
+    - assets/branding/splash_logo.png
+    - assets/branding/splash_preview.png
+
+# =========================================================
+# APP ICONS
+# =========================================================
+flutter_launcher_icons:
+  android: true
+  ios: true
+
+  image_path: assets/branding/app_icon.png
+
+  adaptive_icon_background: "#0B1120"
+  adaptive_icon_foreground: assets/branding/app_icon_foreground.png
+
+# =========================================================
+# SPLASH SCREEN
+# =========================================================
+flutter_native_splash:
+  color: "#0B1120"
+
+  image: assets/branding/splash_logo.png
+
+  android: true
+  ios: true
+  web: false
+
+  android_12:
+    color: "#0B1120"
+    image: assets/branding/splash_logo.png

@@ -1,0 +1,657 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+
+import '../models/study_result.dart';
+import '../services/api_service.dart';
+import '../services/study_result_service.dart';
+import '../theme/app_theme.dart';
+import '../widgets/section_card.dart';
+
+class ExamScreen extends StatefulWidget {
+  final String documentId;
+
+  const ExamScreen({
+    super.key,
+    required this.documentId,
+  });
+
+  @override
+  State<ExamScreen> createState() => _ExamScreenState();
+}
+
+class _ExamScreenState extends State<ExamScreen> {
+  bool isLoading = false;
+  String errorMessage = '';
+
+  int currentIndex = 0;
+  int score = 0;
+
+  bool isAnswered = false;
+  bool showResult = false;
+
+  String selectedAnswer = '';
+
+  List<Map<String, dynamic>> questions = [];
+  final Map<int, String> selectedAnswers = {};
+  final Set<int> correctIndexes = {};
+
+  @override
+  void initState() {
+    super.initState();
+    loadSavedExam();
+  }
+
+  Future<void> loadSavedExam() async {
+    final savedResult = await StudyResultService.getResult(
+      documentId: widget.documentId,
+      type: 'exam',
+    );
+
+    if (savedResult == null) return;
+
+    final parsedQuestions = _parseQuestions(savedResult.content);
+
+    if (!mounted) return;
+
+    setState(() {
+      questions = parsedQuestions;
+      resetQuizState();
+    });
+  }
+
+  Future<void> generateExam() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = '';
+    });
+
+    try {
+      final data = await ApiService.generateExamByDocumentId(
+        documentId: widget.documentId,
+        numberOfQuestions: 10,
+      );
+
+      final parsedQuestions = _parseQuestions(data['questions']);
+
+      if (!mounted) return;
+
+      setState(() {
+        questions = parsedQuestions;
+        resetQuizState();
+      });
+
+      await StudyResultService.saveResult(
+        StudyResult(
+          documentId: widget.documentId,
+          type: 'exam',
+          content: jsonEncode(parsedQuestions),
+          createdAt: DateTime.now().toIso8601String(),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() {
+        errorMessage = 'Error: $error';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  void resetQuizState() {
+    currentIndex = 0;
+    score = 0;
+    isAnswered = false;
+    showResult = false;
+    selectedAnswer = '';
+    selectedAnswers.clear();
+    correctIndexes.clear();
+  }
+
+  List<Map<String, dynamic>> _parseQuestions(dynamic raw) {
+    dynamic decoded = raw;
+
+    if (raw is String) {
+      final clean = raw
+          .replaceAll('```json', '')
+          .replaceAll('```', '')
+          .trim();
+
+      decoded = jsonDecode(clean);
+    }
+
+    if (decoded is Map<String, dynamic>) {
+      final list = decoded['questions'] ?? decoded['preguntas'] ?? [];
+
+      if (list is List) {
+        return list
+            .whereType<Map>()
+            .map((item) => Map<String, dynamic>.from(item))
+            .toList();
+      }
+    }
+
+    if (decoded is List) {
+      return decoded
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
+    }
+
+    return [];
+  }
+
+  List<String> _parseOptions(dynamic options) {
+    if (options is Map<String, dynamic>) {
+      return options.entries
+          .map((entry) => '${entry.key}. ${entry.value}')
+          .toList();
+    }
+
+    if (options is List) {
+      return options.map((item) => item.toString()).toList();
+    }
+
+    return [];
+  }
+
+  String getQuestionText(Map<String, dynamic> item) {
+    return (item['question'] ??
+            item['pregunta'] ??
+            'Pregunta no disponible.')
+        .toString();
+  }
+
+  List<String> getOptions(Map<String, dynamic> item) {
+    final options = _parseOptions(
+      item['options'] ?? item['opciones'],
+    );
+
+    if (options.isNotEmpty) return options;
+
+    final answer = getCorrectAnswer(item);
+
+    if (answer.isNotEmpty) {
+      return [
+        answer,
+        'No se especifica en el documento.',
+        'Todas las anteriores.',
+        'Ninguna de las anteriores.',
+      ];
+    }
+
+    return [];
+  }
+
+  String getCorrectAnswer(Map<String, dynamic> item) {
+    return (item['correct_answer'] ??
+            item['respuesta_correcta'] ??
+            item['respuesta'] ??
+            '')
+        .toString();
+  }
+
+  String getExplanation(Map<String, dynamic> item) {
+    return (item['explanation'] ??
+            item['explicacion'] ??
+            item['justificacion'] ??
+            '')
+        .toString();
+  }
+
+  bool isCorrectSelection(String selected, String correct) {
+    final cleanSelected = normalizeAnswer(selected);
+    final cleanCorrect = normalizeAnswer(correct);
+
+    return cleanSelected.contains(cleanCorrect) ||
+        cleanCorrect.contains(cleanSelected);
+  }
+
+  String normalizeAnswer(String value) {
+    return value
+        .toLowerCase()
+        .replaceAll(RegExp(r'^[a-d]\.\s*'), '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
+  void selectAnswer(String answer) {
+    if (isAnswered) return;
+
+    setState(() {
+      selectedAnswer = answer;
+    });
+  }
+
+  void verifyAnswer() {
+    if (selectedAnswer.isEmpty || questions.isEmpty) return;
+
+    final currentQuestion = questions[currentIndex];
+    final correctAnswer = getCorrectAnswer(currentQuestion);
+    final isCorrect = isCorrectSelection(
+      selectedAnswer,
+      correctAnswer,
+    );
+
+    setState(() {
+      isAnswered = true;
+      selectedAnswers[currentIndex] = selectedAnswer;
+
+      if (isCorrect) {
+        score++;
+        correctIndexes.add(currentIndex);
+      }
+    });
+  }
+
+  void nextQuestion() {
+    if (currentIndex >= questions.length - 1) {
+      setState(() {
+        showResult = true;
+      });
+      return;
+    }
+
+    setState(() {
+      currentIndex++;
+      selectedAnswer = '';
+      isAnswered = false;
+    });
+  }
+
+  void restartQuiz() {
+    setState(() {
+      resetQuizState();
+    });
+  }
+
+  Widget buildHeader() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: AppTheme.mainGradient,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.quiz_rounded, color: Colors.white, size: 36),
+          SizedBox(height: 16),
+          Text(
+            'Examen IA',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 34,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Practica, responde y mide tu aprendizaje.',
+            style: TextStyle(
+              color: Colors.white,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildEmptyResult() {
+    if (isLoading || errorMessage.isNotEmpty || questions.isNotEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return const SectionCard(
+      child: Text(
+        'Presiona el botón para generar el examen del documento activo.',
+        style: TextStyle(
+          color: AppTheme.textSecondary,
+          height: 1.4,
+        ),
+      ),
+    );
+  }
+
+  Widget buildQuiz() {
+    if (questions.isEmpty || showResult) {
+      return const SizedBox.shrink();
+    }
+
+    final currentQuestion = questions[currentIndex];
+    final questionText = getQuestionText(currentQuestion);
+    final options = getOptions(currentQuestion);
+    final correctAnswer = getCorrectAnswer(currentQuestion);
+    final explanation = getExplanation(currentQuestion);
+
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Pregunta ${currentIndex + 1} de ${questions.length}',
+            style: const TextStyle(
+              color: AppTheme.textMuted,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 10),
+          LinearProgressIndicator(
+            value: (currentIndex + 1) / questions.length,
+            minHeight: 8,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            questionText,
+            style: const TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 21,
+              fontWeight: FontWeight.w900,
+              height: 1.35,
+            ),
+          ),
+          const SizedBox(height: 22),
+          if (options.isEmpty)
+            Text(
+              'Respuesta: $correctAnswer',
+              style: const TextStyle(
+                color: AppTheme.accent,
+                fontWeight: FontWeight.w800,
+              ),
+            )
+          else
+            ...options.map(
+              (option) => buildOptionTile(
+                option: option,
+                correctAnswer: correctAnswer,
+              ),
+            ),
+          if (isAnswered) ...[
+            const SizedBox(height: 18),
+            buildFeedback(
+              correctAnswer: correctAnswer,
+              explanation: explanation,
+            ),
+          ],
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: restartQuiz,
+                  icon: const Icon(Icons.restart_alt_rounded),
+                  label: const Text('Reiniciar'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: isAnswered ? nextQuestion : verifyAnswer,
+                  icon: Icon(
+                    isAnswered
+                        ? Icons.arrow_forward_rounded
+                        : Icons.check_rounded,
+                  ),
+                  label: Text(
+                    isAnswered
+                        ? currentIndex >= questions.length - 1
+                            ? 'Ver resultado'
+                            : 'Siguiente'
+                        : 'Verificar',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildOptionTile({
+    required String option,
+    required String correctAnswer,
+  }) {
+    final selected = selectedAnswer == option;
+    final isCorrect = isCorrectSelection(option, correctAnswer);
+
+    Color borderColor = Colors.white.withValues(alpha: 0.08);
+    Color backgroundColor = AppTheme.background.withValues(alpha: 0.4);
+    IconData icon = Icons.circle_outlined;
+
+    if (isAnswered && selected && isCorrect) {
+      borderColor = Colors.greenAccent;
+      backgroundColor = Colors.green.withValues(alpha: 0.18);
+      icon = Icons.check_circle_rounded;
+    } else if (isAnswered && selected && !isCorrect) {
+      borderColor = Colors.redAccent;
+      backgroundColor = Colors.red.withValues(alpha: 0.16);
+      icon = Icons.cancel_rounded;
+    } else if (isAnswered && isCorrect) {
+      borderColor = Colors.greenAccent;
+      backgroundColor = Colors.green.withValues(alpha: 0.10);
+      icon = Icons.check_circle_outline_rounded;
+    } else if (selected) {
+      borderColor = AppTheme.accent;
+      backgroundColor = AppTheme.accent.withValues(alpha: 0.12);
+      icon = Icons.radio_button_checked_rounded;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () => selectAnswer(option),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: borderColor,
+              width: 1.2,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                color: selected || isAnswered
+                    ? borderColor
+                    : AppTheme.textMuted,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  option,
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    height: 1.35,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildFeedback({
+    required String correctAnswer,
+    required String explanation,
+  }) {
+    final isCorrect = isCorrectSelection(
+      selectedAnswer,
+      correctAnswer,
+    );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isCorrect
+            ? Colors.green.withValues(alpha: 0.14)
+            : Colors.red.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isCorrect ? Colors.greenAccent : Colors.redAccent,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            isCorrect ? 'Correcto' : 'Incorrecto',
+            style: TextStyle(
+              color: isCorrect ? Colors.greenAccent : Colors.redAccent,
+              fontWeight: FontWeight.w900,
+              fontSize: 18,
+            ),
+          ),
+          if (!isCorrect) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Respuesta correcta: $correctAnswer',
+              style: const TextStyle(
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+          if (explanation.trim().isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              explanation,
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                height: 1.45,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget buildResult() {
+    if (!showResult || questions.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final percent = ((score / questions.length) * 100).round();
+
+    return SectionCard(
+      child: Column(
+        children: [
+          const Icon(
+            Icons.emoji_events_rounded,
+            color: AppTheme.accent,
+            size: 52,
+          ),
+          const SizedBox(height: 14),
+          const Text(
+            'Resultado final',
+            style: TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 26,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            '$score / ${questions.length}',
+            style: const TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 38,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '$percent%',
+            style: const TextStyle(
+              color: AppTheme.textMuted,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 22),
+          ElevatedButton.icon(
+            onPressed: restartQuiz,
+            icon: const Icon(Icons.restart_alt_rounded),
+            label: const Text('Repetir examen'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppTheme.background,
+      appBar: AppBar(
+        title: const Text('Examen IA'),
+      ),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(22),
+          children: [
+            buildHeader(),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: isLoading ? null : generateExam,
+              icon: const Icon(Icons.auto_awesome_rounded),
+              label: Text(
+                questions.isEmpty
+                    ? 'Generar examen'
+                    : 'Regenerar examen',
+              ),
+            ),
+            const SizedBox(height: 20),
+            buildEmptyResult(),
+            if (isLoading)
+              const SectionCard(
+                child: Row(
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        'Generando examen con IA...',
+                        style: TextStyle(
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            if (errorMessage.isNotEmpty)
+              SectionCard(
+                child: Text(
+                  errorMessage,
+                  style: const TextStyle(
+                    color: Colors.redAccent,
+                  ),
+                ),
+              ),
+            buildQuiz(),
+            buildResult(),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -1,0 +1,17 @@
+# Secrets
+.env
+.env.*
+
+# Python
+__pycache__/
+*.pyc
+
+# Audio generated
+backend/app/audio/
+
+# Flutter
+.dart_tool/
+build/
+
+# macOS
+.DS_Store
