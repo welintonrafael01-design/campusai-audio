@@ -188,17 +188,34 @@ def search_similar_chunks(
     )
 
     documents = results.get("documents", [[]])[0]
+    metadatas = results.get("metadatas", [[]])[0]
 
-    valid_documents = [
-        document.strip()
-        for document in documents
-        if document and document.strip()
-    ]
+    formatted_chunks: list[str] = []
 
-    if not valid_documents:
+    for index, document in enumerate(documents):
+        if not document or not document.strip():
+            continue
+
+        metadata = (
+            metadatas[index]
+            if index < len(metadatas)
+            else {}
+        )
+
+        chunk_index = metadata.get(
+            "chunk_index",
+            index,
+        )
+
+        formatted_chunks.append(
+            f"[FUENTE chunk={chunk_index}]\n"
+            f"{document.strip()}"
+        )
+
+    if not formatted_chunks:
         return ""
 
-    return "\n\n".join(valid_documents)
+    return "\n\n".join(formatted_chunks)
 
 
 def search_similar_chunks_multi(
@@ -254,3 +271,96 @@ def search_similar_chunks_multi(
         return ""
 
     return "\n\n---\n\n".join(valid_contexts)
+
+
+def semantic_search_all_documents(
+    query: str,
+    top_k_per_document: int = 3,
+    max_results: int = 20,
+) -> list[dict]:
+    clean_query = query.strip()
+
+    if not clean_query:
+        raise ValueError(
+            "La búsqueda está vacía."
+        )
+
+    query_embedding = embedding_function.embed_query(
+        clean_query
+    )
+
+    results: list[dict] = []
+
+    collections = client.list_collections()
+
+    for collection_info in collections:
+        collection_name = collection_info.name
+
+        if not collection_name.startswith("doc_"):
+            continue
+
+        document_id = collection_name.replace(
+            "doc_",
+            "",
+            1,
+        )
+
+        try:
+            collection = client.get_collection(
+                name=collection_name
+            )
+
+            search_result = collection.query(
+                query_embeddings=[query_embedding],
+                n_results=top_k_per_document,
+                include=[
+                    "documents",
+                    "metadatas",
+                    "distances",
+                ],
+            )
+
+            documents = search_result.get("documents", [[]])[0]
+            metadatas = search_result.get("metadatas", [[]])[0]
+            distances = search_result.get("distances", [[]])[0]
+
+            for index, document in enumerate(documents):
+                if not document or not document.strip():
+                    continue
+
+                metadata = (
+                    metadatas[index]
+                    if index < len(metadatas)
+                    else {}
+                )
+
+                distance = (
+                    distances[index]
+                    if index < len(distances)
+                    else None
+                )
+
+                results.append(
+                    {
+                        "document_id": document_id,
+                        "chunk_index": metadata.get(
+                            "chunk_index",
+                            index,
+                        ),
+                        "distance": distance,
+                        "preview": document.strip()[:700],
+                    }
+                )
+
+        except Exception:
+            continue
+
+    results.sort(
+        key=lambda item: (
+            item["distance"]
+            if item["distance"] is not None
+            else 999999
+        )
+    )
+
+    return results[:max_results]

@@ -102,6 +102,7 @@ class ApiService {
       chatWithWorkspace({
     required List<String> documentIds,
     required String question,
+    List<Map<String, String>> history = const [],
   }) async {
     final cleanDocumentIds = documentIds
         .map((item) => item.trim())
@@ -133,7 +134,10 @@ class ApiService {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: jsonEncode(cleanDocumentIds),
+          body: jsonEncode({
+            'document_ids': cleanDocumentIds,
+            'history': history,
+          }),
         )
         .timeout(timeoutDuration);
 
@@ -323,6 +327,7 @@ class ApiService {
       streamChatWithWorkspace({
     required List<String> documentIds,
     required String question,
+    List<Map<String, String>> history = const [],
   }) async* {
     final cleanDocumentIds = documentIds
         .map((item) => item.trim())
@@ -354,7 +359,10 @@ class ApiService {
     );
 
     request.headers['Content-Type'] = 'application/json';
-    request.body = jsonEncode(cleanDocumentIds);
+    request.body = jsonEncode({
+      'document_ids': cleanDocumentIds,
+      'history': history,
+    });
 
     final streamedResponse = await request
         .send()

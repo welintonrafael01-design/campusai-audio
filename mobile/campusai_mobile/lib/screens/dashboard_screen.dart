@@ -22,6 +22,7 @@ import '../widgets/dashboard/recent_documents_panel.dart';
 import '../widgets/dashboard/workspaces_panel.dart';
 import '../widgets/mini_player.dart';
 import '../widgets/sidebar.dart';
+import '../widgets/search/semantic_search_panel.dart';
 import '../widgets/dashboard/modules/dashboard_audio_section.dart';
 import '../widgets/dashboard/modules/dashboard_error_card.dart';
 import '../widgets/dashboard/modules/dashboard_processing_card.dart';
@@ -492,6 +493,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
+  void openSemanticSearchDocument(String selectedDocumentId) {
+    context.pushNamed(
+      'chat',
+      pathParameters: {
+        'documentId': selectedDocumentId,
+      },
+      queryParameters: {
+        'fileName': 'Resultado de búsqueda',
+      },
+    );
+  }
+
   void showNoActiveDocumentMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Primero sube o selecciona un documento.')),
@@ -625,6 +638,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ),
         if (fullAudioUrl.isNotEmpty) const SizedBox(height: 28),
       ],
+
+      AnimatedFadeSlide(
+        delay: const Duration(milliseconds: 240),
+        child: SemanticSearchPanel(
+          onOpenDocument: openSemanticSearchDocument,
+        ),
+      ),
+
+      const SizedBox(height: 24),
 
       AnimatedFadeSlide(
         delay: const Duration(milliseconds: 280),

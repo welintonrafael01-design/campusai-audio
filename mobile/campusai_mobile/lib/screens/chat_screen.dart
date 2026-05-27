@@ -104,6 +104,28 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
+
+
+  List<Map<String, String>>
+      buildConversationHistory() {
+    return messages
+        .take(
+          messages.length > 8
+              ? 8
+              : messages.length,
+        )
+        .map(
+          (message) => {
+            'role': message.isUser
+                ? 'user'
+                : 'assistant',
+            'content': message.text,
+          },
+        )
+        .toList();
+  }
+
+
   Future<void> askQuestion() async {
     final question = questionController.text.trim();
 
@@ -145,6 +167,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ? ApiService.streamChatWithWorkspace(
               documentIds: effectiveDocumentIds,
               question: question,
+              history: buildConversationHistory(),
             )
           : ApiService.streamChatWithDocumentId(
               documentId: widget.documentId,

@@ -46,6 +46,40 @@ def truncate_text(
     return clean[:max_characters]
 
 
+
+
+
+def build_memory_messages(
+    history: list[dict] | None,
+    max_messages: int = 8,
+) -> list[dict]:
+    if not history:
+        return []
+
+    safe_history = history[-max_messages:]
+
+    messages: list[dict] = []
+
+    for item in safe_history:
+        role = item.get("role", "")
+        content = clean_text(item.get("content", ""))
+
+        if role not in ["user", "assistant"]:
+            continue
+
+        if not content:
+            continue
+
+        messages.append(
+            {
+                "role": role,
+                "content": content[:2000],
+            }
+        )
+
+    return messages
+
+
 def generate_ai_summary(text: str) -> str:
     document_text = truncate_text(text)
 
@@ -95,6 +129,7 @@ def index_document_for_rag(text: str) -> str:
 def chat_with_document_id(
     document_id: str,
     question: str,
+    history: list[dict] | None = None,
 ) -> str:
     clean_question = clean_text(question)
 
@@ -120,6 +155,8 @@ def chat_with_document_id(
             "para responder esta pregunta."
         )
 
+    memory_messages = build_memory_messages(history)
+
     response = client.chat.completions.create(
         model=MODEL_NAME,
         messages=[
@@ -127,11 +164,15 @@ def chat_with_document_id(
                 "role": "system",
                 "content": (
                     "Eres StudyBook AI, un tutor universitario experto. "
+                    "Mantén continuidad conversacional con el estudiante. "
                     "Responde SOLO utilizando el contexto recuperado del documento. "
-                    "No inventes información. Si el documento no contiene la respuesta, "
-                    "indícalo claramente. Explica de forma académica, precisa y útil."
+                    "No inventes información. Al final incluye una sección breve titulada 'Fuentes utilizadas' usando las marcas [FUENTE chunk=...] del contexto. "
+                    "Si el documento no contiene la respuesta, indícalo claramente."
                 ),
             },
+
+            *memory_messages,
+
             {
                 "role": "user",
                 "content": (
@@ -402,7 +443,7 @@ async def stream_chat_with_document_id(
                 "content": (
                     "Eres StudyBook AI, un tutor universitario experto. "
                     "Responde SOLO utilizando el contexto recuperado "
-                    "del documento. No inventes información."
+                    "del documento. No inventes información. Al final incluye una sección breve titulada 'Fuentes utilizadas' usando las marcas [FUENTE chunk=...] del contexto."
                 ),
             },
             {
@@ -434,6 +475,7 @@ async def stream_chat_with_document_id(
 def chat_with_workspace(
     document_ids: list[str],
     question: str,
+    history: list[dict] | None = None,
 ) -> str:
     clean_question = clean_text(question)
 
@@ -454,6 +496,8 @@ def chat_with_workspace(
             "en los documentos del workspace."
         )
 
+    memory_messages = build_memory_messages(history)
+
     response = client.chat.completions.create(
         model=MODEL_NAME,
         messages=[
@@ -461,11 +505,15 @@ def chat_with_workspace(
                 "role": "system",
                 "content": (
                     "Eres StudyBook AI, un tutor universitario experto. "
+                    "Mantén continuidad conversacional con el estudiante. "
                     "Puedes combinar información de múltiples documentos "
                     "del workspace. Responde únicamente usando el contexto "
-                    "recuperado. No inventes información."
+                    "recuperado. No inventes información. Al final incluye una sección breve titulada 'Fuentes utilizadas' usando las marcas [FUENTE chunk=...] del contexto."
                 ),
             },
+
+            *memory_messages,
+
             {
                 "role": "user",
                 "content": (

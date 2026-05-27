@@ -39,6 +39,7 @@ from app.services.pdf_service import (
 
 from app.services.rag_service import (
     search_similar_chunks,
+    semantic_search_all_documents,
 )
 
 router = APIRouter(
@@ -482,6 +483,31 @@ async def stream_chat_document(
 
 
 
+
+
+
+@router.get("/semantic-search")
+async def semantic_search(
+    query: str = Query(default=""),
+):
+    try:
+        results = semantic_search_all_documents(
+            query=query,
+        )
+
+        return {
+            "query": query,
+            "count": len(results),
+            "results": results,
+        }
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
+
 @router.post("/audio")
 async def generate_audio_endpoint(
     text: str = Query(default=""),
@@ -520,11 +546,13 @@ async def generate_audio_endpoint(
 async def chat_workspace(
     document_ids: list[str] = Body(...),
     question: str = Query(default=""),
+    history: list[dict] | None = Body(default=None),
 ):
     try:
         answer = chat_with_workspace(
             document_ids=document_ids,
             question=question,
+            history=history,
         )
 
         return {
