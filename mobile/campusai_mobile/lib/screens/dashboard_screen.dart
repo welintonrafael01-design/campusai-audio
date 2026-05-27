@@ -4,16 +4,22 @@ import 'package:go_router/go_router.dart';
 
 import '../layout/responsive_layout.dart';
 import '../models/document_history.dart';
+import '../models/recent_document_model.dart';
+import '../models/workspace_model.dart';
 import '../providers/document_provider.dart';
 import '../services/api_service.dart';
 import '../services/audio_player_service.dart';
 import '../services/history_service.dart';
+import '../services/recent_documents_service.dart';
+import '../services/workspace_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_fade_slide.dart';
 import '../widgets/dashboard/dashboard_hero.dart';
 import '../widgets/dashboard/dashboard_stats.dart';
 import '../widgets/dashboard/dashboard_tools.dart';
 import '../widgets/dashboard/history_list.dart';
+import '../widgets/dashboard/recent_documents_panel.dart';
+import '../widgets/dashboard/workspaces_panel.dart';
 import '../widgets/mini_player.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/dashboard/modules/dashboard_audio_section.dart';
@@ -42,6 +48,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   String errorMessage = '';
 
   List<DocumentHistory> history = [];
+  List<RecentDocumentModel> recentDocuments = [];
+  List<WorkspaceModel> workspaces = [];
 
   Duration currentPosition = Duration.zero;
   Duration totalDuration = Duration.zero;
@@ -53,7 +61,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   void initState() {
     super.initState();
-    initializeDashboard();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      initializeDashboard();
+    });
 
     audioService.positionStream.listen((position) {
       if (!mounted) return;
@@ -73,8 +83,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Future<void> initializeDashboard() async {
-    await loadHistory();
-    await restoreActiveDocument();
+    await Future.wait([
+      loadHistory(),
+      loadRecentDocuments(),
+      loadWorkspaces(),
+      restoreActiveDocument(),
+    ]);
   }
 
   Future<void> restoreActiveDocument() async {
@@ -91,6 +105,79 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     });
 
     await ref.read(activeDocumentProvider.notifier).setDocument(activeDocument);
+  }
+
+  Future<void> loadRecentDocuments() async {
+    final documents = await RecentDocumentsService.getDocuments();
+
+    if (!mounted) return;
+
+    setState(() {
+      recentDocuments = documents;
+    });
+  }
+
+
+  Future<void> loadWorkspaces() async {
+    final data = await WorkspaceService.getWorkspaces();
+
+    if (!mounted) return;
+
+    setState(() {
+      workspaces = data;
+    });
+  }
+
+  Future<void> createWorkspace() async {
+    final workspace = WorkspaceModel(
+      workspaceId: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: 'Nuevo workspace',
+      documents: recentDocuments.take(3).toList(),
+      updatedAt: DateTime.now(),
+    );
+
+    await WorkspaceService.saveWorkspace(workspace);
+    await loadWorkspaces();
+  }
+
+  Future<void> openWorkspace(WorkspaceModel workspace) async {
+    if (workspace.documents.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Este workspace no tiene documentos.'),
+        ),
+      );
+      return;
+    }
+
+    final firstDocument = workspace.documents.first;
+
+    await openRecentDocument(firstDocument);
+
+    if (!mounted) return;
+
+    final workspaceDocumentIds = workspace.documents
+        .map((item) => item.documentId)
+        .toList();
+
+    ref
+        .read(activeWorkspaceProvider.notifier)
+        .setWorkspaceDocuments(workspaceDocumentIds);
+
+    context.pushNamed(
+      'chat',
+      pathParameters: {
+        'documentId': firstDocument.documentId,
+      },
+      queryParameters: {
+        'fileName': firstDocument.fileName,
+      },
+    );
+  }
+
+  Future<void> deleteWorkspace(WorkspaceModel workspace) async {
+    await WorkspaceService.removeWorkspace(workspace.workspaceId);
+    await loadWorkspaces();
   }
 
   Future<void> loadHistory() async {
@@ -139,8 +226,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
       await HistoryService.saveDocument(document);
       await HistoryService.saveActiveDocument(document);
+      await RecentDocumentsService.saveDocument(
+        RecentDocumentModel(
+          documentId: document.documentId,
+          fileName: document.fileName,
+          summary: document.summary,
+          audioUrl: document.audioUrl,
+          lastOpenedAt: DateTime.now(),
+        ),
+      );
       await ref.read(activeDocumentProvider.notifier).setDocument(document);
       await loadHistory();
+    await loadRecentDocuments();
     } catch (error) {
       if (!mounted) return;
 
@@ -256,6 +353,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     });
 
     await HistoryService.saveActiveDocument(item);
+    await RecentDocumentsService.saveDocument(
+      RecentDocumentModel(
+        documentId: item.documentId,
+        fileName: item.fileName,
+        summary: item.summary,
+        audioUrl: item.audioUrl,
+        lastOpenedAt: DateTime.now(),
+      ),
+    );
     await ref.read(activeDocumentProvider.notifier).setDocument(item);
 
     if (!mounted) return;
@@ -265,9 +371,68 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
+  Future<void> openRecentDocument(
+    RecentDocumentModel document,
+  ) async {
+    final historyItem = DocumentHistory(
+      documentId: document.documentId,
+      fileName: document.fileName,
+      summary: document.summary,
+      audioUrl: document.audioUrl,
+      createdAt: document.lastOpenedAt.toIso8601String(),
+    );
+
+    await HistoryService.saveActiveDocument(historyItem);
+    await RecentDocumentsService.saveDocument(
+      document.copyWith(
+        lastOpenedAt: DateTime.now(),
+      ),
+    );
+
+    await ref.read(activeDocumentProvider.notifier).setDocument(historyItem);
+
+    if (!mounted) return;
+
+    setState(() {
+      documentId = document.documentId;
+      fileName = document.fileName;
+      summary = document.summary;
+      audioUrl = document.audioUrl;
+    });
+
+    await loadRecentDocuments();
+  }
+
+  Future<void> deleteRecentDocument(
+    RecentDocumentModel document,
+  ) async {
+    await RecentDocumentsService.removeDocument(document.documentId);
+
+    final currentWorkspaces = await WorkspaceService.getWorkspaces();
+
+    for (final workspace in currentWorkspaces) {
+      final updatedDocuments = workspace.documents
+          .where((item) => item.documentId != document.documentId)
+          .toList();
+
+      await WorkspaceService.saveWorkspace(
+        WorkspaceModel(
+          workspaceId: workspace.workspaceId,
+          name: workspace.name,
+          documents: updatedDocuments,
+          updatedAt: DateTime.now(),
+        ),
+      );
+    }
+
+    await loadRecentDocuments();
+    await loadWorkspaces();
+  }
+
   Future<void> deleteHistoryItem(int index) async {
     await HistoryService.deleteDocument(index);
     await loadHistory();
+    await loadRecentDocuments();
 
     final activeDocument = await HistoryService.getActiveDocument();
 
@@ -462,7 +627,30 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       ],
 
       AnimatedFadeSlide(
+        delay: const Duration(milliseconds: 280),
+        child: WorkspacesPanel(
+          workspaces: workspaces,
+          onCreateWorkspace: createWorkspace,
+          onOpenWorkspace: openWorkspace,
+          onDeleteWorkspace: deleteWorkspace,
+        ),
+      ),
+
+      const SizedBox(height: 24),
+
+      AnimatedFadeSlide(
         delay: const Duration(milliseconds: 320),
+        child: RecentDocumentsPanel(
+          documents: recentDocuments,
+          onOpen: openRecentDocument,
+          onDelete: deleteRecentDocument,
+        ),
+      ),
+
+      if (recentDocuments.isNotEmpty) const SizedBox(height: 24),
+
+      AnimatedFadeSlide(
+        delay: const Duration(milliseconds: 360),
         child: HistoryList(
           history: history,
           clearHistory: clearAllHistory,

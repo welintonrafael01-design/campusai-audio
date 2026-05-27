@@ -199,3 +199,58 @@ def search_similar_chunks(
         return ""
 
     return "\n\n".join(valid_documents)
+
+
+def search_similar_chunks_multi(
+    document_ids: list[str],
+    question: str,
+    top_k_per_document: int = 4,
+) -> str:
+    clean_question = question.strip()
+
+    if not clean_question:
+        raise ValueError(
+            "La pregunta está vacía."
+        )
+
+    clean_document_ids = [
+        document_id.strip()
+        for document_id in document_ids
+        if document_id and document_id.strip()
+    ]
+
+    if not clean_document_ids:
+        raise ValueError(
+            "No se recibieron documentos válidos."
+        )
+
+    contexts: list[str] = []
+
+    for document_id in clean_document_ids:
+        try:
+            context = search_similar_chunks(
+                document_id=document_id,
+                question=clean_question,
+                top_k=top_k_per_document,
+            )
+
+            if context.strip():
+                contexts.append(
+                    f"[Documento {document_id}]\n{context}"
+                )
+
+        except Exception as error:
+            contexts.append(
+                f"[Documento {document_id}]\nNo se pudo recuperar contexto: {error}"
+            )
+
+    valid_contexts = [
+        context
+        for context in contexts
+        if context.strip()
+    ]
+
+    if not valid_contexts:
+        return ""
+
+    return "\n\n---\n\n".join(valid_contexts)

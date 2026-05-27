@@ -44,3 +44,41 @@ class ActiveDocumentNotifier
       state != null &&
       state!.documentId.trim().isNotEmpty;
 }
+
+final activeWorkspaceProvider =
+    StateNotifierProvider<
+      ActiveWorkspaceNotifier,
+      List<String>
+    >(
+  (ref) => ActiveWorkspaceNotifier(),
+);
+
+class ActiveWorkspaceNotifier
+    extends StateNotifier<List<String>> {
+  ActiveWorkspaceNotifier() : super([]);
+
+  void setWorkspaceDocuments(
+    List<String> documentIds,
+  ) {
+    state = documentIds
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toSet()
+        .toList();
+  }
+
+  void removeDocument(
+    String documentId,
+  ) {
+    state = state
+        .where((item) => item != documentId)
+        .toList();
+  }
+
+  void clearWorkspace() {
+    state = [];
+  }
+
+  bool get hasWorkspace =>
+      state.length > 1;
+}

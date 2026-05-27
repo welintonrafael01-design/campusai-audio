@@ -7,6 +7,7 @@ from fastapi.responses import StreamingResponse
 
 from fastapi import (
     APIRouter,
+    Body,
     File,
     HTTPException,
     Query,
@@ -16,6 +17,7 @@ from fastapi import (
 from app.services.ai_service import (
     chat_with_document,
     chat_with_document_id,
+    chat_with_workspace,
     generate_ai_summary,
     generate_exam_questions,
     generate_exam_questions_from_context,
@@ -23,6 +25,7 @@ from app.services.ai_service import (
     generate_flashcards_from_context,
     index_document_for_rag,
     stream_chat_with_document_id,
+    stream_chat_with_workspace,
 )
 
 from app.services.audio_service import (
@@ -514,6 +517,74 @@ async def generate_audio_endpoint(
 
     except Exception as error:
         print(f"[AUDIO] error after {time.perf_counter() - start_time:.2f}s: {error}")
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
+
+
+@router.post("/chat-workspace")
+async def chat_workspace(
+    document_ids: list[str] = Body(...),
+    question: str = Query(default=""),
+):
+    try:
+        answer = chat_with_workspace(
+            document_ids=document_ids,
+            question=question,
+        )
+
+        return {
+            "answer": answer,
+            "document_count": len(document_ids),
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
+
+@router.post("/chat-workspace-stream")
+async def stream_chat_workspace(
+    document_ids: list[str] = Body(...),
+    question: str = Query(default=""),
+):
+    try:
+        async def event_generator():
+            full_response = ""
+
+            async for chunk in stream_chat_with_workspace(
+                document_ids=document_ids,
+                question=question,
+            ):
+                full_response += chunk
+
+            words = full_response.split()
+
+            for word in words:
+                yield word + " "
+                await asyncio.sleep(0.035)
+
+        return StreamingResponse(
+            event_generator(),
+            media_type="text/plain; charset=utf-8",
+            headers={
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",
+                "Connection": "keep-alive",
+            },
+        )
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
         raise HTTPException(
             status_code=500,
             detail=str(error),

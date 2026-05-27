@@ -92,6 +92,54 @@ class ApiService {
 
   
 
+
+
+  // =========================
+  // WORKSPACE CHAT
+  // =========================
+
+  static Future<Map<String, dynamic>>
+      chatWithWorkspace({
+    required List<String> documentIds,
+    required String question,
+  }) async {
+    final cleanDocumentIds = documentIds
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList();
+
+    if (cleanDocumentIds.isEmpty) {
+      throw Exception(
+        'El workspace no tiene documentos válidos.',
+      );
+    }
+
+    final cleanQuestion = requireValue(
+      question,
+      'La pregunta no puede estar vacía.',
+    );
+
+    final uri = Uri.parse(
+      '$baseUrl/documents/chat-workspace',
+    ).replace(
+      queryParameters: {
+        'question': cleanQuestion,
+      },
+    );
+
+    final response = await http
+        .post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode(cleanDocumentIds),
+        )
+        .timeout(timeoutDuration);
+
+    return decodeResponse(response);
+  }
+
   // =========================
   // STREAM CHAT
   // =========================

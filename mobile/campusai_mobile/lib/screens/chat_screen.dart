@@ -1,52 +1,64 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../layout/responsive_layout.dart';
 import '../models/chat_message_model.dart';
+import '../providers/document_provider.dart';
 import '../services/api_service.dart';
+import '../services/chat_history_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/chat/chat_input.dart';
 import '../widgets/chat/chat_messages.dart';
 import '../widgets/sidebar.dart';
 
-class ChatScreen extends StatefulWidget {
+class ChatScreen extends ConsumerStatefulWidget {
   final String documentId;
   final String fileName;
+  final List<String> workspaceDocumentIds;
 
   const ChatScreen({
     super.key,
     required this.documentId,
     required this.fileName,
+    this.workspaceDocumentIds = const [],
   });
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  ConsumerState<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController questionController = TextEditingController();
 
   bool isLoading = false;
   String errorMessage = '';
   Timer? fakeStreamTimer;
 
-  final List<ChatMessageModel> messages = [];
+  List<ChatMessageModel> messages = [];
+
+  List<String> get activeWorkspaceIds {
+    final providerIds = ref.read(activeWorkspaceProvider);
+
+    if (providerIds.isNotEmpty) {
+      return providerIds;
+    }
+
+    if (widget.workspaceDocumentIds.isNotEmpty) {
+      return widget.workspaceDocumentIds;
+    }
+
+    return [widget.documentId];
+  }
+
+  bool get isWorkspaceChat => activeWorkspaceIds.length > 1;
+
+  List<String> get effectiveDocumentIds => activeWorkspaceIds;
 
   @override
   void initState() {
     super.initState();
-    initializeChat();
-  }
-
-  void initializeChat() {
-    messages.add(
-      ChatMessageModel(
-        text:
-            'Hola. Soy StudyBook AI.\n\nEstoy listo para ayudarte a comprender el documento "${widget.fileName}".\n\nPuedes hacer preguntas, pedir explicaciones, resúmenes, conceptos clave o análisis académicos.',
-        isUser: false,
-        createdAt: DateTime.now(),
-      ),
-    );
+    loadChatHistory();
   }
 
   @override
@@ -54,6 +66,42 @@ class _ChatScreenState extends State<ChatScreen> {
     fakeStreamTimer?.cancel();
     questionController.dispose();
     super.dispose();
+  }
+
+
+  Future<void> loadChatHistory() async {
+    final savedMessages =
+        await ChatHistoryService.loadMessages(
+      documentId: widget.documentId,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      messages.clear();
+
+      if (savedMessages.isEmpty) {
+        messages.add(
+          ChatMessageModel(
+            text:
+                isWorkspaceChat
+                    ? 'Hola. Soy StudyBook AI.\n\nEstoy listo para ayudarte a estudiar este workspace con ${widget.workspaceDocumentIds.length} documentos.\n\nPuedes pedir comparaciones, síntesis cruzadas o análisis combinados.'
+                    : 'Hola. Soy StudyBook AI.\n\nEstoy listo para ayudarte a comprender el documento "${widget.fileName}".\n\nPuedes hacer preguntas, pedir explicaciones, resúmenes, conceptos clave o análisis académicos.',
+            isUser: false,
+            createdAt: DateTime.now(),
+          ),
+        );
+      } else {
+        messages.addAll(savedMessages);
+      }
+    });
+  }
+
+  Future<void> persistChat() async {
+    await ChatHistoryService.saveMessages(
+      documentId: widget.documentId,
+      messages: messages,
+    );
   }
 
   Future<void> askQuestion() async {
@@ -77,11 +125,18 @@ class _ChatScreenState extends State<ChatScreen> {
 
     questionController.clear();
 
+    await persistChat();
+
     try {
-      final data = await ApiService.chatWithDocumentId(
-        documentId: widget.documentId,
-        question: question,
-      );
+      final data = isWorkspaceChat
+          ? await ApiService.chatWithWorkspace(
+              documentIds: effectiveDocumentIds,
+              question: question,
+            )
+          : await ApiService.chatWithDocumentId(
+              documentId: widget.documentId,
+              question: question,
+            );
 
       final response = cleanMarkdown(
         data['answer'] ?? 'No se recibió respuesta.',
@@ -90,6 +145,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (!mounted) return;
 
       await renderFakeStreaming(response);
+      await persistChat();
     } catch (error) {
       if (!mounted) return;
 
@@ -104,6 +160,8 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         );
       });
+
+      await persistChat();
     } finally {
       if (mounted) {
         setState(() {
@@ -225,8 +283,10 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Chat IA contextual',
+                Text(
+                  isWorkspaceChat
+                      ? 'Chat IA de workspace'
+                      : 'Chat IA contextual',
                   style: TextStyle(
                     color: Colors.white70,
                     fontSize: 13,
@@ -306,8 +366,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'RAG activo para responder con base en el documento seleccionado.',
+                Text(
+                  isWorkspaceChat
+                      ? 'RAG activo sobre múltiples documentos del workspace.'
+                      : 'RAG activo para responder con base en el documento seleccionado.',
                   style: TextStyle(
                     color: AppTheme.textMuted,
                     height: 1.4,

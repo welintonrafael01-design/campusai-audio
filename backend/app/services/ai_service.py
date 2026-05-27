@@ -4,6 +4,7 @@ from openai import OpenAI
 from app.services.rag_service import (
     store_document_embeddings,
     search_similar_chunks,
+    search_similar_chunks_multi,
 )
 
 import json
@@ -402,6 +403,117 @@ async def stream_chat_with_document_id(
                     "Eres StudyBook AI, un tutor universitario experto. "
                     "Responde SOLO utilizando el contexto recuperado "
                     "del documento. No inventes información."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    "Contexto recuperado:\n\n"
+                    f"{relevant_context}\n\n"
+                    "Pregunta:\n"
+                    f"{clean_question}"
+                ),
+            },
+        ],
+        temperature=0.3,
+        stream=True,
+    )
+
+    for chunk in stream:
+        delta = (
+            chunk.choices[0]
+            .delta
+            .content
+        )
+
+        if delta:
+            yield delta
+
+
+
+def chat_with_workspace(
+    document_ids: list[str],
+    question: str,
+) -> str:
+    clean_question = clean_text(question)
+
+    if not clean_question:
+        raise ValueError(
+            "La pregunta está vacía."
+        )
+
+    relevant_context = search_similar_chunks_multi(
+        document_ids=document_ids,
+        question=clean_question,
+        top_k_per_document=4,
+    )
+
+    if not relevant_context.strip():
+        return (
+            "No se encontró contexto suficiente "
+            "en los documentos del workspace."
+        )
+
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Eres StudyBook AI, un tutor universitario experto. "
+                    "Puedes combinar información de múltiples documentos "
+                    "del workspace. Responde únicamente usando el contexto "
+                    "recuperado. No inventes información."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    "Contexto recuperado del workspace:\n\n"
+                    f"{relevant_context}\n\n"
+                    "Pregunta del estudiante:\n"
+                    f"{clean_question}"
+                ),
+            },
+        ],
+        temperature=0.3,
+    )
+
+    return response.choices[0].message.content.strip()
+
+
+async def stream_chat_with_workspace(
+    document_ids: list[str],
+    question: str,
+):
+    clean_question = clean_text(question)
+
+    if not clean_question:
+        raise ValueError(
+            "La pregunta está vacía."
+        )
+
+    relevant_context = search_similar_chunks_multi(
+        document_ids=document_ids,
+        question=clean_question,
+        top_k_per_document=4,
+    )
+
+    if not relevant_context.strip():
+        yield (
+            "No se encontró contexto suficiente "
+            "en el workspace."
+        )
+        return
+
+    stream = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Eres StudyBook AI, un tutor experto "
+                    "capaz de combinar múltiples documentos."
                 ),
             },
             {

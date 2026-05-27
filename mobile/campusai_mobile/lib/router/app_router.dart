@@ -28,11 +28,21 @@ final appRouter = GoRouter(
         final fileName =
             state.uri.queryParameters['fileName'] ?? 'Documento activo';
 
+        final workspaceIdsRaw =
+            state.uri.queryParameters['workspaceIds'] ?? '';
+
+        final workspaceDocumentIds = workspaceIdsRaw
+            .split(',')
+            .map((item) => item.trim())
+            .where((item) => item.isNotEmpty)
+            .toList();
+
         return _buildPage(
           state: state,
           child: ChatScreen(
             documentId: documentId,
             fileName: fileName,
+            workspaceDocumentIds: workspaceDocumentIds,
           ),
         );
       },
