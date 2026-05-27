@@ -313,6 +313,69 @@ class ApiService {
     return '$baseUrl/$cleanAudioUrl';
   }
 
+
+
+  // =========================
+  // REAL STREAM CHAT
+  // =========================
+
+  static Stream<String>
+      streamChatWithWorkspace({
+    required List<String> documentIds,
+    required String question,
+  }) async* {
+    final cleanDocumentIds = documentIds
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList();
+
+    if (cleanDocumentIds.isEmpty) {
+      throw Exception(
+        'El workspace no tiene documentos válidos.',
+      );
+    }
+
+    final cleanQuestion = requireValue(
+      question,
+      'La pregunta no puede estar vacía.',
+    );
+
+    final uri = Uri.parse(
+      '$baseUrl/documents/chat-workspace-stream',
+    ).replace(
+      queryParameters: {
+        'question': cleanQuestion,
+      },
+    );
+
+    final request = http.Request(
+      'POST',
+      uri,
+    );
+
+    request.headers['Content-Type'] = 'application/json';
+    request.body = jsonEncode(cleanDocumentIds);
+
+    final streamedResponse = await request
+        .send()
+        .timeout(timeoutDuration);
+
+    if (streamedResponse.statusCode < 200 ||
+        streamedResponse.statusCode >= 300) {
+      final body = await streamedResponse.stream.bytesToString();
+
+      throw Exception(
+        'Error del servidor: $body',
+      );
+    }
+
+    await for (final chunk in streamedResponse.stream.transform(
+      utf8.decoder,
+    )) {
+      yield chunk;
+    }
+  }
+
   // =========================
   // PICK PDF
   // =========================

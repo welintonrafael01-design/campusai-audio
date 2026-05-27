@@ -128,23 +128,64 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     await persistChat();
 
     try {
-      final data = isWorkspaceChat
-          ? await ApiService.chatWithWorkspace(
+      setState(() {
+        messages.add(
+          ChatMessageModel(
+            text: '',
+            isUser: false,
+            createdAt: DateTime.now(),
+            isStreaming: true,
+          ),
+        );
+      });
+
+      final responseIndex = messages.length - 1;
+
+      final stream = isWorkspaceChat
+          ? ApiService.streamChatWithWorkspace(
               documentIds: effectiveDocumentIds,
               question: question,
             )
-          : await ApiService.chatWithDocumentId(
+          : ApiService.streamChatWithDocumentId(
               documentId: widget.documentId,
               question: question,
             );
 
-      final response = cleanMarkdown(
-        data['answer'] ?? 'No se recibió respuesta.',
-      );
+      await for (final chunk in stream) {
+        if (!mounted) return;
+
+        final cleanedChunk = cleanMarkdown(chunk);
+
+        for (final character in cleanedChunk.characters) {
+          if (!mounted) return;
+
+          setState(() {
+            final current = messages[responseIndex];
+
+            messages[responseIndex] =
+                current.copyWith(
+              text: current.text + character,
+              isStreaming: true,
+            );
+          });
+
+          await Future.delayed(
+            const Duration(milliseconds: 5),
+          );
+        }
+      }
 
       if (!mounted) return;
 
-      await renderFakeStreaming(response);
+      setState(() {
+        final current = messages[responseIndex];
+
+        messages[responseIndex] =
+            current.copyWith(
+          isStreaming: false,
+        );
+      });
+
       await persistChat();
     } catch (error) {
       if (!mounted) return;

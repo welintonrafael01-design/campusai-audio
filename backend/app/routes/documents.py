@@ -455,19 +455,11 @@ async def stream_chat_document(
 ):
     try:
         async def event_generator():
-            full_response = ""
-
             async for chunk in stream_chat_with_document_id(
                 document_id=document_id,
                 question=question,
             ):
-                full_response += chunk
-
-            words = full_response.split()
-
-            for word in words:
-                yield word + " "
-                await asyncio.sleep(0.035)
+                yield chunk
 
         return StreamingResponse(
             event_generator(),
@@ -557,19 +549,11 @@ async def stream_chat_workspace(
 ):
     try:
         async def event_generator():
-            full_response = ""
-
             async for chunk in stream_chat_with_workspace(
                 document_ids=document_ids,
                 question=question,
             ):
-                full_response += chunk
-
-            words = full_response.split()
-
-            for word in words:
-                yield word + " "
-                await asyncio.sleep(0.035)
+                yield chunk
 
         return StreamingResponse(
             event_generator(),
