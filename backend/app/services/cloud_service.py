@@ -86,15 +86,17 @@ def list_documents(
 
 
 def create_chat(
-    workspace_id: str,
+    workspace_id: str | None = None,
     title: str = "Nuevo chat",
 ) -> dict:
     client = get_supabase_client()
 
     payload = {
-        "workspace_id": workspace_id,
         "title": title,
     }
+
+    if workspace_id:
+        payload["workspace_id"] = workspace_id
 
     response = (
         client
@@ -132,6 +134,36 @@ def save_message(
 def list_messages(
     chat_id: str,
 ) -> list[dict]:
+    client = get_supabase_client()
+
+    response = (
+        client
+        .table("messages")
+        .select("*")
+        .eq("chat_id", chat_id)
+        .order("created_at")
+        .execute()
+    )
+
+    return response.data
+
+
+
+def list_chats() -> list[dict]:
+    client = get_supabase_client()
+
+    response = (
+        client
+        .table("chats")
+        .select("*")
+        .order("created_at", desc=True)
+        .execute()
+    )
+
+    return response.data
+
+
+def get_chat_messages(chat_id: str) -> list[dict]:
     client = get_supabase_client()
 
     response = (

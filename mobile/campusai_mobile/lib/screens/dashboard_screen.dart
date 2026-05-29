@@ -21,6 +21,7 @@ import '../widgets/dashboard/dashboard_tools.dart';
 import '../widgets/dashboard/history_list.dart';
 import '../widgets/dashboard/recent_documents_panel.dart';
 import '../widgets/dashboard/workspaces_panel.dart';
+import '../widgets/dashboard/cloud_chats_panel.dart';
 import '../widgets/mini_player.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/search/semantic_search_panel.dart';
@@ -155,6 +156,35 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     await WorkspaceService.saveWorkspace(workspace);
     await loadWorkspaces();
+  }
+
+  Future<void> openCloudChat(Map<String, dynamic> chat) async {
+    final chatId = chat['id'] ?? '';
+    final documentId = chat['document_id'] ?? '';
+    final title = chat['title'] ?? 'Conversación cloud';
+
+    if (chatId.toString().isEmpty ||
+        documentId.toString().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Esta conversación no tiene documento asociado.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    context.pushNamed(
+      'chat',
+      pathParameters: {
+        'documentId': documentId.toString(),
+      },
+      queryParameters: {
+        'fileName': title.toString(),
+        'cloudChatId': chatId.toString(),
+      },
+    );
   }
 
   Future<void> openWorkspace(WorkspaceModel workspace) async {
@@ -685,7 +715,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ),
       ),
 
-      if (recentDocuments.isNotEmpty) const SizedBox(height: 24),
+      const SizedBox(height: 24),
+
+      AnimatedFadeSlide(
+        delay: const Duration(milliseconds: 340),
+        child: CloudChatsPanel(
+          onOpenChat: openCloudChat,
+        ),
+      ),
+
+      const SizedBox(height: 24),
 
       AnimatedFadeSlide(
         delay: const Duration(milliseconds: 360),

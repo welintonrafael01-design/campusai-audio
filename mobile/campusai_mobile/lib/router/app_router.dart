@@ -43,6 +43,9 @@ final appRouter = GoRouter(
         final fileName =
             state.uri.queryParameters['fileName'] ?? 'Documento activo';
 
+        final cloudChatId =
+            state.uri.queryParameters['cloudChatId'] ?? '';
+
         final workspaceIdsRaw =
             state.uri.queryParameters['workspaceIds'] ?? '';
 
@@ -58,6 +61,7 @@ final appRouter = GoRouter(
             documentId: documentId,
             fileName: fileName,
             workspaceDocumentIds: workspaceDocumentIds,
+            cloudChatId: cloudChatId,
           ),
         );
       },

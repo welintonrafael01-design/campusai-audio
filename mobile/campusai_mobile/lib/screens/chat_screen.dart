@@ -16,12 +16,14 @@ import '../widgets/sidebar.dart';
 class ChatScreen extends ConsumerStatefulWidget {
   final String documentId;
   final String fileName;
+  final String cloudChatId;
   final List<String> workspaceDocumentIds;
 
   const ChatScreen({
     super.key,
     required this.documentId,
     required this.fileName,
+    this.cloudChatId = '',
     this.workspaceDocumentIds = const [],
   });
 
@@ -72,16 +74,47 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
 
   Future<void> loadChatHistory() async {
-    final savedMessages =
-        await ChatHistoryService.loadMessages(
-      documentId: widget.documentId,
-    );
+    List<ChatMessageModel> savedMessages = [];
+
+    if (widget.cloudChatId.trim().isNotEmpty) {
+      try {
+        final cloudMessages =
+            await CloudApiService.getChatMessages(
+          chatId: widget.cloudChatId,
+        );
+
+        savedMessages = cloudMessages.map((item) {
+          final map =
+              Map<String, dynamic>.from(item as Map);
+
+          return ChatMessageModel(
+            text: map['content'] ?? '',
+            isUser: map['role'] == 'user',
+            createdAt: DateTime.tryParse(
+                  map['created_at'] ?? '',
+                ) ??
+                DateTime.now(),
+          );
+        }).toList();
+
+        cloudChatId = widget.cloudChatId;
+      } catch (error) {
+        debugPrint(
+          'No se pudo cargar historial cloud: $error',
+        );
+      }
+    }
+
+    if (savedMessages.isEmpty) {
+      savedMessages =
+          await ChatHistoryService.loadMessages(
+        documentId: widget.documentId,
+      );
+    }
 
     if (!mounted) return;
 
-    debugPrint('STEP 4: Creando mensaje IA');
-
-      setState(() {
+    setState(() {
       messages.clear();
 
       if (savedMessages.isEmpty) {
@@ -136,10 +169,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     debugPrint('STEP 1: Entrando a askQuestion');
     try {
-      final workspaceId = widget.documentId;
-
       final cloudChat = await CloudApiService.createChat(
-        workspaceId: workspaceId,
+        documentId: widget.documentId,
         title: widget.fileName,
       );
 
@@ -193,6 +224,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     questionController.clear();
 
     await persistChat();
+
+    unawaited(
+      saveCloudMessage(
+        role: 'user',
+        content: question,
+      ),
+    );
 
     try {
       debugPrint('STEP 2: Antes de llamar API');
@@ -272,6 +310,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           citations: citations,
         );
       });
+
+      unawaited(
+        saveCloudMessage(
+          role: 'assistant',
+          content: messages[responseIndex].text,
+        ),
+      );
 
       await persistChat();
     } catch (error) {

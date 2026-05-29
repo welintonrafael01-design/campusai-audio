@@ -94,7 +94,8 @@ class CloudApiService {
 
   static Future<Map<String, dynamic>>
       createChat({
-    required String workspaceId,
+    String? workspaceId,
+    String? documentId,
     String title = 'Nuevo chat',
   }) async {
     final response = await http.post(
@@ -105,7 +106,10 @@ class CloudApiService {
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
-        'workspace_id': workspaceId,
+        if (workspaceId != null && workspaceId.isNotEmpty)
+          'workspace_id': workspaceId,
+        if (documentId != null && documentId.isNotEmpty)
+          'document_id': documentId,
         'title': title,
       }),
     );
@@ -152,6 +156,36 @@ class CloudApiService {
 
     final data =
         ApiService.decodeResponse(response);
+
+    return data['messages'] ?? [];
+  }
+
+
+
+  static Future<List<dynamic>> getChats() async {
+    final response = await http.get(
+      Uri.parse(
+        '${ApiService.baseUrl}/cloud/chats',
+      ),
+    );
+
+    final data = ApiService.decodeResponse(response);
+
+    return data['chats'] ?? [];
+  }
+
+
+
+  static Future<List<dynamic>> getChatMessages({
+    required String chatId,
+  }) async {
+    final response = await http.get(
+      Uri.parse(
+        '${ApiService.baseUrl}/cloud/chats/$chatId/messages',
+      ),
+    );
+
+    final data = ApiService.decodeResponse(response);
 
     return data['messages'] ?? [];
   }

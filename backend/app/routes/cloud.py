@@ -7,8 +7,10 @@ from app.services.cloud_service import (
     create_document,
     list_documents,
     create_chat,
+    list_chats,
     save_message,
     list_messages,
+    get_chat_messages,
 )
 
 
@@ -32,7 +34,8 @@ class DocumentCreate(BaseModel):
 
 
 class ChatCreate(BaseModel):
-    workspace_id: str
+    workspace_id: str | None = None
+    document_id: str | None = None
     title: str = "Nuevo chat"
 
 
@@ -116,6 +119,36 @@ async def create_chat_endpoint(
             workspace_id=payload.workspace_id,
             title=payload.title,
         )
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
+
+@router.get("/chats")
+async def list_chats_endpoint():
+    try:
+        return {
+            "chats": list_chats(),
+        }
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
+
+@router.get("/chats/{chat_id}/messages")
+async def get_chat_messages_endpoint(
+    chat_id: str,
+):
+    try:
+        return {
+            "messages": get_chat_messages(
+                chat_id=chat_id,
+            ),
+        }
     except Exception as error:
         raise HTTPException(
             status_code=500,
