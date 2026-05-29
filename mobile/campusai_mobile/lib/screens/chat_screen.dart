@@ -7,6 +7,7 @@ import '../models/chat_message_model.dart';
 import '../providers/document_provider.dart';
 import '../services/api_service.dart';
 import '../services/chat_history_service.dart';
+import '../services/cloud_api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/chat/chat_input.dart';
 import '../widgets/chat/chat_messages.dart';
@@ -33,6 +34,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   bool isLoading = false;
   String errorMessage = '';
+  String cloudChatId = '';
   Timer? fakeStreamTimer;
 
   List<ChatMessageModel> messages = [];
@@ -77,7 +79,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     if (!mounted) return;
 
-    setState(() {
+    debugPrint('STEP 4: Creando mensaje IA');
+
+      setState(() {
       messages.clear();
 
       if (savedMessages.isEmpty) {
@@ -126,6 +130,47 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
 
+
+  Future<void> ensureCloudChat() async {
+    if (cloudChatId.isNotEmpty) return;
+
+    debugPrint('STEP 1: Entrando a askQuestion');
+    try {
+      final workspaceId = widget.documentId;
+
+      final cloudChat = await CloudApiService.createChat(
+        workspaceId: workspaceId,
+        title: widget.fileName,
+      );
+
+      cloudChatId = cloudChat['id'] ?? '';
+    } catch (error) {
+      debugPrint('No se pudo crear chat cloud: $error');
+    }
+  }
+
+  Future<void> saveCloudMessage({
+    required String role,
+    required String content,
+  }) async {
+    if (content.trim().isEmpty) return;
+
+    await ensureCloudChat();
+
+    if (cloudChatId.isEmpty) return;
+
+    try {
+      await CloudApiService.saveMessage(
+        chatId: cloudChatId,
+        role: role,
+        content: content,
+      );
+    } catch (error) {
+      debugPrint('No se pudo guardar mensaje cloud: $error');
+    }
+  }
+
+
   Future<void> askQuestion() async {
     final question = questionController.text.trim();
 
@@ -150,6 +195,39 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     await persistChat();
 
     try {
+      debugPrint('STEP 2: Antes de llamar API');
+
+      final data = isWorkspaceChat
+          ? await ApiService.chatWithWorkspace(
+              documentIds: effectiveDocumentIds,
+              question: question,
+              history: buildConversationHistory(),
+            )
+          : await ApiService.chatWithDocumentId(
+              documentId: widget.documentId,
+              question: question,
+            );
+
+      debugPrint('STEP 3: Respuesta recibida');
+
+      final response = cleanMarkdown(
+        data['answer'] ?? 'No se recibió respuesta.',
+      );
+
+      final rawCitations = data['citations'];
+
+      final citations = rawCitations is List
+          ? rawCitations
+              .whereType<Map>()
+              .map(
+                (citation) =>
+                    ChatCitationModel.fromMap(
+                  Map<String, dynamic>.from(citation),
+                ),
+              )
+              .toList()
+          : <ChatCitationModel>[];
+
       setState(() {
         messages.add(
           ChatMessageModel(
@@ -157,45 +235,30 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             isUser: false,
             createdAt: DateTime.now(),
             isStreaming: true,
+            citations: citations,
           ),
         );
       });
 
       final responseIndex = messages.length - 1;
 
-      final stream = isWorkspaceChat
-          ? ApiService.streamChatWithWorkspace(
-              documentIds: effectiveDocumentIds,
-              question: question,
-              history: buildConversationHistory(),
-            )
-          : ApiService.streamChatWithDocumentId(
-              documentId: widget.documentId,
-              question: question,
-            );
-
-      await for (final chunk in stream) {
+      for (final character in response.characters) {
         if (!mounted) return;
 
-        final cleanedChunk = cleanMarkdown(chunk);
+        setState(() {
+          final current = messages[responseIndex];
 
-        for (final character in cleanedChunk.characters) {
-          if (!mounted) return;
-
-          setState(() {
-            final current = messages[responseIndex];
-
-            messages[responseIndex] =
-                current.copyWith(
-              text: current.text + character,
-              isStreaming: true,
-            );
-          });
-
-          await Future.delayed(
-            const Duration(milliseconds: 5),
+          messages[responseIndex] =
+              current.copyWith(
+            text: current.text + character,
+            isStreaming: true,
+            citations: citations,
           );
-        }
+        });
+
+        await Future.delayed(
+          const Duration(milliseconds: 5),
+        );
       }
 
       if (!mounted) return;
@@ -206,6 +269,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         messages[responseIndex] =
             current.copyWith(
           isStreaming: false,
+          citations: citations,
         );
       });
 
@@ -358,15 +422,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  widget.fileName,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 19,
-                    fontWeight: FontWeight.w900,
-                    height: 1.25,
+                Tooltip(
+                  message: widget.fileName,
+                  child: Text(
+                    widget.fileName,
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      height: 1.2,
+                    ),
                   ),
                 ),
               ],

@@ -24,6 +24,23 @@ class ChatBubble extends StatelessWidget {
     return '$hour:$minute';
   }
 
+  String cleanVisibleText() {
+    return text
+        .replaceAll(
+          RegExp(r'\[FUENTE document=[^\s\]]+ chunk=\d+\]'),
+          '',
+        )
+        .replaceAll(
+          RegExp(r'\[FUENTE chunk=\d+\]'),
+          '',
+        )
+        .replaceAll(
+          RegExp(r'Fuentes utilizadas\s*\n\s*[-•]?\s*', caseSensitive: false),
+          'Fuentes utilizadas',
+        )
+        .trim();
+  }
+
   void copyMessage(BuildContext context) {
     Clipboard.setData(
       ClipboardData(text: text),
@@ -72,7 +89,7 @@ class ChatBubble extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             MarkdownBody(
-  data: text,
+  data: cleanVisibleText(),
   selectable: true,
   styleSheet: MarkdownStyleSheet(
     p: const TextStyle(

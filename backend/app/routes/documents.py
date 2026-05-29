@@ -40,6 +40,8 @@ from app.services.pdf_service import (
 from app.services.rag_service import (
     search_similar_chunks,
     semantic_search_all_documents,
+    get_source_chunk,
+    get_retrieval_citations,
 )
 
 router = APIRouter(
@@ -264,10 +266,16 @@ async def chat_document_by_id(
             )
         )
 
+        citations = get_retrieval_citations(
+            document_id=document_id,
+            question=question,
+        )
+
         return {
             "document_id": document_id,
             "question": question,
             "answer": answer,
+            "citations": citations,
         }
 
     except HTTPException:
@@ -484,6 +492,27 @@ async def stream_chat_document(
 
 
 
+
+
+
+
+
+@router.get("/source-chunk")
+async def source_chunk(
+    document_id: str = Query(default=""),
+    chunk_index: int = Query(default=0),
+):
+    try:
+        return get_source_chunk(
+            document_id=document_id,
+            chunk_index=chunk_index,
+        )
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
 
 
 @router.get("/semantic-search")

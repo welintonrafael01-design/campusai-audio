@@ -2,14 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../screens/chat_screen.dart';
+import '../screens/auth_screen.dart';
 import '../screens/dashboard_screen.dart';
 import '../screens/exam_screen.dart';
 import '../screens/flashcards_screen.dart';
 import '../screens/settings_screen.dart';
+import '../services/auth_service.dart';
 
 final appRouter = GoRouter(
-  initialLocation: '/dashboard',
+  initialLocation:
+      AuthService.isLoggedIn
+          ? '/dashboard'
+          : '/auth',
   routes: [
+    GoRoute(
+      path: '/auth',
+      name: 'auth',
+      pageBuilder: (context, state) {
+        return _buildPage(
+          state: state,
+          child: const AuthScreen(),
+        );
+      },
+    ),
     GoRoute(
       path: '/dashboard',
       name: 'dashboard',

@@ -18,11 +18,7 @@ class ChatHistoryService {
     final prefs = await SharedPreferences.getInstance();
 
     final encoded = messages.map((message) {
-      return {
-        'text': message.text,
-        'isUser': message.isUser,
-        'createdAt': message.createdAt.toIso8601String(),
-      };
+      return message.toMap();
     }).toList();
 
     await prefs.setString(
@@ -54,9 +50,25 @@ class ChatHistoryService {
       return decoded.map((item) {
         final map = item as Map<String, dynamic>;
 
+        final rawCitations = map['citations'];
+
+        final citations = rawCitations is List
+            ? rawCitations
+                .whereType<Map>()
+                .map(
+                  (citation) =>
+                      ChatCitationModel.fromMap(
+                    Map<String, dynamic>.from(citation),
+                  ),
+                )
+                .toList()
+            : <ChatCitationModel>[];
+
         return ChatMessageModel(
           text: map['text'] ?? '',
           isUser: map['isUser'] ?? false,
+          isStreaming: map['isStreaming'] ?? false,
+          citations: citations,
           createdAt: DateTime.tryParse(
                 map['createdAt'] ?? '',
               ) ??

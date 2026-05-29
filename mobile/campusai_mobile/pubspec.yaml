@@ -73,6 +73,7 @@ dependencies:
   # Markdown Rendering
   # =========================
   flutter_markdown: ^0.7.7+1
+  supabase_flutter: ^2.12.4
 
 # =========================================================
 # DEV DEPENDENCIES

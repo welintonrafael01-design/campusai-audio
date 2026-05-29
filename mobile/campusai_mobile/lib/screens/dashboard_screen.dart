@@ -8,6 +8,7 @@ import '../models/recent_document_model.dart';
 import '../models/workspace_model.dart';
 import '../providers/document_provider.dart';
 import '../services/api_service.dart';
+import '../services/cloud_api_service.dart';
 import '../services/audio_player_service.dart';
 import '../services/history_service.dart';
 import '../services/recent_documents_service.dart';
@@ -130,8 +131,23 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Future<void> createWorkspace() async {
+    String workspaceId =
+        DateTime.now().millisecondsSinceEpoch.toString();
+
+    try {
+      final cloudWorkspace =
+          await CloudApiService.createWorkspace(
+        name: 'Nuevo workspace',
+        description: 'Workspace creado desde StudyBook AI',
+      );
+
+      workspaceId = cloudWorkspace['id'] ?? workspaceId;
+    } catch (error) {
+      debugPrint('No se pudo sincronizar workspace cloud: $error');
+    }
+
     final workspace = WorkspaceModel(
-      workspaceId: DateTime.now().millisecondsSinceEpoch.toString(),
+      workspaceId: workspaceId,
       name: 'Nuevo workspace',
       documents: recentDocuments.take(3).toList(),
       updatedAt: DateTime.now(),

@@ -22,3 +22,8 @@ backend/chroma_db/
 # Uploaded PDFs
 backend/uploads/
 
+
+# Virtual environments
+backend/.venv/
+.venv/
+venv/

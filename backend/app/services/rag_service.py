@@ -208,7 +208,7 @@ def search_similar_chunks(
         )
 
         formatted_chunks.append(
-            f"[FUENTE chunk={chunk_index}]\n"
+            f"[FUENTE document={document_id} chunk={chunk_index}]\n"
             f"{document.strip()}"
         )
 
@@ -364,3 +364,106 @@ def semantic_search_all_documents(
     )
 
     return results[:max_results]
+
+
+
+def get_source_chunk(
+    document_id: str,
+    chunk_index: int,
+) -> dict:
+    clean_document_id = document_id.strip()
+
+    if not clean_document_id:
+        raise ValueError(
+            "document_id inválido."
+        )
+
+    collection_name = get_collection_name(
+        clean_document_id,
+    )
+
+    if not collection_exists(collection_name):
+        raise ValueError(
+            "El documento no está indexado."
+        )
+
+    collection = client.get_collection(
+        name=collection_name,
+    )
+
+    result = collection.get(
+        ids=[str(chunk_index)],
+        include=[
+            "documents",
+            "metadatas",
+        ],
+    )
+
+    documents = result.get("documents", [])
+    metadatas = result.get("metadatas", [])
+
+    if not documents:
+        raise ValueError(
+            "No se encontró el chunk solicitado."
+        )
+
+    metadata = metadatas[0] if metadatas else {}
+
+    return {
+        "document_id": clean_document_id,
+        "chunk_index": chunk_index,
+        "content": documents[0],
+        "metadata": metadata,
+    }
+
+
+def get_retrieval_citations(
+    document_id: str,
+    question: str,
+    top_k: int = DEFAULT_TOP_K,
+) -> list[dict]:
+    clean_question = question.strip()
+
+    if not clean_question:
+        raise ValueError("La pregunta está vacía.")
+
+    clean_document_id = document_id.strip()
+
+    collection_name = get_collection_name(clean_document_id)
+
+    if not collection_exists(collection_name):
+        raise ValueError("El documento no está indexado.")
+
+    collection = client.get_collection(name=collection_name)
+
+    question_embedding = embedding_function.embed_query(clean_question)
+
+    results = collection.query(
+        query_embeddings=[question_embedding],
+        n_results=top_k,
+        include=["documents", "metadatas", "distances"],
+    )
+
+    documents = results.get("documents", [[]])[0]
+    metadatas = results.get("metadatas", [[]])[0]
+    distances = results.get("distances", [[]])[0]
+
+    citations: list[dict] = []
+
+    for index, document in enumerate(documents):
+        if not document or not document.strip():
+            continue
+
+        metadata = metadatas[index] if index < len(metadatas) else {}
+        distance = distances[index] if index < len(distances) else None
+
+        citations.append(
+            {
+                "document_id": clean_document_id,
+                "chunk_index": metadata.get("chunk_index", index),
+                "distance": distance,
+                "preview": document.strip()[:240],
+            }
+        )
+
+    return citations

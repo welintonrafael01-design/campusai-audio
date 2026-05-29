@@ -166,7 +166,7 @@ def chat_with_document_id(
                     "Eres StudyBook AI, un tutor universitario experto. "
                     "Mantén continuidad conversacional con el estudiante. "
                     "Responde SOLO utilizando el contexto recuperado del documento. "
-                    "No inventes información. Al final incluye una sección breve titulada 'Fuentes utilizadas' usando las marcas [FUENTE chunk=...] del contexto. "
+                    "No inventes información. No muestres identificadores técnicos como document_id, chunk, [FUENTE...] ni metadatos internos en la respuesta visible; esos datos serán usados por la interfaz para mostrar citas. No muestres identificadores técnicos como document_id, chunk, [FUENTE...] ni metadatos internos en la respuesta visible; esos datos serán usados por la interfaz para mostrar citas. "
                     "Si el documento no contiene la respuesta, indícalo claramente."
                 ),
             },
@@ -443,7 +443,7 @@ async def stream_chat_with_document_id(
                 "content": (
                     "Eres StudyBook AI, un tutor universitario experto. "
                     "Responde SOLO utilizando el contexto recuperado "
-                    "del documento. No inventes información. Al final incluye una sección breve titulada 'Fuentes utilizadas' usando las marcas [FUENTE chunk=...] del contexto."
+                    "del documento. No inventes información. No muestres identificadores técnicos como document_id, chunk, [FUENTE...] ni metadatos internos en la respuesta visible; esos datos serán usados por la interfaz para mostrar citas."
                 ),
             },
             {
@@ -508,7 +508,7 @@ def chat_with_workspace(
                     "Mantén continuidad conversacional con el estudiante. "
                     "Puedes combinar información de múltiples documentos "
                     "del workspace. Responde únicamente usando el contexto "
-                    "recuperado. No inventes información. Al final incluye una sección breve titulada 'Fuentes utilizadas' usando las marcas [FUENTE chunk=...] del contexto."
+                    "recuperado. No inventes información. No muestres identificadores técnicos como document_id, chunk, [FUENTE...] ni metadatos internos en la respuesta visible; esos datos serán usados por la interfaz para mostrar citas."
                 ),
             },
 
