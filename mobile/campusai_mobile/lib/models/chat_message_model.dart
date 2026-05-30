@@ -2,11 +2,13 @@ class ChatCitationModel {
   final String documentId;
   final int chunkIndex;
   final String? preview;
+  final double? distance;
 
   const ChatCitationModel({
     required this.documentId,
     required this.chunkIndex,
     this.preview,
+    this.distance,
   });
 
   factory ChatCitationModel.fromMap(
@@ -16,6 +18,9 @@ class ChatCitationModel {
       documentId: map['document_id'] ?? '',
       chunkIndex: map['chunk_index'] ?? 0,
       preview: map['preview'],
+      distance: map['distance'] is num
+          ? (map['distance'] as num).toDouble()
+          : null,
     );
   }
 
@@ -24,6 +29,7 @@ class ChatCitationModel {
       'document_id': documentId,
       'chunk_index': chunkIndex,
       'preview': preview,
+      'distance': distance,
     };
   }
 }

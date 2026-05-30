@@ -190,4 +190,18 @@ class CloudApiService {
     return data['messages'] ?? [];
   }
 
+
+
+  static Future<Map<String, dynamic>> deleteChat({
+    required String chatId,
+  }) async {
+    final response = await http.delete(
+      Uri.parse(
+        '${ApiService.baseUrl}/cloud/chats/$chatId',
+      ),
+    );
+
+    return ApiService.decodeResponse(response);
+  }
+
 }

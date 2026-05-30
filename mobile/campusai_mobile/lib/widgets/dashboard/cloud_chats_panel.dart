@@ -27,6 +27,21 @@ class _CloudChatsPanelState extends State<CloudChatsPanel> {
     loadChats();
   }
 
+  Future<void> deleteChat(String chatId) async {
+    try {
+      await CloudApiService.deleteChat(chatId: chatId);
+      await loadChats();
+    } catch (_) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo eliminar la conversación.'),
+        ),
+      );
+    }
+  }
+
   Future<void> loadChats() async {
     try {
       final data = await CloudApiService.getChats();
@@ -132,6 +147,20 @@ class _CloudChatsPanelState extends State<CloudChatsPanel> {
                         style: const TextStyle(
                           color: AppTheme.textMuted,
                           fontSize: 11,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      IconButton(
+                        tooltip: 'Eliminar conversación',
+                        onPressed: () {
+                          deleteChat(
+                            chatMap['id'].toString(),
+                          );
+                        },
+                        icon: const Icon(
+                          Icons.delete_outline_rounded,
+                          color: AppTheme.textMuted,
+                          size: 18,
                         ),
                       ),
                     ],

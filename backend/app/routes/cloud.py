@@ -11,6 +11,7 @@ from app.services.cloud_service import (
     save_message,
     list_messages,
     get_chat_messages,
+    delete_chat,
 )
 
 
@@ -117,6 +118,7 @@ async def create_chat_endpoint(
     try:
         return create_chat(
             workspace_id=payload.workspace_id,
+            document_id=payload.document_id,
             title=payload.title,
         )
     except Exception as error:
@@ -183,6 +185,20 @@ async def list_messages_endpoint(
                 chat_id=chat_id,
             ),
         }
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
+
+
+@router.delete("/chats/{chat_id}")
+async def delete_chat_endpoint(
+    chat_id: str,
+):
+    try:
+        return delete_chat(chat_id=chat_id)
     except Exception as error:
         raise HTTPException(
             status_code=500,

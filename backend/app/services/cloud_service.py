@@ -87,6 +87,7 @@ def list_documents(
 
 def create_chat(
     workspace_id: str | None = None,
+    document_id: str | None = None,
     title: str = "Nuevo chat",
 ) -> dict:
     client = get_supabase_client()
@@ -97,6 +98,9 @@ def create_chat(
 
     if workspace_id:
         payload["workspace_id"] = workspace_id
+
+    if document_id:
+        payload["document_id"] = document_id
 
     response = (
         client
@@ -176,3 +180,22 @@ def get_chat_messages(chat_id: str) -> list[dict]:
     )
 
     return response.data
+
+
+
+def delete_chat(chat_id: str) -> dict:
+    client = get_supabase_client()
+
+    response = (
+        client
+        .table("chats")
+        .delete()
+        .eq("id", chat_id)
+        .execute()
+    )
+
+    return {
+        "deleted": True,
+        "chat_id": chat_id,
+        "data": response.data,
+    }
