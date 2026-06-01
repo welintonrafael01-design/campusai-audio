@@ -3,7 +3,7 @@ import asyncio
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, FileResponse
 
 from fastapi import (
     APIRouter,
@@ -35,6 +35,11 @@ from app.services.audio_service import (
 
 from app.services.pdf_service import (
     extract_text_from_pdf,
+)
+
+from app.services.document_registry_service import (
+    register_document_file,
+    get_document_info,
 )
 
 from app.services.rag_service import (
@@ -173,6 +178,15 @@ async def upload_document(
         print(f"[UPLOAD] rag_index: {time.perf_counter() - step:.2f}s")
 
         step = time.perf_counter()
+        document_record = register_document_file(
+            document_id=document_id,
+            filename=file.filename or file_path.name,
+            file_path=str(file_path),
+            size_bytes=file_path.stat().st_size,
+        )
+        print(f"[UPLOAD] register_document: {time.perf_counter() - step:.2f}s")
+
+        step = time.perf_counter()
         ai_summary = generate_ai_summary(extracted_text)
         print(f"[UPLOAD] ai_summary: {time.perf_counter() - step:.2f}s")
 
@@ -187,6 +201,7 @@ async def upload_document(
             "ai_summary": ai_summary,
             "audio_file": "",
             "audio_url": "",
+            "document_info": document_record,
         }
 
     except HTTPException:
@@ -496,6 +511,59 @@ async def stream_chat_document(
 
 
 
+
+
+
+
+
+
+
+@router.get("/file/{document_id}")
+async def document_file(
+    document_id: str,
+):
+    try:
+        info = get_document_info(
+            document_id=document_id,
+        )
+
+        file_path = Path(info["file_path"])
+
+        if not file_path.exists():
+            raise HTTPException(
+                status_code=404,
+                detail="Archivo PDF no encontrado.",
+            )
+
+        return FileResponse(
+            path=str(file_path),
+            media_type="application/pdf",
+            filename=info.get(
+                "filename",
+                "document.pdf",
+            ),
+        )
+    except HTTPException:
+        raise
+    except Exception as error:
+        raise HTTPException(
+            status_code=404,
+            detail=str(error),
+        )
+
+@router.get("/info/{document_id}")
+async def document_info(
+    document_id: str,
+):
+    try:
+        return get_document_info(
+            document_id=document_id,
+        )
+    except Exception as error:
+        raise HTTPException(
+            status_code=404,
+            detail=str(error),
+        )
 
 @router.get("/source-chunk")
 async def source_chunk(

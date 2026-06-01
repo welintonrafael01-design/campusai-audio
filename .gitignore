@@ -27,3 +27,6 @@ backend/uploads/
 backend/.venv/
 .venv/
 venv/
+
+# Document Registry
+backend/app/database/document_registry.json

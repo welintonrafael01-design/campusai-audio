@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../services/document_service.dart';
 import '../../theme/app_theme.dart';
 
 class SourceViewerSheet extends StatelessWidget {
@@ -20,6 +22,24 @@ class SourceViewerSheet extends StatelessWidget {
   String get shortDocumentId {
     if (documentId.length <= 12) return documentId;
     return '${documentId.substring(0, 8)}...${documentId.substring(documentId.length - 4)}';
+  }
+
+  Future<void> openPdf(BuildContext context) async {
+    final url = DocumentService.getPdfUrl(documentId);
+    final uri = Uri.parse(url);
+
+    final opened = await launchUrl(
+      uri,
+      webOnlyWindowName: '_blank',
+    );
+
+    if (!opened && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo abrir el PDF.'),
+        ),
+      );
+    }
   }
 
   Future<void> copySource(BuildContext context) async {
@@ -181,9 +201,9 @@ class SourceViewerSheet extends StatelessWidget {
                 ),
                 const Spacer(),
                 TextButton.icon(
-                  onPressed: null,
+                  onPressed: () => openPdf(context),
                   icon: const Icon(Icons.picture_as_pdf_rounded),
-                  label: const Text('PDF próximamente'),
+                  label: const Text('Abrir PDF'),
                 ),
               ],
             ),
