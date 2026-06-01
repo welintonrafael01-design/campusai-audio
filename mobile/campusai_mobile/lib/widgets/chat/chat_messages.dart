@@ -113,6 +113,9 @@ class _ChatMessagesState extends State<ChatMessages> {
               documentId: source['document_id'] ?? documentId,
               chunkIndex: source['chunk_index'] ?? chunkIndex,
               content: source['content'] ?? '',
+              metadata: Map<String, dynamic>.from(
+                source['metadata'] ?? {},
+              ),
             ),
           );
         },
