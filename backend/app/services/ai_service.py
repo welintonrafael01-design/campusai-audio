@@ -3,6 +3,7 @@ from openai import OpenAI
 
 from app.services.rag_service import (
     store_document_embeddings,
+    store_document_page_embeddings,
     search_similar_chunks,
     search_similar_chunks_multi,
 )
@@ -124,6 +125,38 @@ def index_document_for_rag(text: str) -> str:
         )
 
     return store_document_embeddings(clean)
+
+
+def index_document_pages_for_rag(
+    pages: list[dict],
+) -> str:
+    if not pages:
+        raise ValueError(
+            "No hay páginas válidas para indexar."
+        )
+
+    clean_pages: list[dict] = []
+
+    for page in pages:
+        page_number = page.get("page_number")
+        text = clean_text(page.get("text", ""))
+
+        if not page_number or not text:
+            continue
+
+        clean_pages.append(
+            {
+                "page_number": page_number,
+                "text": text,
+            }
+        )
+
+    if not clean_pages:
+        raise ValueError(
+            "No hay texto válido por páginas para indexar."
+        )
+
+    return store_document_page_embeddings(clean_pages)
 
 
 def chat_with_document_id(

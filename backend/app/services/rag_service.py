@@ -82,6 +82,112 @@ def create_document_chunks(text: str) -> list[str]:
     ]
 
 
+
+
+def create_page_chunks(
+    pages: list[dict],
+) -> list[dict]:
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=CHUNK_SIZE,
+        chunk_overlap=CHUNK_OVERLAP,
+        separators=[
+            "\n\n",
+            "\n",
+            ". ",
+            " ",
+            "",
+        ],
+    )
+
+    chunks: list[dict] = []
+
+    for page in pages:
+        page_number = int(page.get("page_number", 0))
+        page_text = normalize_text(page.get("text", ""))
+
+        if not page_text:
+            continue
+
+        page_chunks = splitter.split_text(page_text)
+
+        for chunk in page_chunks:
+            clean_chunk = chunk.strip()
+
+            if clean_chunk:
+                chunks.append(
+                    {
+                        "text": clean_chunk,
+                        "page_number": page_number,
+                    }
+                )
+
+    return chunks
+
+
+def store_document_page_embeddings(
+    pages: list[dict],
+) -> str:
+    full_text = " ".join(
+        page.get("text", "")
+        for page in pages
+    )
+
+    document_id = generate_document_id(full_text)
+    collection_name = get_collection_name(document_id)
+
+    if collection_exists(collection_name):
+        return document_id
+
+    chunks = create_page_chunks(pages)
+
+    if not chunks:
+        raise ValueError(
+            "No se generaron fragmentos válidos por página."
+        )
+
+    documents = [
+        chunk["text"]
+        for chunk in chunks
+    ]
+
+    collection = client.create_collection(
+        name=collection_name,
+        metadata={
+            "document_id": document_id,
+            "chunk_size": CHUNK_SIZE,
+            "chunk_overlap": CHUNK_OVERLAP,
+            "page_aware": True,
+        },
+    )
+
+    embeddings = embedding_function.embed_documents(
+        documents
+    )
+
+    ids = [
+        str(index)
+        for index, _ in enumerate(documents)
+    ]
+
+    metadatas = [
+        {
+            "document_id": document_id,
+            "chunk_index": index,
+            "page_number": chunks[index]["page_number"],
+        }
+        for index, _ in enumerate(documents)
+    ]
+
+    collection.add(
+        ids=ids,
+        documents=documents,
+        embeddings=embeddings,
+        metadatas=metadatas,
+    )
+
+    return document_id
+
+
 def get_collection_name(document_id: str) -> str:
     clean_id = document_id.strip()
 

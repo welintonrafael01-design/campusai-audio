@@ -81,3 +81,66 @@ def normalize_text(text: str) -> str:
         .replace("\r", " ")
         .strip()
     )
+
+
+
+def extract_pages_from_pdf(pdf_path: str) -> list[dict]:
+    path = Path(pdf_path)
+
+    if not path.exists():
+        raise FileNotFoundError(
+            f"No se encontró el archivo PDF: {pdf_path}"
+        )
+
+    pages: list[dict] = []
+
+    try:
+        with fitz.open(pdf_path) as document:
+
+            if document.page_count == 0:
+                raise ValueError(
+                    "El PDF no contiene páginas."
+                )
+
+            for page_index, page in enumerate(document):
+                page_number = page_index + 1
+
+                page_text = page.get_text()
+
+                if not page_text or not page_text.strip():
+                    pix = page.get_pixmap(
+                        matrix=fitz.Matrix(2, 2)
+                    )
+
+                    image = Image.frombytes(
+                        "RGB",
+                        [pix.width, pix.height],
+                        pix.samples,
+                    )
+
+                    page_text = pytesseract.image_to_string(
+                        image,
+                        lang="eng+spa",
+                    )
+
+                clean_text = normalize_text(page_text or "")
+
+                if clean_text.strip():
+                    pages.append(
+                        {
+                            "page_number": page_number,
+                            "text": clean_text,
+                        }
+                    )
+
+    except Exception as error:
+        raise Exception(
+            f"Error leyendo páginas del PDF: {error}"
+        )
+
+    if not pages:
+        raise ValueError(
+            "No se pudo extraer texto por páginas del PDF."
+        )
+
+    return pages

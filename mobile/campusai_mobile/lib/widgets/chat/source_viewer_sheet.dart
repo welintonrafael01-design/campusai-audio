@@ -134,6 +134,12 @@ class SourceViewerSheet extends StatelessWidget {
                   label: 'Documento',
                   value: shortDocumentId,
                 ),
+                if (metadata['page_number'] != null)
+                  _InfoPill(
+                    icon: Icons.menu_book_rounded,
+                    label: 'Página',
+                    value: metadata['page_number'].toString(),
+                  ),
                 _InfoPill(
                   icon: Icons.tag_rounded,
                   label: 'Chunk',

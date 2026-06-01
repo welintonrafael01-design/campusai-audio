@@ -24,6 +24,7 @@ from app.services.ai_service import (
     generate_flashcards,
     generate_flashcards_from_context,
     index_document_for_rag,
+    index_document_pages_for_rag,
     stream_chat_with_document_id,
     stream_chat_with_workspace,
 )
@@ -35,6 +36,7 @@ from app.services.audio_service import (
 
 from app.services.pdf_service import (
     extract_text_from_pdf,
+    extract_pages_from_pdf,
 )
 
 from app.services.document_registry_service import (
@@ -170,12 +172,16 @@ async def upload_document(
         print(f"[UPLOAD] save_file: {time.perf_counter() - step:.2f}s")
 
         step = time.perf_counter()
-        extracted_text = extract_text_from_pdf(str(file_path))
-        print(f"[UPLOAD] extract_text: {time.perf_counter() - step:.2f}s")
+        pages = extract_pages_from_pdf(str(file_path))
+        extracted_text = "\n".join(
+            page["text"]
+            for page in pages
+        )
+        print(f"[UPLOAD] extract_pages: {time.perf_counter() - step:.2f}s")
 
         step = time.perf_counter()
-        document_id = index_document_for_rag(extracted_text)
-        print(f"[UPLOAD] rag_index: {time.perf_counter() - step:.2f}s")
+        document_id = index_document_pages_for_rag(pages)
+        print(f"[UPLOAD] rag_page_index: {time.perf_counter() - step:.2f}s")
 
         step = time.perf_counter()
         document_record = register_document_file(
