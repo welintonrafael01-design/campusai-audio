@@ -544,10 +544,9 @@ async def document_file(
         return FileResponse(
             path=str(file_path),
             media_type="application/pdf",
-            filename=info.get(
-                "filename",
-                "document.pdf",
-            ),
+            headers={
+                "Content-Disposition": "inline",
+            },
         )
     except HTTPException:
         raise

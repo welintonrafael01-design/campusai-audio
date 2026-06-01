@@ -24,8 +24,19 @@ class SourceViewerSheet extends StatelessWidget {
     return '${documentId.substring(0, 8)}...${documentId.substring(documentId.length - 4)}';
   }
 
+  int? get pageNumber {
+    final value = metadata['page_number'];
+
+    if (value is int) return value;
+
+    return int.tryParse(value?.toString() ?? '');
+  }
+
   Future<void> openPdf(BuildContext context) async {
-    final url = DocumentService.getPdfUrl(documentId);
+    final url = DocumentService.getPdfUrl(
+      documentId,
+      pageNumber: pageNumber,
+    );
     final uri = Uri.parse(url);
 
     final opened = await launchUrl(

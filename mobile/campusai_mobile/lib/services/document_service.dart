@@ -18,8 +18,16 @@ class DocumentService {
   }
 
   static String getPdfUrl(
-    String documentId,
-  ) {
-    return '${ApiService.baseUrl}/documents/file/$documentId';
+    String documentId, {
+    int? pageNumber,
+  }) {
+    final baseUrl =
+        '${ApiService.baseUrl}/documents/file/$documentId';
+
+    if (pageNumber == null || pageNumber <= 0) {
+      return baseUrl;
+    }
+
+    return '$baseUrl#page=$pageNumber';
   }
 }
