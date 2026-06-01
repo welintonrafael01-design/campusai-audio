@@ -27,6 +27,79 @@ class _CloudChatsPanelState extends State<CloudChatsPanel> {
     loadChats();
   }
 
+  Future<void> renameChat(
+    String chatId,
+    String currentTitle,
+  ) async {
+    final controller = TextEditingController(
+      text: currentTitle,
+    );
+
+    final newTitle = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.surface,
+          title: const Text(
+            'Renombrar conversación',
+            style: TextStyle(
+              color: AppTheme.textPrimary,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            style: const TextStyle(
+              color: AppTheme.textPrimary,
+            ),
+            decoration: const InputDecoration(
+              hintText: 'Nuevo nombre',
+              hintStyle: TextStyle(
+                color: AppTheme.textMuted,
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () =>
+                  Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(
+                context,
+                controller.text.trim(),
+              ),
+              child: const Text('Guardar'),
+            ),
+          ],
+        );
+      },
+    );
+
+    controller.dispose();
+
+    if (newTitle == null || newTitle.isEmpty) return;
+
+    try {
+      await CloudApiService.updateChatTitle(
+        chatId: chatId,
+        title: newTitle,
+      );
+
+      await loadChats();
+    } catch (_) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo renombrar la conversación.'),
+        ),
+      );
+    }
+  }
+
   Future<void> deleteChat(String chatId) async {
     try {
       await CloudApiService.deleteChat(chatId: chatId);
@@ -150,6 +223,20 @@ class _CloudChatsPanelState extends State<CloudChatsPanel> {
                         ),
                       ),
                       const SizedBox(width: 6),
+                      IconButton(
+                        tooltip: 'Renombrar conversación',
+                        onPressed: () {
+                          renameChat(
+                            chatMap['id'].toString(),
+                            title.toString(),
+                          );
+                        },
+                        icon: const Icon(
+                          Icons.edit_outlined,
+                          color: AppTheme.textMuted,
+                          size: 18,
+                        ),
+                      ),
                       IconButton(
                         tooltip: 'Eliminar conversación',
                         onPressed: () {

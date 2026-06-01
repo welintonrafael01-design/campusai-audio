@@ -199,3 +199,30 @@ def delete_chat(chat_id: str) -> dict:
         "chat_id": chat_id,
         "data": response.data,
     }
+
+
+
+def update_chat_title(chat_id: str, title: str) -> dict:
+    client = get_supabase_client()
+
+    clean_title = title.strip()
+
+    if not clean_title:
+        raise ValueError("El título no puede estar vacío.")
+
+    response = (
+        client
+        .table("chats")
+        .update({
+            "title": clean_title,
+        })
+        .eq("id", chat_id)
+        .execute()
+    )
+
+    data = response.data
+
+    if not data:
+        raise ValueError("No se encontró la conversación.")
+
+    return data[0]

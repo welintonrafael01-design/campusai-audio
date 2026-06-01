@@ -12,6 +12,7 @@ from app.services.cloud_service import (
     list_messages,
     get_chat_messages,
     delete_chat,
+    update_chat_title,
 )
 
 
@@ -38,6 +39,10 @@ class ChatCreate(BaseModel):
     workspace_id: str | None = None
     document_id: str | None = None
     title: str = "Nuevo chat"
+
+
+class ChatUpdate(BaseModel):
+    title: str
 
 
 class MessageCreate(BaseModel):
@@ -199,6 +204,24 @@ async def delete_chat_endpoint(
 ):
     try:
         return delete_chat(chat_id=chat_id)
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
+
+
+@router.patch("/chats/{chat_id}")
+async def update_chat_endpoint(
+    chat_id: str,
+    payload: ChatUpdate,
+):
+    try:
+        return update_chat_title(
+            chat_id=chat_id,
+            title=payload.title,
+        )
     except Exception as error:
         raise HTTPException(
             status_code=500,

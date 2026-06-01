@@ -204,4 +204,25 @@ class CloudApiService {
     return ApiService.decodeResponse(response);
   }
 
+
+
+  static Future<Map<String, dynamic>> updateChatTitle({
+    required String chatId,
+    required String title,
+  }) async {
+    final response = await http.patch(
+      Uri.parse(
+        '${ApiService.baseUrl}/cloud/chats/$chatId',
+      ),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'title': title,
+      }),
+    );
+
+    return ApiService.decodeResponse(response);
+  }
+
 }
