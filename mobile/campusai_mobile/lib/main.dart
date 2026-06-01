@@ -12,11 +12,17 @@ Future<void> main() async {
   const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
 
+  debugPrint(
+    'SUPABASE CONFIG DEBUG url=${supabaseUrl.isNotEmpty} key=${supabaseAnonKey.isNotEmpty}',
+  );
+
   if (supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty) {
     await Supabase.initialize(
       url: supabaseUrl,
       anonKey: supabaseAnonKey,
     );
+
+    debugPrint('SUPABASE INIT OK');
   }
 
   runApp(

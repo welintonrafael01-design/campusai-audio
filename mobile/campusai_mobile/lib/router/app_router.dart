@@ -7,13 +7,9 @@ import '../screens/dashboard_screen.dart';
 import '../screens/exam_screen.dart';
 import '../screens/flashcards_screen.dart';
 import '../screens/settings_screen.dart';
-import '../services/auth_service.dart';
 
 final appRouter = GoRouter(
-  initialLocation:
-      AuthService.isLoggedIn
-          ? '/dashboard'
-          : '/auth',
+  initialLocation: '/auth',
   routes: [
     GoRoute(
       path: '/auth',
