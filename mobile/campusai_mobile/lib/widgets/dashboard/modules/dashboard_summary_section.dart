@@ -53,6 +53,19 @@ class DashboardSummarySection extends StatelessWidget {
               ),
             ),
             IconButton(
+              tooltip: 'Exportar resumen a PowerPoint',
+              onPressed: () {
+                ExportService.exportTextToPptx(
+                  title: 'Resumen IA',
+                  content: _cleanMarkdown(summary),
+                );
+              },
+              icon: const Icon(
+                Icons.slideshow_rounded,
+                color: AppTheme.accent,
+              ),
+            ),
+            IconButton(
               tooltip: 'Exportar resumen a PDF',
               onPressed: () {
                 ExportService.exportTextToPdf(
