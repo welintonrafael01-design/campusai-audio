@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../models/study_result.dart';
 import '../services/api_service.dart';
+import '../services/export_service.dart';
 import '../services/study_result_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
@@ -147,6 +148,36 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
         .toString();
   }
 
+  String buildFlashcardsExportContent() {
+    return flashcards.map((card) {
+      return """
+PREGUNTA:
+${getFront(card)}
+
+RESPUESTA:
+${getBack(card)}
+""";
+    }).join("\n\n--------------------\n\n");
+  }
+
+  Future<void> exportFlashcardsToPdf() async {
+    if (flashcards.isEmpty) return;
+
+    await ExportService.exportTextToPdf(
+      title: 'Flashcards',
+      content: buildFlashcardsExportContent(),
+    );
+  }
+
+  Future<void> exportFlashcardsToDocx() async {
+    if (flashcards.isEmpty) return;
+
+    await ExportService.exportTextToDocx(
+      title: 'Flashcards',
+      content: buildFlashcardsExportContent(),
+    );
+  }
+
   void previousCard() {
     if (flashcards.isEmpty || currentIndex == 0) return;
 
@@ -170,12 +201,16 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
         gradient: AppTheme.mainGradient,
         borderRadius: BorderRadius.circular(30),
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.style_rounded, color: Colors.white, size: 36),
-          SizedBox(height: 16),
-          Text(
+          const Icon(
+            Icons.style_rounded,
+            color: Colors.white,
+            size: 36,
+          ),
+          const SizedBox(height: 16),
+          const Text(
             'Flashcards IA',
             style: TextStyle(
               color: Colors.white,
@@ -183,10 +218,42 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
               fontWeight: FontWeight.w900,
             ),
           ),
-          SizedBox(height: 8),
-          Text(
+          const SizedBox(height: 8),
+          const Text(
             'Modo estudio premium con tarjetas 3D.',
-            style: TextStyle(color: Colors.white, height: 1.4),
+            style: TextStyle(
+              color: Colors.white,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Tooltip(
+                message: 'Exportar Word',
+                child: IconButton(
+                  onPressed: flashcards.isEmpty
+                      ? null
+                      : exportFlashcardsToDocx,
+                  icon: const Icon(
+                    Icons.description_rounded,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              Tooltip(
+                message: 'Exportar PDF',
+                child: IconButton(
+                  onPressed: flashcards.isEmpty
+                      ? null
+                      : exportFlashcardsToPdf,
+                  icon: const Icon(
+                    Icons.picture_as_pdf_rounded,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

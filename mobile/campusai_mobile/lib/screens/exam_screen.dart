@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../models/study_result.dart';
 import '../services/api_service.dart';
+import '../services/export_service.dart';
 import '../services/study_result_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
@@ -164,6 +165,13 @@ class _ExamScreenState extends State<ExamScreen> {
   String getQuestionText(Map<String, dynamic> item) {
     return (item['question'] ??
             item['pregunta'] ??
+            item['text'] ??
+            item['texto'] ??
+            item['statement'] ??
+            item['enunciado'] ??
+            item['prompt'] ??
+            item['frase'] ??
+            item['sentence'] ??
             'Pregunta no disponible.')
         .toString();
   }
@@ -221,6 +229,48 @@ class _ExamScreenState extends State<ExamScreen> {
         .trim();
   }
 
+
+  String buildExamExportContent() {
+    return questions.asMap().entries.map((entry) {
+      final index = entry.key + 1;
+      final question = entry.value;
+
+      final options = getOptions(question).join("\n");
+
+      return """
+PREGUNTA $index:
+${getQuestionText(question)}
+
+OPCIONES:
+$options
+
+RESPUESTA CORRECTA:
+${getCorrectAnswer(question)}
+
+EXPLICACIÓN:
+${getExplanation(question)}
+""";
+    }).join("\n\n==============================\n\n");
+  }
+
+  Future<void> exportExamToPdf() async {
+    if (questions.isEmpty) return;
+
+    await ExportService.exportTextToPdf(
+      title: 'Examen IA',
+      content: buildExamExportContent(),
+    );
+  }
+
+  Future<void> exportExamToDocx() async {
+    if (questions.isEmpty) return;
+
+    await ExportService.exportTextToDocx(
+      title: 'Examen IA',
+      content: buildExamExportContent(),
+    );
+  }
+
   void selectAnswer(String answer) {
     if (isAnswered) return;
 
@@ -271,6 +321,7 @@ class _ExamScreenState extends State<ExamScreen> {
     });
   }
 
+
   Widget buildHeader() {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -278,12 +329,16 @@ class _ExamScreenState extends State<ExamScreen> {
         gradient: AppTheme.mainGradient,
         borderRadius: BorderRadius.circular(30),
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.quiz_rounded, color: Colors.white, size: 36),
-          SizedBox(height: 16),
-          Text(
+          const Icon(
+            Icons.quiz_rounded,
+            color: Colors.white,
+            size: 36,
+          ),
+          const SizedBox(height: 16),
+          const Text(
             'Examen IA',
             style: TextStyle(
               color: Colors.white,
@@ -291,13 +346,42 @@ class _ExamScreenState extends State<ExamScreen> {
               fontWeight: FontWeight.w900,
             ),
           ),
-          SizedBox(height: 8),
-          Text(
+          const SizedBox(height: 8),
+          const Text(
             'Practica, responde y mide tu aprendizaje.',
             style: TextStyle(
               color: Colors.white,
               height: 1.4,
             ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Tooltip(
+                message: 'Exportar Word',
+                child: IconButton(
+                  onPressed: questions.isEmpty
+                      ? null
+                      : exportExamToDocx,
+                  icon: const Icon(
+                    Icons.description_rounded,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              Tooltip(
+                message: 'Exportar PDF',
+                child: IconButton(
+                  onPressed: questions.isEmpty
+                      ? null
+                      : exportExamToPdf,
+                  icon: const Icon(
+                    Icons.picture_as_pdf_rounded,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

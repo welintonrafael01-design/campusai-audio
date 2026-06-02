@@ -8,6 +8,7 @@ import '../providers/document_provider.dart';
 import '../services/api_service.dart';
 import '../services/chat_history_service.dart';
 import '../services/cloud_api_service.dart';
+import '../services/export_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/chat/chat_input.dart';
 import '../widgets/chat/chat_messages.dart';
@@ -411,6 +412,86 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     return completer.future;
   }
 
+
+
+  Future<void> exportChatToDocx() async {
+    final exportableMessages = messages
+        .where((message) => message.text.trim().isNotEmpty)
+        .map((message) {
+      final role = message.isUser ? 'Usuario' : 'StudyBook AI';
+      return '$role:\n${message.text.trim()}';
+    }).join('\n\n---\n\n');
+
+    if (exportableMessages.trim().isEmpty) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No hay contenido para exportar.'),
+        ),
+      );
+
+      return;
+    }
+
+    try {
+      await ExportService.exportTextToDocx(
+        title: 'Chat - ${widget.fileName}',
+        content: exportableMessages,
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'No se pudo exportar Word: $error',
+          ),
+        ),
+      );
+    }
+  }
+
+
+  Future<void> exportChatToPdf() async {
+    final exportableMessages = messages
+        .where((message) => message.text.trim().isNotEmpty)
+        .map((message) {
+      final role = message.isUser ? 'Usuario' : 'StudyBook AI';
+      return '$role:\n${message.text.trim()}';
+    }).join('\n\n---\n\n');
+
+    if (exportableMessages.trim().isEmpty) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No hay contenido para exportar.'),
+        ),
+      );
+
+      return;
+    }
+
+    try {
+      await ExportService.exportTextToPdf(
+        title: 'Chat - ${widget.fileName}',
+        content: exportableMessages,
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'No se pudo exportar el PDF: $error',
+          ),
+        ),
+      );
+    }
+  }
+
+
   String cleanMarkdown(String text) {
     return text
         .replaceAll('###', '')
@@ -483,6 +564,27 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Tooltip(
+            message: 'Exportar chat a Word',
+            child: IconButton(
+              onPressed: exportChatToDocx,
+              icon: const Icon(
+                Icons.description_rounded,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          Tooltip(
+            message: 'Exportar chat a PDF',
+            child: IconButton(
+              onPressed: exportChatToPdf,
+              icon: const Icon(
+                Icons.picture_as_pdf_rounded,
+                color: Colors.white,
+              ),
             ),
           ),
         ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../services/export_service.dart';
 import '../../../theme/app_theme.dart';
 import '../../section_card.dart';
 
@@ -29,9 +30,42 @@ class DashboardSummarySection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _DashboardSectionTitle(
-          title: 'Resumen IA',
-          subtitle: 'Síntesis clara del documento cargado.',
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Expanded(
+              child: _DashboardSectionTitle(
+                title: 'Resumen IA',
+                subtitle: 'Síntesis clara del documento cargado.',
+              ),
+            ),
+            IconButton(
+              tooltip: 'Exportar resumen a Word',
+              onPressed: () {
+                ExportService.exportTextToDocx(
+                  title: 'Resumen IA',
+                  content: _cleanMarkdown(summary),
+                );
+              },
+              icon: const Icon(
+                Icons.description_rounded,
+                color: AppTheme.accent,
+              ),
+            ),
+            IconButton(
+              tooltip: 'Exportar resumen a PDF',
+              onPressed: () {
+                ExportService.exportTextToPdf(
+                  title: 'Resumen IA',
+                  content: _cleanMarkdown(summary),
+                );
+              },
+              icon: const Icon(
+                Icons.picture_as_pdf_rounded,
+                color: AppTheme.accent,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         SectionCard(

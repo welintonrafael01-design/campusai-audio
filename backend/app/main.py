@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from app.routes.documents import router as documents_router
 from app.routes.cloud import router as cloud_router
 from app.routes.health import router as health_router
+from app.routes.export import router as export_router
 
 
 APP_DIR = Path(__file__).resolve().parent
@@ -43,6 +44,7 @@ app.add_middleware(
 app.include_router(health_router)
 app.include_router(documents_router)
 app.include_router(cloud_router)
+app.include_router(export_router)
 
 
 app.mount(
