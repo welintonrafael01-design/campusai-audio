@@ -523,6 +523,65 @@ def get_source_chunk(
     }
 
 
+
+
+def extract_best_highlight(
+    document: str,
+    question: str,
+    max_characters: int = 420,
+) -> str:
+    clean_document = normalize_text(document)
+    clean_question = normalize_text(question).lower()
+
+    if not clean_document:
+        return ""
+
+    sentences = [
+        sentence.strip()
+        for sentence in clean_document.replace("?", ".").replace("!", ".").split(".")
+        if sentence.strip()
+    ]
+
+    if not sentences:
+        return clean_document[:max_characters]
+
+    keywords = [
+        word
+        for word in clean_question.split()
+        if len(word) >= 4
+    ]
+
+    scored: list[tuple[int, str]] = []
+
+    for sentence in sentences:
+        lower_sentence = sentence.lower()
+
+        score = sum(
+            1
+            for keyword in keywords
+            if keyword in lower_sentence
+        )
+
+        scored.append(
+            (
+                score,
+                sentence,
+            )
+        )
+
+    scored.sort(
+        key=lambda item: item[0],
+        reverse=True,
+    )
+
+    best_sentence = scored[0][1]
+
+    if len(best_sentence) > max_characters:
+        return best_sentence[:max_characters].strip()
+
+    return best_sentence.strip()
+
+
 def get_retrieval_citations(
     document_id: str,
     question: str,
@@ -569,6 +628,10 @@ def get_retrieval_citations(
                 "chunk_index": metadata.get("chunk_index", index),
                 "distance": distance,
                 "preview": document.strip()[:240],
+                "highlight": extract_best_highlight(
+                    document=document,
+                    question=clean_question,
+                ),
             }
         )
 

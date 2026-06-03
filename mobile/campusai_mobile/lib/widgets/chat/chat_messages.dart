@@ -135,6 +135,79 @@ class _ChatMessagesState extends State<ChatMessages> {
     }
   }
 
+
+  Widget buildConfidenceBanner(ChatMessageModel message) {
+    if (message.isUser) return const SizedBox.shrink();
+
+    final confidence = message.confidence;
+    final confidenceMessage = message.confidenceMessage;
+
+    if (confidence == null || confidence.trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    IconData icon = Icons.help_outline_rounded;
+    String label = 'Confianza desconocida';
+    Color color = AppTheme.textMuted;
+
+    if (confidence == 'high') {
+      icon = Icons.verified_rounded;
+      label = 'Alta confianza';
+      color = Colors.greenAccent;
+    } else if (confidence == 'medium') {
+      icon = Icons.info_rounded;
+      label = 'Confianza media';
+      color = Colors.amberAccent;
+    } else if (confidence == 'low') {
+      icon = Icons.warning_rounded;
+      label = 'Confianza baja';
+      color = Colors.redAccent;
+    }
+
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.only(
+          left: 14,
+          top: 8,
+          bottom: 6,
+        ),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppTheme.surface.withValues(alpha: 0.94),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: color.withValues(alpha: 0.30),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: color,
+              size: 18,
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                confidenceMessage == null ||
+                        confidenceMessage.trim().isEmpty
+                    ? label
+                    : '$label · $confidenceMessage',
+                style: TextStyle(
+                  color: color,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListView(
@@ -156,6 +229,8 @@ class _ChatMessagesState extends State<ChatMessages> {
                       ? CrossAxisAlignment.end
                       : CrossAxisAlignment.start,
               children: [
+                if (!message.isUser)
+                  buildConfidenceBanner(message),
                 ChatBubble(
                   text: message.text,
                   isUser: message.isUser,

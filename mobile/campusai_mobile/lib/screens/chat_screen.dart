@@ -255,6 +255,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
       final rawCitations = data['citations'];
 
+      final confidence =
+          data['confidence']?.toString();
+
+      final averageDistance =
+          data['average_distance'] is num
+              ? (data['average_distance'] as num)
+                  .toDouble()
+              : null;
+
+      final confidenceMessage =
+          data['message']?.toString();
+
       final citations = rawCitations is List
           ? rawCitations
               .whereType<Map>()
@@ -274,6 +286,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             isUser: false,
             createdAt: DateTime.now(),
             isStreaming: true,
+            confidence: confidence,
+            averageDistance: averageDistance,
+            confidenceMessage: confidenceMessage,
             citations: citations,
           ),
         );
@@ -291,6 +306,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               current.copyWith(
             text: current.text + character,
             isStreaming: true,
+            confidence: confidence,
+            averageDistance: averageDistance,
+            confidenceMessage: confidenceMessage,
             citations: citations,
           );
         });

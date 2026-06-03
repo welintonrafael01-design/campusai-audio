@@ -20,10 +20,15 @@ class CitationChips extends StatelessWidget {
 
     if (distance == null) return 'Fuente';
 
-    if (distance <= 0.35) return 'Alta relevancia';
-    if (distance <= 0.60) return 'Buena fuente';
+    if (distance <= 0.35) {
+      return '🟢 Alta confianza';
+    }
 
-    return 'Fuente relacionada';
+    if (distance <= 0.60) {
+      return '🟡 Confianza media';
+    }
+
+    return '🔴 Confianza baja';
   }
 
   @override
@@ -36,7 +41,10 @@ class CitationChips extends StatelessWidget {
       spacing: 10,
       runSpacing: 10,
       children: citations.map((citation) {
-        final preview = citation.preview?.trim() ?? '';
+        final preview =
+            citation.highlight?.trim() ??
+            citation.preview?.trim() ??
+            '';
 
         final rawCitation =
             '[FUENTE document=${citation.documentId} chunk=${citation.chunkIndex}]';

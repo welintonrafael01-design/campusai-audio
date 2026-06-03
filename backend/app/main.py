@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from app.middleware.security_middleware import SecurityMiddleware
 
 from app.routes.documents import router as documents_router
 from app.routes.cloud import router as cloud_router
@@ -39,6 +40,12 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+app.add_middleware(
+    SecurityMiddleware,
+    max_requests=120,
+    window_seconds=60,
 )
 
 

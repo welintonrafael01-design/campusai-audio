@@ -2,12 +2,14 @@ class ChatCitationModel {
   final String documentId;
   final int chunkIndex;
   final String? preview;
+  final String? highlight;
   final double? distance;
 
   const ChatCitationModel({
     required this.documentId,
     required this.chunkIndex,
     this.preview,
+    this.highlight,
     this.distance,
   });
 
@@ -18,6 +20,7 @@ class ChatCitationModel {
       documentId: map['document_id'] ?? '',
       chunkIndex: map['chunk_index'] ?? 0,
       preview: map['preview'],
+      highlight: map['highlight'],
       distance: map['distance'] is num
           ? (map['distance'] as num).toDouble()
           : null,
@@ -29,6 +32,7 @@ class ChatCitationModel {
       'document_id': documentId,
       'chunk_index': chunkIndex,
       'preview': preview,
+      'highlight': highlight,
       'distance': distance,
     };
   }
@@ -40,6 +44,10 @@ class ChatMessageModel {
   final DateTime createdAt;
   final bool isStreaming;
 
+  final String? confidence;
+  final double? averageDistance;
+  final String? confidenceMessage;
+
   final List<ChatCitationModel> citations;
 
   const ChatMessageModel({
@@ -47,6 +55,9 @@ class ChatMessageModel {
     required this.isUser,
     required this.createdAt,
     this.isStreaming = false,
+    this.confidence,
+    this.averageDistance,
+    this.confidenceMessage,
     this.citations = const [],
   });
 
@@ -55,6 +66,9 @@ class ChatMessageModel {
     bool? isUser,
     DateTime? createdAt,
     bool? isStreaming,
+    String? confidence,
+    double? averageDistance,
+    String? confidenceMessage,
     List<ChatCitationModel>? citations,
   }) {
     return ChatMessageModel(
@@ -62,6 +76,11 @@ class ChatMessageModel {
       isUser: isUser ?? this.isUser,
       createdAt: createdAt ?? this.createdAt,
       isStreaming: isStreaming ?? this.isStreaming,
+      confidence: confidence ?? this.confidence,
+      averageDistance:
+          averageDistance ?? this.averageDistance,
+      confidenceMessage:
+          confidenceMessage ?? this.confidenceMessage,
       citations: citations ?? this.citations,
     );
   }

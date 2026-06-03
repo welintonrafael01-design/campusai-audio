@@ -72,11 +72,36 @@ def validate_pdf_file(
     file: UploadFile,
 ) -> None:
     filename = file.filename or ""
+    content_type = file.content_type or ""
 
     if not filename.lower().endswith(".pdf"):
         raise HTTPException(
             status_code=400,
             detail="Solo se permiten archivos PDF.",
+        )
+
+    if content_type and content_type not in [
+        "application/pdf",
+        "application/octet-stream",
+    ]:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Tipo de archivo no permitido. "
+                "Solo se aceptan PDFs válidos."
+            ),
+        )
+
+
+def validate_pdf_signature(
+    content: bytes,
+) -> None:
+    if not content.startswith(b"%PDF"):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "El archivo no parece ser un PDF válido."
+            ),
         )
 
 
@@ -108,6 +133,8 @@ async def save_upload_file(
             status_code=400,
             detail="El archivo está vacío.",
         )
+
+    validate_pdf_signature(content)
 
     size_mb = (
         len(content) / (1024 * 1024)
@@ -265,6 +292,44 @@ async def chat_document(
         )
 
 
+def calculate_rag_confidence(
+    citations: list[dict],
+) -> dict:
+    distances = [
+        item.get("distance")
+        for item in citations
+        if item.get("distance") is not None
+    ]
+
+    if not distances:
+        return {
+            "confidence": "unknown",
+            "average_distance": None,
+            "message": "No se pudo calcular la confianza.",
+        }
+
+    average_distance = sum(distances) / len(distances)
+
+    if average_distance <= 0.35:
+        confidence = "high"
+        message = "Alta confianza en las fuentes recuperadas."
+    elif average_distance <= 0.65:
+        confidence = "medium"
+        message = "Confianza media en las fuentes recuperadas."
+    else:
+        confidence = "low"
+        message = (
+            "Baja confianza: el documento puede no contener "
+            "información suficiente para responder con precisión."
+        )
+
+    return {
+        "confidence": confidence,
+        "average_distance": average_distance,
+        "message": message,
+    }
+
+
 @router.post("/chat/{document_id}")
 async def chat_document_by_id(
     document_id: str,
@@ -292,11 +357,16 @@ async def chat_document_by_id(
             question=question,
         )
 
+        confidence_data = calculate_rag_confidence(
+            citations
+        )
+
         return {
             "document_id": document_id,
             "question": question,
             "answer": answer,
             "citations": citations,
+            **confidence_data,
         }
 
     except HTTPException:
