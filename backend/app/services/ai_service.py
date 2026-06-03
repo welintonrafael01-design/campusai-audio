@@ -360,6 +360,7 @@ def generate_flashcards(
 
     return content
 
+
 def generate_exam_questions_from_context(
     context: str,
     number_of_questions: int = 5,
@@ -382,7 +383,8 @@ def generate_exam_questions_from_context(
             {
                 "role": "system",
                 "content": (
-                    "Eres StudyBook AI, un profesor universitario experto."
+                    "Eres StudyBook AI, profesor universitario experto. "
+                    "Genera EXCLUSIVAMENTE preguntas de selección múltiple."
                 ),
             },
             {
@@ -390,14 +392,41 @@ def generate_exam_questions_from_context(
                 "content": (
                     f"Contexto:\n\n{document_text}\n\n"
                     f"Genera {safe_number} preguntas.\n\n"
-                    "Devuelve JSON válido."
+
+                    "Devuelve EXCLUSIVAMENTE JSON válido.\n\n"
+
+                    "{\n"
+                    '  "questions": [\n'
+                    "    {\n"
+                    '      "question": "...",\n'
+                    '      "options": {\n'
+                    '        "A": "...",\n'
+                    '        "B": "...",\n'
+                    '        "C": "...",\n'
+                    '        "D": "..."\n'
+                    "      },\n"
+                    '      "correct_answer": "A",\n'
+                    '      "explanation": "..."\n'
+                    "    }\n"
+                    "  ]\n"
+                    "}\n\n"
+
+                    "TODAS las preguntas deben tener "
+                    "A, B, C y D."
                 ),
             },
         ],
-        temperature=0.35,
+        temperature=0.3,
     )
 
-    return response.choices[0].message.content.strip()
+    content = (
+        response.choices[0]
+        .message
+        .content
+        .strip()
+    )
+
+    return content
 
 
 def generate_flashcards_from_context(

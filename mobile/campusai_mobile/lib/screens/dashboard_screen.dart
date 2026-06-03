@@ -77,6 +77,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       if (!mounted) return;
       setState(() => totalDuration = duration ?? Duration.zero);
     });
+
+    audioService.playerStateStream.listen((state) {
+      if (!mounted) return;
+      setState(() {
+        isPlaying = state.playing;
+      });
+    });
   }
 
   @override
@@ -238,6 +245,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Future<void> uploadPdf() async {
+    await audioService.reset();
+
     setState(() {
       isLoading = true;
       isPlaying = false;
@@ -315,9 +324,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
       if (!mounted) return;
 
+      final generatedAudioUrl =
+          data['audio_url'] ?? '';
+
       setState(() {
-        audioUrl = data['audio_url'] ?? '';
+        audioUrl = generatedAudioUrl;
       });
+
+      if (generatedAudioUrl.isNotEmpty) {
+        await audioService.preload(
+          ApiService.buildAudioUrl(
+            generatedAudioUrl,
+          ),
+        );
+      }
     } catch (error) {
       if (!mounted) return;
 
@@ -342,7 +362,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       if (!mounted) return;
 
       setState(() {
-        isPlaying = true;
+        isPlaying = audioService.isPlaying;
       });
     } catch (error) {
       if (!mounted) return;
@@ -359,7 +379,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     if (!mounted) return;
 
     setState(() {
-      isPlaying = false;
+      isPlaying = audioService.isPlaying;
     });
   }
 
@@ -372,7 +392,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       if (!mounted) return;
 
       setState(() {
-        isPlaying = true;
+        isPlaying = audioService.isPlaying;
       });
     } catch (error) {
       if (!mounted) return;

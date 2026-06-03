@@ -54,6 +54,31 @@ class AudioPlayerService {
     await player.pause();
   }
 
+  Future<void> preload(
+    String url,
+  ) async {
+    final cleanUrl = url.trim();
+
+    if (cleanUrl.isEmpty) return;
+
+    if (_currentUrl == cleanUrl) {
+      return;
+    }
+
+    _currentUrl = cleanUrl;
+
+    await player.setAudioSource(
+      AudioSource.uri(
+        Uri.parse(cleanUrl),
+      ),
+    );
+
+    await player.setSpeed(
+      _currentSpeed,
+    );
+  }
+
+
   Future<void> stop() async {
     await player.stop();
     await player.seek(Duration.zero);

@@ -7,6 +7,7 @@ import '../screens/dashboard_screen.dart';
 import '../screens/exam_screen.dart';
 import '../screens/flashcards_screen.dart';
 import '../screens/settings_screen.dart';
+import '../screens/admin_analytics_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/auth',
@@ -87,6 +88,16 @@ final appRouter = GoRouter(
           child: FlashcardsScreen(
             documentId: documentId,
           ),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/admin',
+      name: 'admin',
+      pageBuilder: (context, state) {
+        return _buildPage(
+          state: state,
+          child: const AdminAnalyticsScreen(),
         );
       },
     ),

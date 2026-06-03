@@ -213,22 +213,69 @@ class _ExamScreenState extends State<ExamScreen> {
         .toString();
   }
 
-  bool isCorrectSelection(String selected, String correct) {
+  String? getOptionLetter(
+    String value,
+  ) {
+    final match = RegExp(
+      r'^\s*([A-Da-d])[\.\)]?\s+',
+    ).firstMatch(value);
+
+    return match?.group(1)?.toUpperCase();
+  }
+
+  String? getCorrectAnswerLetter(
+    String value,
+  ) {
+    final clean = value.trim();
+
+    if (RegExp(r'^[A-Da-d]$').hasMatch(clean)) {
+      return clean.toUpperCase();
+    }
+
+    final match = RegExp(
+      r'^\s*([A-Da-d])[\.\)]?\s+',
+    ).firstMatch(clean);
+
+    return match?.group(1)?.toUpperCase();
+  }
+
+  bool isCorrectSelection(
+    String selected,
+    String correct,
+  ) {
+    final selectedLetter = getOptionLetter(selected);
+    final correctLetter = getCorrectAnswerLetter(correct);
+
+    if (selectedLetter != null &&
+        correctLetter != null) {
+      return selectedLetter == correctLetter;
+    }
+
     final cleanSelected = normalizeAnswer(selected);
     final cleanCorrect = normalizeAnswer(correct);
 
-    return cleanSelected.contains(cleanCorrect) ||
-        cleanCorrect.contains(cleanSelected);
+    if (cleanSelected.isEmpty || cleanCorrect.isEmpty) {
+      return false;
+    }
+
+    return cleanSelected == cleanCorrect;
   }
 
-  String normalizeAnswer(String value) {
+  String normalizeAnswer(
+    String value,
+  ) {
     return value
         .toLowerCase()
-        .replaceAll(RegExp(r'^[a-d]\.\s*'), '')
-        .replaceAll(RegExp(r'\s+'), ' ')
+        .replaceAll(
+          RegExp(r'^[a-d][\.\)]?\s*'),
+          '',
+        )
+        .replaceAll(
+          RegExp(r'\s+'),
+          ' ',
+        )
         .trim();
   }
-
 
   String buildExamExportContent() {
     return questions.asMap().entries.map((entry) {
@@ -505,7 +552,17 @@ ${getExplanation(question)}
     required String correctAnswer,
   }) {
     final selected = selectedAnswer == option;
-    final isCorrect = isCorrectSelection(option, correctAnswer);
+
+    final optionLetter =
+        getOptionLetter(option);
+
+    final correctLetter =
+        getCorrectAnswerLetter(correctAnswer);
+
+    final isCorrect =
+        optionLetter != null &&
+        correctLetter != null &&
+        optionLetter == correctLetter;
 
     Color borderColor = Colors.white.withValues(alpha: 0.08);
     Color backgroundColor = AppTheme.background.withValues(alpha: 0.4);
