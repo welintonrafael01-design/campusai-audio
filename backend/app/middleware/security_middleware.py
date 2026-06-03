@@ -8,6 +8,8 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
+from app.analytics.usage_logger import log_usage_event
+
 
 class SecurityMiddleware(BaseHTTPMiddleware):
     def __init__(
@@ -51,19 +53,35 @@ class SecurityMiddleware(BaseHTTPMiddleware):
 
         bucket.append(now)
 
+        status_code = 500
+
         try:
             response = await call_next(request)
+            status_code = response.status_code
         except Exception:
             raise
         finally:
             duration = time.perf_counter() - start_time
+
             print(
                 "[REQUEST]",
                 f"id={request_id}",
                 f"ip={client_host}",
                 f"method={request.method}",
                 f"path={request.url.path}",
+                f"status={status_code}",
                 f"duration={duration:.3f}s",
+            )
+
+            log_usage_event(
+                {
+                    "request_id": request_id,
+                    "ip": client_host,
+                    "method": request.method,
+                    "path": request.url.path,
+                    "status_code": status_code,
+                    "duration_seconds": round(duration, 4),
+                }
             )
 
         response.headers["X-Request-ID"] = request_id

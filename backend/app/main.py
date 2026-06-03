@@ -10,6 +10,7 @@ from app.routes.cloud import router as cloud_router
 from app.routes.health import router as health_router
 from app.routes.pptx_export import router as pptx_export_router
 from app.routes.export import router as export_router
+from app.routes.analytics import router as analytics_router
 
 
 APP_DIR = Path(__file__).resolve().parent
@@ -54,6 +55,7 @@ app.include_router(pptx_export_router)
 app.include_router(documents_router)
 app.include_router(cloud_router)
 app.include_router(export_router)
+app.include_router(analytics_router)
 
 
 app.mount(

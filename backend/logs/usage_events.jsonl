@@ -1,0 +1,4 @@
+{"timestamp": "2026-06-03T14:29:13.824253+00:00", "request_id": "31a8536e-9387-4f67-ac86-7133b42a712a", "ip": "127.0.0.1", "method": "GET", "path": "/", "status_code": 200, "duration_seconds": 0.0012}
+{"timestamp": "2026-06-03T14:38:21.918637+00:00", "request_id": "d7e67339-406a-46d8-bb1e-a95ed0ba3a6e", "ip": "127.0.0.1", "method": "GET", "path": "/analytics/summary", "status_code": 200, "duration_seconds": 0.0012}
+{"timestamp": "2026-06-03T14:55:25.741479+00:00", "request_id": "58469ca6-02f9-414b-9f89-9265315c069a", "ip": "127.0.0.1", "method": "GET", "path": "/analytics/summary", "status_code": 403, "duration_seconds": 0.0015}
+{"timestamp": "2026-06-03T14:55:47.240462+00:00", "request_id": "846f0be8-42b9-4969-aac3-2589ecbaf340", "ip": "127.0.0.1", "method": "GET", "path": "/analytics/summary", "status_code": 200, "duration_seconds": 0.0009}
