@@ -9,6 +9,8 @@ import '../services/api_service.dart';
 import '../services/chat_history_service.dart';
 import '../services/cloud_api_service.dart';
 import '../services/export_service.dart';
+import '../services/plan_guard_service.dart';
+import '../utils/upgrade_dialog.dart';
 import '../theme/app_theme.dart';
 import '../widgets/chat/chat_input.dart';
 import '../widgets/chat/chat_messages.dart';
@@ -433,6 +435,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
 
   Future<void> exportChatToDocx() async {
+    if (!const PlanGuardService().canExportDocx) {
+      showUpgradeRequired(
+        context,
+        featureName: 'Exportar chat a Word',
+      );
+      return;
+    }
+
     final exportableMessages = messages
         .where((message) => message.text.trim().isNotEmpty)
         .map((message) {
@@ -472,6 +482,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
 
   Future<void> exportChatToPdf() async {
+    if (!const PlanGuardService().canExportPdf) {
+      showUpgradeRequired(
+        context,
+        featureName: 'Exportar chat a PDF',
+      );
+      return;
+    }
+
     final exportableMessages = messages
         .where((message) => message.text.trim().isNotEmpty)
         .map((message) {

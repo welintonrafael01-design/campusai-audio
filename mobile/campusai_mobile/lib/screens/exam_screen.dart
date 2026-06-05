@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import '../models/study_result.dart';
 import '../services/api_service.dart';
 import '../services/export_service.dart';
+import '../services/plan_guard_service.dart';
+import '../utils/upgrade_dialog.dart';
 import '../services/study_result_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
@@ -301,6 +303,14 @@ ${getExplanation(question)}
   }
 
   Future<void> exportExamToPdf() async {
+    if (!const PlanGuardService().canExportPdf) {
+      showUpgradeRequired(
+        context,
+        featureName: 'Exportar examen a PDF',
+      );
+      return;
+    }
+
     if (questions.isEmpty) return;
 
     await ExportService.exportTextToPdf(
@@ -310,6 +320,14 @@ ${getExplanation(question)}
   }
 
   Future<void> exportExamToDocx() async {
+    if (!const PlanGuardService().canExportDocx) {
+      showUpgradeRequired(
+        context,
+        featureName: 'Exportar examen a Word',
+      );
+      return;
+    }
+
     if (questions.isEmpty) return;
 
     await ExportService.exportTextToDocx(

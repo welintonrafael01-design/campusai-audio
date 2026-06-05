@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import '../models/study_result.dart';
 import '../services/api_service.dart';
 import '../services/export_service.dart';
+import '../services/plan_guard_service.dart';
+import '../utils/upgrade_dialog.dart';
 import '../services/study_result_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
@@ -161,6 +163,14 @@ ${getBack(card)}
   }
 
   Future<void> exportFlashcardsToPdf() async {
+    if (!const PlanGuardService().canExportPdf) {
+      showUpgradeRequired(
+        context,
+        featureName: 'Exportar flashcards a PDF',
+      );
+      return;
+    }
+
     if (flashcards.isEmpty) return;
 
     await ExportService.exportTextToPdf(
@@ -170,6 +180,14 @@ ${getBack(card)}
   }
 
   Future<void> exportFlashcardsToDocx() async {
+    if (!const PlanGuardService().canExportDocx) {
+      showUpgradeRequired(
+        context,
+        featureName: 'Exportar flashcards a Word',
+      );
+      return;
+    }
+
     if (flashcards.isEmpty) return;
 
     await ExportService.exportTextToDocx(

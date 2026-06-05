@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../services/export_service.dart';
+import '../../../services/plan_guard_service.dart';
 import '../../../theme/app_theme.dart';
+import '../../../utils/upgrade_dialog.dart';
 import '../../section_card.dart';
 
 class DashboardSummarySection extends StatelessWidget {
@@ -42,6 +44,14 @@ class DashboardSummarySection extends StatelessWidget {
             IconButton(
               tooltip: 'Exportar resumen a Word',
               onPressed: () {
+                if (!const PlanGuardService().canExportDocx) {
+                  showUpgradeRequired(
+                    context,
+                    featureName: 'Exportar resumen a Word',
+                  );
+                  return;
+                }
+
                 ExportService.exportTextToDocx(
                   title: 'Resumen IA',
                   content: _cleanMarkdown(summary),
@@ -55,6 +65,14 @@ class DashboardSummarySection extends StatelessWidget {
             IconButton(
               tooltip: 'Exportar resumen a PowerPoint',
               onPressed: () {
+                if (!const PlanGuardService().canExportPptx) {
+                  showUpgradeRequired(
+                    context,
+                    featureName: 'Exportar resumen a PowerPoint',
+                  );
+                  return;
+                }
+
                 ExportService.exportTextToPptx(
                   title: 'Resumen IA',
                   content: _cleanMarkdown(summary),
@@ -68,6 +86,14 @@ class DashboardSummarySection extends StatelessWidget {
             IconButton(
               tooltip: 'Exportar resumen a PDF',
               onPressed: () {
+                if (!const PlanGuardService().canExportPdf) {
+                  showUpgradeRequired(
+                    context,
+                    featureName: 'Exportar resumen a PDF',
+                  );
+                  return;
+                }
+
                 ExportService.exportTextToPdf(
                   title: 'Resumen IA',
                   content: _cleanMarkdown(summary),
