@@ -6,6 +6,6 @@ router = APIRouter()
 def health_check():
     return {
         "status": "ok",
-        "service": "CampusAI Audio API",
+        "service": "StudyBook AI API",
         "message": "El backend está funcionando correctamente"
     }

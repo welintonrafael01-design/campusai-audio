@@ -94,7 +94,7 @@ def create_checkout_session(
             cancel_url=cancel_url,
             metadata={
                 "plan": plan,
-                "source": "campusai",
+                "source": "studybook_ai",
             },
         )
     except Exception as exc:

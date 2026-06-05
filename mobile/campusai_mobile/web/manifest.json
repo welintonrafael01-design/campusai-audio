@@ -1,6 +1,6 @@
 {
-    "name": "campusai_mobile",
-    "short_name": "campusai_mobile",
+    "name": "StudyBook AI",
+    "short_name": "StudyBook AI",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

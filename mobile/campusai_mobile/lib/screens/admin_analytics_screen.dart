@@ -440,7 +440,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
               _sectionTitle(
                 'Analytics Dashboard v2',
                 subtitle:
-                    'Resumen operativo de CampusAI: uso, rendimiento, módulos y rutas principales.',
+                    'Resumen operativo de StudyBook AI: uso, rendimiento, módulos y rutas principales.',
               ),
               const SizedBox(height: 20),
               _buildStatusCard(),
@@ -529,7 +529,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text('CampusAI Analytics'),
+        title: const Text('StudyBook AI Analytics'),
         actions: [
           IconButton(
             tooltip: 'Actualizar',

@@ -35,7 +35,7 @@ class PlansScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Planes CampusAI'),
+        title: const Text('Planes StudyBook AI'),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
