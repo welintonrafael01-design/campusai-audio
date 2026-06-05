@@ -125,3 +125,4 @@ xxhash==3.7.0
 yarl==1.24.2
 zipp==3.23.1
 zstandard==0.25.0
+stripe==13.0.1
