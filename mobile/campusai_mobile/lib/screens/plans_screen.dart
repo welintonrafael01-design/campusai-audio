@@ -1,25 +1,32 @@
 import 'package:flutter/material.dart';
 
 import '../config/app_plans.dart';
+import '../services/billing_service.dart';
 import '../theme/app_theme.dart';
 
 class PlansScreen extends StatelessWidget {
   const PlansScreen({super.key});
 
-  void _showStripeComingSoon(
+  Future<void> _startCheckout(
     BuildContext context,
     CampusPlan plan,
-  ) {
+  ) async {
     final planName = AppPlans.planNames[plan] ?? 'Premium';
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Integración con Stripe próximamente para el plan $planName.',
+    try {
+      await const BillingService().startCheckout(plan);
+    } catch (error) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'No se pudo iniciar el pago de $planName: $error',
+          ),
+          behavior: SnackBarBehavior.floating,
         ),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+      );
+    }
   }
 
   @override
@@ -119,7 +126,7 @@ class PlansScreen extends StatelessWidget {
                             )
                           : FilledButton.icon(
                               onPressed: () {
-                                _showStripeComingSoon(context, plan);
+                                _startCheckout(context, plan);
                               },
                               icon: const Icon(
                                 Icons.workspace_premium_rounded,
