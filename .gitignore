@@ -30,3 +30,8 @@ venv/
 
 # Document Registry
 backend/app/database/document_registry.json
+
+# Local environment secrets
+.env
+backend/.env
+mobile/campusai_mobile/.env

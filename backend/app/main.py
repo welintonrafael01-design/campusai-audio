@@ -1,9 +1,13 @@
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.middleware.security_middleware import SecurityMiddleware
+
+load_dotenv()
 
 from app.routes.documents import router as documents_router
 from app.routes.cloud import router as cloud_router
