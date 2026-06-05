@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../config/app_plans.dart';
 import '../providers/theme_provider.dart';
 import '../services/history_service.dart';
 import '../theme/app_theme.dart';
@@ -194,6 +196,7 @@ class SettingsScreen extends ConsumerWidget {
 
           /// PREMIUM
           SectionCard(
+            onTap: () => context.go('/plans'),
             child: Row(
               children: [
                 Container(
@@ -213,14 +216,14 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 14),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment:
                         CrossAxisAlignment
                             .start,
                     children: [
                       Text(
-                        'StudyBook Premium',
+                        'Plan actual: ${AppPlans.currentPlanName}',
                         style: TextStyle(
                           color: AppTheme
                               .textPrimary,
@@ -231,7 +234,7 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        'Próximamente: lectura completa IA, nube y sincronización.',
+                        'Ver planes Free, Pro y Educator, límites y beneficios.',
                         style: TextStyle(
                           color: AppTheme
                               .textMuted,
@@ -240,6 +243,11 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 18,
+                  color: AppTheme.textMuted,
                 ),
               ],
             ),
