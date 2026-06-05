@@ -10,7 +10,7 @@ tell application "Terminal"
 
     do script "printf '\\\\e]1;🚀 Backend API\\\\a'; printf '\\\\e]2;🚀 Backend API\\\\a'; cd $BACKEND; source .venv/bin/activate; uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
-    do script "printf '\\\\e]1;📱 Flutter Web\\\\a'; printf '\\\\e]2;📱 Flutter Web\\\\a'; cd $FLUTTER; flutter run -d chrome --dart-define=SUPABASE_URL=https://olegevhncmblxngurclt.supabase.co --dart-define=SUPABASE_ANON_KEY=sb_publishable_lN6s33WgVl8_hfbeLlDSfg__E-yA8H7 --dart-define=ADMIN_API_KEY=campusai-admin-local-2026"
+    do script "printf '\\\\e]1;📱 Flutter Web\\\\a'; printf '\\\\e]2;📱 Flutter Web\\\\a'; cd $FLUTTER; flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8000 --dart-define=SUPABASE_URL=https://olegevhncmblxngurclt.supabase.co --dart-define=SUPABASE_ANON_KEY=sb_publishable_lN6s33WgVl8_hfbeLlDSfg__E-yA8H7 --dart-define=ADMIN_API_KEY=campusai-admin-local-2026"
 
     do script "printf '\\\\e]1;🌳 Git Control\\\\a'; printf '\\\\e]2;🌳 Git Control\\\\a'; cd $PROJECT; git status"
 
