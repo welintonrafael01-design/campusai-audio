@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../config/app_plans.dart';
 import '../providers/theme_provider.dart';
 import '../services/history_service.dart';
+import '../services/plan_guard_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
 
@@ -223,7 +223,7 @@ class SettingsScreen extends ConsumerWidget {
                             .start,
                     children: [
                       Text(
-                        'Plan actual: ${AppPlans.currentPlanName}',
+                        'Plan actual: ${const PlanGuardService().currentPlanName}',
                         style: TextStyle(
                           color: AppTheme
                               .textPrimary,

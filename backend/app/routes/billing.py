@@ -72,14 +72,20 @@ def create_checkout_session(
 
     price_id = _get_price_id(plan)
 
-    success_url = os.getenv(
+    success_url_base = os.getenv(
         "APP_SUCCESS_URL",
-        "http://localhost:5000/plans?checkout=success",
+        "http://localhost:5000/#/plans?checkout=success",
     )
-    cancel_url = os.getenv(
+    cancel_url_base = os.getenv(
         "APP_CANCEL_URL",
-        "http://localhost:5000/plans?checkout=cancel",
+        "http://localhost:5000/#/plans?checkout=cancel",
     )
+
+    separator_success = "&" if "?" in success_url_base else "?"
+    separator_cancel = "&" if "?" in cancel_url_base else "?"
+
+    success_url = f"{success_url_base}{separator_success}plan={plan}"
+    cancel_url = f"{cancel_url_base}{separator_cancel}plan={plan}"
 
     try:
         session = stripe.checkout.Session.create(

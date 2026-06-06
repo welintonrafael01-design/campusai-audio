@@ -31,8 +31,6 @@ class PlanLimits {
 }
 
 class AppPlans {
-  static const CampusPlan currentPlan = CampusPlan.free;
-
   static const Map<CampusPlan, String> planNames = {
     CampusPlan.free: 'Free',
     CampusPlan.pro: 'Pro',
@@ -78,7 +76,4 @@ class AppPlans {
     ),
   };
 
-  static PlanLimits get currentLimits => limits[currentPlan]!;
-
-  static String get currentPlanName => planNames[currentPlan]!;
 }

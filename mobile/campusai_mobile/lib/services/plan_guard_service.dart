@@ -1,11 +1,19 @@
+import 'dart:html' as html;
+
 import '../config/app_plans.dart';
 
 class PlanGuardService {
   const PlanGuardService();
 
-  CampusPlan get currentPlan => AppPlans.currentPlan;
+  static const String _storageKey = 'studybook_ai_current_plan';
 
-  PlanLimits get limits => AppPlans.currentLimits;
+  CampusPlan get currentPlan {
+    final storedPlan = html.window.localStorage[_storageKey];
+
+    return planFromCode(storedPlan);
+  }
+
+  PlanLimits get limits => AppPlans.limits[currentPlan]!;
 
   bool get canExportPdf => limits.canExportPdf;
   bool get canExportDocx => limits.canExportDocx;
@@ -13,6 +21,16 @@ class PlanGuardService {
   bool get canUseAdvancedAnalytics => limits.canUseAdvancedAnalytics;
   bool get canUseEducatorTools => limits.canUseEducatorTools;
   bool get canUseVoiceOnboarding => limits.canUseVoiceOnboarding;
+
+  String get currentPlanName => AppPlans.planNames[currentPlan]!;
+
+  void saveCurrentPlan(CampusPlan plan) {
+    html.window.localStorage[_storageKey] = planCode(plan);
+  }
+
+  void resetToFree() {
+    html.window.localStorage[_storageKey] = planCode(CampusPlan.free);
+  }
 
   bool canGenerateFlashcards(int requestedAmount) {
     return requestedAmount <= limits.maxFlashcardsPerPdf;
@@ -33,4 +51,20 @@ class PlanGuardService {
   }) {
     return 'Tu plan actual permite $allowed en "$featureName". Solicitaste $requested.';
   }
+}
+
+CampusPlan planFromCode(String? value) {
+  return switch (value) {
+    'pro' => CampusPlan.pro,
+    'educator' => CampusPlan.educator,
+    _ => CampusPlan.free,
+  };
+}
+
+String planCode(CampusPlan plan) {
+  return switch (plan) {
+    CampusPlan.free => 'free',
+    CampusPlan.pro => 'pro',
+    CampusPlan.educator => 'educator',
+  };
 }

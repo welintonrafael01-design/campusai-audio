@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../config/app_plans.dart';
 import '../services/billing_service.dart';
+import '../services/plan_guard_service.dart';
 import '../theme/app_theme.dart';
 
 class PlansScreen extends StatefulWidget {
@@ -51,14 +52,51 @@ class _PlansScreenState extends State<PlansScreen> {
     return checkoutStatus;
   }
 
+  String? _checkoutPlanCode() {
+    String? planCode;
+
+    try {
+      planCode = GoRouterState.of(
+        context,
+      ).uri.queryParameters['plan'];
+    } catch (_) {
+      planCode = null;
+    }
+
+    planCode ??= Uri.base.queryParameters['plan'];
+
+    if (planCode == null || planCode.isEmpty) {
+      final fragment = Uri.base.fragment;
+
+      if (fragment.isNotEmpty) {
+        final normalizedFragment = fragment.startsWith('/')
+            ? fragment
+            : '/$fragment';
+
+        final fragmentUri = Uri.tryParse(normalizedFragment);
+        planCode = fragmentUri?.queryParameters['plan'];
+      }
+    }
+
+    return planCode;
+  }
+
   String? _checkoutMessage() {
     final status = _checkoutStatus();
+    final plan = planFromCode(_checkoutPlanCode());
+    final planName = AppPlans.planNames[plan] ?? 'Premium';
 
-    return switch (status) {
-      'success' => 'Pago completado correctamente.',
-      'cancel' => 'Pago cancelado.',
-      _ => null,
-    };
+    if (status == 'success') {
+      const PlanGuardService().saveCurrentPlan(plan);
+
+      return 'Pago completado correctamente. Tu plan actual es $planName.';
+    }
+
+    if (status == 'cancel') {
+      return 'Pago cancelado.';
+    }
+
+    return null;
   }
 
   IconData _checkoutIcon() {
@@ -110,7 +148,7 @@ class _PlansScreenState extends State<PlansScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final current = AppPlans.currentPlan;
+    final current = const PlanGuardService().currentPlan;
     final checkoutMessage = _checkoutMessage();
 
     return Scaffold(
