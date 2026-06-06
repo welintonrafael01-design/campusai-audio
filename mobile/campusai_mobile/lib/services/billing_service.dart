@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 
 import '../config/app_plans.dart';
 import 'api_service.dart';
+import 'auth_service.dart';
 
 class BillingService {
   const BillingService();
@@ -18,6 +19,14 @@ class BillingService {
         ),
     };
 
+    final user = AuthService.currentUser;
+
+    if (user == null) {
+      throw Exception(
+        'Debes iniciar sesión para actualizar tu plan.',
+      );
+    }
+
     final response = await http.post(
       Uri.parse('${ApiService.baseUrl}/billing/create-checkout-session'),
       headers: {
@@ -25,6 +34,8 @@ class BillingService {
       },
       body: jsonEncode({
         'plan': planCode,
+        'user_id': user.id,
+        'email': user.email,
       }),
     );
 
