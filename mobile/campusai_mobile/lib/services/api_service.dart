@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
+import 'usage_limit_service.dart';
 
 class ApiService {
  static const String baseUrl = 'http://localhost:8000';
@@ -34,6 +35,14 @@ class ApiService {
 
   static Future<Map<String, dynamic>>
       uploadPdf() async {
+    const usageLimitService = UsageLimitService();
+
+    if (!usageLimitService.canUploadPdfToday()) {
+      throw Exception(
+        usageLimitService.pdfUploadLimitMessage(),
+      );
+    }
+
     final file = await pickPdfFile();
 
     final request = http.MultipartRequest(
@@ -51,7 +60,11 @@ class ApiService {
       ),
     );
 
-    return sendMultipartRequest(request);
+    final response = await sendMultipartRequest(request);
+
+    usageLimitService.registerPdfUpload();
+
+    return response;
   }
 
   // =========================

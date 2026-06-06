@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../config/app_plans.dart';
 import '../providers/theme_provider.dart';
 import '../services/history_service.dart';
 import '../services/plan_guard_service.dart';
@@ -10,6 +11,22 @@ import '../widgets/section_card.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
+
+  void changeTestPlan(
+    BuildContext context,
+    CampusPlan plan,
+  ) {
+    const PlanGuardService().saveCurrentPlan(plan);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Plan de prueba cambiado a ${AppPlans.planNames[plan]}.',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
   Future<void> clearHistory(
     BuildContext context,
@@ -248,6 +265,67 @@ class SettingsScreen extends ConsumerWidget {
                   Icons.arrow_forward_ios_rounded,
                   size: 18,
                   color: AppTheme.textMuted,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          /// TEST PLAN SELECTOR
+          SectionCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Modo prueba de planes',
+                  style: TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Cambia temporalmente el plan local para probar bloqueos y funciones premium.',
+                  style: TextStyle(
+                    color: AppTheme.textMuted,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    OutlinedButton(
+                      onPressed: () {
+                        changeTestPlan(
+                          context,
+                          CampusPlan.free,
+                        );
+                      },
+                      child: const Text('Usar Free'),
+                    ),
+                    FilledButton(
+                      onPressed: () {
+                        changeTestPlan(
+                          context,
+                          CampusPlan.pro,
+                        );
+                      },
+                      child: const Text('Usar Pro'),
+                    ),
+                    FilledButton(
+                      onPressed: () {
+                        changeTestPlan(
+                          context,
+                          CampusPlan.educator,
+                        );
+                      },
+                      child: const Text('Usar Educator'),
+                    ),
+                  ],
                 ),
               ],
             ),
