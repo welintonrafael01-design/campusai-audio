@@ -1,11 +1,90 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../config/app_plans.dart';
 import '../services/billing_service.dart';
 import '../theme/app_theme.dart';
 
-class PlansScreen extends StatelessWidget {
+class PlansScreen extends StatefulWidget {
   const PlansScreen({super.key});
+
+  @override
+  State<PlansScreen> createState() => _PlansScreenState();
+}
+
+class _PlansScreenState extends State<PlansScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showCheckoutSnackBar();
+    });
+  }
+
+  String? _checkoutStatus() {
+    String? checkoutStatus;
+
+    try {
+      checkoutStatus = GoRouterState.of(
+        context,
+      ).uri.queryParameters['checkout'];
+    } catch (_) {
+      checkoutStatus = null;
+    }
+
+    checkoutStatus ??= Uri.base.queryParameters['checkout'];
+
+    if (checkoutStatus == null || checkoutStatus.isEmpty) {
+      final fragment = Uri.base.fragment;
+
+      if (fragment.isNotEmpty) {
+        final normalizedFragment = fragment.startsWith('/')
+            ? fragment
+            : '/$fragment';
+
+        final fragmentUri = Uri.tryParse(normalizedFragment);
+        checkoutStatus = fragmentUri?.queryParameters['checkout'];
+      }
+    }
+
+    return checkoutStatus;
+  }
+
+  String? _checkoutMessage() {
+    final status = _checkoutStatus();
+
+    return switch (status) {
+      'success' => 'Pago completado correctamente.',
+      'cancel' => 'Pago cancelado.',
+      _ => null,
+    };
+  }
+
+  IconData _checkoutIcon() {
+    final status = _checkoutStatus();
+
+    return switch (status) {
+      'success' => Icons.check_circle_rounded,
+      'cancel' => Icons.info_rounded,
+      _ => Icons.info_rounded,
+    };
+  }
+
+  void _showCheckoutSnackBar() {
+    final message = _checkoutMessage();
+
+    if (message == null || !mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
   Future<void> _startCheckout(
     BuildContext context,
@@ -32,6 +111,7 @@ class PlansScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final current = AppPlans.currentPlan;
+    final checkoutMessage = _checkoutMessage();
 
     return Scaffold(
       appBar: AppBar(
@@ -40,6 +120,30 @@ class PlansScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (checkoutMessage != null) ...[
+            Card(
+              child: ListTile(
+                leading: Icon(
+                  _checkoutIcon(),
+                  color: AppTheme.accent,
+                ),
+                title: Text(
+                  checkoutMessage,
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                subtitle: const Text(
+                  'Tu solicitud de pago fue procesada por Stripe en modo prueba.',
+                  style: TextStyle(
+                    color: AppTheme.textMuted,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           const Text(
             'Elige el plan que se adapte a tu forma de estudiar o enseñar.',
             style: TextStyle(
