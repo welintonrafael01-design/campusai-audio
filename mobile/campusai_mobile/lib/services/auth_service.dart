@@ -29,6 +29,21 @@ class AuthService {
   static bool get isLoggedIn =>
       currentUser != null;
 
+  static String? get accessToken =>
+      isConfigured ? _client.auth.currentSession?.accessToken : null;
+
+  static Map<String, String> get authHeaders {
+    final token = accessToken;
+
+    if (token == null || token.isEmpty) {
+      return {};
+    }
+
+    return {
+      'Authorization': 'Bearer $token',
+    };
+  }
+
   static Future<AuthResponse> signUp({
     required String email,
     required String password,

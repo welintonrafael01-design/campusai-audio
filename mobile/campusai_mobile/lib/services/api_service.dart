@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'usage_limit_service.dart';
+import 'auth_service.dart';
 
 class ApiService {
  static const String baseUrl = 'http://localhost:8000';
@@ -21,20 +22,14 @@ class ApiService {
   // SUBSCRIPTION
   // =========================
 
-  static Future<Map<String, dynamic>> getSubscription({
-    required String userId,
-  }) async {
-    final cleanUserId = requireValue(
-      userId,
-      'No hay usuario autenticado.',
-    );
-
+  static Future<Map<String, dynamic>> getSubscription() async {
     final uri = Uri.parse(
-      '$baseUrl/billing/subscription/$cleanUserId',
+      '$baseUrl/billing/subscription/me',
     );
 
     final response = await http.get(
       uri,
+      headers: AuthService.authHeaders,
     ).timeout(timeoutDuration);
 
     return decodeResponse(response);

@@ -14,9 +14,7 @@ class SubscriptionService {
       return CampusPlan.free;
     }
 
-    final response = await ApiService.getSubscription(
-      userId: user.id,
-    );
+    final response = await ApiService.getSubscription();
 
     final planCode = response['plan']?.toString();
     final status = response['subscription_status']?.toString();

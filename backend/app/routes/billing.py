@@ -1,10 +1,12 @@
 import os
 
 import stripe
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from app.services.subscription_service import upsert_user_subscription, downgrade_user_to_free, get_user_subscription
+from app.security.user_auth import AuthenticatedUser, require_current_user
+
+from app.services.subscription_service import upsert_user_subscription, downgrade_user_to_free, get_user_subscription, get_user_subscription
 
 
 router = APIRouter(
@@ -139,6 +141,21 @@ def create_checkout_session(
     return CheckoutSessionResponse(
         checkout_url=session.url,
     )
+
+
+@router.get("/subscription/me")
+def get_my_subscription_endpoint(
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        return get_user_subscription(
+            user_id=current_user.user_id,
+        )
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
 
 
 @router.get("/subscription/{user_id}")
