@@ -13,6 +13,11 @@ import '../widgets/section_card.dart';
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
+  static const bool enablePlanTester = bool.fromEnvironment(
+    'ENABLE_PLAN_TESTER',
+    defaultValue: false,
+  );
+
   Future<void> syncRealPlan(
     BuildContext context,
   ) async {
@@ -309,7 +314,7 @@ class SettingsScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Modo prueba de planes',
+                  'Plan y suscripción',
                   style: TextStyle(
                     color: AppTheme.textPrimary,
                     fontWeight: FontWeight.w800,
@@ -318,7 +323,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 6),
                 const Text(
-                  'Cambia temporalmente el plan local para probar bloqueos y funciones premium.',
+                  'Sincroniza tu plan real desde Supabase. El selector manual solo se activa en modo desarrollo.',
                   style: TextStyle(
                     color: AppTheme.textMuted,
                     height: 1.4,
@@ -329,39 +334,43 @@ class SettingsScreen extends ConsumerWidget {
                   spacing: 10,
                   runSpacing: 10,
                   children: [
-                    OutlinedButton(
-                      onPressed: () {
-                        changeTestPlan(
-                          context,
-                          CampusPlan.free,
-                        );
-                      },
-                      child: const Text('Usar Free'),
-                    ),
+                    if (enablePlanTester) ...[
+                      OutlinedButton(
+                        onPressed: () {
+                          changeTestPlan(
+                            context,
+                            CampusPlan.free,
+                          );
+                        },
+                        child: const Text('Usar Free'),
+                      ),
+                    ],
                     OutlinedButton(
                       onPressed: () {
                         syncRealPlan(context);
                       },
                       child: const Text('Sincronizar real'),
                     ),
-                    FilledButton(
-                      onPressed: () {
-                        changeTestPlan(
-                          context,
-                          CampusPlan.pro,
-                        );
-                      },
-                      child: const Text('Usar Pro'),
-                    ),
-                    FilledButton(
-                      onPressed: () {
-                        changeTestPlan(
-                          context,
-                          CampusPlan.educator,
-                        );
-                      },
-                      child: const Text('Usar Educator'),
-                    ),
+                    if (enablePlanTester) ...[
+                      FilledButton(
+                        onPressed: () {
+                          changeTestPlan(
+                            context,
+                            CampusPlan.pro,
+                          );
+                        },
+                        child: const Text('Usar Pro'),
+                      ),
+                      FilledButton(
+                        onPressed: () {
+                          changeTestPlan(
+                            context,
+                            CampusPlan.educator,
+                          );
+                        },
+                        child: const Text('Usar Educator'),
+                      ),
+                    ],
                   ],
                 ),
               ],
