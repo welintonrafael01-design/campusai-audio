@@ -8,6 +8,7 @@ from fastapi.responses import StreamingResponse, FileResponse
 from fastapi import (
     APIRouter,
     Body,
+    Depends,
     File,
     HTTPException,
     Query,
@@ -49,6 +50,11 @@ from app.services.rag_service import (
     semantic_search_all_documents,
     get_source_chunk,
     get_retrieval_citations,
+)
+
+from app.security.user_auth import (
+    AuthenticatedUser,
+    require_current_user,
 )
 
 router = APIRouter(
@@ -190,6 +196,7 @@ def build_document_context(
 @router.post("/upload")
 async def upload_document(
     file: UploadFile = File(...),
+    current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     start_time = time.perf_counter()
 
@@ -216,6 +223,7 @@ async def upload_document(
             filename=file.filename or file_path.name,
             file_path=str(file_path),
             size_bytes=file_path.stat().st_size,
+            user_id=current_user.user_id,
         )
         print(f"[UPLOAD] register_document: {time.perf_counter() - step:.2f}s")
 

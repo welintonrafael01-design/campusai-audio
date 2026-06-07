@@ -55,6 +55,7 @@ def register_document_file(
     filename: str,
     file_path: str,
     size_bytes: int,
+    user_id: str | None = None,
 ) -> dict:
     registry = _read_registry()
 
@@ -66,6 +67,7 @@ def register_document_file(
             timezone.utc,
         ).isoformat(),
         "size_bytes": size_bytes,
+        "user_id": user_id,
     }
 
     registry[document_id] = record

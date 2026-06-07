@@ -71,6 +71,10 @@ class ApiService {
       ),
     );
 
+    request.headers.addAll(
+      AuthService.authHeaders,
+    );
+
     request.files.add(
       http.MultipartFile.fromBytes(
         'file',
