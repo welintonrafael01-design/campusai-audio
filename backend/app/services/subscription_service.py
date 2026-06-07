@@ -69,3 +69,51 @@ def downgrade_user_to_free(
         stripe_subscription_id=stripe_subscription_id,
         subscription_status=subscription_status,
     )
+
+
+def get_user_subscription(
+    *,
+    user_id: str,
+) -> dict:
+    if not user_id:
+        raise ValueError("user_id es requerido.")
+
+    client = get_supabase_admin_client()
+
+    response = (
+        client
+        .table("user_subscriptions")
+        .select("*")
+        .eq("user_id", user_id)
+        .maybe_single()
+        .execute()
+    )
+
+    if not response.data:
+        return {
+            "user_id": user_id,
+            "plan": "free",
+            "subscription_status": "free",
+            "email": None,
+            "stripe_customer_id": None,
+            "stripe_subscription_id": None,
+            "source": "default",
+        }
+
+    data = response.data
+
+    plan = data.get("plan") or "free"
+    status = data.get("subscription_status") or "unknown"
+
+    if status != "active":
+        plan = "free"
+
+    return {
+        "user_id": data.get("user_id") or user_id,
+        "email": data.get("email"),
+        "plan": plan,
+        "subscription_status": status,
+        "stripe_customer_id": data.get("stripe_customer_id"),
+        "stripe_subscription_id": data.get("stripe_subscription_id"),
+        "source": "supabase",
+    }

@@ -4,7 +4,7 @@ import stripe
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from app.services.subscription_service import upsert_user_subscription, downgrade_user_to_free
+from app.services.subscription_service import upsert_user_subscription, downgrade_user_to_free, get_user_subscription
 
 
 router = APIRouter(
@@ -139,6 +139,19 @@ def create_checkout_session(
     return CheckoutSessionResponse(
         checkout_url=session.url,
     )
+
+
+@router.get("/subscription/{user_id}")
+def get_subscription_endpoint(user_id: str):
+    try:
+        return get_user_subscription(
+            user_id=user_id,
+        )
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
 
 
 @router.post("/webhook")
