@@ -16,6 +16,30 @@ class ApiService {
   static const int maxPdfSizeMb = 25;
 
 
+
+  // =========================
+  // SUBSCRIPTION
+  // =========================
+
+  static Future<Map<String, dynamic>> getSubscription({
+    required String userId,
+  }) async {
+    final cleanUserId = requireValue(
+      userId,
+      'No hay usuario autenticado.',
+    );
+
+    final uri = Uri.parse(
+      '$baseUrl/billing/subscription/$cleanUserId',
+    );
+
+    final response = await http.get(
+      uri,
+    ).timeout(timeoutDuration);
+
+    return decodeResponse(response);
+  }
+
   // =========================
   // HEALTH
   // =========================

@@ -1,6 +1,5 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../config/app_plans.dart';
+import 'api_service.dart';
 import 'auth_service.dart';
 import 'plan_guard_service.dart';
 
@@ -15,21 +14,13 @@ class SubscriptionService {
       return CampusPlan.free;
     }
 
-    final client = Supabase.instance.client;
-
-    final response = await client
-        .from('user_subscriptions')
-        .select('plan, subscription_status')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-    if (response == null) {
-      const PlanGuardService().resetToFree();
-      return CampusPlan.free;
-    }
+    final response = await ApiService.getSubscription(
+      userId: user.id,
+    );
 
     final planCode = response['plan']?.toString();
     final status = response['subscription_status']?.toString();
+    final source = response['source']?.toString() ?? 'backend';
 
     final plan = status == 'active'
         ? planFromCode(planCode)
@@ -37,7 +28,7 @@ class SubscriptionService {
 
     const PlanGuardService().saveCurrentPlan(
       plan,
-      source: 'supabase',
+      source: source,
       subscriptionStatus: status ?? 'unknown',
     );
 
