@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../services/auth_service.dart';
+import '../services/subscription_service.dart';
 import '../theme/app_theme.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -48,6 +49,8 @@ class _AuthScreenState extends State<AuthScreen> {
           password: password,
         );
       }
+
+      await const SubscriptionService().syncCurrentUserPlan();
 
       if (!mounted) return;
 

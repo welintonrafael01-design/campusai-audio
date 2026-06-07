@@ -6,11 +6,42 @@ import '../config/app_plans.dart';
 import '../providers/theme_provider.dart';
 import '../services/history_service.dart';
 import '../services/plan_guard_service.dart';
+import '../services/subscription_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
+
+  Future<void> syncRealPlan(
+    BuildContext context,
+  ) async {
+    try {
+      final plan = await const SubscriptionService().syncCurrentUserPlan();
+
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Plan sincronizado desde Supabase: ${AppPlans.planNames[plan]}.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (error) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'No se pudo sincronizar el plan: $error',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
 
   void changeTestPlan(
     BuildContext context,
@@ -306,6 +337,12 @@ class SettingsScreen extends ConsumerWidget {
                         );
                       },
                       child: const Text('Usar Free'),
+                    ),
+                    OutlinedButton(
+                      onPressed: () {
+                        syncRealPlan(context);
+                      },
+                      child: const Text('Sincronizar real'),
                     ),
                     FilledButton(
                       onPressed: () {
