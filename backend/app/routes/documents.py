@@ -43,6 +43,7 @@ from app.services.pdf_service import (
 from app.services.document_registry_service import (
     register_document_file,
     get_document_info,
+    require_document_owner,
 )
 
 from app.services.rag_service import (
@@ -158,6 +159,25 @@ async def save_upload_file(
     file_path.write_bytes(content)
 
     return file_path
+
+
+
+
+def validate_document_owner(
+    *,
+    document_id: str,
+    current_user: AuthenticatedUser,
+) -> dict:
+    try:
+        return require_document_owner(
+            document_id=document_id,
+            user_id=current_user.user_id,
+        )
+    except PermissionError as error:
+        raise HTTPException(
+            status_code=403,
+            detail=str(error),
+        ) from error
 
 
 def build_document_context(
@@ -342,8 +362,14 @@ def calculate_rag_confidence(
 async def chat_document_by_id(
     document_id: str,
     question: str = Query(default=""),
+    current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
+        validate_document_owner(
+            document_id=document_id,
+            current_user=current_user,
+        )
+
         if not question.strip():
             raise HTTPException(
                 status_code=400,
@@ -479,8 +505,14 @@ async def exam_document_by_id(
         ge=1,
         le=20,
     ),
+    current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
+        validate_document_owner(
+            document_id=document_id,
+            current_user=current_user,
+        )
+
         context = build_document_context(
             document_id=document_id,
             question=(
@@ -522,8 +554,14 @@ async def flashcards_document_by_id(
         ge=1,
         le=30,
     ),
+    current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
+        validate_document_owner(
+            document_id=document_id,
+            current_user=current_user,
+        )
+
         context = build_document_context(
             document_id=document_id,
             question=(
@@ -560,8 +598,14 @@ async def flashcards_document_by_id(
 async def stream_chat_document(
     document_id: str,
     question: str = Query(default=""),
+    current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
+        validate_document_owner(
+            document_id=document_id,
+            current_user=current_user,
+        )
+
         async def event_generator():
             async for chunk in stream_chat_with_document_id(
                 document_id=document_id,
@@ -637,11 +681,15 @@ async def document_file(
 @router.get("/info/{document_id}")
 async def document_info(
     document_id: str,
+    current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
-        return get_document_info(
+        info = validate_document_owner(
             document_id=document_id,
+            current_user=current_user,
         )
+
+        return info
     except Exception as error:
         raise HTTPException(
             status_code=404,

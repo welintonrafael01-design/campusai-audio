@@ -90,3 +90,20 @@ def get_document_info(
         )
 
     return record
+
+
+def require_document_owner(
+    *,
+    document_id: str,
+    user_id: str,
+) -> dict:
+    record = get_document_info(document_id)
+
+    owner_id = record.get("user_id")
+
+    if owner_id and owner_id != user_id:
+        raise PermissionError(
+            "No tienes permiso para acceder a este documento.",
+        )
+
+    return record

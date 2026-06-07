@@ -120,7 +120,10 @@ class ApiService {
     );
 
     final response = await http
-        .post(uri)
+        .post(
+          uri,
+          headers: AuthService.authHeaders,
+        )
         .timeout(timeoutDuration);
 
     return decodeResponse(response);
@@ -213,6 +216,10 @@ class ApiService {
     final request =
         http.Request('POST', uri);
 
+    request.headers.addAll(
+      AuthService.authHeaders,
+    );
+
     final streamedResponse =
         await request.send();
 
@@ -256,7 +263,10 @@ class ApiService {
     );
 
     final response = await http
-        .post(uri)
+        .post(
+          uri,
+          headers: AuthService.authHeaders,
+        )
         .timeout(timeoutDuration);
 
     return decodeResponse(response);
@@ -287,7 +297,10 @@ class ApiService {
     );
 
     final response = await http
-        .post(uri)
+        .post(
+          uri,
+          headers: AuthService.authHeaders,
+        )
         .timeout(timeoutDuration);
 
     return decodeResponse(response);
@@ -317,7 +330,10 @@ class ApiService {
     );
 
     final response = await http
-        .post(uri)
+        .post(
+          uri,
+          headers: AuthService.authHeaders,
+        )
         .timeout(timeoutDuration);
 
     return decodeResponse(response);
@@ -394,6 +410,9 @@ class ApiService {
       uri,
     );
 
+    request.headers.addAll(
+      AuthService.authHeaders,
+    );
     request.headers['Content-Type'] = 'application/json';
     request.body = jsonEncode({
       'document_ids': cleanDocumentIds,
