@@ -35,7 +35,11 @@ class SubscriptionService {
         ? planFromCode(planCode)
         : CampusPlan.free;
 
-    const PlanGuardService().saveCurrentPlan(plan);
+    const PlanGuardService().saveCurrentPlan(
+      plan,
+      source: 'supabase',
+      subscriptionStatus: status ?? 'unknown',
+    );
 
     return plan;
   }

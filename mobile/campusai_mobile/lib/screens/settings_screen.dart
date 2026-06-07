@@ -287,7 +287,9 @@ class SettingsScreen extends ConsumerWidget {
                             .start,
                     children: [
                       Text(
-                        'Plan actual: ${const PlanGuardService().currentPlanName}',
+                        'Plan actual: ${const PlanGuardService().currentPlanName}\n'
+                        'Fuente: ${const PlanGuardService().currentPlanSource}\n'
+                        'Estado: ${const PlanGuardService().currentSubscriptionStatus}',
                         style: TextStyle(
                           color: AppTheme
                               .textPrimary,
