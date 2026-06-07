@@ -1,8 +1,10 @@
 import os
 
 import stripe
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
+
+from app.services.subscription_service import upsert_user_subscription, downgrade_user_to_free
 
 
 router = APIRouter(
@@ -137,3 +139,92 @@ def create_checkout_session(
     return CheckoutSessionResponse(
         checkout_url=session.url,
     )
+
+
+@router.post("/webhook")
+async def stripe_webhook(request: Request):
+    payload = await request.body()
+    signature = request.headers.get("stripe-signature", "")
+    webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+
+    if not webhook_secret:
+        raise HTTPException(
+            status_code=503,
+            detail="STRIPE_WEBHOOK_SECRET no está configurado.",
+        )
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload=payload,
+            sig_header=signature,
+            secret=webhook_secret,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail="Payload inválido.",
+        ) from exc
+    except stripe.SignatureVerificationError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail="Firma de webhook inválida.",
+        ) from exc
+
+    event_type = event.get("type")
+    data_object = event.get("data", {}).get("object", {})
+
+    if event_type == "checkout.session.completed":
+        metadata = data_object.get("metadata", {}) or {}
+
+        user_id = metadata.get("user_id", "")
+        email = metadata.get("email") or data_object.get("customer_email")
+        plan = metadata.get("plan", "free")
+
+        upsert_user_subscription(
+            user_id=user_id,
+            email=email,
+            plan=plan,
+            stripe_customer_id=data_object.get("customer"),
+            stripe_subscription_id=data_object.get("subscription"),
+            subscription_status="active",
+        )
+
+    elif event_type in {
+        "customer.subscription.updated",
+        "customer.subscription.deleted",
+    }:
+        metadata = data_object.get("metadata", {}) or {}
+
+        user_id = metadata.get("user_id", "")
+        email = metadata.get("email")
+        plan = metadata.get("plan", "free")
+
+        status = data_object.get("status")
+
+        if event_type == "customer.subscription.deleted" or status in {
+            "canceled",
+            "unpaid",
+            "incomplete_expired",
+        }:
+            downgrade_user_to_free(
+                user_id=user_id,
+                email=email,
+                stripe_customer_id=data_object.get("customer"),
+                stripe_subscription_id=data_object.get("id"),
+                subscription_status=status or "canceled",
+            )
+        else:
+            upsert_user_subscription(
+                user_id=user_id,
+                email=email,
+                plan=plan,
+                stripe_customer_id=data_object.get("customer"),
+                stripe_subscription_id=data_object.get("id"),
+                subscription_status=status,
+            )
+
+    return {
+        "received": True,
+        "type": event_type,
+    }
+
