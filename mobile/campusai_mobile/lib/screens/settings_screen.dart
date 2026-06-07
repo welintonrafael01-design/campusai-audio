@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../config/app_plans.dart';
 import '../providers/theme_provider.dart';
+import '../services/auth_service.dart';
 import '../services/history_service.dart';
 import '../services/plan_guard_service.dart';
 import '../services/subscription_service.dart';
@@ -62,6 +63,16 @@ class SettingsScreen extends ConsumerWidget {
         behavior: SnackBarBehavior.floating,
       ),
     );
+  }
+
+  Future<void> signOut(
+    BuildContext context,
+  ) async {
+    await AuthService.signOut();
+
+    if (!context.mounted) return;
+
+    context.go('/auth');
   }
 
   Future<void> clearHistory(
@@ -372,6 +383,59 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                     ],
                   ],
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          /// SIGN OUT
+          SectionCard(
+            onTap: () => signOut(context),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.danger.withValues(
+                      alpha: 0.15,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.logout_rounded,
+                    color: AppTheme.danger,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Cerrar sesión',
+                        style: TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Cierra tu cuenta y vuelve al plan Free localmente.',
+                        style: TextStyle(
+                          color: AppTheme.textMuted,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 18,
+                  color: AppTheme.textMuted,
                 ),
               ],
             ),

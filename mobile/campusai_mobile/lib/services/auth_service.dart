@@ -1,5 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'plan_guard_service.dart';
+import 'usage_limit_service.dart';
+
 class AuthService {
   static bool get isConfigured {
     try {
@@ -46,7 +49,10 @@ class AuthService {
     );
   }
 
-  static Future<void> signOut() {
-    return _client.auth.signOut();
+  static Future<void> signOut() async {
+    await _client.auth.signOut();
+
+    const PlanGuardService().resetToFree();
+    const UsageLimitService().resetPdfUploadsToday();
   }
 }
