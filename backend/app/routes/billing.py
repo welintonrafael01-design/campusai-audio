@@ -20,14 +20,6 @@ class CheckoutSessionRequest(BaseModel):
         ...,
         description="Plan solicitado: pro o educator.",
     )
-    user_id: str | None = Field(
-        default=None,
-        description="ID del usuario autenticado en Supabase.",
-    )
-    email: str | None = Field(
-        default=None,
-        description="Correo del usuario autenticado.",
-    )
 
 
 class CheckoutSessionResponse(BaseModel):
@@ -60,6 +52,7 @@ def _get_price_id(plan: str) -> str:
 )
 def create_checkout_session(
     payload: CheckoutSessionRequest,
+    current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     plan = payload.plan.strip().lower()
 
@@ -110,18 +103,18 @@ def create_checkout_session(
             ],
             success_url=success_url,
             cancel_url=cancel_url,
-            customer_email=payload.email,
+            customer_email=current_user.email,
             metadata={
                 "plan": plan,
-                "user_id": payload.user_id or "",
-                "email": payload.email or "",
+                "user_id": current_user.user_id,
+                "email": current_user.email or "",
                 "source": "studybook_ai",
             },
             subscription_data={
                 "metadata": {
                     "plan": plan,
-                    "user_id": payload.user_id or "",
-                    "email": payload.email or "",
+                    "user_id": current_user.user_id,
+                    "email": current_user.email or "",
                     "source": "studybook_ai",
                 },
             },

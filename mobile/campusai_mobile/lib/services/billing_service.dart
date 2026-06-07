@@ -19,9 +19,7 @@ class BillingService {
         ),
     };
 
-    final user = AuthService.currentUser;
-
-    if (user == null) {
+    if (!AuthService.isLoggedIn) {
       throw Exception(
         'Debes iniciar sesión para actualizar tu plan.',
       );
@@ -31,11 +29,10 @@ class BillingService {
       Uri.parse('${ApiService.baseUrl}/billing/create-checkout-session'),
       headers: {
         'Content-Type': 'application/json',
+        ...AuthService.authHeaders,
       },
       body: jsonEncode({
         'plan': planCode,
-        'user_id': user.id,
-        'email': user.email,
       }),
     );
 
