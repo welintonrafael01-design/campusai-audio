@@ -12,6 +12,7 @@ import '../services/cloud_api_service.dart';
 import '../services/audio_player_service.dart';
 import '../services/history_service.dart';
 import '../services/recent_documents_service.dart';
+import '../services/subscription_service.dart';
 import '../services/workspace_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_fade_slide.dart';
@@ -93,12 +94,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Future<void> initializeDashboard() async {
+    await syncSubscriptionPlan();
+
     await Future.wait([
       loadHistory(),
       loadRecentDocuments(),
       loadWorkspaces(),
       restoreActiveDocument(),
     ]);
+  }
+
+  Future<void> syncSubscriptionPlan() async {
+    try {
+      await const SubscriptionService().syncCurrentUserPlan();
+    } catch (error) {
+      debugPrint('No se pudo sincronizar el plan: $error');
+    }
   }
 
   Future<void> restoreActiveDocument() async {
