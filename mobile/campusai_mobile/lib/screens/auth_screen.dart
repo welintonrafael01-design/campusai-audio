@@ -89,6 +89,98 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  Future<void> sendPasswordReset() async {
+    final email = emailController.text.trim();
+
+    if (email.isEmpty) {
+      setState(() {
+        errorMessage =
+            'Escribe tu correo electrónico para enviarte el enlace de recuperación.';
+        successMessage = '';
+      });
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+      errorMessage = '';
+      successMessage = '';
+    });
+
+    try {
+      await AuthService.sendPasswordResetEmail(email: email);
+
+      if (!mounted) return;
+
+      setState(() {
+        successMessage =
+            'Te enviamos un enlace para restablecer tu contraseña. Revisa tu correo electrónico.';
+        errorMessage = '';
+      });
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() {
+        errorMessage = AuthService.friendlyAuthError(error);
+        successMessage = '';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> resendConfirmationEmail() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      setState(() {
+        errorMessage =
+            'Escribe tu correo y contraseña para reenviar el correo de confirmación.';
+        successMessage = '';
+      });
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+      errorMessage = '';
+      successMessage = '';
+    });
+
+    try {
+      await AuthService.resendSignupConfirmation(
+        email: email,
+        password: password,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        successMessage =
+            'Si tu cuenta aún no está confirmada, te enviamos un nuevo correo de confirmación. Revisa tu bandeja de entrada o spam.';
+        errorMessage = '';
+      });
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() {
+        errorMessage = AuthService.friendlyAuthError(error);
+        successMessage = '';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   void dispose() {
     emailController.dispose();
@@ -188,6 +280,19 @@ class _AuthScreenState extends State<AuthScreen> {
                                 : l10n.createAccountButton,
                           ),
                   ),
+                  if (isLogin) ...[
+                    const SizedBox(height: 10),
+                    TextButton.icon(
+                      onPressed: isLoading ? null : sendPasswordReset,
+                      icon: const Icon(Icons.lock_reset_rounded, size: 18),
+                      label: const Text('¿Olvidaste tu contraseña?'),
+                    ),
+                    TextButton.icon(
+                      onPressed: isLoading ? null : resendConfirmationEmail,
+                      icon: const Icon(Icons.mark_email_read_rounded, size: 18),
+                      label: const Text('Reenviar correo de confirmación'),
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   TextButton(
                     onPressed: isLoading
