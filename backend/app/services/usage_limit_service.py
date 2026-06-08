@@ -20,6 +20,18 @@ PLAN_CHAT_LIMITS = {
     "educator": 2000,
 }
 
+PLAN_FLASHCARD_LIMITS = {
+    "free": 10,
+    "pro": 50,
+    "educator": 100,
+}
+
+PLAN_EXAM_LIMITS = {
+    "free": 10,
+    "pro": 50,
+    "educator": 100,
+}
+
 
 def get_plan_for_user(user_id: str) -> str:
     subscription = get_user_subscription(
@@ -129,6 +141,54 @@ def enforce_chat_limit(
             detail=(
                 f"Tu plan {plan} permite {limit} mensajes de chat por día. "
                 "Ya alcanzaste el límite de hoy."
+            ),
+        )
+
+    return plan
+
+
+def enforce_flashcard_limit(
+    *,
+    user_id: str,
+    requested_amount: int,
+) -> str:
+    plan = get_plan_for_user(user_id)
+
+    limit = PLAN_FLASHCARD_LIMITS.get(
+        plan,
+        PLAN_FLASHCARD_LIMITS["free"],
+    )
+
+    if requested_amount > limit:
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                f"Tu plan {plan} permite hasta {limit} flashcards por PDF. "
+                f"Solicitaste {requested_amount}."
+            ),
+        )
+
+    return plan
+
+
+def enforce_exam_limit(
+    *,
+    user_id: str,
+    requested_amount: int,
+) -> str:
+    plan = get_plan_for_user(user_id)
+
+    limit = PLAN_EXAM_LIMITS.get(
+        plan,
+        PLAN_EXAM_LIMITS["free"],
+    )
+
+    if requested_amount > limit:
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                f"Tu plan {plan} permite hasta {limit} preguntas por examen. "
+                f"Solicitaste {requested_amount}."
             ),
         )
 

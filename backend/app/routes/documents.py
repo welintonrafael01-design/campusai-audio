@@ -33,6 +33,8 @@ from app.services.ai_service import (
 from app.services.usage_limit_service import (
     enforce_pdf_upload_limit,
     enforce_chat_limit,
+    enforce_flashcard_limit,
+    enforce_exam_limit,
     register_usage_event,
 )
 
@@ -580,6 +582,11 @@ async def exam_document_by_id(
             current_user=current_user,
         )
 
+        plan = enforce_exam_limit(
+            user_id=current_user.user_id,
+            requested_amount=number_of_questions,
+        )
+
         context = build_document_context(
             document_id=document_id,
             question=(
@@ -594,6 +601,16 @@ async def exam_document_by_id(
                 context,
                 number_of_questions,
             )
+        )
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="exam_generated",
+            plan=plan,
+            metadata={
+                "document_id": document_id,
+                "number_of_questions": number_of_questions,
+            },
         )
 
         return {
@@ -629,6 +646,11 @@ async def flashcards_document_by_id(
             current_user=current_user,
         )
 
+        plan = enforce_flashcard_limit(
+            user_id=current_user.user_id,
+            requested_amount=number_of_cards,
+        )
+
         context = build_document_context(
             document_id=document_id,
             question=(
@@ -643,6 +665,16 @@ async def flashcards_document_by_id(
                 context,
                 number_of_cards,
             )
+        )
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="flashcards_generated",
+            plan=plan,
+            metadata={
+                "document_id": document_id,
+                "number_of_cards": number_of_cards,
+            },
         )
 
         return {
