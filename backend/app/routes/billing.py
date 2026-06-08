@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 from app.security.user_auth import AuthenticatedUser, require_current_user
 
+from app.services.usage_limit_service import get_usage_summary_for_user
 from app.services.subscription_service import upsert_user_subscription, downgrade_user_to_free, get_user_subscription, get_user_subscription
 
 
@@ -156,6 +157,21 @@ def get_subscription_endpoint(user_id: str):
     try:
         return get_user_subscription(
             user_id=user_id,
+        )
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
+
+@router.get("/usage/me")
+def get_my_usage_endpoint(
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        return get_usage_summary_for_user(
+            user_id=current_user.user_id,
         )
     except Exception as error:
         raise HTTPException(

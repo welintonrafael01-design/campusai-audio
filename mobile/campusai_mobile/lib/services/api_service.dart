@@ -18,6 +18,24 @@ class ApiService {
 
 
 
+
+  // =========================
+  // USAGE SUMMARY
+  // =========================
+
+  static Future<Map<String, dynamic>> getUsageSummary() async {
+    final uri = Uri.parse(
+      '$baseUrl/billing/usage/me',
+    );
+
+    final response = await http.get(
+      uri,
+      headers: AuthService.authHeaders,
+    ).timeout(timeoutDuration);
+
+    return decodeResponse(response);
+  }
+
   // =========================
   // SUBSCRIPTION
   // =========================

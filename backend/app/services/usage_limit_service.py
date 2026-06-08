@@ -239,3 +239,77 @@ def enforce_export_permission(
         )
 
     return plan
+
+
+def get_usage_summary_for_user(
+    *,
+    user_id: str,
+) -> dict:
+    plan = get_plan_for_user(user_id)
+
+    pdf_used = count_usage_today(
+        user_id=user_id,
+        event_type="pdf_upload",
+    )
+
+    chat_used = count_usage_today(
+        user_id=user_id,
+        event_type="chat_message",
+    )
+
+    flashcards_used = count_usage_today(
+        user_id=user_id,
+        event_type="flashcards_generated",
+    )
+
+    exams_used = count_usage_today(
+        user_id=user_id,
+        event_type="exam_generated",
+    )
+
+    exports_used = count_usage_today(
+        user_id=user_id,
+        event_type="export_generated",
+    )
+
+    return {
+        "user_id": user_id,
+        "plan": plan,
+        "usage": {
+            "pdf_uploads": {
+                "used_today": pdf_used,
+                "limit": PLAN_UPLOAD_LIMITS.get(
+                    plan,
+                    PLAN_UPLOAD_LIMITS["free"],
+                ),
+            },
+            "chat_messages": {
+                "used_today": chat_used,
+                "limit": PLAN_CHAT_LIMITS.get(
+                    plan,
+                    PLAN_CHAT_LIMITS["free"],
+                ),
+            },
+            "flashcards_generated": {
+                "used_today": flashcards_used,
+                "limit_per_pdf": PLAN_FLASHCARD_LIMITS.get(
+                    plan,
+                    PLAN_FLASHCARD_LIMITS["free"],
+                ),
+            },
+            "exams_generated": {
+                "used_today": exams_used,
+                "limit_per_pdf": PLAN_EXAM_LIMITS.get(
+                    plan,
+                    PLAN_EXAM_LIMITS["free"],
+                ),
+            },
+            "exports_generated": {
+                "used_today": exports_used,
+                "permissions": PLAN_EXPORT_PERMISSIONS.get(
+                    plan,
+                    PLAN_EXPORT_PERMISSIONS["free"],
+                ),
+            },
+        },
+    }
