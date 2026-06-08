@@ -30,6 +30,11 @@ from app.services.ai_service import (
     stream_chat_with_workspace,
 )
 
+from app.services.usage_limit_service import (
+    enforce_pdf_upload_limit,
+    register_usage_event,
+)
+
 from app.services.audio_service import (
     build_audio_url,
     generate_audio_from_text,
@@ -253,6 +258,10 @@ async def upload_document(
     start_time = time.perf_counter()
 
     try:
+        plan = enforce_pdf_upload_limit(
+            user_id=current_user.user_id,
+        )
+
         step = time.perf_counter()
         file_path = await save_upload_file(file)
         print(f"[UPLOAD] save_file: {time.perf_counter() - step:.2f}s")
@@ -278,6 +287,17 @@ async def upload_document(
             user_id=current_user.user_id,
         )
         print(f"[UPLOAD] register_document: {time.perf_counter() - step:.2f}s")
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="pdf_upload",
+            plan=plan,
+            metadata={
+                "document_id": document_id,
+                "filename": file.filename or file_path.name,
+                "size_bytes": file_path.stat().st_size,
+            },
+        )
 
         step = time.perf_counter()
         ai_summary = generate_ai_summary(extracted_text)
