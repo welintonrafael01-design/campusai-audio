@@ -44,6 +44,7 @@ from app.services.document_registry_service import (
     register_document_file,
     get_document_info,
     require_document_owner,
+    is_document_owner,
 )
 
 from app.services.file_access_service import (
@@ -834,16 +835,34 @@ async def source_chunk(
 @router.get("/semantic-search")
 async def semantic_search(
     query: str = Query(default=""),
+    current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
         results = semantic_search_all_documents(
             query=query,
         )
 
+        filtered_results = []
+
+        for result in results:
+            document_id = (
+                result.get("document_id")
+                or result.get("metadata", {}).get("document_id")
+            )
+
+            if not document_id:
+                continue
+
+            if is_document_owner(
+                document_id=document_id,
+                user_id=current_user.user_id,
+            ):
+                filtered_results.append(result)
+
         return {
             "query": query,
-            "count": len(results),
-            "results": results,
+            "count": len(filtered_results),
+            "results": filtered_results,
         }
 
     except Exception as error:

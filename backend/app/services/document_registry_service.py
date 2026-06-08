@@ -107,3 +107,21 @@ def require_document_owner(
         )
 
     return record
+
+
+def is_document_owner(
+    *,
+    document_id: str,
+    user_id: str,
+) -> bool:
+    try:
+        record = get_document_info(document_id)
+    except Exception:
+        return False
+
+    owner_id = record.get("user_id")
+
+    if not owner_id:
+        return True
+
+    return owner_id == user_id

@@ -2,6 +2,7 @@ import 'package:http/http.dart' as http;
 
 import '../models/semantic_search_model.dart';
 import 'api_service.dart';
+import 'auth_service.dart';
 
 class SemanticSearchService {
   static Future<List<SemanticSearchModel>> search(
@@ -9,7 +10,9 @@ class SemanticSearchService {
   ) async {
     final cleanQuery = query.trim();
 
-    if (cleanQuery.isEmpty) return [];
+    if (cleanQuery.isEmpty) {
+      return [];
+    }
 
     final uri = Uri.parse(
       '${ApiService.baseUrl}/documents/semantic-search',
@@ -20,21 +23,23 @@ class SemanticSearchService {
     );
 
     final response = await http
-        .get(uri)
+        .get(
+          uri,
+          headers: AuthService.authHeaders,
+        )
         .timeout(ApiService.timeoutDuration);
 
     final data = ApiService.decodeResponse(response);
 
-    final results = data['results'];
+    final rawResults = data['results'];
 
-    if (results is! List) return [];
+    if (rawResults is! List) {
+      return [];
+    }
 
-    return results
-        .map(
-          (item) => SemanticSearchModel.fromMap(
-            item as Map<String, dynamic>,
-          ),
-        )
+    return rawResults
+        .whereType<Map<String, dynamic>>()
+        .map(SemanticSearchModel.fromMap)
         .toList();
   }
 }
