@@ -193,3 +193,49 @@ def enforce_exam_limit(
         )
 
     return plan
+
+
+PLAN_EXPORT_PERMISSIONS = {
+    "free": {
+        "pdf": True,
+        "docx": False,
+        "pptx": False,
+    },
+    "pro": {
+        "pdf": True,
+        "docx": True,
+        "pptx": True,
+    },
+    "educator": {
+        "pdf": True,
+        "docx": True,
+        "pptx": True,
+    },
+}
+
+
+def enforce_export_permission(
+    *,
+    user_id: str,
+    export_type: str,
+) -> str:
+    plan = get_plan_for_user(user_id)
+    clean_export_type = export_type.strip().lower()
+
+    permissions = PLAN_EXPORT_PERMISSIONS.get(
+        plan,
+        PLAN_EXPORT_PERMISSIONS["free"],
+    )
+
+    allowed = permissions.get(clean_export_type, False)
+
+    if not allowed:
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                f"Tu plan {plan} no permite exportar en formato "
+                f"{clean_export_type.upper()}."
+            ),
+        )
+
+    return plan

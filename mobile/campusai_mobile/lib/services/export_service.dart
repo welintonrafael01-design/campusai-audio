@@ -4,6 +4,7 @@ import 'dart:html' as html;
 import 'package:http/http.dart' as http;
 
 import 'api_service.dart';
+import 'auth_service.dart';
 
 class ExportService {
   static Future<void> exportTextToPdf({
@@ -14,6 +15,7 @@ class ExportService {
       Uri.parse('${ApiService.baseUrl}/export/pdf'),
       headers: {
         'Content-Type': 'application/json',
+        ...AuthService.authHeaders,
       },
       body: jsonEncode({
         'title': title,
@@ -53,6 +55,7 @@ class ExportService {
       Uri.parse('${ApiService.baseUrl}/export/docx'),
       headers: {
         'Content-Type': 'application/json',
+        ...AuthService.authHeaders,
       },
       body: jsonEncode({
         'title': title,
@@ -93,6 +96,7 @@ class ExportService {
       Uri.parse('${ApiService.baseUrl}/export/pptx'),
       headers: {
         'Content-Type': 'application/json',
+        ...AuthService.authHeaders,
       },
       body: jsonEncode({
         'title': title,
