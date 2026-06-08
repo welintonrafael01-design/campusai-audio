@@ -711,37 +711,19 @@ async def document_file_secure(
         )
 
 
+
 @router.get("/file/{document_id}")
 async def document_file(
     document_id: str,
 ):
-    try:
-        info = get_document_info(
-            document_id=document_id,
-        )
-
-        file_path = Path(info["file_path"])
-
-        if not file_path.exists():
-            raise HTTPException(
-                status_code=404,
-                detail="Archivo PDF no encontrado.",
-            )
-
-        return FileResponse(
-            path=str(file_path),
-            media_type="application/pdf",
-            headers={
-                "Content-Disposition": "inline",
-            },
-        )
-    except HTTPException:
-        raise
-    except Exception as error:
-        raise HTTPException(
-            status_code=404,
-            detail=str(error),
-        )
+    raise HTTPException(
+        status_code=410,
+        detail=(
+            "Este endpoint fue deshabilitado por seguridad. "
+            "Use /documents/file-token/{document_id} y luego "
+            "/documents/file-secure/{document_id}?token=..."
+        ),
+    )
 
 @router.get("/info/{document_id}")
 async def document_info(
@@ -825,9 +807,11 @@ async def semantic_search(
         )
 
 
+
 @router.post("/audio")
 async def generate_audio_endpoint(
     text: str = Query(default=""),
+    current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     start_time = time.perf_counter()
 
@@ -856,8 +840,6 @@ async def generate_audio_endpoint(
             status_code=500,
             detail=str(error),
         )
-
-
 
 @router.post("/chat-workspace")
 async def chat_workspace(
