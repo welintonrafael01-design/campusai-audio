@@ -121,5 +121,34 @@
   "documentReadyToStudy": "Documento listo para estudiar",
   "aiReady": "IA lista",
   "audioAvailable": "Audio disponible",
-  "openAiChat": "Abrir Chat IA"
+  "openAiChat": "Abrir Chat IA",
+  "workspaceChatWelcome": "Hola. Soy StudyBook AI.\n\nEstoy listo para ayudarte a estudiar este workspace con {count} documentos.\n\nPuedes pedir comparaciones, síntesis cruzadas o análisis combinados.",
+  "@workspaceChatWelcome": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "documentChatWelcome": "Hola. Soy StudyBook AI.\n\nEstoy listo para ayudarte a comprender el documento \"{fileName}\".\n\nPuedes hacer preguntas, pedir explicaciones, resúmenes, conceptos clave o análisis académicos.",
+  "@documentChatWelcome": {
+    "placeholders": {
+      "fileName": {}
+    }
+  },
+  "noAnswerReceived": "No se recibió respuesta.",
+  "chatTemporaryError": "No pude responder en este momento.\n\nVerifica la conexión con el backend o intenta nuevamente.",
+  "exportChatToWord": "Exportar chat a Word",
+  "exportChatToPdf": "Exportar chat a PDF",
+  "userRole": "Usuario",
+  "noContentToExport": "No hay contenido para exportar.",
+  "chatExportWordError": "No se pudo exportar Word",
+  "chatExportPdfError": "No se pudo exportar el PDF",
+  "chatTitlePrefix": "Chat",
+  "workspaceAiChat": "Chat IA de workspace",
+  "contextualAiChat": "Chat IA contextual",
+  "activeContext": "Contexto activo",
+  "workspaceRagContext": "RAG activo sobre múltiples documentos del workspace.",
+  "documentRagContext": "RAG activo para responder con base en el documento seleccionado.",
+  "contextHintConcepts": "Puedes pedir conceptos clave, explicación simple o resumen.",
+  "contextHintAcademic": "También puedes solicitar análisis académico del contenido.",
+  "contextHintSources": "Las respuestas se basan en el documento activo."
 }

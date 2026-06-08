@@ -386,4 +386,71 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get openAiChat => 'Abrir Chat IA';
+
+  @override
+  String workspaceChatWelcome(Object count) {
+    return 'Hola. Soy StudyBook AI.\n\nEstoy listo para ayudarte a estudiar este workspace con $count documentos.\n\nPuedes pedir comparaciones, síntesis cruzadas o análisis combinados.';
+  }
+
+  @override
+  String documentChatWelcome(Object fileName) {
+    return 'Hola. Soy StudyBook AI.\n\nEstoy listo para ayudarte a comprender el documento \"$fileName\".\n\nPuedes hacer preguntas, pedir explicaciones, resúmenes, conceptos clave o análisis académicos.';
+  }
+
+  @override
+  String get noAnswerReceived => 'No se recibió respuesta.';
+
+  @override
+  String get chatTemporaryError =>
+      'No pude responder en este momento.\n\nVerifica la conexión con el backend o intenta nuevamente.';
+
+  @override
+  String get exportChatToWord => 'Exportar chat a Word';
+
+  @override
+  String get exportChatToPdf => 'Exportar chat a PDF';
+
+  @override
+  String get userRole => 'Usuario';
+
+  @override
+  String get noContentToExport => 'No hay contenido para exportar.';
+
+  @override
+  String get chatExportWordError => 'No se pudo exportar Word';
+
+  @override
+  String get chatExportPdfError => 'No se pudo exportar el PDF';
+
+  @override
+  String get chatTitlePrefix => 'Chat';
+
+  @override
+  String get workspaceAiChat => 'Chat IA de workspace';
+
+  @override
+  String get contextualAiChat => 'Chat IA contextual';
+
+  @override
+  String get activeContext => 'Contexto activo';
+
+  @override
+  String get workspaceRagContext =>
+      'RAG activo sobre múltiples documentos del workspace.';
+
+  @override
+  String get documentRagContext =>
+      'RAG activo para responder con base en el documento seleccionado.';
+
+  @override
+  String get contextHintConcepts =>
+      'Puedes pedir conceptos clave, explicación simple o resumen.';
+
+  @override
+  String get contextHintAcademic =>
+      'También puedes solicitar análisis académico del contenido.';
+
+  @override
+  String get contextHintSources =>
+      'Las respuestas se basan en el documento activo.';
 }

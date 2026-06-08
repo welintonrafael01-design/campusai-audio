@@ -833,6 +833,120 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Abrir Chat IA'**
   String get openAiChat;
+
+  /// No description provided for @workspaceChatWelcome.
+  ///
+  /// In es, this message translates to:
+  /// **'Hola. Soy StudyBook AI.\n\nEstoy listo para ayudarte a estudiar este workspace con {count} documentos.\n\nPuedes pedir comparaciones, síntesis cruzadas o análisis combinados.'**
+  String workspaceChatWelcome(Object count);
+
+  /// No description provided for @documentChatWelcome.
+  ///
+  /// In es, this message translates to:
+  /// **'Hola. Soy StudyBook AI.\n\nEstoy listo para ayudarte a comprender el documento \"{fileName}\".\n\nPuedes hacer preguntas, pedir explicaciones, resúmenes, conceptos clave o análisis académicos.'**
+  String documentChatWelcome(Object fileName);
+
+  /// No description provided for @noAnswerReceived.
+  ///
+  /// In es, this message translates to:
+  /// **'No se recibió respuesta.'**
+  String get noAnswerReceived;
+
+  /// No description provided for @chatTemporaryError.
+  ///
+  /// In es, this message translates to:
+  /// **'No pude responder en este momento.\n\nVerifica la conexión con el backend o intenta nuevamente.'**
+  String get chatTemporaryError;
+
+  /// No description provided for @exportChatToWord.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar chat a Word'**
+  String get exportChatToWord;
+
+  /// No description provided for @exportChatToPdf.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar chat a PDF'**
+  String get exportChatToPdf;
+
+  /// No description provided for @userRole.
+  ///
+  /// In es, this message translates to:
+  /// **'Usuario'**
+  String get userRole;
+
+  /// No description provided for @noContentToExport.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay contenido para exportar.'**
+  String get noContentToExport;
+
+  /// No description provided for @chatExportWordError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo exportar Word'**
+  String get chatExportWordError;
+
+  /// No description provided for @chatExportPdfError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo exportar el PDF'**
+  String get chatExportPdfError;
+
+  /// No description provided for @chatTitlePrefix.
+  ///
+  /// In es, this message translates to:
+  /// **'Chat'**
+  String get chatTitlePrefix;
+
+  /// No description provided for @workspaceAiChat.
+  ///
+  /// In es, this message translates to:
+  /// **'Chat IA de workspace'**
+  String get workspaceAiChat;
+
+  /// No description provided for @contextualAiChat.
+  ///
+  /// In es, this message translates to:
+  /// **'Chat IA contextual'**
+  String get contextualAiChat;
+
+  /// No description provided for @activeContext.
+  ///
+  /// In es, this message translates to:
+  /// **'Contexto activo'**
+  String get activeContext;
+
+  /// No description provided for @workspaceRagContext.
+  ///
+  /// In es, this message translates to:
+  /// **'RAG activo sobre múltiples documentos del workspace.'**
+  String get workspaceRagContext;
+
+  /// No description provided for @documentRagContext.
+  ///
+  /// In es, this message translates to:
+  /// **'RAG activo para responder con base en el documento seleccionado.'**
+  String get documentRagContext;
+
+  /// No description provided for @contextHintConcepts.
+  ///
+  /// In es, this message translates to:
+  /// **'Puedes pedir conceptos clave, explicación simple o resumen.'**
+  String get contextHintConcepts;
+
+  /// No description provided for @contextHintAcademic.
+  ///
+  /// In es, this message translates to:
+  /// **'También puedes solicitar análisis académico del contenido.'**
+  String get contextHintAcademic;
+
+  /// No description provided for @contextHintSources.
+  ///
+  /// In es, this message translates to:
+  /// **'Las respuestas se basan en el documento activo.'**
+  String get contextHintSources;
 }
 
 class _AppLocalizationsDelegate

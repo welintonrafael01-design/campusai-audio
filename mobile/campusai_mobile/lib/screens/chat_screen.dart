@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../layout/responsive_layout.dart';
+import '../l10n/app_localizations.dart';
 import '../models/chat_message_model.dart';
 import '../providers/document_provider.dart';
 import '../services/api_service.dart';
@@ -62,6 +63,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   List<String> get effectiveDocumentIds => activeWorkspaceIds;
 
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   @override
   void initState() {
     super.initState();
@@ -75,20 +78,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     super.dispose();
   }
 
-
   Future<void> loadChatHistory() async {
     List<ChatMessageModel> savedMessages = [];
 
     if (widget.cloudChatId.trim().isNotEmpty) {
       try {
-        final cloudMessages =
-            await CloudApiService.getChatMessages(
+        final cloudMessages = await CloudApiService.getChatMessages(
           chatId: widget.cloudChatId,
         );
 
         savedMessages = cloudMessages.map((item) {
-          final map =
-              Map<String, dynamic>.from(item as Map);
+          final map = Map<String, dynamic>.from(item as Map);
 
           return ChatMessageModel(
             text: map['content'] ?? '',
@@ -109,8 +109,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
 
     if (savedMessages.isEmpty) {
-      savedMessages =
-          await ChatHistoryService.loadMessages(
+      savedMessages = await ChatHistoryService.loadMessages(
         documentId: widget.documentId,
       );
     }
@@ -123,10 +122,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       if (savedMessages.isEmpty) {
         messages.add(
           ChatMessageModel(
-            text:
-                isWorkspaceChat
-                    ? 'Hola. Soy StudyBook AI.\n\nEstoy listo para ayudarte a estudiar este workspace con ${effectiveDocumentIds.length} documentos.\n\nPuedes pedir comparaciones, síntesis cruzadas o análisis combinados.'
-                    : 'Hola. Soy StudyBook AI.\n\nEstoy listo para ayudarte a comprender el documento "${widget.fileName}".\n\nPuedes hacer preguntas, pedir explicaciones, resúmenes, conceptos clave o análisis académicos.',
+            text: isWorkspaceChat
+                ? l10n.workspaceChatWelcome(effectiveDocumentIds.length)
+                : l10n.documentChatWelcome(widget.fileName),
             isUser: false,
             createdAt: DateTime.now(),
           ),
@@ -144,28 +142,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-
-
-  List<Map<String, String>>
-      buildConversationHistory() {
+  List<Map<String, String>> buildConversationHistory() {
     return messages
         .take(
-          messages.length > 8
-              ? 8
-              : messages.length,
+          messages.length > 8 ? 8 : messages.length,
         )
         .map(
           (message) => {
-            'role': message.isUser
-                ? 'user'
-                : 'assistant',
+            'role': message.isUser ? 'user' : 'assistant',
             'content': message.text,
           },
         )
         .toList();
   }
-
-
 
   Future<void> ensureCloudChat() async {
     if (cloudChatId.isNotEmpty) return;
@@ -203,7 +192,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       debugPrint('No se pudo guardar mensaje cloud: $error');
     }
   }
-
 
   Future<void> askQuestion() async {
     final question = questionController.text.trim();
@@ -252,29 +240,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       debugPrint('STEP 3: Respuesta recibida');
 
       final response = cleanMarkdown(
-        data['answer'] ?? 'No se recibió respuesta.',
+        data['answer'] ?? l10n.noAnswerReceived,
       );
 
       final rawCitations = data['citations'];
 
-      final confidence =
-          data['confidence']?.toString();
+      final confidence = data['confidence']?.toString();
 
-      final averageDistance =
-          data['average_distance'] is num
-              ? (data['average_distance'] as num)
-                  .toDouble()
-              : null;
+      final averageDistance = data['average_distance'] is num
+          ? (data['average_distance'] as num).toDouble()
+          : null;
 
-      final confidenceMessage =
-          data['message']?.toString();
+      final confidenceMessage = data['message']?.toString();
 
       final citations = rawCitations is List
           ? rawCitations
               .whereType<Map>()
               .map(
-                (citation) =>
-                    ChatCitationModel.fromMap(
+                (citation) => ChatCitationModel.fromMap(
                   Map<String, dynamic>.from(citation),
                 ),
               )
@@ -304,8 +287,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         setState(() {
           final current = messages[responseIndex];
 
-          messages[responseIndex] =
-              current.copyWith(
+          messages[responseIndex] = current.copyWith(
             text: current.text + character,
             isStreaming: true,
             confidence: confidence,
@@ -325,8 +307,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       setState(() {
         final current = messages[responseIndex];
 
-        messages[responseIndex] =
-            current.copyWith(
+        messages[responseIndex] = current.copyWith(
           isStreaming: false,
           citations: citations,
         );
@@ -347,8 +328,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         errorMessage = error.toString();
         messages.add(
           ChatMessageModel(
-            text:
-                'No pude responder en este momento.\n\nVerifica la conexión con el backend o intenta nuevamente.',
+            text: l10n.chatTemporaryError,
             isUser: false,
             createdAt: DateTime.now(),
           ),
@@ -432,13 +412,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     return completer.future;
   }
 
-
-
   Future<void> exportChatToDocx() async {
     if (!const PlanGuardService().canExportDocx) {
       showUpgradeRequired(
         context,
-        featureName: 'Exportar chat a Word',
+        featureName: l10n.exportChatToWord,
       );
       return;
     }
@@ -446,7 +424,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final exportableMessages = messages
         .where((message) => message.text.trim().isNotEmpty)
         .map((message) {
-      final role = message.isUser ? 'Usuario' : 'StudyBook AI';
+      final role = message.isUser ? l10n.userRole : 'StudyBook AI';
       return '$role:\n${message.text.trim()}';
     }).join('\n\n---\n\n');
 
@@ -454,8 +432,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No hay contenido para exportar.'),
+        SnackBar(
+          content: Text(l10n.noContentToExport),
         ),
       );
 
@@ -464,7 +442,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     try {
       await ExportService.exportTextToDocx(
-        title: 'Chat - ${widget.fileName}',
+        title: '${l10n.chatTitlePrefix} - ${widget.fileName}',
         content: exportableMessages,
       );
     } catch (error) {
@@ -473,19 +451,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'No se pudo exportar Word: $error',
+            '${l10n.chatExportWordError}: $error',
           ),
         ),
       );
     }
   }
 
-
   Future<void> exportChatToPdf() async {
     if (!const PlanGuardService().canExportPdf) {
       showUpgradeRequired(
         context,
-        featureName: 'Exportar chat a PDF',
+        featureName: l10n.exportChatToPdf,
       );
       return;
     }
@@ -493,7 +470,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final exportableMessages = messages
         .where((message) => message.text.trim().isNotEmpty)
         .map((message) {
-      final role = message.isUser ? 'Usuario' : 'StudyBook AI';
+      final role = message.isUser ? l10n.userRole : 'StudyBook AI';
       return '$role:\n${message.text.trim()}';
     }).join('\n\n---\n\n');
 
@@ -501,8 +478,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No hay contenido para exportar.'),
+        SnackBar(
+          content: Text(l10n.noContentToExport),
         ),
       );
 
@@ -511,7 +488,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     try {
       await ExportService.exportTextToPdf(
-        title: 'Chat - ${widget.fileName}',
+        title: '${l10n.chatTitlePrefix} - ${widget.fileName}',
         content: exportableMessages,
       );
     } catch (error) {
@@ -520,13 +497,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'No se pudo exportar el PDF: $error',
+            '${l10n.chatExportPdfError}: $error',
           ),
         ),
       );
     }
   }
-
 
   String cleanMarkdown(String text) {
     return text
@@ -575,8 +551,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               children: [
                 Text(
                   isWorkspaceChat
-                      ? 'Chat IA de workspace'
-                      : 'Chat IA contextual',
+                      ? l10n.workspaceAiChat
+                      : l10n.contextualAiChat,
                   style: TextStyle(
                     color: Colors.white70,
                     fontSize: 13,
@@ -604,7 +580,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ),
           const SizedBox(width: 12),
           Tooltip(
-            message: 'Exportar chat a Word',
+            message: l10n.exportChatToWord,
             child: IconButton(
               onPressed: exportChatToDocx,
               icon: const Icon(
@@ -614,7 +590,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
           ),
           Tooltip(
-            message: 'Exportar chat a PDF',
+            message: l10n.exportChatToPdf,
             child: IconButton(
               onPressed: exportChatToPdf,
               icon: const Icon(
@@ -643,8 +619,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Contexto activo',
+          Text(
+            l10n.activeContext,
             style: TextStyle(
               color: AppTheme.textPrimary,
               fontSize: 22,
@@ -683,8 +659,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 const SizedBox(height: 12),
                 Text(
                   isWorkspaceChat
-                      ? 'RAG activo sobre múltiples documentos del workspace.'
-                      : 'RAG activo para responder con base en el documento seleccionado.',
+                      ? l10n.workspaceRagContext
+                      : l10n.documentRagContext,
                   style: TextStyle(
                     color: AppTheme.textMuted,
                     height: 1.4,
@@ -694,17 +670,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          const _ContextHint(
+          _ContextHint(
             icon: Icons.tips_and_updates_rounded,
-            text: 'Puedes pedir conceptos clave, explicación simple o resumen.',
+            text: l10n.contextHintConcepts,
           ),
-          const _ContextHint(
+          _ContextHint(
             icon: Icons.school_rounded,
-            text: 'También puedes solicitar análisis académico del contenido.',
+            text: l10n.contextHintAcademic,
           ),
-          const _ContextHint(
+          _ContextHint(
             icon: Icons.fact_check_rounded,
-            text: 'Las respuestas se basan en el documento activo.',
+            text: l10n.contextHintSources,
           ),
         ],
       ),

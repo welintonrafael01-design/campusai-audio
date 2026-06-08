@@ -393,4 +393,71 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get openAiChat => 'Ouvrir le Chat IA';
+
+  @override
+  String workspaceChatWelcome(Object count) {
+    return 'Bonjour. Je suis StudyBook AI.\n\nJe suis prêt à vous aider à étudier ce workspace avec $count documents.\n\nVous pouvez demander des comparaisons, des synthèses croisées ou des analyses combinées.';
+  }
+
+  @override
+  String documentChatWelcome(Object fileName) {
+    return 'Bonjour. Je suis StudyBook AI.\n\nJe suis prêt à vous aider à comprendre le document \"$fileName\".\n\nVous pouvez poser des questions, demander des explications, des résumés, des concepts clés ou des analyses académiques.';
+  }
+
+  @override
+  String get noAnswerReceived => 'Aucune réponse n’a été reçue.';
+
+  @override
+  String get chatTemporaryError =>
+      'Je n’ai pas pu répondre pour le moment.\n\nVérifiez la connexion au backend ou réessayez.';
+
+  @override
+  String get exportChatToWord => 'Exporter le chat vers Word';
+
+  @override
+  String get exportChatToPdf => 'Exporter le chat en PDF';
+
+  @override
+  String get userRole => 'Utilisateur';
+
+  @override
+  String get noContentToExport => 'Il n’y a aucun contenu à exporter.';
+
+  @override
+  String get chatExportWordError => 'Impossible d’exporter vers Word';
+
+  @override
+  String get chatExportPdfError => 'Impossible d’exporter le PDF';
+
+  @override
+  String get chatTitlePrefix => 'Chat';
+
+  @override
+  String get workspaceAiChat => 'Chat IA du workspace';
+
+  @override
+  String get contextualAiChat => 'Chat IA contextuel';
+
+  @override
+  String get activeContext => 'Contexte actif';
+
+  @override
+  String get workspaceRagContext =>
+      'RAG actif sur plusieurs documents du workspace.';
+
+  @override
+  String get documentRagContext =>
+      'RAG actif pour répondre à partir du document sélectionné.';
+
+  @override
+  String get contextHintConcepts =>
+      'Vous pouvez demander des concepts clés, une explication simple ou un résumé.';
+
+  @override
+  String get contextHintAcademic =>
+      'Vous pouvez aussi demander une analyse académique du contenu.';
+
+  @override
+  String get contextHintSources =>
+      'Les réponses sont basées sur le document actif.';
 }

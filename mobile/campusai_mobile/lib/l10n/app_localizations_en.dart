@@ -387,4 +387,70 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get openAiChat => 'Open AI Chat';
+
+  @override
+  String workspaceChatWelcome(Object count) {
+    return 'Hi. I am StudyBook AI.\n\nI am ready to help you study this workspace with $count documents.\n\nYou can ask for comparisons, cross-document summaries, or combined analysis.';
+  }
+
+  @override
+  String documentChatWelcome(Object fileName) {
+    return 'Hi. I am StudyBook AI.\n\nI am ready to help you understand the document \"$fileName\".\n\nYou can ask questions, request explanations, summaries, key concepts, or academic analysis.';
+  }
+
+  @override
+  String get noAnswerReceived => 'No answer was received.';
+
+  @override
+  String get chatTemporaryError =>
+      'I could not answer right now.\n\nCheck the backend connection or try again.';
+
+  @override
+  String get exportChatToWord => 'Export chat to Word';
+
+  @override
+  String get exportChatToPdf => 'Export chat to PDF';
+
+  @override
+  String get userRole => 'User';
+
+  @override
+  String get noContentToExport => 'There is no content to export.';
+
+  @override
+  String get chatExportWordError => 'Word export failed';
+
+  @override
+  String get chatExportPdfError => 'PDF export failed';
+
+  @override
+  String get chatTitlePrefix => 'Chat';
+
+  @override
+  String get workspaceAiChat => 'Workspace AI chat';
+
+  @override
+  String get contextualAiChat => 'Contextual AI chat';
+
+  @override
+  String get activeContext => 'Active context';
+
+  @override
+  String get workspaceRagContext =>
+      'RAG active across multiple workspace documents.';
+
+  @override
+  String get documentRagContext =>
+      'RAG active to answer based on the selected document.';
+
+  @override
+  String get contextHintConcepts =>
+      'You can ask for key concepts, a simple explanation, or a summary.';
+
+  @override
+  String get contextHintAcademic =>
+      'You can also request academic analysis of the content.';
+
+  @override
+  String get contextHintSources => 'Answers are based on the active document.';
 }
