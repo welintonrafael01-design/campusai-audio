@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from app.security.user_auth import AuthenticatedUser, require_current_user
 
 from app.services.usage_limit_service import get_usage_summary_for_user
-from app.services.subscription_service import upsert_user_subscription, downgrade_user_to_free, get_user_subscription, get_user_subscription
+from app.services.subscription_service import upsert_user_subscription, downgrade_user_to_free, get_user_subscription
 
 
 router = APIRouter(
@@ -25,6 +25,10 @@ class CheckoutSessionRequest(BaseModel):
 
 class CheckoutSessionResponse(BaseModel):
     checkout_url: str
+
+
+class CustomerPortalResponse(BaseModel):
+    portal_url: str
 
 
 def _get_price_id(plan: str) -> str:
@@ -134,6 +138,68 @@ def create_checkout_session(
 
     return CheckoutSessionResponse(
         checkout_url=session.url,
+    )
+
+
+@router.post(
+    "/create-customer-portal-session",
+    response_model=CustomerPortalResponse,
+)
+def create_customer_portal_session(
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    stripe_secret_key = os.getenv("STRIPE_SECRET_KEY", "")
+
+    if not stripe_secret_key:
+        raise HTTPException(
+            status_code=503,
+            detail="Stripe no está configurado. Falta STRIPE_SECRET_KEY.",
+        )
+
+    stripe.api_key = stripe_secret_key
+
+    subscription = get_user_subscription(
+        user_id=current_user.user_id,
+    )
+
+    stripe_customer_id = subscription.get("stripe_customer_id")
+
+    if not stripe_customer_id:
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                "No se encontró un cliente de Stripe asociado a esta cuenta. "
+                "Primero debes tener una suscripción activa."
+            ),
+        )
+
+    return_url = os.getenv(
+        "STRIPE_CUSTOMER_PORTAL_RETURN_URL",
+        os.getenv(
+            "APP_SUCCESS_URL",
+            "http://localhost:54713/#/settings",
+        ),
+    )
+
+    try:
+        session = stripe.billing_portal.Session.create(
+            customer=stripe_customer_id,
+            return_url=return_url,
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"No se pudo crear el portal de cliente: {exc}",
+        ) from exc
+
+    if not session.url:
+        raise HTTPException(
+            status_code=502,
+            detail="Stripe no devolvió una URL del portal.",
+        )
+
+    return CustomerPortalResponse(
+        portal_url=session.url,
     )
 
 

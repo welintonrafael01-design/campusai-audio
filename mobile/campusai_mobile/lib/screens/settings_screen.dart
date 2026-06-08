@@ -6,6 +6,7 @@ import '../config/app_plans.dart';
 import '../providers/theme_provider.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import '../services/billing_service.dart';
 import '../services/history_service.dart';
 import '../services/plan_guard_service.dart';
 import '../services/subscription_service.dart';
@@ -64,6 +65,26 @@ class SettingsScreen extends ConsumerWidget {
         behavior: SnackBarBehavior.floating,
       ),
     );
+  }
+
+
+  Future<void> openBillingPortal(
+    BuildContext context,
+  ) async {
+    try {
+      await const BillingService().openCustomerPortal();
+    } catch (error) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'No se pudo abrir el portal de suscripción: $error',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Future<void> signOut(
@@ -580,6 +601,13 @@ class SettingsScreen extends ConsumerWidget {
                         syncRealPlan(context);
                       },
                       child: const Text('Sincronizar real'),
+                    ),
+                    FilledButton.icon(
+                      onPressed: () {
+                        openBillingPortal(context);
+                      },
+                      icon: const Icon(Icons.credit_card_rounded),
+                      label: const Text('Administrar suscripción'),
                     ),
                     if (enablePlanTester) ...[
                       FilledButton(

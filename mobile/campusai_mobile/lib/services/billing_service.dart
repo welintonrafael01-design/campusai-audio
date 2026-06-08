@@ -60,4 +60,46 @@ class BillingService {
 
     html.window.location.href = checkoutUrl;
   }
+  Future<void> openCustomerPortal() async {
+    if (!AuthService.isLoggedIn) {
+      throw Exception(
+        'Debes iniciar sesión para administrar tu suscripción.',
+      );
+    }
+
+    final response = await http.post(
+      Uri.parse(
+        '${ApiService.baseUrl}/billing/create-customer-portal-session',
+      ),
+      headers: {
+        'Content-Type': 'application/json',
+        ...AuthService.authHeaders,
+      },
+    );
+
+    final decoded = jsonDecode(response.body);
+
+    if (response.statusCode != 200) {
+      final detail = decoded is Map<String, dynamic>
+          ? decoded['detail']?.toString()
+          : null;
+
+      throw Exception(
+        detail ?? 'No se pudo abrir el portal de cliente.',
+      );
+    }
+
+    if (decoded is! Map<String, dynamic>) {
+      throw Exception('Respuesta inválida del servidor.');
+    }
+
+    final portalUrl = decoded['portal_url']?.toString();
+
+    if (portalUrl == null || portalUrl.isEmpty) {
+      throw Exception('El servidor no devolvió la URL del portal.');
+    }
+
+    html.window.location.href = portalUrl;
+  }
+
 }
