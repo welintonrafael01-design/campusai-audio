@@ -216,9 +216,31 @@ class _VoiceModeButtonState extends State<VoiceModeButton> {
                     strokeWidth: 2.2,
                   ),
                 )
-              : Icon(
-                  isListening ? Icons.stop_rounded : Icons.mic_rounded,
-                  color: iconColor,
+              : Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Icon(
+                      isListening ? Icons.stop_rounded : Icons.mic_rounded,
+                      color: iconColor,
+                    ),
+                    if (widget.isDisabled)
+                      Positioned(
+                        right: 9,
+                        bottom: 9,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: AppTheme.accent,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: const Icon(
+                            Icons.lock_rounded,
+                            color: Colors.white,
+                            size: 10,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
         ),
       ),

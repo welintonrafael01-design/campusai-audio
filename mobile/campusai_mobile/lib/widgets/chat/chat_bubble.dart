@@ -131,6 +131,7 @@ class _ChatBubbleState extends ConsumerState<ChatBubble> {
   @override
   Widget build(BuildContext context) {
     final isUser = widget.isUser;
+    final canUseVoiceAudio = const PlanGuardService().canUseVoiceOnboarding;
 
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
@@ -245,10 +246,35 @@ class _ChatBubbleState extends ConsumerState<ChatBubble> {
                                 strokeWidth: 2,
                               ),
                             )
-                          : const Icon(
-                              Icons.volume_up_rounded,
-                              size: 17,
-                              color: AppTheme.textMuted,
+                          : Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Icon(
+                                  Icons.volume_up_rounded,
+                                  size: 18,
+                                  color: canUseVoiceAudio
+                                      ? AppTheme.accent
+                                      : AppTheme.textMuted,
+                                ),
+                                if (!canUseVoiceAudio)
+                                  Positioned(
+                                    right: -7,
+                                    bottom: -5,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.accent,
+                                        borderRadius:
+                                            BorderRadius.circular(999),
+                                      ),
+                                      child: const Icon(
+                                        Icons.lock_rounded,
+                                        color: Colors.white,
+                                        size: 9,
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                     ),
                   ),

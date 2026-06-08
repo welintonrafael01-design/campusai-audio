@@ -9,10 +9,16 @@ import '../../section_card.dart';
 
 class DashboardSummarySection extends StatelessWidget {
   final String summary;
+  final VoidCallback onListenSummary;
+  final VoidCallback onVoiceChat;
+  final bool isGeneratingAudio;
 
   const DashboardSummarySection({
     super.key,
     required this.summary,
+    required this.onListenSummary,
+    required this.onVoiceChat,
+    required this.isGeneratingAudio,
   });
 
   String _cleanMarkdown(String text) {
@@ -26,10 +32,30 @@ class DashboardSummarySection extends StatelessWidget {
         .trim();
   }
 
+  bool get canUseVoiceFeatures {
+    return const PlanGuardService().canUseVoiceOnboarding;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+
     if (summary.isEmpty) return const SizedBox.shrink();
+
+    void requireVoiceOrRun({
+      required String featureName,
+      required VoidCallback action,
+    }) {
+      if (!canUseVoiceFeatures) {
+        showUpgradeRequired(
+          context,
+          featureName: featureName,
+        );
+        return;
+      }
+
+      action();
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -110,13 +136,73 @@ class DashboardSummarySection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         SectionCard(
-          child: Text(
-            _cleanMarkdown(summary),
-            style: const TextStyle(
-              color: AppTheme.textPrimary,
-              fontSize: 16,
-              height: 1.55,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _cleanMarkdown(summary),
+                style: const TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 16,
+                  height: 1.55,
+                ),
+              ),
+              const SizedBox(height: 18),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  FilledButton.icon(
+                    onPressed: isGeneratingAudio
+                        ? null
+                        : () {
+                            requireVoiceOrRun(
+                              featureName: l10n.generatedAudio,
+                              action: onListenSummary,
+                            );
+                          },
+                    icon: isGeneratingAudio
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.2,
+                            ),
+                          )
+                        : Icon(
+                            canUseVoiceFeatures
+                                ? Icons.volume_up_rounded
+                                : Icons.workspace_premium_rounded,
+                          ),
+                    label: Text(
+                      isGeneratingAudio
+                          ? l10n.generating
+                          : canUseVoiceFeatures
+                              ? l10n.playAudio
+                              : '🔊 ${l10n.playAudio}',
+                    ),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      requireVoiceOrRun(
+                        featureName: l10n.voiceMode,
+                        action: onVoiceChat,
+                      );
+                    },
+                    icon: Icon(
+                      canUseVoiceFeatures
+                          ? Icons.mic_rounded
+                          : Icons.lock_rounded,
+                    ),
+                    label: Text(
+                      canUseVoiceFeatures
+                          ? l10n.voiceMode
+                          : '🎙️ ${l10n.voiceMode}',
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ],
