@@ -1,0 +1,16 @@
+{
+  "@@locale": "es",
+  "appTitle": "StudyBook AI",
+  "dashboardTitle": "Panel principal",
+  "settingsTitle": "Configuración",
+  "plansTitle": "Planes",
+  "chatTitle": "Chat",
+  "examTitle": "Exámenes",
+  "flashcardsTitle": "Flashcards",
+  "uploadDocument": "Subir documento",
+  "currentPlan": "Plan actual",
+  "manageSubscription": "Administrar suscripción",
+  "syncPlan": "Sincronizar plan",
+  "signOut": "Cerrar sesión",
+  "language": "Idioma"
+}

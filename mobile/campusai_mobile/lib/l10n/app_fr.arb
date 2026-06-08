@@ -1,0 +1,16 @@
+{
+  "@@locale": "fr",
+  "appTitle": "StudyBook AI",
+  "dashboardTitle": "Tableau de bord",
+  "settingsTitle": "Paramètres",
+  "plansTitle": "Forfaits",
+  "chatTitle": "Chat",
+  "examTitle": "Examens",
+  "flashcardsTitle": "Flashcards",
+  "uploadDocument": "Importer un document",
+  "currentPlan": "Forfait actuel",
+  "manageSubscription": "Gérer l’abonnement",
+  "syncPlan": "Synchroniser le forfait",
+  "signOut": "Se déconnecter",
+  "language": "Langue"
+}
