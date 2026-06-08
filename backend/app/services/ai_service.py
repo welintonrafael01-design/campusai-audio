@@ -26,6 +26,30 @@ MODEL_NAME = os.getenv(
 MAX_CONTEXT_CHARACTERS = 12000
 
 
+SUPPORTED_LANGUAGE_INSTRUCTIONS = {
+    "es": "Responde siempre en español.",
+    "en": "Always respond in English.",
+    "pt": "Responda sempre em português.",
+    "fr": "Réponds toujours en français.",
+}
+
+
+def normalize_language(language: str | None = None) -> str:
+    clean_language = (language or "es").strip().lower()
+
+    if clean_language not in SUPPORTED_LANGUAGE_INSTRUCTIONS:
+        return "es"
+
+    return clean_language
+
+
+def build_language_instruction(language: str | None = None) -> str:
+    return SUPPORTED_LANGUAGE_INSTRUCTIONS[
+        normalize_language(language)
+    ]
+
+
+
 def clean_text(text: str) -> str:
     if not text:
         return ""
@@ -81,8 +105,9 @@ def build_memory_messages(
     return messages
 
 
-def generate_ai_summary(text: str) -> str:
+def generate_ai_summary(text: str, language: str = "es") -> str:
     document_text = truncate_text(text)
+    language_instruction = build_language_instruction(language)
 
     if not document_text:
         raise ValueError(
@@ -97,7 +122,8 @@ def generate_ai_summary(text: str) -> str:
                 "content": (
                     "Eres StudyBook AI, un tutor universitario experto. "
                     "Resume documentos académicos de forma clara, profesional, "
-                    "educativa, estructurada y útil para estudiantes."
+                    "educativa, estructurada y útil para estudiantes. "
+                    f"{language_instruction}"
                 ),
             },
             {
@@ -163,8 +189,10 @@ def chat_with_document_id(
     document_id: str,
     question: str,
     history: list[dict] | None = None,
+    language: str = "es",
 ) -> str:
     clean_question = clean_text(question)
+    language_instruction = build_language_instruction(language)
 
     if not document_id.strip():
         raise ValueError(
@@ -200,7 +228,8 @@ def chat_with_document_id(
                     "Mantén continuidad conversacional con el estudiante. "
                     "Responde SOLO utilizando el contexto recuperado del documento. "
                     "No inventes información. No muestres identificadores técnicos como document_id, chunk, [FUENTE...] ni metadatos internos en la respuesta visible; esos datos serán usados por la interfaz para mostrar citas. No muestres identificadores técnicos como document_id, chunk, [FUENTE...] ni metadatos internos en la respuesta visible; esos datos serán usados por la interfaz para mostrar citas. "
-                    "Si el documento no contiene la respuesta, indícalo claramente."
+                    "Si el documento no contiene la respuesta, indícalo claramente. "
+                    f"{language_instruction}"
                 ),
             },
 
@@ -225,20 +254,24 @@ def chat_with_document_id(
 def chat_with_document(
     text: str,
     question: str,
+    language: str = "es",
 ) -> str:
     document_id = index_document_for_rag(text)
 
     return chat_with_document_id(
         document_id=document_id,
         question=question,
+        language=language,
     )
 
 
 def generate_exam_questions(
     text: str,
     number_of_questions: int = 5,
+    language: str = "es",
 ) -> str:
     document_text = truncate_text(text)
+    language_instruction = build_language_instruction(language)
 
     if not document_text:
         raise ValueError(
@@ -258,7 +291,8 @@ def generate_exam_questions(
                 "content": (
                     "Eres StudyBook AI, un profesor universitario experto "
                     "en evaluación académica. Genera preguntas de selección "
-                    "múltiple basadas únicamente en el documento."
+                    "múltiple basadas únicamente en el documento. "
+                    f"{language_instruction}"
                 ),
             },
             {
@@ -266,6 +300,7 @@ def generate_exam_questions(
                 "content": (
                     f"Documento:\n\n{document_text}\n\n"
                     f"Genera {safe_number} preguntas de selección múltiple.\n\n"
+                    "IMPORTANTE: conserva las claves JSON en inglés exactamente como se indican, pero redacta los valores visibles para estudiantes en el idioma solicitado."
                     "Devuelve exclusivamente JSON válido con esta estructura:\n"
                     "{\n"
                     '  "questions": [\n'
@@ -306,8 +341,10 @@ def generate_exam_questions(
 def generate_flashcards(
     text: str,
     number_of_cards: int = 10,
+    language: str = "es",
 ) -> str:
     document_text = truncate_text(text)
+    language_instruction = build_language_instruction(language)
 
     if not document_text:
         raise ValueError("No hay texto válido para generar flashcards.")
@@ -321,7 +358,8 @@ def generate_flashcards(
                 "role": "system",
                 "content": (
                     "Eres StudyBook AI, un tutor universitario experto. "
-                    "Genera flashcards académicas basadas únicamente en el documento."
+                    "Genera flashcards académicas basadas únicamente en el documento. "
+                    f"{language_instruction}"
                 ),
             },
             {
@@ -329,6 +367,7 @@ def generate_flashcards(
                 "content": (
                     f"Documento:\n\n{document_text}\n\n"
                     f"Genera {safe_number} flashcards.\n\n"
+                    "IMPORTANTE: conserva las claves JSON en inglés exactamente como se indican, pero redacta los valores visibles para estudiantes en el idioma solicitado."
                     "Devuelve exclusivamente JSON válido con esta estructura:\n"
                     "{\n"
                     '  "flashcards": [\n'
@@ -364,8 +403,10 @@ def generate_flashcards(
 def generate_exam_questions_from_context(
     context: str,
     number_of_questions: int = 5,
+    language: str = "es",
 ) -> str:
     document_text = truncate_text(context)
+    language_instruction = build_language_instruction(language)
 
     if not document_text:
         raise ValueError(
@@ -384,7 +425,8 @@ def generate_exam_questions_from_context(
                 "role": "system",
                 "content": (
                     "Eres StudyBook AI, profesor universitario experto. "
-                    "Genera EXCLUSIVAMENTE preguntas de selección múltiple."
+                    "Genera EXCLUSIVAMENTE preguntas de selección múltiple. "
+                    f"{language_instruction}"
                 ),
             },
             {
@@ -393,6 +435,7 @@ def generate_exam_questions_from_context(
                     f"Contexto:\n\n{document_text}\n\n"
                     f"Genera {safe_number} preguntas.\n\n"
 
+                    "IMPORTANTE: conserva las claves JSON en inglés exactamente como se indican, pero redacta los valores visibles para estudiantes en el idioma solicitado."
                     "Devuelve EXCLUSIVAMENTE JSON válido.\n\n"
 
                     "{\n"
@@ -432,8 +475,10 @@ def generate_exam_questions_from_context(
 def generate_flashcards_from_context(
     context: str,
     number_of_cards: int = 10,
+    language: str = "es",
 ) -> str:
     document_text = truncate_text(context)
+    language_instruction = build_language_instruction(language)
 
     if not document_text:
         raise ValueError(
@@ -451,7 +496,8 @@ def generate_flashcards_from_context(
             {
                 "role": "system",
                 "content": (
-                    "Eres StudyBook AI, experto en aprendizaje."
+                    "Eres StudyBook AI, experto en aprendizaje. "
+                    f"{language_instruction}"
                 ),
             },
             {
@@ -459,6 +505,7 @@ def generate_flashcards_from_context(
                 "content": (
                     f"Contexto:\n\n{document_text}\n\n"
                     f"Genera {safe_number} flashcards.\n\n"
+                    "IMPORTANTE: conserva las claves JSON en inglés exactamente como se indican, pero redacta los valores visibles para estudiantes en el idioma solicitado."
                     "Devuelve JSON válido."
                 ),
             },
@@ -471,8 +518,10 @@ def generate_flashcards_from_context(
 async def stream_chat_with_document_id(
     document_id: str,
     question: str,
+    language: str = "es",
 ):
     clean_question = clean_text(question)
+    language_instruction = build_language_instruction(language)
 
     if not document_id.strip():
         raise ValueError(
@@ -505,7 +554,8 @@ async def stream_chat_with_document_id(
                 "content": (
                     "Eres StudyBook AI, un tutor universitario experto. "
                     "Responde SOLO utilizando el contexto recuperado "
-                    "del documento. No inventes información. No muestres identificadores técnicos como document_id, chunk, [FUENTE...] ni metadatos internos en la respuesta visible; esos datos serán usados por la interfaz para mostrar citas."
+                    "del documento. No inventes información. No muestres identificadores técnicos como document_id, chunk, [FUENTE...] ni metadatos internos en la respuesta visible; esos datos serán usados por la interfaz para mostrar citas. "
+                    f"{language_instruction}"
                 ),
             },
             {
@@ -538,8 +588,10 @@ def chat_with_workspace(
     document_ids: list[str],
     question: str,
     history: list[dict] | None = None,
+    language: str = "es",
 ) -> str:
     clean_question = clean_text(question)
+    language_instruction = build_language_instruction(language)
 
     if not clean_question:
         raise ValueError(
@@ -570,7 +622,8 @@ def chat_with_workspace(
                     "Mantén continuidad conversacional con el estudiante. "
                     "Puedes combinar información de múltiples documentos "
                     "del workspace. Responde únicamente usando el contexto "
-                    "recuperado. No inventes información. No muestres identificadores técnicos como document_id, chunk, [FUENTE...] ni metadatos internos en la respuesta visible; esos datos serán usados por la interfaz para mostrar citas."
+                    "recuperado. No inventes información. No muestres identificadores técnicos como document_id, chunk, [FUENTE...] ni metadatos internos en la respuesta visible; esos datos serán usados por la interfaz para mostrar citas. "
+                    f"{language_instruction}"
                 ),
             },
 
@@ -595,8 +648,10 @@ def chat_with_workspace(
 async def stream_chat_with_workspace(
     document_ids: list[str],
     question: str,
+    language: str = "es",
 ):
     clean_question = clean_text(question)
+    language_instruction = build_language_instruction(language)
 
     if not clean_question:
         raise ValueError(

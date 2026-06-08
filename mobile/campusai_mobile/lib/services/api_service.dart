@@ -3,21 +3,39 @@ import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'usage_limit_service.dart';
 import 'auth_service.dart';
 
 class ApiService {
- static const String baseUrl = 'http://localhost:8000';
+  static const String baseUrl = 'http://localhost:8000';
 
   static const String cloudBaseUrl = '';
 
-  static const Duration timeoutDuration =
-      Duration(seconds: 180);
+  static const Duration timeoutDuration = Duration(seconds: 180);
 
   static const int maxPdfSizeMb = 25;
 
+  static const String localePreferenceKey = 'studybook_locale';
 
+  static Future<String> getCurrentLanguageCode() async {
+    final prefs = await SharedPreferences.getInstance();
 
+    final code = prefs.getString(localePreferenceKey) ?? 'es';
+
+    final cleanCode = code.trim().toLowerCase();
+
+    if ([
+      'es',
+      'en',
+      'pt',
+      'fr',
+    ].contains(cleanCode)) {
+      return cleanCode;
+    }
+
+    return 'es';
+  }
 
   // =========================
   // USAGE SUMMARY
@@ -28,10 +46,12 @@ class ApiService {
       '$baseUrl/billing/usage/me',
     );
 
-    final response = await http.get(
-      uri,
-      headers: AuthService.authHeaders,
-    ).timeout(timeoutDuration);
+    final response = await http
+        .get(
+          uri,
+          headers: AuthService.authHeaders,
+        )
+        .timeout(timeoutDuration);
 
     return decodeResponse(response);
   }
@@ -45,10 +65,12 @@ class ApiService {
       '$baseUrl/billing/subscription/me',
     );
 
-    final response = await http.get(
-      uri,
-      headers: AuthService.authHeaders,
-    ).timeout(timeoutDuration);
+    final response = await http
+        .get(
+          uri,
+          headers: AuthService.authHeaders,
+        )
+        .timeout(timeoutDuration);
 
     return decodeResponse(response);
   }
@@ -57,8 +79,7 @@ class ApiService {
   // HEALTH
   // =========================
 
-  static Future<Map<String, dynamic>>
-      healthCheck() async {
+  static Future<Map<String, dynamic>> healthCheck() async {
     final uri = Uri.parse('$baseUrl/');
 
     final response = await http.get(uri);
@@ -70,8 +91,7 @@ class ApiService {
   // UPLOAD PDF
   // =========================
 
-  static Future<Map<String, dynamic>>
-      uploadPdf() async {
+  static Future<Map<String, dynamic>> uploadPdf() async {
     const usageLimitService = UsageLimitService();
 
     if (!usageLimitService.canUploadPdfToday()) {
@@ -82,10 +102,16 @@ class ApiService {
 
     final file = await pickPdfFile();
 
+    final language = await getCurrentLanguageCode();
+
     final request = http.MultipartRequest(
       'POST',
       Uri.parse(
         '$baseUrl/documents/upload',
+      ).replace(
+        queryParameters: {
+          'language': language,
+        },
       ),
     );
 
@@ -112,28 +138,28 @@ class ApiService {
   // CHAT
   // =========================
 
-  static Future<Map<String, dynamic>>
-      chatWithDocumentId({
+  static Future<Map<String, dynamic>> chatWithDocumentId({
     required String documentId,
     required String question,
   }) async {
-    final cleanDocumentId =
-        requireValue(
+    final cleanDocumentId = requireValue(
       documentId,
       'No hay documento activo.',
     );
 
-    final cleanQuestion =
-        requireValue(
+    final cleanQuestion = requireValue(
       question,
       'La pregunta no puede estar vacía.',
     );
+
+    final language = await getCurrentLanguageCode();
 
     final uri = Uri.parse(
       '$baseUrl/documents/chat/$cleanDocumentId',
     ).replace(
       queryParameters: {
         'question': cleanQuestion,
+        'language': language,
       },
     );
 
@@ -147,16 +173,11 @@ class ApiService {
     return decodeResponse(response);
   }
 
-  
-
-
-
   // =========================
   // WORKSPACE CHAT
   // =========================
 
-  static Future<Map<String, dynamic>>
-      chatWithWorkspace({
+  static Future<Map<String, dynamic>> chatWithWorkspace({
     required List<String> documentIds,
     required String question,
     List<Map<String, String>> history = const [],
@@ -177,11 +198,14 @@ class ApiService {
       'La pregunta no puede estar vacía.',
     );
 
+    final language = await getCurrentLanguageCode();
+
     final uri = Uri.parse(
       '$baseUrl/documents/chat-workspace',
     ).replace(
       queryParameters: {
         'question': cleanQuestion,
+        'language': language,
       },
     );
 
@@ -206,41 +230,38 @@ class ApiService {
   // STREAM CHAT
   // =========================
 
-  static Stream<String>
-      streamChatWithDocumentId({
+  static Stream<String> streamChatWithDocumentId({
     required String documentId,
     required String question,
   }) async* {
-
-    final cleanDocumentId =
-        requireValue(
+    final cleanDocumentId = requireValue(
       documentId,
       'No hay documento activo.',
     );
 
-    final cleanQuestion =
-        requireValue(
+    final cleanQuestion = requireValue(
       question,
       'La pregunta no puede estar vacía.',
     );
+
+    final language = await getCurrentLanguageCode();
 
     final uri = Uri.parse(
       '$baseUrl/documents/chat-stream/$cleanDocumentId',
     ).replace(
       queryParameters: {
         'question': cleanQuestion,
+        'language': language,
       },
     );
 
-    final request =
-        http.Request('POST', uri);
+    final request = http.Request('POST', uri);
 
     request.headers.addAll(
       AuthService.authHeaders,
     );
 
-    final streamedResponse =
-        await request.send();
+    final streamedResponse = await request.send();
 
     if (streamedResponse.statusCode < 200 ||
         streamedResponse.statusCode >= 300) {
@@ -249,8 +270,7 @@ class ApiService {
       );
     }
 
-    await for (final chunk
-        in streamedResponse.stream.transform(
+    await for (final chunk in streamedResponse.stream.transform(
       utf8.decoder,
     )) {
       yield chunk;
@@ -261,23 +281,23 @@ class ApiService {
   // EXAM
   // =========================
 
-  static Future<Map<String, dynamic>>
-      generateExamByDocumentId({
+  static Future<Map<String, dynamic>> generateExamByDocumentId({
     required String documentId,
     int numberOfQuestions = 10,
   }) async {
-    final cleanDocumentId =
-        requireValue(
+    final cleanDocumentId = requireValue(
       documentId,
       'No hay documento activo.',
     );
+
+    final language = await getCurrentLanguageCode();
 
     final uri = Uri.parse(
       '$baseUrl/documents/exam/$cleanDocumentId',
     ).replace(
       queryParameters: {
-        'number_of_questions':
-            numberOfQuestions.toString(),
+        'number_of_questions': numberOfQuestions.toString(),
+        'language': language,
       },
     );
 
@@ -295,23 +315,23 @@ class ApiService {
   // FLASHCARDS
   // =========================
 
-  static Future<Map<String, dynamic>>
-      generateFlashcardsByDocumentId({
+  static Future<Map<String, dynamic>> generateFlashcardsByDocumentId({
     required String documentId,
     int numberOfCards = 10,
   }) async {
-    final cleanDocumentId =
-        requireValue(
+    final cleanDocumentId = requireValue(
       documentId,
       'No hay documento activo.',
     );
+
+    final language = await getCurrentLanguageCode();
 
     final uri = Uri.parse(
       '$baseUrl/documents/flashcards/$cleanDocumentId',
     ).replace(
       queryParameters: {
-        'number_of_cards':
-            numberOfCards.toString(),
+        'number_of_cards': numberOfCards.toString(),
+        'language': language,
       },
     );
 
@@ -325,14 +345,11 @@ class ApiService {
     return decodeResponse(response);
   }
 
-
-
   // =========================
   // GENERATE AUDIO
   // =========================
 
-  static Future<Map<String, dynamic>>
-      generateAudioFromText({
+  static Future<Map<String, dynamic>> generateAudioFromText({
     required String text,
   }) async {
     final cleanText = requireValue(
@@ -340,11 +357,14 @@ class ApiService {
       'No hay texto para generar audio.',
     );
 
+    final language = await getCurrentLanguageCode();
+
     final uri = Uri.parse(
       '$baseUrl/documents/audio',
     ).replace(
       queryParameters: {
         'text': cleanText,
+        'language': language,
       },
     );
 
@@ -365,8 +385,7 @@ class ApiService {
   static String buildAudioUrl(
     String audioUrl,
   ) {
-    final cleanAudioUrl =
-        audioUrl.trim();
+    final cleanAudioUrl = audioUrl.trim();
 
     if (cleanAudioUrl.isEmpty) {
       return '';
@@ -388,14 +407,11 @@ class ApiService {
     return '$baseUrl/$cleanAudioUrl';
   }
 
-
-
   // =========================
   // REAL STREAM CHAT
   // =========================
 
-  static Stream<String>
-      streamChatWithWorkspace({
+  static Stream<String> streamChatWithWorkspace({
     required List<String> documentIds,
     required String question,
     List<Map<String, String>> history = const [],
@@ -416,11 +432,14 @@ class ApiService {
       'La pregunta no puede estar vacía.',
     );
 
+    final language = await getCurrentLanguageCode();
+
     final uri = Uri.parse(
       '$baseUrl/documents/chat-workspace-stream',
     ).replace(
       queryParameters: {
         'question': cleanQuestion,
+        'language': language,
       },
     );
 
@@ -438,9 +457,7 @@ class ApiService {
       'history': history,
     });
 
-    final streamedResponse = await request
-        .send()
-        .timeout(timeoutDuration);
+    final streamedResponse = await request.send().timeout(timeoutDuration);
 
     if (streamedResponse.statusCode < 200 ||
         streamedResponse.statusCode >= 300) {
@@ -462,10 +479,8 @@ class ApiService {
   // PICK PDF
   // =========================
 
-  static Future<PlatformFile>
-      pickPdfFile() async {
-    final result =
-        await FilePicker.platform.pickFiles(
+  static Future<PlatformFile> pickPdfFile() async {
+    final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf'],
       withData: true,
@@ -479,23 +494,19 @@ class ApiService {
 
     final file = result.files.first;
 
-    if (file.bytes == null ||
-        file.bytes!.isEmpty) {
+    if (file.bytes == null || file.bytes!.isEmpty) {
       throw Exception(
         'No se pudo leer el archivo.',
       );
     }
 
-    if (!file.name
-        .toLowerCase()
-        .endsWith('.pdf')) {
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
       throw Exception(
         'Solo se permiten PDF.',
       );
     }
 
-    final sizeMb =
-        file.size / (1024 * 1024);
+    final sizeMb = file.size / (1024 * 1024);
 
     if (sizeMb > maxPdfSizeMb) {
       throw Exception(
@@ -510,16 +521,12 @@ class ApiService {
   // MULTIPART
   // =========================
 
-  static Future<Map<String, dynamic>>
-      sendMultipartRequest(
+  static Future<Map<String, dynamic>> sendMultipartRequest(
     http.MultipartRequest request,
   ) async {
-    final response = await request
-        .send()
-        .timeout(timeoutDuration);
+    final response = await request.send().timeout(timeoutDuration);
 
-    final body =
-        await response.stream.bytesToString();
+    final body = await response.stream.bytesToString();
 
     return decodeBody(
       statusCode: response.statusCode,
@@ -531,8 +538,7 @@ class ApiService {
   // DECODE RESPONSE
   // =========================
 
-  static Map<String, dynamic>
-      decodeResponse(
+  static Map<String, dynamic> decodeResponse(
     http.Response response,
   ) {
     return decodeBody(
@@ -545,18 +551,14 @@ class ApiService {
   // DECODE BODY
   // =========================
 
-  static Map<String, dynamic>
-      decodeBody({
+  static Map<String, dynamic> decodeBody({
     required int statusCode,
     required String body,
   }) {
-    final decoded =
-        tryDecodeJson(body);
+    final decoded = tryDecodeJson(body);
 
-    if (statusCode < 200 ||
-        statusCode >= 300) {
-      final detail =
-          decoded['detail'] ?? body;
+    if (statusCode < 200 || statusCode >= 300) {
+      final detail = decoded['detail'] ?? body;
 
       throw Exception(
         'Error del servidor: $detail',
@@ -570,16 +572,13 @@ class ApiService {
   // TRY JSON
   // =========================
 
-  static Map<String, dynamic>
-      tryDecodeJson(
+  static Map<String, dynamic> tryDecodeJson(
     String body,
   ) {
     try {
-      final decoded =
-          jsonDecode(body);
+      final decoded = jsonDecode(body);
 
-      if (decoded
-          is Map<String, dynamic>) {
+      if (decoded is Map<String, dynamic>) {
         return decoded;
       }
 
@@ -601,8 +600,7 @@ class ApiService {
     String value,
     String message,
   ) {
-    final cleanValue =
-        value.trim();
+    final cleanValue = value.trim();
 
     if (cleanValue.isEmpty) {
       throw Exception(message);

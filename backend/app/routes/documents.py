@@ -256,6 +256,7 @@ def build_document_context(
 @router.post("/upload")
 async def upload_document(
     file: UploadFile = File(...),
+    language: str = Query(default="es"),
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     start_time = time.perf_counter()
@@ -303,7 +304,10 @@ async def upload_document(
         )
 
         step = time.perf_counter()
-        ai_summary = generate_ai_summary(extracted_text)
+        ai_summary = generate_ai_summary(
+            extracted_text,
+            language=language,
+        )
         print(f"[UPLOAD] ai_summary: {time.perf_counter() - step:.2f}s")
 
         print(f"[UPLOAD] total: {time.perf_counter() - start_time:.2f}s")
@@ -373,6 +377,7 @@ def calculate_rag_confidence(
 async def chat_document_by_id(
     document_id: str,
     question: str = Query(default=""),
+    language: str = Query(default="es"),
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
@@ -398,6 +403,7 @@ async def chat_document_by_id(
             chat_with_document_id(
                 document_id=document_id,
                 question=question,
+                language=language,
             )
         )
 
@@ -446,6 +452,7 @@ async def exam_document_by_id(
         ge=1,
         le=20,
     ),
+    language: str = Query(default="es"),
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
@@ -472,6 +479,7 @@ async def exam_document_by_id(
             generate_exam_questions_from_context(
                 context,
                 number_of_questions,
+                language=language,
             )
         )
 
@@ -510,6 +518,7 @@ async def flashcards_document_by_id(
         ge=1,
         le=30,
     ),
+    language: str = Query(default="es"),
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
@@ -536,6 +545,7 @@ async def flashcards_document_by_id(
             generate_flashcards_from_context(
                 context,
                 number_of_cards,
+                language=language,
             )
         )
 
@@ -569,6 +579,7 @@ async def flashcards_document_by_id(
 async def stream_chat_document(
     document_id: str,
     question: str = Query(default=""),
+    language: str = Query(default="es"),
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
@@ -595,6 +606,7 @@ async def stream_chat_document(
             async for chunk in stream_chat_with_document_id(
                 document_id=document_id,
                 question=question,
+                language=language,
             ):
                 yield chunk
 
@@ -845,6 +857,7 @@ async def generate_audio_endpoint(
 async def chat_workspace(
     document_ids: list[str] = Body(...),
     question: str = Query(default=""),
+    language: str = Query(default="es"),
     history: list[dict] | None = Body(default=None),
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
@@ -862,6 +875,7 @@ async def chat_workspace(
             document_ids=document_ids,
             question=question,
             history=history,
+            language=language,
         )
 
         register_usage_event(
@@ -893,6 +907,7 @@ async def chat_workspace(
 async def stream_chat_workspace(
     document_ids: list[str] = Body(...),
     question: str = Query(default=""),
+    language: str = Query(default="es"),
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
@@ -919,6 +934,7 @@ async def stream_chat_workspace(
             async for chunk in stream_chat_with_workspace(
                 document_ids=document_ids,
                 question=question,
+                language=language,
             ):
                 yield chunk
 
