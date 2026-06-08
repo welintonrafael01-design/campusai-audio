@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 
 from dotenv import load_dotenv
 
@@ -30,6 +31,21 @@ UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 CHROMA_DIR.mkdir(parents=True, exist_ok=True)
 
 
+def get_cors_origins() -> list[str]:
+    raw_origins = os.getenv(
+        "BACKEND_CORS_ORIGINS",
+        "http://localhost:54713,http://localhost:3000,http://127.0.0.1:54713",
+    )
+
+    origins = [
+        origin.strip()
+        for origin in raw_origins.split(",")
+        if origin.strip()
+    ]
+
+    return origins
+
+
 app = FastAPI(
     title="StudyBook AI API",
     description=(
@@ -42,7 +58,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

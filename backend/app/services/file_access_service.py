@@ -5,14 +5,16 @@ import time
 import jwt
 
 
-DEFAULT_SECRET = "studybook-ai-local-file-access-secret"
-
-
 def _get_secret() -> str:
-    return os.getenv(
-        "FILE_ACCESS_SECRET",
-        os.getenv("ADMIN_API_KEY", DEFAULT_SECRET),
-    )
+    secret = os.getenv("FILE_ACCESS_SECRET", "").strip()
+
+    if not secret:
+        raise RuntimeError(
+            "FILE_ACCESS_SECRET no está configurada. "
+            "Defina una clave segura en el archivo .env."
+        )
+
+    return secret
 
 
 def create_file_access_token(
