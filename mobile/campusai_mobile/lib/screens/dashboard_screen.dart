@@ -151,6 +151,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Future<void> createWorkspace() async {
     if (recentDocuments.isEmpty) {
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -161,129 +163,26 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       return;
     }
 
-    final nameController = TextEditingController(
-      text: 'Mi workspace',
-    );
-
-    final selectedDocumentIds = <String>{};
-
-    final shouldCreate = await showDialog<bool>(
+    final draft = await showDialog<_WorkspaceDraft>(
       context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: const Text('Crear workspace'),
-              content: SizedBox(
-                width: 520,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-                    children: [
-                      TextField(
-                        controller: nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Nombre del workspace',
-                          hintText: 'Ej.: Tesis, Derecho Penal, Proyecto final',
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      const Text(
-                        'Selecciona documentos',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      ...recentDocuments.map((document) {
-                        final isSelected = selectedDocumentIds.contains(
-                          document.documentId,
-                        );
-
-                        return CheckboxListTile(
-                          value: isSelected,
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(
-                            document.fileName,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          onChanged: (value) {
-                            setDialogState(() {
-                              if (value == true) {
-                                selectedDocumentIds.add(
-                                  document.documentId,
-                                );
-                              } else {
-                                selectedDocumentIds.remove(
-                                  document.documentId,
-                                );
-                              }
-                            });
-                          },
-                        );
-                      }),
-                    ],
-                  ),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(dialogContext).pop(false);
-                  },
-                  child: const Text('Cancelar'),
-                ),
-                FilledButton(
-                  onPressed: selectedDocumentIds.isEmpty
-                      ? null
-                      : () {
-                          Navigator.of(dialogContext).pop(true);
-                        },
-                  child: const Text('Crear'),
-                ),
-              ],
-            );
-          },
+      builder: (_) {
+        return _CreateWorkspaceDialog(
+          documents: recentDocuments,
         );
       },
     );
 
-    if (shouldCreate != true) {
-      nameController.dispose();
-      return;
-    }
-
-    final workspaceName = nameController.text.trim();
-
-    nameController.dispose();
-
-    if (workspaceName.isEmpty) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'El nombre del workspace no puede estar vacío.',
-          ),
-        ),
-      );
-      return;
-    }
+    if (!mounted || draft == null) return;
 
     final selectedDocuments = recentDocuments
         .where(
-          (document) => selectedDocumentIds.contains(
+          (document) => draft.documentIds.contains(
             document.documentId,
           ),
         )
         .toList();
 
     if (selectedDocuments.isEmpty) {
-      if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -300,7 +199,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     try {
       final cloudWorkspace =
           await CloudApiService.createWorkspace(
-        name: workspaceName,
+        name: draft.name,
         description: 'Workspace creado desde StudyBook AI',
       );
 
@@ -325,7 +224,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     final workspace = WorkspaceModel(
       workspaceId: workspaceId,
-      name: workspaceName,
+      name: draft.name,
       documents: selectedDocuments,
       updatedAt: DateTime.now(),
     );
@@ -338,7 +237,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Workspace "$workspaceName" creado con ${selectedDocuments.length} documento(s).',
+          'Workspace "${draft.name}" creado con ${selectedDocuments.length} documento(s).',
         ),
       ),
     );
@@ -977,3 +876,147 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 }
+
+class _WorkspaceDraft {
+  final String name;
+  final Set<String> documentIds;
+
+  const _WorkspaceDraft({
+    required this.name,
+    required this.documentIds,
+  });
+}
+
+class _CreateWorkspaceDialog extends StatefulWidget {
+  final List<RecentDocumentModel> documents;
+
+  const _CreateWorkspaceDialog({
+    required this.documents,
+  });
+
+  @override
+  State<_CreateWorkspaceDialog> createState() =>
+      _CreateWorkspaceDialogState();
+}
+
+class _CreateWorkspaceDialogState
+    extends State<_CreateWorkspaceDialog> {
+  late final TextEditingController nameController;
+  final Set<String> selectedDocumentIds = {};
+
+  @override
+  void initState() {
+    super.initState();
+
+    nameController = TextEditingController(
+      text: 'Mi workspace',
+    );
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    super.dispose();
+  }
+
+  void submit() {
+    final name = nameController.text.trim();
+
+    if (name.isEmpty || selectedDocumentIds.isEmpty) {
+      return;
+    }
+
+    Navigator.of(context).pop(
+      _WorkspaceDraft(
+        name: name,
+        documentIds: Set<String>.from(
+          selectedDocumentIds,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final canCreate =
+        nameController.text.trim().isNotEmpty &&
+        selectedDocumentIds.isNotEmpty;
+
+    return AlertDialog(
+      title: const Text('Crear workspace'),
+      content: SizedBox(
+        width: 520,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Nombre del workspace',
+                  hintText:
+                      'Ej.: Tesis, Derecho Penal, Proyecto final',
+                ),
+                onChanged: (_) {
+                  setState(() {});
+                },
+              ),
+              const SizedBox(height: 18),
+              const Text(
+                'Selecciona documentos',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ...widget.documents.map((document) {
+                final isSelected =
+                    selectedDocumentIds.contains(
+                  document.documentId,
+                );
+
+                return CheckboxListTile(
+                  value: isSelected,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    document.fileName,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      if (value == true) {
+                        selectedDocumentIds.add(
+                          document.documentId,
+                        );
+                      } else {
+                        selectedDocumentIds.remove(
+                          document.documentId,
+                        );
+                      }
+                    });
+                  },
+                );
+              }),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: canCreate ? submit : null,
+          child: const Text('Crear'),
+        ),
+      ],
+    );
+  }
+}
+
