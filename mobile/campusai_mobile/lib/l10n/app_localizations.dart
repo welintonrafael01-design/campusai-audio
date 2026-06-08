@@ -467,6 +467,108 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Mi workspace'**
   String get myWorkspace;
+
+  /// No description provided for @heroSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu centro inteligente de estudio con IA.'**
+  String get heroSubtitle;
+
+  /// No description provided for @docsShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Docs'**
+  String get docsShort;
+
+  /// No description provided for @ragReady.
+  ///
+  /// In es, this message translates to:
+  /// **'Listo'**
+  String get ragReady;
+
+  /// No description provided for @ragActive.
+  ///
+  /// In es, this message translates to:
+  /// **'Activo'**
+  String get ragActive;
+
+  /// No description provided for @aiTools.
+  ///
+  /// In es, this message translates to:
+  /// **'Herramientas IA'**
+  String get aiTools;
+
+  /// No description provided for @aiToolsSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Explora funciones inteligentes para estudiar más rápido.'**
+  String get aiToolsSubtitle;
+
+  /// No description provided for @uploadPdf.
+  ///
+  /// In es, this message translates to:
+  /// **'Subir PDF'**
+  String get uploadPdf;
+
+  /// No description provided for @uploadPdfDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Carga documentos para resumir con IA.'**
+  String get uploadPdfDescription;
+
+  /// No description provided for @aiChat.
+  ///
+  /// In es, this message translates to:
+  /// **'Chat IA'**
+  String get aiChat;
+
+  /// No description provided for @aiChatDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Pregunta sobre el documento activo.'**
+  String get aiChatDescription;
+
+  /// No description provided for @aiExam.
+  ///
+  /// In es, this message translates to:
+  /// **'Examen IA'**
+  String get aiExam;
+
+  /// No description provided for @aiExamDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Genera preguntas automáticas.'**
+  String get aiExamDescription;
+
+  /// No description provided for @flashcardsDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Crea tarjetas de estudio inteligentes.'**
+  String get flashcardsDescription;
+
+  /// No description provided for @documents.
+  ///
+  /// In es, this message translates to:
+  /// **'Documentos'**
+  String get documents;
+
+  /// No description provided for @aiStatus.
+  ///
+  /// In es, this message translates to:
+  /// **'Estado IA'**
+  String get aiStatus;
+
+  /// No description provided for @noDocument.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin documento'**
+  String get noDocument;
+
+  /// No description provided for @ready.
+  ///
+  /// In es, this message translates to:
+  /// **'Ready'**
+  String get ready;
 }
 
 class _AppLocalizationsDelegate

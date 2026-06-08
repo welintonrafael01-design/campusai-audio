@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_theme.dart';
 
 class DashboardHero extends StatelessWidget {
@@ -15,6 +16,7 @@ class DashboardHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(26),
       decoration: BoxDecoration(
@@ -29,8 +31,7 @@ class DashboardHero extends StatelessWidget {
         ],
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
@@ -62,8 +63,7 @@ class DashboardHero extends StatelessWidget {
                   );
                 },
                 style: IconButton.styleFrom(
-                  backgroundColor:
-                      Colors.white.withValues(
+                  backgroundColor: Colors.white.withValues(
                     alpha: 0.16,
                   ),
                 ),
@@ -75,8 +75,8 @@ class DashboardHero extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 18),
-          const Text(
-            'Tu centro inteligente de estudio con IA.',
+          Text(
+            l10n.heroSubtitle,
             style: TextStyle(
               fontSize: 16,
               color: Colors.white,
@@ -88,20 +88,16 @@ class DashboardHero extends StatelessWidget {
             children: [
               Expanded(
                 child: _HeroMetric(
-                  label: 'Docs',
+                  label: l10n.docsShort,
                   value: documentCount.toString(),
-                  icon:
-                      Icons.folder_copy_rounded,
+                  icon: Icons.folder_copy_rounded,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _HeroMetric(
                   label: 'RAG',
-                  value:
-                      hasActiveDocument
-                          ? 'Activo'
-                          : 'Listo',
+                  value: hasActiveDocument ? l10n.ragActive : l10n.ragReady,
                   icon: Icons.hub_rounded,
                 ),
               ),
@@ -135,8 +131,7 @@ class _HeroMetric extends StatelessWidget {
         color: Colors.white.withValues(
           alpha: 0.16,
         ),
-        borderRadius:
-            BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: Colors.white.withValues(
             alpha: 0.18,

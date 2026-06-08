@@ -60,5 +60,22 @@
   "selectDocuments": "Sélectionnez des documents",
   "cancel": "Annuler",
   "create": "Créer",
-  "myWorkspace": "Mon workspace"
+  "myWorkspace": "Mon workspace",
+  "heroSubtitle": "Votre centre d’étude intelligent avec IA.",
+  "docsShort": "Docs",
+  "ragReady": "Prêt",
+  "ragActive": "Actif",
+  "aiTools": "Outils IA",
+  "aiToolsSubtitle": "Explorez des fonctions intelligentes pour étudier plus vite.",
+  "uploadPdf": "Importer PDF",
+  "uploadPdfDescription": "Importez des documents pour les résumer avec l’IA.",
+  "aiChat": "Chat IA",
+  "aiChatDescription": "Posez des questions sur le document actif.",
+  "aiExam": "Examen IA",
+  "aiExamDescription": "Générez des questions automatiques.",
+  "flashcardsDescription": "Créez des cartes d’étude intelligentes.",
+  "documents": "Documents",
+  "aiStatus": "État IA",
+  "noDocument": "Aucun document",
+  "ready": "Prêt"
 }

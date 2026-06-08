@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../layout/responsive_layout.dart';
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_theme.dart';
 import '../section_card.dart';
 
@@ -25,6 +26,7 @@ class DashboardTools extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     int crossAxisCount = 1;
 
     if (ResponsiveLayout.isTablet(context)) {
@@ -36,98 +38,63 @@ class DashboardTools extends StatelessWidget {
     }
 
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Herramientas IA',
+        Text(
+          l10n.aiTools,
           style: TextStyle(
             color: AppTheme.textPrimary,
             fontSize: 28,
             fontWeight: FontWeight.w900,
           ),
         ),
-
         const SizedBox(height: 6),
-
-        const Text(
-          'Explora funciones inteligentes para estudiar más rápido.',
+        Text(
+          l10n.aiToolsSubtitle,
           style: TextStyle(
             color: AppTheme.textMuted,
             height: 1.4,
           ),
         ),
-
         const SizedBox(height: 20),
-
         GridView.count(
           crossAxisCount: crossAxisCount,
           shrinkWrap: true,
-          physics:
-              const NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
-          childAspectRatio:
-              ResponsiveLayout.isDesktop(context)
-                  ? 1.15
-                  : 1.1,
+          childAspectRatio: ResponsiveLayout.isDesktop(context) ? 1.15 : 1.1,
           children: [
             _ToolCard(
-              title: 'Subir PDF',
-              subtitle:
-                  'Carga documentos para resumir con IA.',
+              title: l10n.uploadPdf,
+              subtitle: l10n.uploadPdfDescription,
               icon: Icons.upload_file_rounded,
               color: AppTheme.primary,
-              onTap: isLoading
-                  ? null
-                  : uploadPdf,
+              onTap: isLoading ? null : uploadPdf,
             ),
-
             _ToolCard(
-              title: 'Chat IA',
-              subtitle:
-                  'Pregunta sobre el documento activo.',
-              icon:
-                  Icons.chat_bubble_rounded,
+              title: l10n.aiChat,
+              subtitle: l10n.aiChatDescription,
+              icon: Icons.chat_bubble_rounded,
               color: AppTheme.accent,
-              enabled:
-                  hasActiveDocument,
-              onTap:
-                  hasActiveDocument
-                      ? openChat
-                      : null,
+              enabled: hasActiveDocument,
+              onTap: hasActiveDocument ? openChat : null,
             ),
-
             _ToolCard(
-              title: 'Examen IA',
-              subtitle:
-                  'Genera preguntas automáticas.',
-              icon:
-                  Icons.quiz_rounded,
-              color:
-                  AppTheme.secondary,
-              enabled:
-                  hasActiveDocument,
-              onTap:
-                  hasActiveDocument
-                      ? openExam
-                      : null,
+              title: l10n.aiExam,
+              subtitle: l10n.aiExamDescription,
+              icon: Icons.quiz_rounded,
+              color: AppTheme.secondary,
+              enabled: hasActiveDocument,
+              onTap: hasActiveDocument ? openExam : null,
             ),
-
             _ToolCard(
               title: 'Flashcards',
-              subtitle:
-                  'Crea tarjetas de estudio inteligentes.',
-              icon:
-                  Icons.style_rounded,
-              color:
-                  AppTheme.success,
-              enabled:
-                  hasActiveDocument,
-              onTap:
-                  hasActiveDocument
-                      ? openFlashcards
-                      : null,
+              subtitle: l10n.flashcardsDescription,
+              icon: Icons.style_rounded,
+              color: AppTheme.success,
+              enabled: hasActiveDocument,
+              onTap: hasActiveDocument ? openFlashcards : null,
             ),
           ],
         ),
@@ -160,18 +127,15 @@ class _ToolCard extends StatelessWidget {
       child: SectionCard(
         onTap: onTap,
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding:
-                  const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: color.withValues(
                   alpha: 0.14,
                 ),
-                borderRadius:
-                    BorderRadius.circular(
+                borderRadius: BorderRadius.circular(
                   18,
                 ),
               ),
@@ -181,27 +145,20 @@ class _ToolCard extends StatelessWidget {
                 size: 28,
               ),
             ),
-
             const Spacer(),
-
             Text(
               title,
               style: const TextStyle(
-                color:
-                    AppTheme.textPrimary,
+                color: AppTheme.textPrimary,
                 fontSize: 18,
-                fontWeight:
-                    FontWeight.w900,
+                fontWeight: FontWeight.w900,
               ),
             ),
-
             const SizedBox(height: 8),
-
             Text(
               subtitle,
               style: const TextStyle(
-                color:
-                    AppTheme.textMuted,
+                color: AppTheme.textMuted,
                 height: 1.4,
               ),
             ),

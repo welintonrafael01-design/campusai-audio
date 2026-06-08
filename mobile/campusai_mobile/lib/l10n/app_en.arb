@@ -60,5 +60,22 @@
   "selectDocuments": "Select documents",
   "cancel": "Cancel",
   "create": "Create",
-  "myWorkspace": "My workspace"
+  "myWorkspace": "My workspace",
+  "heroSubtitle": "Your intelligent AI study hub.",
+  "docsShort": "Docs",
+  "ragReady": "Ready",
+  "ragActive": "Active",
+  "aiTools": "AI Tools",
+  "aiToolsSubtitle": "Explore intelligent features to study faster.",
+  "uploadPdf": "Upload PDF",
+  "uploadPdfDescription": "Upload documents to summarize with AI.",
+  "aiChat": "AI Chat",
+  "aiChatDescription": "Ask questions about the active document.",
+  "aiExam": "AI Exam",
+  "aiExamDescription": "Generate automatic questions.",
+  "flashcardsDescription": "Create smart study cards.",
+  "documents": "Documents",
+  "aiStatus": "AI Status",
+  "noDocument": "No document",
+  "ready": "Ready"
 }

@@ -197,4 +197,56 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get myWorkspace => 'Meu workspace';
+
+  @override
+  String get heroSubtitle => 'Seu centro inteligente de estudos com IA.';
+
+  @override
+  String get docsShort => 'Docs';
+
+  @override
+  String get ragReady => 'Pronto';
+
+  @override
+  String get ragActive => 'Ativo';
+
+  @override
+  String get aiTools => 'Ferramentas IA';
+
+  @override
+  String get aiToolsSubtitle =>
+      'Explore funções inteligentes para estudar mais rápido.';
+
+  @override
+  String get uploadPdf => 'Enviar PDF';
+
+  @override
+  String get uploadPdfDescription => 'Envie documentos para resumir com IA.';
+
+  @override
+  String get aiChat => 'Chat IA';
+
+  @override
+  String get aiChatDescription => 'Pergunte sobre o documento ativo.';
+
+  @override
+  String get aiExam => 'Exame IA';
+
+  @override
+  String get aiExamDescription => 'Gere perguntas automáticas.';
+
+  @override
+  String get flashcardsDescription => 'Crie cartões de estudo inteligentes.';
+
+  @override
+  String get documents => 'Documentos';
+
+  @override
+  String get aiStatus => 'Estado IA';
+
+  @override
+  String get noDocument => 'Sem documento';
+
+  @override
+  String get ready => 'Pronto';
 }

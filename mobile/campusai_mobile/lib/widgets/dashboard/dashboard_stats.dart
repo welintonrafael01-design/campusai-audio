@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../layout/responsive_layout.dart';
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_theme.dart';
 import '../section_card.dart';
 
@@ -16,6 +17,7 @@ class DashboardStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     int crossAxisCount = 1;
 
     if (ResponsiveLayout.isTablet(context)) {
@@ -29,39 +31,32 @@ class DashboardStats extends StatelessWidget {
     return GridView.count(
       crossAxisCount: crossAxisCount,
       shrinkWrap: true,
-      physics:
-          const NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       crossAxisSpacing: 16,
       mainAxisSpacing: 16,
-      childAspectRatio:
-          ResponsiveLayout.isDesktop(context)
-              ? 1.8
-              : 1.5,
+      childAspectRatio: ResponsiveLayout.isDesktop(context) ? 1.8 : 1.5,
       children: [
         _StatCard(
-          title: 'Documentos',
+          title: l10n.documents,
           value: '$documentCount',
           icon: Icons.folder_copy_rounded,
           color: AppTheme.primary,
         ),
         _StatCard(
-          title: 'Estado IA',
-          value:
-              hasActiveDocument
-                  ? 'Activo'
-                  : 'Sin documento',
+          title: l10n.aiStatus,
+          value: hasActiveDocument ? l10n.ragActive : l10n.noDocument,
           icon: Icons.auto_awesome_rounded,
           color: AppTheme.accent,
         ),
-        const _StatCard(
-          title: 'Flashcards',
+        _StatCard(
+          title: l10n.flashcardsTitle,
           value: 'AI',
           icon: Icons.style_rounded,
           color: AppTheme.secondary,
         ),
-        const _StatCard(
+        _StatCard(
           title: 'Audio',
-          value: 'Ready',
+          value: l10n.ready,
           icon: Icons.graphic_eq_rounded,
           color: AppTheme.success,
         ),
@@ -89,14 +84,12 @@ class _StatCard extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            padding:
-                const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: color.withValues(
                 alpha: 0.14,
               ),
-              borderRadius:
-                  BorderRadius.circular(
+              borderRadius: BorderRadius.circular(
                 18,
               ),
             ),
@@ -108,33 +101,26 @@ class _StatCard extends StatelessWidget {
           const SizedBox(width: 16),
           Expanded(
             child: Column(
-              mainAxisAlignment:
-                  MainAxisAlignment.center,
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
                   style: const TextStyle(
-                    color:
-                        AppTheme.textMuted,
+                    color: AppTheme.textMuted,
                     fontSize: 13,
-                    fontWeight:
-                        FontWeight.w600,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   value,
                   maxLines: 1,
-                  overflow:
-                      TextOverflow.ellipsis,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: AppTheme
-                        .textPrimary,
+                    color: AppTheme.textPrimary,
                     fontSize: 20,
-                    fontWeight:
-                        FontWeight.w900,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ],
