@@ -1115,6 +1115,90 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'EXPLICACIÓN'**
   String get examExportExplanation;
+
+  /// No description provided for @flashcardsAiTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Flashcards IA'**
+  String get flashcardsAiTitle;
+
+  /// No description provided for @flashcardsSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo estudio premium con tarjetas 3D.'**
+  String get flashcardsSubtitle;
+
+  /// No description provided for @exportFlashcardsToPdf.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar flashcards a PDF'**
+  String get exportFlashcardsToPdf;
+
+  /// No description provided for @exportFlashcardsToWord.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar flashcards a Word'**
+  String get exportFlashcardsToWord;
+
+  /// No description provided for @answerNotAvailable.
+  ///
+  /// In es, this message translates to:
+  /// **'Respuesta no disponible.'**
+  String get answerNotAvailable;
+
+  /// No description provided for @flashcardQuestion.
+  ///
+  /// In es, this message translates to:
+  /// **'Pregunta'**
+  String get flashcardQuestion;
+
+  /// No description provided for @flashcardAnswer.
+  ///
+  /// In es, this message translates to:
+  /// **'Respuesta'**
+  String get flashcardAnswer;
+
+  /// No description provided for @tapToSeeAnswer.
+  ///
+  /// In es, this message translates to:
+  /// **'Toca para ver la respuesta'**
+  String get tapToSeeAnswer;
+
+  /// No description provided for @tapToReturnQuestion.
+  ///
+  /// In es, this message translates to:
+  /// **'Toca para volver a la pregunta'**
+  String get tapToReturnQuestion;
+
+  /// No description provided for @previous.
+  ///
+  /// In es, this message translates to:
+  /// **'Anterior'**
+  String get previous;
+
+  /// No description provided for @flashcardsEmptyPrompt.
+  ///
+  /// In es, this message translates to:
+  /// **'Presiona el botón para generar flashcards del documento activo.'**
+  String get flashcardsEmptyPrompt;
+
+  /// No description provided for @generateFlashcards.
+  ///
+  /// In es, this message translates to:
+  /// **'Generar flashcards'**
+  String get generateFlashcards;
+
+  /// No description provided for @regenerateFlashcards.
+  ///
+  /// In es, this message translates to:
+  /// **'Regenerar flashcards'**
+  String get regenerateFlashcards;
+
+  /// No description provided for @generatingFlashcards.
+  ///
+  /// In es, this message translates to:
+  /// **'Generando tarjetas con IA...'**
+  String get generatingFlashcards;
 }
 
 class _AppLocalizationsDelegate

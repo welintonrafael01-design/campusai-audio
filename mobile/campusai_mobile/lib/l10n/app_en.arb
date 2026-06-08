@@ -184,5 +184,19 @@
   "examExportQuestion": "QUESTION",
   "examExportOptions": "OPTIONS",
   "examExportCorrectAnswer": "CORRECT ANSWER",
-  "examExportExplanation": "EXPLANATION"
+  "examExportExplanation": "EXPLANATION",
+  "flashcardsAiTitle": "AI Flashcards",
+  "flashcardsSubtitle": "Premium study mode with 3D cards.",
+  "exportFlashcardsToPdf": "Export flashcards to PDF",
+  "exportFlashcardsToWord": "Export flashcards to Word",
+  "answerNotAvailable": "Answer not available.",
+  "flashcardQuestion": "Question",
+  "flashcardAnswer": "Answer",
+  "tapToSeeAnswer": "Tap to see the answer",
+  "tapToReturnQuestion": "Tap to return to the question",
+  "previous": "Previous",
+  "flashcardsEmptyPrompt": "Press the button to generate flashcards from the active document.",
+  "generateFlashcards": "Generate flashcards",
+  "regenerateFlashcards": "Regenerate flashcards",
+  "generatingFlashcards": "Generating cards with AI..."
 }

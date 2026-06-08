@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flip_card/flip_card.dart';
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/study_result.dart';
 import '../services/api_service.dart';
 import '../services/export_service.dart';
@@ -32,6 +33,8 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
   List<Map<String, dynamic>> flashcards = [];
 
   final GlobalKey<FlipCardState> cardKey = GlobalKey<FlipCardState>();
+
+  AppLocalizations get l10n => AppLocalizations.of(context);
 
   @override
   void initState() {
@@ -105,10 +108,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
     dynamic decoded = raw;
 
     if (raw is String) {
-      final clean = raw
-          .replaceAll('```json', '')
-          .replaceAll('```', '')
-          .trim();
+      final clean = raw.replaceAll('```json', '').replaceAll('```', '').trim();
 
       decoded = jsonDecode(clean);
     }
@@ -138,7 +138,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
     return (item['front'] ??
             item['question'] ??
             item['pregunta'] ??
-            'Pregunta no disponible.')
+            l10n.questionNotAvailable)
         .toString();
   }
 
@@ -146,17 +146,17 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
     return (item['back'] ??
             item['answer'] ??
             item['respuesta'] ??
-            'Respuesta no disponible.')
+            l10n.answerNotAvailable)
         .toString();
   }
 
   String buildFlashcardsExportContent() {
     return flashcards.map((card) {
       return """
-PREGUNTA:
+${l10n.examExportQuestion}:
 ${getFront(card)}
 
-RESPUESTA:
+${l10n.answerLabel}:
 ${getBack(card)}
 """;
     }).join("\n\n--------------------\n\n");
@@ -166,7 +166,7 @@ ${getBack(card)}
     if (!const PlanGuardService().canExportPdf) {
       showUpgradeRequired(
         context,
-        featureName: 'Exportar flashcards a PDF',
+        featureName: l10n.exportFlashcardsToPdf,
       );
       return;
     }
@@ -183,7 +183,7 @@ ${getBack(card)}
     if (!const PlanGuardService().canExportDocx) {
       showUpgradeRequired(
         context,
-        featureName: 'Exportar flashcards a Word',
+        featureName: l10n.exportFlashcardsToWord,
       );
       return;
     }
@@ -228,8 +228,8 @@ ${getBack(card)}
             size: 36,
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Flashcards IA',
+          Text(
+            l10n.flashcardsAiTitle,
             style: TextStyle(
               color: Colors.white,
               fontSize: 34,
@@ -237,8 +237,8 @@ ${getBack(card)}
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Modo estudio premium con tarjetas 3D.',
+          Text(
+            l10n.flashcardsSubtitle,
             style: TextStyle(
               color: Colors.white,
               height: 1.4,
@@ -248,11 +248,9 @@ ${getBack(card)}
           Row(
             children: [
               Tooltip(
-                message: 'Exportar Word',
+                message: l10n.exportWord,
                 child: IconButton(
-                  onPressed: flashcards.isEmpty
-                      ? null
-                      : exportFlashcardsToDocx,
+                  onPressed: flashcards.isEmpty ? null : exportFlashcardsToDocx,
                   icon: const Icon(
                     Icons.description_rounded,
                     color: Colors.white,
@@ -260,11 +258,9 @@ ${getBack(card)}
                 ),
               ),
               Tooltip(
-                message: 'Exportar PDF',
+                message: l10n.exportPdf,
                 child: IconButton(
-                  onPressed: flashcards.isEmpty
-                      ? null
-                      : exportFlashcardsToPdf,
+                  onPressed: flashcards.isEmpty ? null : exportFlashcardsToPdf,
                   icon: const Icon(
                     Icons.picture_as_pdf_rounded,
                     color: Colors.white,
@@ -307,14 +303,14 @@ ${getBack(card)}
             key: ValueKey(currentIndex),
             direction: FlipDirection.HORIZONTAL,
             front: _CardFace(
-              title: 'Pregunta',
+              title: l10n.flashcardQuestion,
               content: front,
               icon: Icons.help_outline_rounded,
               gradient: AppTheme.mainGradient,
-              footer: 'Toca para ver la respuesta',
+              footer: l10n.tapToSeeAnswer,
             ),
             back: _CardFace(
-              title: 'Respuesta',
+              title: l10n.flashcardAnswer,
               content: back,
               icon: Icons.lightbulb_rounded,
               gradient: LinearGradient(
@@ -323,7 +319,7 @@ ${getBack(card)}
                   Colors.indigo.shade700,
                 ],
               ),
-              footer: 'Toca para volver a la pregunta',
+              footer: l10n.tapToReturnQuestion,
             ),
           ),
         ),
@@ -334,17 +330,16 @@ ${getBack(card)}
               child: OutlinedButton.icon(
                 onPressed: currentIndex == 0 ? null : previousCard,
                 icon: const Icon(Icons.arrow_back_rounded),
-                label: const Text('Anterior'),
+                label: Text(l10n.previous),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: ElevatedButton.icon(
-                onPressed: currentIndex >= flashcards.length - 1
-                    ? null
-                    : nextCard,
+                onPressed:
+                    currentIndex >= flashcards.length - 1 ? null : nextCard,
                 icon: const Icon(Icons.arrow_forward_rounded),
-                label: const Text('Siguiente'),
+                label: Text(l10n.next),
               ),
             ),
           ],
@@ -358,9 +353,9 @@ ${getBack(card)}
       return const SizedBox.shrink();
     }
 
-    return const SectionCard(
+    return SectionCard(
       child: Text(
-        'Presiona el botón para generar flashcards del documento activo.',
+        l10n.flashcardsEmptyPrompt,
         style: TextStyle(
           color: AppTheme.textSecondary,
           height: 1.4,
@@ -373,7 +368,7 @@ ${getBack(card)}
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(title: const Text('Flashcards IA')),
+      appBar: AppBar(title: Text(l10n.flashcardsAiTitle)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(22),
@@ -385,21 +380,21 @@ ${getBack(card)}
               icon: const Icon(Icons.auto_awesome_rounded),
               label: Text(
                 flashcards.isEmpty
-                    ? 'Generar flashcards'
-                    : 'Regenerar flashcards',
+                    ? l10n.generateFlashcards
+                    : l10n.regenerateFlashcards,
               ),
             ),
             const SizedBox(height: 20),
             buildEmptyResult(),
             if (isLoading)
-              const SectionCard(
+              SectionCard(
                 child: Row(
                   children: [
-                    CircularProgressIndicator(),
-                    SizedBox(width: 16),
+                    const CircularProgressIndicator(),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Text(
-                        'Generando tarjetas con IA...',
+                        l10n.generatingFlashcards,
                         style: TextStyle(color: AppTheme.textSecondary),
                       ),
                     ),

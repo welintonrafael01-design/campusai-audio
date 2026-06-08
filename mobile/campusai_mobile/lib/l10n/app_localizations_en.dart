@@ -540,4 +540,47 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get examExportExplanation => 'EXPLANATION';
+
+  @override
+  String get flashcardsAiTitle => 'AI Flashcards';
+
+  @override
+  String get flashcardsSubtitle => 'Premium study mode with 3D cards.';
+
+  @override
+  String get exportFlashcardsToPdf => 'Export flashcards to PDF';
+
+  @override
+  String get exportFlashcardsToWord => 'Export flashcards to Word';
+
+  @override
+  String get answerNotAvailable => 'Answer not available.';
+
+  @override
+  String get flashcardQuestion => 'Question';
+
+  @override
+  String get flashcardAnswer => 'Answer';
+
+  @override
+  String get tapToSeeAnswer => 'Tap to see the answer';
+
+  @override
+  String get tapToReturnQuestion => 'Tap to return to the question';
+
+  @override
+  String get previous => 'Previous';
+
+  @override
+  String get flashcardsEmptyPrompt =>
+      'Press the button to generate flashcards from the active document.';
+
+  @override
+  String get generateFlashcards => 'Generate flashcards';
+
+  @override
+  String get regenerateFlashcards => 'Regenerate flashcards';
+
+  @override
+  String get generatingFlashcards => 'Generating cards with AI...';
 }

@@ -184,5 +184,19 @@
   "examExportQuestion": "PERGUNTA",
   "examExportOptions": "OPÇÕES",
   "examExportCorrectAnswer": "RESPOSTA CORRETA",
-  "examExportExplanation": "EXPLICAÇÃO"
+  "examExportExplanation": "EXPLICAÇÃO",
+  "flashcardsAiTitle": "Flashcards IA",
+  "flashcardsSubtitle": "Modo de estudo premium com cartões 3D.",
+  "exportFlashcardsToPdf": "Exportar flashcards para PDF",
+  "exportFlashcardsToWord": "Exportar flashcards para Word",
+  "answerNotAvailable": "Resposta não disponível.",
+  "flashcardQuestion": "Pergunta",
+  "flashcardAnswer": "Resposta",
+  "tapToSeeAnswer": "Toque para ver a resposta",
+  "tapToReturnQuestion": "Toque para voltar à pergunta",
+  "previous": "Anterior",
+  "flashcardsEmptyPrompt": "Pressione o botão para gerar flashcards do documento ativo.",
+  "generateFlashcards": "Gerar flashcards",
+  "regenerateFlashcards": "Regenerar flashcards",
+  "generatingFlashcards": "Gerando cartões com IA..."
 }
