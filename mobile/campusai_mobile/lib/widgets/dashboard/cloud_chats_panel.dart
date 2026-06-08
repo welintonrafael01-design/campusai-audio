@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../services/cloud_api_service.dart';
 import '../../theme/app_theme.dart';
 import '../section_card.dart';
@@ -13,8 +14,7 @@ class CloudChatsPanel extends StatefulWidget {
   });
 
   @override
-  State<CloudChatsPanel> createState() =>
-      _CloudChatsPanelState();
+  State<CloudChatsPanel> createState() => _CloudChatsPanelState();
 }
 
 class _CloudChatsPanelState extends State<CloudChatsPanel> {
@@ -40,8 +40,8 @@ class _CloudChatsPanelState extends State<CloudChatsPanel> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: AppTheme.surface,
-          title: const Text(
-            'Renombrar conversación',
+          title: Text(
+            AppLocalizations.of(context).renameConversation,
             style: TextStyle(
               color: AppTheme.textPrimary,
               fontWeight: FontWeight.w900,
@@ -53,8 +53,8 @@ class _CloudChatsPanelState extends State<CloudChatsPanel> {
             style: const TextStyle(
               color: AppTheme.textPrimary,
             ),
-            decoration: const InputDecoration(
-              hintText: 'Nuevo nombre',
+            decoration: InputDecoration(
+              hintText: AppLocalizations.of(context).newName,
               hintStyle: TextStyle(
                 color: AppTheme.textMuted,
               ),
@@ -62,16 +62,15 @@ class _CloudChatsPanelState extends State<CloudChatsPanel> {
           ),
           actions: [
             TextButton(
-              onPressed: () =>
-                  Navigator.pop(context),
-              child: const Text('Cancelar'),
+              onPressed: () => Navigator.pop(context),
+              child: Text(AppLocalizations.of(context).cancel),
             ),
             TextButton(
               onPressed: () => Navigator.pop(
                 context,
                 controller.text.trim(),
               ),
-              child: const Text('Guardar'),
+              child: Text(AppLocalizations.of(context).save),
             ),
           ],
         );
@@ -93,8 +92,8 @@ class _CloudChatsPanelState extends State<CloudChatsPanel> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo renombrar la conversación.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).renameConversationError),
         ),
       );
     }
@@ -108,8 +107,8 @@ class _CloudChatsPanelState extends State<CloudChatsPanel> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo eliminar la conversación.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).deleteConversationError),
         ),
       );
     }
@@ -141,12 +140,13 @@ class _CloudChatsPanelState extends State<CloudChatsPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Conversaciones recientes',
+          Text(
+            l10n.recentConversations,
             style: TextStyle(
               color: AppTheme.textPrimary,
               fontSize: 20,
@@ -155,29 +155,26 @@ class _CloudChatsPanelState extends State<CloudChatsPanel> {
           ),
           const SizedBox(height: 14),
           if (isLoading)
-            const Text(
-              'Cargando conversaciones...',
+            Text(
+              l10n.loadingConversations,
               style: TextStyle(
                 color: AppTheme.textMuted,
               ),
             )
           else if (chats.isEmpty)
-            const Text(
-              'Aún no tienes conversaciones guardadas.',
+            Text(
+              l10n.noSavedConversations,
               style: TextStyle(
                 color: AppTheme.textMuted,
               ),
             )
           else
             ...chats.take(5).map((chat) {
-              final chatMap =
-                  Map<String, dynamic>.from(chat as Map);
+              final chatMap = Map<String, dynamic>.from(chat as Map);
 
-              final title =
-                  chatMap['title'] ?? 'Conversación sin título';
+              final title = chatMap['title'] ?? l10n.untitledConversation;
 
-              final createdAt =
-                  chatMap['created_at'] ?? '';
+              final createdAt = chatMap['created_at'] ?? '';
 
               return InkWell(
                 onTap: () => widget.onOpenChat(chatMap),
@@ -224,7 +221,7 @@ class _CloudChatsPanelState extends State<CloudChatsPanel> {
                       ),
                       const SizedBox(width: 6),
                       IconButton(
-                        tooltip: 'Renombrar conversación',
+                        tooltip: l10n.renameConversation,
                         onPressed: () {
                           renameChat(
                             chatMap['id'].toString(),
@@ -238,7 +235,7 @@ class _CloudChatsPanelState extends State<CloudChatsPanel> {
                         ),
                       ),
                       IconButton(
-                        tooltip: 'Eliminar conversación',
+                        tooltip: l10n.deleteConversation,
                         onPressed: () {
                           deleteChat(
                             chatMap['id'].toString(),

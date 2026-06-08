@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/document_history.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/section_card.dart';
@@ -20,28 +21,28 @@ class HistoryList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (history.isEmpty) {
-      return const SectionCard(
+      return SectionCard(
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
+            const Icon(
               Icons.history_rounded,
               color: AppTheme.textMuted,
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
-              'Sin historial todavía',
+              l10n.noHistoryYet,
               style: TextStyle(
                 color: AppTheme.textPrimary,
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
               ),
             ),
-            SizedBox(height: 6),
+            const SizedBox(height: 6),
             Text(
-              'Cuando subas documentos aparecerán aquí.',
+              l10n.historyEmptyDescription,
               style: TextStyle(
                 color: AppTheme.textSecondary,
                 height: 1.4,
@@ -53,32 +54,27 @@ class HistoryList extends StatelessWidget {
     }
 
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Expanded(
+            Expanded(
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Historial reciente',
+                    l10n.recentHistory,
                     style: TextStyle(
-                      color:
-                          AppTheme.textPrimary,
+                      color: AppTheme.textPrimary,
                       fontSize: 24,
-                      fontWeight:
-                          FontWeight.w900,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    'Toca un documento para activarlo nuevamente.',
+                    l10n.historyHint,
                     style: TextStyle(
-                      color:
-                          AppTheme.textMuted,
+                      color: AppTheme.textMuted,
                     ),
                   ),
                 ],
@@ -89,7 +85,7 @@ class HistoryList extends StatelessWidget {
               icon: const Icon(
                 Icons.delete_outline_rounded,
               ),
-              label: const Text('Limpiar'),
+              label: Text(l10n.clear),
             ),
           ],
         ),
@@ -100,43 +96,31 @@ class HistoryList extends StatelessWidget {
             final item = entry.value;
 
             return Padding(
-              padding:
-                  const EdgeInsets.only(
+              padding: const EdgeInsets.only(
                 bottom: 12,
               ),
               child: SectionCard(
-                onTap: () =>
-                    loadDocument(item),
+                onTap: () => loadDocument(item),
                 child: Row(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Icon(
                       Icons.article_rounded,
-                      color:
-                          AppTheme.textMuted,
+                      color: AppTheme.textMuted,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment
-                                .start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             item.fileName,
                             maxLines: 2,
-                            overflow:
-                                TextOverflow
-                                    .ellipsis,
-                            style:
-                                const TextStyle(
-                              color: AppTheme
-                                  .textPrimary,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppTheme.textPrimary,
                               fontSize: 16,
-                              fontWeight:
-                                  FontWeight
-                                      .w800,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                           const SizedBox(
@@ -145,13 +129,9 @@ class HistoryList extends StatelessWidget {
                           Text(
                             item.cleanSummary,
                             maxLines: 3,
-                            overflow:
-                                TextOverflow
-                                    .ellipsis,
-                            style:
-                                const TextStyle(
-                              color: AppTheme
-                                  .textSecondary,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppTheme.textSecondary,
                               height: 1.4,
                             ),
                           ),
@@ -160,10 +140,8 @@ class HistoryList extends StatelessWidget {
                           ),
                           Text(
                             item.formattedDate,
-                            style:
-                                const TextStyle(
-                              color: AppTheme
-                                  .textMuted,
+                            style: const TextStyle(
+                              color: AppTheme.textMuted,
                               fontSize: 12,
                             ),
                           ),
@@ -171,14 +149,12 @@ class HistoryList extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      onPressed: () =>
-                          deleteDocument(
+                      onPressed: () => deleteDocument(
                         index,
                       ),
                       icon: const Icon(
                         Icons.close_rounded,
-                        color:
-                            AppTheme.textMuted,
+                        color: AppTheme.textMuted,
                       ),
                     ),
                   ],

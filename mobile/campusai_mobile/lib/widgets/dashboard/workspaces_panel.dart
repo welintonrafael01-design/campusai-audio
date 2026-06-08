@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/workspace_model.dart';
 import '../../theme/app_theme.dart';
 import '../section_card.dart';
@@ -24,14 +25,15 @@ class WorkspacesPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Expanded(
+            Expanded(
               child: Text(
-                'Workspaces IA',
+                l10n.aiWorkspaces,
                 style: TextStyle(
                   color: AppTheme.textPrimary,
                   fontSize: 26,
@@ -42,12 +44,11 @@ class WorkspacesPanel extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onCreateWorkspace,
               icon: const Icon(Icons.add_rounded),
-              label: const Text('Crear workspace'),
+              label: Text(l10n.createWorkspaceButton),
             ),
           ],
         ),
         const SizedBox(height: 14),
-
         if (workspaces.isEmpty)
           SectionCard(
             child: Row(
@@ -58,9 +59,9 @@ class WorkspacesPanel extends StatelessWidget {
                   size: 38,
                 ),
                 const SizedBox(width: 18),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Crea espacios inteligentes para agrupar documentos por proyecto, investigación, materia o tema.',
+                    l10n.workspaceEmptyDescription,
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       height: 1.5,
@@ -71,7 +72,7 @@ class WorkspacesPanel extends StatelessWidget {
                 ElevatedButton.icon(
                   onPressed: onCreateWorkspace,
                   icon: const Icon(Icons.add_rounded),
-                  label: const Text('Nuevo'),
+                  label: Text(l10n.newWorkspace),
                 ),
               ],
             ),
@@ -99,11 +100,9 @@ class WorkspacesPanel extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 16),
-
                         Expanded(
                           child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 workspace.name,
@@ -116,7 +115,6 @@ class WorkspacesPanel extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(height: 6),
-
                               Row(
                                 children: [
                                   Container(
@@ -126,11 +124,10 @@ class WorkspacesPanel extends StatelessWidget {
                                     ),
                                     decoration: BoxDecoration(
                                       color: AppTheme.card,
-                                      borderRadius:
-                                          BorderRadius.circular(999),
+                                      borderRadius: BorderRadius.circular(999),
                                     ),
                                     child: Text(
-                                      '${workspace.documents.length} documentos',
+                                      '${workspace.documents.length} ${l10n.documentCountLabel}',
                                       style: const TextStyle(
                                         color: AppTheme.textMuted,
                                         fontSize: 11,
@@ -138,11 +135,9 @@ class WorkspacesPanel extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-
                                   const SizedBox(width: 10),
-
                                   Text(
-                                    'Actualizado ${formatDate(workspace.updatedAt)}',
+                                    '${l10n.updatedAt} ${formatDate(workspace.updatedAt)}',
                                     style: const TextStyle(
                                       color: AppTheme.textMuted,
                                       fontSize: 11,
@@ -153,10 +148,8 @@ class WorkspacesPanel extends StatelessWidget {
                             ],
                           ),
                         ),
-
                         IconButton(
-                          onPressed: () =>
-                              onDeleteWorkspace(workspace),
+                          onPressed: () => onDeleteWorkspace(workspace),
                           icon: const Icon(
                             Icons.delete_outline_rounded,
                             color: AppTheme.textMuted,
@@ -164,20 +157,17 @@ class WorkspacesPanel extends StatelessWidget {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 18),
-
                     Row(
                       children: [
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: () =>
-                                onOpenWorkspace(workspace),
+                            onPressed: () => onOpenWorkspace(workspace),
                             icon: const Icon(
                               Icons.auto_awesome_rounded,
                             ),
-                            label: const Text(
-                              'Abrir workspace',
+                            label: Text(
+                              l10n.openWorkspace,
                             ),
                           ),
                         ),

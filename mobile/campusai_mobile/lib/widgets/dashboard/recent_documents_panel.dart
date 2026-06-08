@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/recent_document_model.dart';
 import '../../theme/app_theme.dart';
 import '../section_card.dart';
@@ -18,6 +19,7 @@ class RecentDocumentsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (documents.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -25,8 +27,8 @@ class RecentDocumentsPanel extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Documentos recientes',
+        Text(
+          l10n.recentDocuments,
           style: TextStyle(
             color: AppTheme.textPrimary,
             fontSize: 24,

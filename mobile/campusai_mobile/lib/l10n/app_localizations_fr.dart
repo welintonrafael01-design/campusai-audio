@@ -252,4 +252,78 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get ready => 'Prêt';
+
+  @override
+  String get recentDocuments => 'Documents récents';
+
+  @override
+  String get aiWorkspaces => 'Workspaces IA';
+
+  @override
+  String get createWorkspaceButton => 'Créer un workspace';
+
+  @override
+  String get newWorkspace => 'Nouveau';
+
+  @override
+  String get workspaceEmptyDescription =>
+      'Créez des espaces intelligents pour regrouper les documents par projet, recherche, matière ou thème.';
+
+  @override
+  String get documentCountLabel => 'documents';
+
+  @override
+  String get updatedAt => 'Mis à jour';
+
+  @override
+  String get openWorkspace => 'Ouvrir le workspace';
+
+  @override
+  String get recentConversations => 'Conversations récentes';
+
+  @override
+  String get renameConversation => 'Renommer la conversation';
+
+  @override
+  String get newName => 'Nouveau nom';
+
+  @override
+  String get save => 'Enregistrer';
+
+  @override
+  String get renameConversationError =>
+      'Impossible de renommer la conversation.';
+
+  @override
+  String get deleteConversationError =>
+      'Impossible de supprimer la conversation.';
+
+  @override
+  String get loadingConversations => 'Chargement des conversations...';
+
+  @override
+  String get noSavedConversations =>
+      'Vous n’avez pas encore de conversations enregistrées.';
+
+  @override
+  String get untitledConversation => 'Conversation sans titre';
+
+  @override
+  String get deleteConversation => 'Supprimer la conversation';
+
+  @override
+  String get noHistoryYet => 'Aucun historique pour le moment';
+
+  @override
+  String get historyEmptyDescription =>
+      'Les documents importés apparaîtront ici.';
+
+  @override
+  String get recentHistory => 'Historique récent';
+
+  @override
+  String get historyHint => 'Touchez un document pour l’activer à nouveau.';
+
+  @override
+  String get clear => 'Effacer';
 }

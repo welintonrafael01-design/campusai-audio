@@ -248,4 +248,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ready => 'Ready';
+
+  @override
+  String get recentDocuments => 'Recent documents';
+
+  @override
+  String get aiWorkspaces => 'AI Workspaces';
+
+  @override
+  String get createWorkspaceButton => 'Create workspace';
+
+  @override
+  String get newWorkspace => 'New';
+
+  @override
+  String get workspaceEmptyDescription =>
+      'Create intelligent spaces to group documents by project, research, subject, or topic.';
+
+  @override
+  String get documentCountLabel => 'documents';
+
+  @override
+  String get updatedAt => 'Updated';
+
+  @override
+  String get openWorkspace => 'Open workspace';
+
+  @override
+  String get recentConversations => 'Recent conversations';
+
+  @override
+  String get renameConversation => 'Rename conversation';
+
+  @override
+  String get newName => 'New name';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get renameConversationError =>
+      'The conversation could not be renamed.';
+
+  @override
+  String get deleteConversationError =>
+      'The conversation could not be deleted.';
+
+  @override
+  String get loadingConversations => 'Loading conversations...';
+
+  @override
+  String get noSavedConversations => 'You do not have saved conversations yet.';
+
+  @override
+  String get untitledConversation => 'Untitled conversation';
+
+  @override
+  String get deleteConversation => 'Delete conversation';
+
+  @override
+  String get noHistoryYet => 'No history yet';
+
+  @override
+  String get historyEmptyDescription => 'Uploaded documents will appear here.';
+
+  @override
+  String get recentHistory => 'Recent history';
+
+  @override
+  String get historyHint => 'Tap a document to activate it again.';
+
+  @override
+  String get clear => 'Clear';
 }

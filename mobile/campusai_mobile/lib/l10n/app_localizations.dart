@@ -569,6 +569,144 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Ready'**
   String get ready;
+
+  /// No description provided for @recentDocuments.
+  ///
+  /// In es, this message translates to:
+  /// **'Documentos recientes'**
+  String get recentDocuments;
+
+  /// No description provided for @aiWorkspaces.
+  ///
+  /// In es, this message translates to:
+  /// **'Workspaces IA'**
+  String get aiWorkspaces;
+
+  /// No description provided for @createWorkspaceButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear workspace'**
+  String get createWorkspaceButton;
+
+  /// No description provided for @newWorkspace.
+  ///
+  /// In es, this message translates to:
+  /// **'Nuevo'**
+  String get newWorkspace;
+
+  /// No description provided for @workspaceEmptyDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Crea espacios inteligentes para agrupar documentos por proyecto, investigación, materia o tema.'**
+  String get workspaceEmptyDescription;
+
+  /// No description provided for @documentCountLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'documentos'**
+  String get documentCountLabel;
+
+  /// No description provided for @updatedAt.
+  ///
+  /// In es, this message translates to:
+  /// **'Actualizado'**
+  String get updatedAt;
+
+  /// No description provided for @openWorkspace.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir workspace'**
+  String get openWorkspace;
+
+  /// No description provided for @recentConversations.
+  ///
+  /// In es, this message translates to:
+  /// **'Conversaciones recientes'**
+  String get recentConversations;
+
+  /// No description provided for @renameConversation.
+  ///
+  /// In es, this message translates to:
+  /// **'Renombrar conversación'**
+  String get renameConversation;
+
+  /// No description provided for @newName.
+  ///
+  /// In es, this message translates to:
+  /// **'Nuevo nombre'**
+  String get newName;
+
+  /// No description provided for @save.
+  ///
+  /// In es, this message translates to:
+  /// **'Guardar'**
+  String get save;
+
+  /// No description provided for @renameConversationError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo renombrar la conversación.'**
+  String get renameConversationError;
+
+  /// No description provided for @deleteConversationError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo eliminar la conversación.'**
+  String get deleteConversationError;
+
+  /// No description provided for @loadingConversations.
+  ///
+  /// In es, this message translates to:
+  /// **'Cargando conversaciones...'**
+  String get loadingConversations;
+
+  /// No description provided for @noSavedConversations.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún no tienes conversaciones guardadas.'**
+  String get noSavedConversations;
+
+  /// No description provided for @untitledConversation.
+  ///
+  /// In es, this message translates to:
+  /// **'Conversación sin título'**
+  String get untitledConversation;
+
+  /// No description provided for @deleteConversation.
+  ///
+  /// In es, this message translates to:
+  /// **'Eliminar conversación'**
+  String get deleteConversation;
+
+  /// No description provided for @noHistoryYet.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin historial todavía'**
+  String get noHistoryYet;
+
+  /// No description provided for @historyEmptyDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuando subas documentos aparecerán aquí.'**
+  String get historyEmptyDescription;
+
+  /// No description provided for @recentHistory.
+  ///
+  /// In es, this message translates to:
+  /// **'Historial reciente'**
+  String get recentHistory;
+
+  /// No description provided for @historyHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Toca un documento para activarlo nuevamente.'**
+  String get historyHint;
+
+  /// No description provided for @clear.
+  ///
+  /// In es, this message translates to:
+  /// **'Limpiar'**
+  String get clear;
 }
 
 class _AppLocalizationsDelegate
