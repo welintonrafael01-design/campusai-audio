@@ -8,6 +8,18 @@ from app.database.supabase_client import get_supabase_admin_client
 VALID_PLANS = {"free", "pro", "educator"}
 
 
+def default_free_subscription(user_id: str) -> dict:
+    return {
+        "user_id": user_id,
+        "plan": "free",
+        "subscription_status": "free",
+        "email": None,
+        "stripe_customer_id": None,
+        "stripe_subscription_id": None,
+        "source": "default",
+    }
+
+
 def upsert_user_subscription(
     *,
     user_id: str,
@@ -80,27 +92,25 @@ def get_user_subscription(
 
     client = get_supabase_admin_client()
 
-    response = (
-        client
-        .table("user_subscriptions")
-        .select("*")
-        .eq("user_id", user_id)
-        .maybe_single()
-        .execute()
-    )
+    try:
+        response = (
+            client
+            .table("user_subscriptions")
+            .select("*")
+            .eq("user_id", user_id)
+            .maybe_single()
+            .execute()
+        )
+    except Exception:
+        return default_free_subscription(user_id)
 
-    if not response.data:
-        return {
-            "user_id": user_id,
-            "plan": "free",
-            "subscription_status": "free",
-            "email": None,
-            "stripe_customer_id": None,
-            "stripe_subscription_id": None,
-            "source": "default",
-        }
+    if response is None or not getattr(response, "data", None):
+        return default_free_subscription(user_id)
 
     data = response.data
+
+    if not isinstance(data, dict):
+        return default_free_subscription(user_id)
 
     plan = data.get("plan") or "free"
     status = data.get("subscription_status") or "unknown"

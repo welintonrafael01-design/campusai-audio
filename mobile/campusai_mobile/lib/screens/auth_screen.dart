@@ -52,7 +52,11 @@ class _AuthScreenState extends State<AuthScreen> {
         );
       }
 
-      await const SubscriptionService().syncCurrentUserPlan();
+      try {
+        await const SubscriptionService().syncCurrentUserPlan();
+      } catch (syncError) {
+        debugPrint('No se pudo sincronizar el plan del usuario: $syncError');
+      }
 
       if (!mounted) return;
 
