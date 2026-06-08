@@ -672,4 +672,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get alreadyHaveAccount => 'Já tenho conta';
+
+  @override
+  String get dashboard => 'Dashboard';
+
+  @override
+  String get premiumAi => 'Premium AI';
+
+  @override
+  String get premiumAiDescription =>
+      'Leitura completa com IA e sincronização em nuvem em breve.';
 }

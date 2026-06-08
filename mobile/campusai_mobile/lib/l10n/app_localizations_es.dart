@@ -672,4 +672,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get alreadyHaveAccount => 'Ya tengo cuenta';
+
+  @override
+  String get dashboard => 'Dashboard';
+
+  @override
+  String get premiumAi => 'Premium AI';
+
+  @override
+  String get premiumAiDescription =>
+      'Lectura completa IA y sincronización cloud próximamente.';
 }

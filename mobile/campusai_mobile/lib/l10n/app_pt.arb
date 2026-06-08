@@ -241,5 +241,8 @@
   "loginButton": "Entrar",
   "createAccountButton": "Criar conta",
   "createAccountLink": "Criar uma conta",
-  "alreadyHaveAccount": "Já tenho conta"
+  "alreadyHaveAccount": "Já tenho conta",
+  "dashboard": "Dashboard",
+  "premiumAi": "Premium AI",
+  "premiumAiDescription": "Leitura completa com IA e sincronização em nuvem em breve."
 }

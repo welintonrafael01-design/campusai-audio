@@ -1361,6 +1361,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Ya tengo cuenta'**
   String get alreadyHaveAccount;
+
+  /// No description provided for @dashboard.
+  ///
+  /// In es, this message translates to:
+  /// **'Dashboard'**
+  String get dashboard;
+
+  /// No description provided for @premiumAi.
+  ///
+  /// In es, this message translates to:
+  /// **'Premium AI'**
+  String get premiumAi;
+
+  /// No description provided for @premiumAiDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Lectura completa IA y sincronización cloud próximamente.'**
+  String get premiumAiDescription;
 }
 
 class _AppLocalizationsDelegate

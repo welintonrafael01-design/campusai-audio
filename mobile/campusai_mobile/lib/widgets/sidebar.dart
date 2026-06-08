@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 
 class Sidebar extends StatelessWidget {
@@ -13,6 +14,8 @@ class Sidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Container(
       width: 280,
       padding: const EdgeInsets.all(24),
@@ -27,8 +30,7 @@ class Sidebar extends StatelessWidget {
         ),
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Row(
             children: [
@@ -38,72 +40,68 @@ class Sidebar extends StatelessWidget {
                 size: 28,
               ),
               SizedBox(width: 12),
-              Text(
-                'StudyBook AI',
-                style: TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
+              Expanded(
+                child: Text(
+                  'StudyBook AI',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
             ],
           ),
-
           const SizedBox(height: 40),
-
           _SidebarItem(
-            title: 'Dashboard',
+            title: l10n.dashboard,
             icon: Icons.dashboard_rounded,
-            selected:
-                currentRoute == '/dashboard',
+            selected: currentRoute == '/dashboard',
             onTap: () {
               context.go('/dashboard');
             },
           ),
-
           _SidebarItem(
-            title: 'Configuración',
+            title: l10n.settingsTitle,
             icon: Icons.settings_rounded,
-            selected:
-                currentRoute == '/settings',
+            selected: currentRoute == '/settings',
             onTap: () {
               context.go('/settings');
             },
           ),
-
           const Spacer(),
-
           Container(
-            padding:
-                const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              gradient:
-                  AppTheme.mainGradient,
-              borderRadius:
-                  BorderRadius.circular(24),
+              gradient: AppTheme.mainGradient,
+              borderRadius: BorderRadius.circular(24),
             ),
-            child: const Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
+                const Icon(
                   Icons.workspace_premium,
                   color: Colors.white,
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Text(
-                  'Premium AI',
-                  style: TextStyle(
+                  l10n.premiumAi,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
-                    fontWeight:
-                        FontWeight.w900,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
-                SizedBox(height: 6),
+                const SizedBox(height: 6),
                 Text(
-                  'Lectura completa IA y sincronización cloud próximamente.',
-                  style: TextStyle(
+                  l10n.premiumAiDescription,
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
                     color: Colors.white,
                     height: 1.4,
                   ),
@@ -133,30 +131,24 @@ class _SidebarItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding:
-          const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius:
-              BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(18),
           onTap: onTap,
           child: Container(
-            padding:
-                const EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
               horizontal: 18,
               vertical: 16,
             ),
             decoration: BoxDecoration(
-              color:
-                  selected
-                      ? AppTheme.primary
-                          .withValues(
-                          alpha: 0.16,
-                        )
-                      : Colors.transparent,
-              borderRadius:
-                  BorderRadius.circular(
+              color: selected
+                  ? AppTheme.primary.withValues(
+                      alpha: 0.16,
+                    )
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(
                 18,
               ),
             ),
@@ -164,24 +156,19 @@ class _SidebarItem extends StatelessWidget {
               children: [
                 Icon(
                   icon,
-                  color:
-                      selected
-                          ? AppTheme.accent
-                          : AppTheme
-                              .textMuted,
+                  color: selected ? AppTheme.accent : AppTheme.textMuted,
                 ),
                 const SizedBox(width: 14),
-                Text(
-                  title,
-                  style: TextStyle(
-                    color:
-                        selected
-                            ? AppTheme
-                                .textPrimary
-                            : AppTheme
-                                .textMuted,
-                    fontWeight:
-                        FontWeight.w700,
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color:
+                          selected ? AppTheme.textPrimary : AppTheme.textMuted,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],

@@ -63,7 +63,7 @@ class DashboardTools extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
-          childAspectRatio: ResponsiveLayout.isDesktop(context) ? 1.15 : 1.1,
+          childAspectRatio: ResponsiveLayout.isDesktop(context) ? 1.0 : 1.0,
           children: [
             _ToolCard(
               title: l10n.uploadPdf,
@@ -89,7 +89,7 @@ class DashboardTools extends StatelessWidget {
               onTap: hasActiveDocument ? openExam : null,
             ),
             _ToolCard(
-              title: 'Flashcards',
+              title: l10n.flashcardsTitle,
               subtitle: l10n.flashcardsDescription,
               icon: Icons.style_rounded,
               color: AppTheme.success,
@@ -145,9 +145,11 @@ class _ToolCard extends StatelessWidget {
                 size: 28,
               ),
             ),
-            const Spacer(),
+            const SizedBox(height: 18),
             Text(
               title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: AppTheme.textPrimary,
                 fontSize: 18,
@@ -157,6 +159,8 @@ class _ToolCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               subtitle,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: AppTheme.textMuted,
                 height: 1.4,
