@@ -70,6 +70,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   AppLocalizations get l10n => AppLocalizations.of(context);
 
+  bool get canUseVoiceMode => const PlanGuardService().canUseVoiceOnboarding;
+
   @override
   void initState() {
     super.initState();
@@ -202,7 +204,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Future<void> playVoiceAnswer(String response) async {
     final cleanResponse = response.trim();
 
-    if (!isVoiceModeEnabled || cleanResponse.isEmpty) return;
+    if (!isVoiceModeEnabled || !canUseVoiceMode || cleanResponse.isEmpty) {
+      return;
+    }
 
     try {
       if (mounted) {
@@ -740,6 +744,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Widget buildChatContent() {
+    if (!canUseVoiceMode && isVoiceModeEnabled) {
+      isVoiceModeEnabled = false;
+    }
+
     return Column(
       children: [
         Padding(
@@ -768,8 +776,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           controller: questionController,
           isLoading: isLoading,
           onSend: askQuestion,
-          autoSendVoiceInput: isVoiceModeEnabled,
+          enableVoiceMode: canUseVoiceMode,
+          autoSendVoiceInput: isVoiceModeEnabled && canUseVoiceMode,
           onVoiceInputCompleted: askQuestion,
+          onVoiceBlocked: () {
+            showUpgradeRequired(
+              context,
+              featureName: l10n.voiceMode,
+            );
+          },
         ),
       ],
     );

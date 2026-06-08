@@ -11,6 +11,7 @@ class ChatInput extends StatelessWidget {
   final bool enableVoiceMode;
   final bool autoSendVoiceInput;
   final VoidCallback? onVoiceInputCompleted;
+  final VoidCallback? onVoiceBlocked;
 
   const ChatInput({
     super.key,
@@ -20,6 +21,7 @@ class ChatInput extends StatelessWidget {
     this.enableVoiceMode = true,
     this.autoSendVoiceInput = false,
     this.onVoiceInputCompleted,
+    this.onVoiceBlocked,
   });
 
   void applyRecognizedText(String text) {
@@ -82,7 +84,8 @@ class ChatInput extends StatelessWidget {
           const SizedBox(width: 12),
           if (enableVoiceMode) ...[
             VoiceModeButton(
-              isDisabled: isLoading,
+              isDisabled: isLoading || !enableVoiceMode,
+              onBlocked: onVoiceBlocked,
               onTextRecognized: applyRecognizedText,
               onListeningStopped: () {
                 if (!autoSendVoiceInput) return;

@@ -10,12 +10,14 @@ class VoiceModeButton extends StatefulWidget {
   final bool isDisabled;
   final void Function(String text) onTextRecognized;
   final VoidCallback? onListeningStopped;
+  final VoidCallback? onBlocked;
 
   const VoiceModeButton({
     super.key,
     required this.onTextRecognized,
     this.isDisabled = false,
     this.onListeningStopped,
+    this.onBlocked,
   });
 
   @override
@@ -70,7 +72,12 @@ class _VoiceModeButtonState extends State<VoiceModeButton> {
   }
 
   Future<void> toggleListening() async {
-    if (widget.isDisabled || isInitializing) return;
+    if (widget.isDisabled) {
+      widget.onBlocked?.call();
+      return;
+    }
+
+    if (isInitializing) return;
 
     final l10n = AppLocalizations.of(context);
 
@@ -188,7 +195,7 @@ class _VoiceModeButtonState extends State<VoiceModeButton> {
         height: 56,
         width: 56,
         child: OutlinedButton(
-          onPressed: widget.isDisabled ? null : toggleListening,
+          onPressed: toggleListening,
           style: OutlinedButton.styleFrom(
             backgroundColor: backgroundColor,
             side: BorderSide(

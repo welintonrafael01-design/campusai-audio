@@ -7,7 +7,9 @@ import '../../layout/responsive_layout.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/audio_provider.dart';
 import '../../services/api_service.dart';
+import '../../services/plan_guard_service.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/upgrade_dialog.dart';
 
 class ChatBubble extends ConsumerStatefulWidget {
   final String text;
@@ -71,6 +73,14 @@ class _ChatBubbleState extends ConsumerState<ChatBubble> {
     final audioTitle = l10n.voiceAnswerAudioTitle;
     final loadingMessage = l10n.generatingAnswerAudio;
     final errorMessage = l10n.answerAudioError;
+
+    if (!const PlanGuardService().canUseVoiceOnboarding) {
+      showUpgradeRequired(
+        context,
+        featureName: l10n.listenAnswer,
+      );
+      return;
+    }
 
     if (cleanText.trim().isEmpty || isGeneratingAudio) return;
 
