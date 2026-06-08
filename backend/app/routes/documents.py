@@ -32,6 +32,7 @@ from app.services.ai_service import (
 
 from app.services.usage_limit_service import (
     enforce_pdf_upload_limit,
+    enforce_chat_limit,
     register_usage_event,
 )
 
@@ -422,6 +423,10 @@ async def chat_document_by_id(
             current_user=current_user,
         )
 
+        plan = enforce_chat_limit(
+            user_id=current_user.user_id,
+        )
+
         if not question.strip():
             raise HTTPException(
                 status_code=400,
@@ -436,6 +441,16 @@ async def chat_document_by_id(
                 document_id=document_id,
                 question=question,
             )
+        )
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="chat_message",
+            plan=plan,
+            metadata={
+                "document_id": document_id,
+                "mode": "document_chat",
+            },
         )
 
         citations = get_retrieval_citations(
@@ -656,6 +671,20 @@ async def stream_chat_document(
         validate_document_owner(
             document_id=document_id,
             current_user=current_user,
+        )
+
+        plan = enforce_chat_limit(
+            user_id=current_user.user_id,
+        )
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="chat_message",
+            plan=plan,
+            metadata={
+                "document_id": document_id,
+                "mode": "document_chat_stream",
+            },
         )
 
         async def event_generator():
@@ -939,10 +968,24 @@ async def chat_workspace(
             current_user=current_user,
         )
 
+        plan = enforce_chat_limit(
+            user_id=current_user.user_id,
+        )
+
         answer = chat_with_workspace(
             document_ids=document_ids,
             question=question,
             history=history,
+        )
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="chat_message",
+            plan=plan,
+            metadata={
+                "document_count": len(document_ids),
+                "mode": "workspace_chat",
+            },
         )
 
         return {
@@ -970,6 +1013,20 @@ async def stream_chat_workspace(
         validate_documents_owner(
             document_ids=document_ids,
             current_user=current_user,
+        )
+
+        plan = enforce_chat_limit(
+            user_id=current_user.user_id,
+        )
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="chat_message",
+            plan=plan,
+            metadata={
+                "document_count": len(document_ids),
+                "mode": "workspace_chat_stream",
+            },
         )
 
         async def event_generator():

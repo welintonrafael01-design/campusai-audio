@@ -14,6 +14,12 @@ PLAN_UPLOAD_LIMITS = {
     "educator": 200,
 }
 
+PLAN_CHAT_LIMITS = {
+    "free": 25,
+    "pro": 500,
+    "educator": 2000,
+}
+
 
 def get_plan_for_user(user_id: str) -> str:
     subscription = get_user_subscription(
@@ -97,6 +103,31 @@ def enforce_pdf_upload_limit(
             status_code=403,
             detail=(
                 f"Tu plan {plan} permite {limit} PDFs por día. "
+                "Ya alcanzaste el límite de hoy."
+            ),
+        )
+
+    return plan
+
+
+def enforce_chat_limit(
+    *,
+    user_id: str,
+) -> str:
+    plan = get_plan_for_user(user_id)
+
+    limit = PLAN_CHAT_LIMITS.get(plan, PLAN_CHAT_LIMITS["free"])
+
+    used_today = count_usage_today(
+        user_id=user_id,
+        event_type="chat_message",
+    )
+
+    if used_today >= limit:
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                f"Tu plan {plan} permite {limit} mensajes de chat por día. "
                 "Ya alcanzaste el límite de hoy."
             ),
         )
