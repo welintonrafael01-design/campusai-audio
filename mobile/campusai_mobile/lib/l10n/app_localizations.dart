@@ -947,6 +947,174 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Las respuestas se basan en el documento activo.'**
   String get contextHintSources;
+
+  /// No description provided for @examSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Practica, responde y mide tu aprendizaje.'**
+  String get examSubtitle;
+
+  /// No description provided for @exportWord.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar Word'**
+  String get exportWord;
+
+  /// No description provided for @exportPdf.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar PDF'**
+  String get exportPdf;
+
+  /// No description provided for @exportExamToPdf.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar examen a PDF'**
+  String get exportExamToPdf;
+
+  /// No description provided for @exportExamToWord.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar examen a Word'**
+  String get exportExamToWord;
+
+  /// No description provided for @examEmptyPrompt.
+  ///
+  /// In es, this message translates to:
+  /// **'Presiona el botón para generar el examen del documento activo.'**
+  String get examEmptyPrompt;
+
+  /// No description provided for @questionNotAvailable.
+  ///
+  /// In es, this message translates to:
+  /// **'Pregunta no disponible.'**
+  String get questionNotAvailable;
+
+  /// No description provided for @notSpecifiedInDocument.
+  ///
+  /// In es, this message translates to:
+  /// **'No se especifica en el documento.'**
+  String get notSpecifiedInDocument;
+
+  /// No description provided for @allOfTheAbove.
+  ///
+  /// In es, this message translates to:
+  /// **'Todas las anteriores.'**
+  String get allOfTheAbove;
+
+  /// No description provided for @noneOfTheAbove.
+  ///
+  /// In es, this message translates to:
+  /// **'Ninguna de las anteriores.'**
+  String get noneOfTheAbove;
+
+  /// No description provided for @questionOf.
+  ///
+  /// In es, this message translates to:
+  /// **'Pregunta {current} de {total}'**
+  String questionOf(Object current, Object total);
+
+  /// No description provided for @answerLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Respuesta'**
+  String get answerLabel;
+
+  /// No description provided for @restart.
+  ///
+  /// In es, this message translates to:
+  /// **'Reiniciar'**
+  String get restart;
+
+  /// No description provided for @viewResult.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver resultado'**
+  String get viewResult;
+
+  /// No description provided for @next.
+  ///
+  /// In es, this message translates to:
+  /// **'Siguiente'**
+  String get next;
+
+  /// No description provided for @verify.
+  ///
+  /// In es, this message translates to:
+  /// **'Verificar'**
+  String get verify;
+
+  /// No description provided for @correct.
+  ///
+  /// In es, this message translates to:
+  /// **'Correcto'**
+  String get correct;
+
+  /// No description provided for @incorrect.
+  ///
+  /// In es, this message translates to:
+  /// **'Incorrecto'**
+  String get incorrect;
+
+  /// No description provided for @correctAnswer.
+  ///
+  /// In es, this message translates to:
+  /// **'Respuesta correcta'**
+  String get correctAnswer;
+
+  /// No description provided for @finalResult.
+  ///
+  /// In es, this message translates to:
+  /// **'Resultado final'**
+  String get finalResult;
+
+  /// No description provided for @retakeExam.
+  ///
+  /// In es, this message translates to:
+  /// **'Repetir examen'**
+  String get retakeExam;
+
+  /// No description provided for @generateExam.
+  ///
+  /// In es, this message translates to:
+  /// **'Generar examen'**
+  String get generateExam;
+
+  /// No description provided for @regenerateExam.
+  ///
+  /// In es, this message translates to:
+  /// **'Regenerar examen'**
+  String get regenerateExam;
+
+  /// No description provided for @generatingExam.
+  ///
+  /// In es, this message translates to:
+  /// **'Generando examen con IA...'**
+  String get generatingExam;
+
+  /// No description provided for @examExportQuestion.
+  ///
+  /// In es, this message translates to:
+  /// **'PREGUNTA'**
+  String get examExportQuestion;
+
+  /// No description provided for @examExportOptions.
+  ///
+  /// In es, this message translates to:
+  /// **'OPCIONES'**
+  String get examExportOptions;
+
+  /// No description provided for @examExportCorrectAnswer.
+  ///
+  /// In es, this message translates to:
+  /// **'RESPUESTA CORRECTA'**
+  String get examExportCorrectAnswer;
+
+  /// No description provided for @examExportExplanation.
+  ///
+  /// In es, this message translates to:
+  /// **'EXPLICACIÓN'**
+  String get examExportExplanation;
 }
 
 class _AppLocalizationsDelegate

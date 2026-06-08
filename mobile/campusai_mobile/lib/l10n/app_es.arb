@@ -150,5 +150,39 @@
   "documentRagContext": "RAG activo para responder con base en el documento seleccionado.",
   "contextHintConcepts": "Puedes pedir conceptos clave, explicación simple o resumen.",
   "contextHintAcademic": "También puedes solicitar análisis académico del contenido.",
-  "contextHintSources": "Las respuestas se basan en el documento activo."
+  "contextHintSources": "Las respuestas se basan en el documento activo.",
+  "examSubtitle": "Practica, responde y mide tu aprendizaje.",
+  "exportWord": "Exportar Word",
+  "exportPdf": "Exportar PDF",
+  "exportExamToPdf": "Exportar examen a PDF",
+  "exportExamToWord": "Exportar examen a Word",
+  "examEmptyPrompt": "Presiona el botón para generar el examen del documento activo.",
+  "questionNotAvailable": "Pregunta no disponible.",
+  "notSpecifiedInDocument": "No se especifica en el documento.",
+  "allOfTheAbove": "Todas las anteriores.",
+  "noneOfTheAbove": "Ninguna de las anteriores.",
+  "questionOf": "Pregunta {current} de {total}",
+  "@questionOf": {
+    "placeholders": {
+      "current": {},
+      "total": {}
+    }
+  },
+  "answerLabel": "Respuesta",
+  "restart": "Reiniciar",
+  "viewResult": "Ver resultado",
+  "next": "Siguiente",
+  "verify": "Verificar",
+  "correct": "Correcto",
+  "incorrect": "Incorrecto",
+  "correctAnswer": "Respuesta correcta",
+  "finalResult": "Resultado final",
+  "retakeExam": "Repetir examen",
+  "generateExam": "Generar examen",
+  "regenerateExam": "Regenerar examen",
+  "generatingExam": "Generando examen con IA...",
+  "examExportQuestion": "PREGUNTA",
+  "examExportOptions": "OPCIONES",
+  "examExportCorrectAnswer": "RESPUESTA CORRECTA",
+  "examExportExplanation": "EXPLICACIÓN"
 }

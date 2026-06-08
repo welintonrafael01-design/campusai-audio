@@ -150,5 +150,39 @@
   "documentRagContext": "RAG active to answer based on the selected document.",
   "contextHintConcepts": "You can ask for key concepts, a simple explanation, or a summary.",
   "contextHintAcademic": "You can also request academic analysis of the content.",
-  "contextHintSources": "Answers are based on the active document."
+  "contextHintSources": "Answers are based on the active document.",
+  "examSubtitle": "Practice, answer, and measure your learning.",
+  "exportWord": "Export Word",
+  "exportPdf": "Export PDF",
+  "exportExamToPdf": "Export exam to PDF",
+  "exportExamToWord": "Export exam to Word",
+  "examEmptyPrompt": "Press the button to generate an exam from the active document.",
+  "questionNotAvailable": "Question not available.",
+  "notSpecifiedInDocument": "Not specified in the document.",
+  "allOfTheAbove": "All of the above.",
+  "noneOfTheAbove": "None of the above.",
+  "questionOf": "Question {current} of {total}",
+  "@questionOf": {
+    "placeholders": {
+      "current": {},
+      "total": {}
+    }
+  },
+  "answerLabel": "Answer",
+  "restart": "Restart",
+  "viewResult": "View result",
+  "next": "Next",
+  "verify": "Verify",
+  "correct": "Correct",
+  "incorrect": "Incorrect",
+  "correctAnswer": "Correct answer",
+  "finalResult": "Final result",
+  "retakeExam": "Retake exam",
+  "generateExam": "Generate exam",
+  "regenerateExam": "Regenerate exam",
+  "generatingExam": "Generating exam with AI...",
+  "examExportQuestion": "QUESTION",
+  "examExportOptions": "OPTIONS",
+  "examExportCorrectAnswer": "CORRECT ANSWER",
+  "examExportExplanation": "EXPLANATION"
 }

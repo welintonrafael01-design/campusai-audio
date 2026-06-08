@@ -453,4 +453,91 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get contextHintSources =>
       'As respostas se baseiam no documento ativo.';
+
+  @override
+  String get examSubtitle => 'Pratique, responda e meça seu aprendizado.';
+
+  @override
+  String get exportWord => 'Exportar Word';
+
+  @override
+  String get exportPdf => 'Exportar PDF';
+
+  @override
+  String get exportExamToPdf => 'Exportar exame para PDF';
+
+  @override
+  String get exportExamToWord => 'Exportar exame para Word';
+
+  @override
+  String get examEmptyPrompt =>
+      'Pressione o botão para gerar o exame do documento ativo.';
+
+  @override
+  String get questionNotAvailable => 'Pergunta não disponível.';
+
+  @override
+  String get notSpecifiedInDocument => 'Não especificado no documento.';
+
+  @override
+  String get allOfTheAbove => 'Todas as anteriores.';
+
+  @override
+  String get noneOfTheAbove => 'Nenhuma das anteriores.';
+
+  @override
+  String questionOf(Object current, Object total) {
+    return 'Pergunta $current de $total';
+  }
+
+  @override
+  String get answerLabel => 'Resposta';
+
+  @override
+  String get restart => 'Reiniciar';
+
+  @override
+  String get viewResult => 'Ver resultado';
+
+  @override
+  String get next => 'Próxima';
+
+  @override
+  String get verify => 'Verificar';
+
+  @override
+  String get correct => 'Correto';
+
+  @override
+  String get incorrect => 'Incorreto';
+
+  @override
+  String get correctAnswer => 'Resposta correta';
+
+  @override
+  String get finalResult => 'Resultado final';
+
+  @override
+  String get retakeExam => 'Refazer exame';
+
+  @override
+  String get generateExam => 'Gerar exame';
+
+  @override
+  String get regenerateExam => 'Regenerar exame';
+
+  @override
+  String get generatingExam => 'Gerando exame com IA...';
+
+  @override
+  String get examExportQuestion => 'PERGUNTA';
+
+  @override
+  String get examExportOptions => 'OPÇÕES';
+
+  @override
+  String get examExportCorrectAnswer => 'RESPOSTA CORRETA';
+
+  @override
+  String get examExportExplanation => 'EXPLICAÇÃO';
 }

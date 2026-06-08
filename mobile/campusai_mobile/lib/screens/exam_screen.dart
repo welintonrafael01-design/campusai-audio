@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import '../models/study_result.dart';
 import '../services/api_service.dart';
 import '../services/export_service.dart';
@@ -38,6 +39,8 @@ class _ExamScreenState extends State<ExamScreen> {
   List<Map<String, dynamic>> questions = [];
   final Map<int, String> selectedAnswers = {};
   final Set<int> correctIndexes = {};
+
+  AppLocalizations get l10n => AppLocalizations.of(context);
 
   @override
   void initState() {
@@ -121,10 +124,7 @@ class _ExamScreenState extends State<ExamScreen> {
     dynamic decoded = raw;
 
     if (raw is String) {
-      final clean = raw
-          .replaceAll('```json', '')
-          .replaceAll('```', '')
-          .trim();
+      final clean = raw.replaceAll('```json', '').replaceAll('```', '').trim();
 
       decoded = jsonDecode(clean);
     }
@@ -174,7 +174,7 @@ class _ExamScreenState extends State<ExamScreen> {
             item['prompt'] ??
             item['frase'] ??
             item['sentence'] ??
-            'Pregunta no disponible.')
+            l10n.questionNotAvailable)
         .toString();
   }
 
@@ -190,9 +190,9 @@ class _ExamScreenState extends State<ExamScreen> {
     if (answer.isNotEmpty) {
       return [
         answer,
-        'No se especifica en el documento.',
-        'Todas las anteriores.',
-        'Ninguna de las anteriores.',
+        l10n.notSpecifiedInDocument,
+        l10n.allOfTheAbove,
+        l10n.noneOfTheAbove,
       ];
     }
 
@@ -248,8 +248,7 @@ class _ExamScreenState extends State<ExamScreen> {
     final selectedLetter = getOptionLetter(selected);
     final correctLetter = getCorrectAnswerLetter(correct);
 
-    if (selectedLetter != null &&
-        correctLetter != null) {
+    if (selectedLetter != null && correctLetter != null) {
       return selectedLetter == correctLetter;
     }
 
@@ -287,16 +286,16 @@ class _ExamScreenState extends State<ExamScreen> {
       final options = getOptions(question).join("\n");
 
       return """
-PREGUNTA $index:
+${l10n.examExportQuestion} $index:
 ${getQuestionText(question)}
 
-OPCIONES:
+${l10n.examExportOptions}:
 $options
 
-RESPUESTA CORRECTA:
+${l10n.examExportCorrectAnswer}:
 ${getCorrectAnswer(question)}
 
-EXPLICACIÓN:
+${l10n.examExportExplanation}:
 ${getExplanation(question)}
 """;
     }).join("\n\n==============================\n\n");
@@ -306,7 +305,7 @@ ${getExplanation(question)}
     if (!const PlanGuardService().canExportPdf) {
       showUpgradeRequired(
         context,
-        featureName: 'Exportar examen a PDF',
+        featureName: l10n.exportExamToPdf,
       );
       return;
     }
@@ -314,7 +313,7 @@ ${getExplanation(question)}
     if (questions.isEmpty) return;
 
     await ExportService.exportTextToPdf(
-      title: 'Examen IA',
+      title: l10n.examTitle,
       content: buildExamExportContent(),
     );
   }
@@ -323,7 +322,7 @@ ${getExplanation(question)}
     if (!const PlanGuardService().canExportDocx) {
       showUpgradeRequired(
         context,
-        featureName: 'Exportar examen a Word',
+        featureName: l10n.exportExamToWord,
       );
       return;
     }
@@ -331,7 +330,7 @@ ${getExplanation(question)}
     if (questions.isEmpty) return;
 
     await ExportService.exportTextToDocx(
-      title: 'Examen IA',
+      title: l10n.examTitle,
       content: buildExamExportContent(),
     );
   }
@@ -386,7 +385,6 @@ ${getExplanation(question)}
     });
   }
 
-
   Widget buildHeader() {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -403,8 +401,8 @@ ${getExplanation(question)}
             size: 36,
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Examen IA',
+          Text(
+            l10n.examTitle,
             style: TextStyle(
               color: Colors.white,
               fontSize: 34,
@@ -412,8 +410,8 @@ ${getExplanation(question)}
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Practica, responde y mide tu aprendizaje.',
+          Text(
+            l10n.examSubtitle,
             style: TextStyle(
               color: Colors.white,
               height: 1.4,
@@ -423,11 +421,9 @@ ${getExplanation(question)}
           Row(
             children: [
               Tooltip(
-                message: 'Exportar Word',
+                message: l10n.exportWord,
                 child: IconButton(
-                  onPressed: questions.isEmpty
-                      ? null
-                      : exportExamToDocx,
+                  onPressed: questions.isEmpty ? null : exportExamToDocx,
                   icon: const Icon(
                     Icons.description_rounded,
                     color: Colors.white,
@@ -435,11 +431,9 @@ ${getExplanation(question)}
                 ),
               ),
               Tooltip(
-                message: 'Exportar PDF',
+                message: l10n.exportPdf,
                 child: IconButton(
-                  onPressed: questions.isEmpty
-                      ? null
-                      : exportExamToPdf,
+                  onPressed: questions.isEmpty ? null : exportExamToPdf,
                   icon: const Icon(
                     Icons.picture_as_pdf_rounded,
                     color: Colors.white,
@@ -458,9 +452,9 @@ ${getExplanation(question)}
       return const SizedBox.shrink();
     }
 
-    return const SectionCard(
+    return SectionCard(
       child: Text(
-        'Presiona el botón para generar el examen del documento activo.',
+        l10n.examEmptyPrompt,
         style: TextStyle(
           color: AppTheme.textSecondary,
           height: 1.4,
@@ -485,7 +479,7 @@ ${getExplanation(question)}
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Pregunta ${currentIndex + 1} de ${questions.length}',
+            l10n.questionOf(currentIndex + 1, questions.length),
             style: const TextStyle(
               color: AppTheme.textMuted,
               fontWeight: FontWeight.w800,
@@ -510,7 +504,7 @@ ${getExplanation(question)}
           const SizedBox(height: 22),
           if (options.isEmpty)
             Text(
-              'Respuesta: $correctAnswer',
+              '${l10n.answerLabel}: $correctAnswer',
               style: const TextStyle(
                 color: AppTheme.accent,
                 fontWeight: FontWeight.w800,
@@ -537,7 +531,7 @@ ${getExplanation(question)}
                 child: OutlinedButton.icon(
                   onPressed: restartQuiz,
                   icon: const Icon(Icons.restart_alt_rounded),
-                  label: const Text('Reiniciar'),
+                  label: Text(l10n.restart),
                 ),
               ),
               const SizedBox(width: 12),
@@ -552,9 +546,9 @@ ${getExplanation(question)}
                   label: Text(
                     isAnswered
                         ? currentIndex >= questions.length - 1
-                            ? 'Ver resultado'
-                            : 'Siguiente'
-                        : 'Verificar',
+                            ? l10n.viewResult
+                            : l10n.next
+                        : l10n.verify,
                   ),
                 ),
               ),
@@ -571,14 +565,11 @@ ${getExplanation(question)}
   }) {
     final selected = selectedAnswer == option;
 
-    final optionLetter =
-        getOptionLetter(option);
+    final optionLetter = getOptionLetter(option);
 
-    final correctLetter =
-        getCorrectAnswerLetter(correctAnswer);
+    final correctLetter = getCorrectAnswerLetter(correctAnswer);
 
-    final isCorrect =
-        optionLetter != null &&
+    final isCorrect = optionLetter != null &&
         correctLetter != null &&
         optionLetter == correctLetter;
 
@@ -624,9 +615,8 @@ ${getExplanation(question)}
             children: [
               Icon(
                 icon,
-                color: selected || isAnswered
-                    ? borderColor
-                    : AppTheme.textMuted,
+                color:
+                    selected || isAnswered ? borderColor : AppTheme.textMuted,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -671,7 +661,7 @@ ${getExplanation(question)}
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            isCorrect ? 'Correcto' : 'Incorrecto',
+            isCorrect ? l10n.correct : l10n.incorrect,
             style: TextStyle(
               color: isCorrect ? Colors.greenAccent : Colors.redAccent,
               fontWeight: FontWeight.w900,
@@ -681,7 +671,7 @@ ${getExplanation(question)}
           if (!isCorrect) ...[
             const SizedBox(height: 8),
             Text(
-              'Respuesta correcta: $correctAnswer',
+              '${l10n.correctAnswer}: $correctAnswer',
               style: const TextStyle(
                 color: AppTheme.textPrimary,
                 fontWeight: FontWeight.w700,
@@ -719,8 +709,8 @@ ${getExplanation(question)}
             size: 52,
           ),
           const SizedBox(height: 14),
-          const Text(
-            'Resultado final',
+          Text(
+            l10n.finalResult,
             style: TextStyle(
               color: AppTheme.textPrimary,
               fontSize: 26,
@@ -749,7 +739,7 @@ ${getExplanation(question)}
           ElevatedButton.icon(
             onPressed: restartQuiz,
             icon: const Icon(Icons.restart_alt_rounded),
-            label: const Text('Repetir examen'),
+            label: Text(l10n.retakeExam),
           ),
         ],
       ),
@@ -761,7 +751,7 @@ ${getExplanation(question)}
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text('Examen IA'),
+        title: Text(l10n.examTitle),
       ),
       body: SafeArea(
         child: ListView(
@@ -773,22 +763,20 @@ ${getExplanation(question)}
               onPressed: isLoading ? null : generateExam,
               icon: const Icon(Icons.auto_awesome_rounded),
               label: Text(
-                questions.isEmpty
-                    ? 'Generar examen'
-                    : 'Regenerar examen',
+                questions.isEmpty ? l10n.generateExam : l10n.regenerateExam,
               ),
             ),
             const SizedBox(height: 20),
             buildEmptyResult(),
             if (isLoading)
-              const SectionCard(
+              SectionCard(
                 child: Row(
                   children: [
-                    CircularProgressIndicator(),
-                    SizedBox(width: 16),
+                    const CircularProgressIndicator(),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: Text(
-                        'Generando examen con IA...',
+                        l10n.generatingExam,
                         style: TextStyle(
                           color: AppTheme.textSecondary,
                         ),

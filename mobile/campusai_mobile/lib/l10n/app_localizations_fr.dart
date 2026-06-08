@@ -460,4 +460,92 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get contextHintSources =>
       'Les réponses sont basées sur le document actif.';
+
+  @override
+  String get examSubtitle =>
+      'Pratiquez, répondez et mesurez votre apprentissage.';
+
+  @override
+  String get exportWord => 'Exporter Word';
+
+  @override
+  String get exportPdf => 'Exporter PDF';
+
+  @override
+  String get exportExamToPdf => 'Exporter l’examen en PDF';
+
+  @override
+  String get exportExamToWord => 'Exporter l’examen vers Word';
+
+  @override
+  String get examEmptyPrompt =>
+      'Appuyez sur le bouton pour générer l’examen du document actif.';
+
+  @override
+  String get questionNotAvailable => 'Question non disponible.';
+
+  @override
+  String get notSpecifiedInDocument => 'Non spécifié dans le document.';
+
+  @override
+  String get allOfTheAbove => 'Toutes les réponses ci-dessus.';
+
+  @override
+  String get noneOfTheAbove => 'Aucune des réponses ci-dessus.';
+
+  @override
+  String questionOf(Object current, Object total) {
+    return 'Question $current sur $total';
+  }
+
+  @override
+  String get answerLabel => 'Réponse';
+
+  @override
+  String get restart => 'Redémarrer';
+
+  @override
+  String get viewResult => 'Voir le résultat';
+
+  @override
+  String get next => 'Suivant';
+
+  @override
+  String get verify => 'Vérifier';
+
+  @override
+  String get correct => 'Correct';
+
+  @override
+  String get incorrect => 'Incorrect';
+
+  @override
+  String get correctAnswer => 'Réponse correcte';
+
+  @override
+  String get finalResult => 'Résultat final';
+
+  @override
+  String get retakeExam => 'Refaire l’examen';
+
+  @override
+  String get generateExam => 'Générer l’examen';
+
+  @override
+  String get regenerateExam => 'Regénérer l’examen';
+
+  @override
+  String get generatingExam => 'Génération de l’examen avec IA...';
+
+  @override
+  String get examExportQuestion => 'QUESTION';
+
+  @override
+  String get examExportOptions => 'OPTIONS';
+
+  @override
+  String get examExportCorrectAnswer => 'RÉPONSE CORRECTE';
+
+  @override
+  String get examExportExplanation => 'EXPLICATION';
 }

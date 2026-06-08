@@ -453,4 +453,91 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get contextHintSources => 'Answers are based on the active document.';
+
+  @override
+  String get examSubtitle => 'Practice, answer, and measure your learning.';
+
+  @override
+  String get exportWord => 'Export Word';
+
+  @override
+  String get exportPdf => 'Export PDF';
+
+  @override
+  String get exportExamToPdf => 'Export exam to PDF';
+
+  @override
+  String get exportExamToWord => 'Export exam to Word';
+
+  @override
+  String get examEmptyPrompt =>
+      'Press the button to generate an exam from the active document.';
+
+  @override
+  String get questionNotAvailable => 'Question not available.';
+
+  @override
+  String get notSpecifiedInDocument => 'Not specified in the document.';
+
+  @override
+  String get allOfTheAbove => 'All of the above.';
+
+  @override
+  String get noneOfTheAbove => 'None of the above.';
+
+  @override
+  String questionOf(Object current, Object total) {
+    return 'Question $current of $total';
+  }
+
+  @override
+  String get answerLabel => 'Answer';
+
+  @override
+  String get restart => 'Restart';
+
+  @override
+  String get viewResult => 'View result';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get verify => 'Verify';
+
+  @override
+  String get correct => 'Correct';
+
+  @override
+  String get incorrect => 'Incorrect';
+
+  @override
+  String get correctAnswer => 'Correct answer';
+
+  @override
+  String get finalResult => 'Final result';
+
+  @override
+  String get retakeExam => 'Retake exam';
+
+  @override
+  String get generateExam => 'Generate exam';
+
+  @override
+  String get regenerateExam => 'Regenerate exam';
+
+  @override
+  String get generatingExam => 'Generating exam with AI...';
+
+  @override
+  String get examExportQuestion => 'QUESTION';
+
+  @override
+  String get examExportOptions => 'OPTIONS';
+
+  @override
+  String get examExportCorrectAnswer => 'CORRECT ANSWER';
+
+  @override
+  String get examExportExplanation => 'EXPLANATION';
 }
