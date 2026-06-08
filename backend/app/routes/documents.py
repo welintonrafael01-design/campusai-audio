@@ -46,6 +46,11 @@ from app.services.document_registry_service import (
     require_document_owner,
 )
 
+from app.services.file_access_service import (
+    create_file_access_token,
+    verify_file_access_token,
+)
+
 from app.services.rag_service import (
     search_similar_chunks,
     semantic_search_all_documents,
@@ -670,6 +675,86 @@ async def stream_chat_document(
 
 
 
+
+
+@router.get("/file-token/{document_id}")
+async def document_file_token(
+    document_id: str,
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        validate_document_owner(
+            document_id=document_id,
+            current_user=current_user,
+        )
+
+        token = create_file_access_token(
+            document_id=document_id,
+            user_id=current_user.user_id,
+        )
+
+        return {
+            "document_id": document_id,
+            "token": token,
+            "expires_in_seconds": 120,
+            "file_url": f"/documents/file-secure/{document_id}?token={token}",
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
+
+@router.get("/file-secure/{document_id}")
+async def document_file_secure(
+    document_id: str,
+    token: str = Query(default=""),
+):
+    try:
+        if not token:
+            raise HTTPException(
+                status_code=401,
+                detail="Falta token de acceso al PDF.",
+            )
+
+        verify_file_access_token(
+            token=token,
+            document_id=document_id,
+        )
+
+        info = get_document_info(
+            document_id=document_id,
+        )
+
+        file_path = Path(info["file_path"])
+
+        if not file_path.exists():
+            raise HTTPException(
+                status_code=404,
+                detail="Archivo PDF no encontrado.",
+            )
+
+        return FileResponse(
+            path=str(file_path),
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": "inline",
+            },
+        )
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=401,
+            detail=str(error),
+        )
 
 
 @router.get("/file/{document_id}")

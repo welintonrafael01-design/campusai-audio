@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 
 import 'api_service.dart';
+import 'auth_service.dart';
 
 class SourceService {
   static Future<Map<String, dynamic>> getSourceChunk({
@@ -17,7 +18,10 @@ class SourceService {
     );
 
     final response = await http
-        .get(uri)
+        .get(
+          uri,
+          headers: AuthService.authHeaders,
+        )
         .timeout(ApiService.timeoutDuration);
 
     return ApiService.decodeResponse(response);

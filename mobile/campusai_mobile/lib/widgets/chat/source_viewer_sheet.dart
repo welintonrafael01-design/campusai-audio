@@ -33,7 +33,7 @@ class SourceViewerSheet extends StatelessWidget {
   }
 
   Future<void> openPdf(BuildContext context) async {
-    final url = DocumentService.getPdfUrl(
+    final url = await DocumentService.getSecurePdfUrl(
       documentId,
       pageNumber: pageNumber,
     );
