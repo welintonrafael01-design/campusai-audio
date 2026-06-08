@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../layout/responsive_layout.dart';
 import '../../l10n/app_localizations.dart';
+import '../../providers/audio_provider.dart';
+import '../../services/api_service.dart';
 import '../../theme/app_theme.dart';
 
-class ChatBubble extends StatelessWidget {
+class ChatBubble extends ConsumerStatefulWidget {
   final String text;
   final bool isUser;
   final DateTime createdAt;
@@ -18,6 +21,13 @@ class ChatBubble extends StatelessWidget {
     required this.createdAt,
   });
 
+  @override
+  ConsumerState<ChatBubble> createState() => _ChatBubbleState();
+}
+
+class _ChatBubbleState extends ConsumerState<ChatBubble> {
+  bool isGeneratingAudio = false;
+
   String formatTime(DateTime date) {
     final hour = date.hour.toString().padLeft(2, '0');
     final minute = date.minute.toString().padLeft(2, '0');
@@ -26,7 +36,7 @@ class ChatBubble extends StatelessWidget {
   }
 
   String cleanVisibleText() {
-    return text
+    return widget.text
         .replaceAll(
           RegExp(r'\[FUENTE document=[^\s\]]+ chunk=\d+\]'),
           '',
@@ -44,7 +54,7 @@ class ChatBubble extends StatelessWidget {
 
   void copyMessage(BuildContext context) {
     Clipboard.setData(
-      ClipboardData(text: text),
+      ClipboardData(text: widget.text),
     );
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -54,8 +64,64 @@ class ChatBubble extends StatelessWidget {
     );
   }
 
+  Future<void> listenAnswer(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final cleanText = cleanVisibleText();
+    final audioTitle = l10n.voiceAnswerAudioTitle;
+    final loadingMessage = l10n.generatingAnswerAudio;
+    final errorMessage = l10n.answerAudioError;
+
+    if (cleanText.trim().isEmpty || isGeneratingAudio) return;
+
+    setState(() {
+      isGeneratingAudio = true;
+    });
+
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(loadingMessage),
+      ),
+    );
+
+    try {
+      final data = await ApiService.generateAudioFromText(
+        text: cleanText,
+      );
+
+      final audioUrl = data['audio_url']?.toString() ?? '';
+
+      if (audioUrl.trim().isEmpty) {
+        throw Exception('Audio URL empty');
+      }
+
+      final fullAudioUrl = ApiService.buildAudioUrl(audioUrl);
+
+      await ref.read(audioProvider.notifier).play(
+            audioUrl: fullAudioUrl,
+            title: audioTitle,
+          );
+    } catch (error) {
+      if (!mounted) return;
+
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('$errorMessage: $error'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isGeneratingAudio = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isUser = widget.isUser;
+
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
@@ -137,7 +203,7 @@ class ChatBubble extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  formatTime(createdAt),
+                  formatTime(widget.createdAt),
                   style: const TextStyle(
                     color: AppTheme.textMuted,
                     fontSize: 11,
@@ -145,12 +211,35 @@ class ChatBubble extends StatelessWidget {
                 ),
                 if (!isUser) ...[
                   const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap: () => copyMessage(context),
-                    child: const Icon(
-                      Icons.copy_rounded,
-                      size: 16,
-                      color: AppTheme.textMuted,
+                  Tooltip(
+                    message: AppLocalizations.of(context).answerCopied,
+                    child: GestureDetector(
+                      onTap: () => copyMessage(context),
+                      child: const Icon(
+                        Icons.copy_rounded,
+                        size: 16,
+                        color: AppTheme.textMuted,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Tooltip(
+                    message: AppLocalizations.of(context).listenAnswer,
+                    child: GestureDetector(
+                      onTap: () => listenAnswer(context),
+                      child: isGeneratingAudio
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.volume_up_rounded,
+                              size: 17,
+                              color: AppTheme.textMuted,
+                            ),
                     ),
                   ),
                 ],

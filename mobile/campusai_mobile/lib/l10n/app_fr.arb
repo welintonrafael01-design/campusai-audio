@@ -288,5 +288,9 @@
   "voiceModeReady": "Dictez votre question. Elle sera envoyée automatiquement lorsque le microphone s’arrête.",
   "voiceAnswerGeneratingAudio": "Génération de la réponse audio...",
   "voiceAnswerPlaybackError": "Impossible de lire la réponse audio",
-  "voiceAnswerAudioTitle": "Réponse de StudyBook AI"
+  "voiceAnswerAudioTitle": "Réponse de StudyBook AI",
+  "listenAnswer": "Écouter la réponse",
+  "generatingAnswerAudio": "Génération de l’audio de la réponse...",
+  "answerAudioError": "Impossible de générer ou lire l’audio de la réponse",
+  "aiAudio": "Audio IA"
 }

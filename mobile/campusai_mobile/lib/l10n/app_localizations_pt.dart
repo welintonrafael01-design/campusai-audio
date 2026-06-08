@@ -804,4 +804,17 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get voiceAnswerAudioTitle => 'Resposta do StudyBook AI';
+
+  @override
+  String get listenAnswer => 'Ouvir resposta';
+
+  @override
+  String get generatingAnswerAudio => 'Gerando áudio da resposta...';
+
+  @override
+  String get answerAudioError =>
+      'Não foi possível gerar ou reproduzir o áudio da resposta';
+
+  @override
+  String get aiAudio => 'Áudio IA';
 }

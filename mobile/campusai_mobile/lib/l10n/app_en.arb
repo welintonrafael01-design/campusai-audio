@@ -288,5 +288,9 @@
   "voiceModeReady": "Speak your question. It will be sent automatically when the microphone stops.",
   "voiceAnswerGeneratingAudio": "Generating audio response...",
   "voiceAnswerPlaybackError": "Could not play the audio response",
-  "voiceAnswerAudioTitle": "StudyBook AI response"
+  "voiceAnswerAudioTitle": "StudyBook AI response",
+  "listenAnswer": "Listen to answer",
+  "generatingAnswerAudio": "Generating answer audio...",
+  "answerAudioError": "Could not generate or play the answer audio",
+  "aiAudio": "AI Audio"
 }

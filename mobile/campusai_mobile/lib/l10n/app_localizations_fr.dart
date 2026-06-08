@@ -813,4 +813,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get voiceAnswerAudioTitle => 'Réponse de StudyBook AI';
+
+  @override
+  String get listenAnswer => 'Écouter la réponse';
+
+  @override
+  String get generatingAnswerAudio => 'Génération de l’audio de la réponse...';
+
+  @override
+  String get answerAudioError =>
+      'Impossible de générer ou lire l’audio de la réponse';
+
+  @override
+  String get aiAudio => 'Audio IA';
 }

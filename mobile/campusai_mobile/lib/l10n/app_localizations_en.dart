@@ -803,4 +803,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get voiceAnswerAudioTitle => 'StudyBook AI response';
+
+  @override
+  String get listenAnswer => 'Listen to answer';
+
+  @override
+  String get generatingAnswerAudio => 'Generating answer audio...';
+
+  @override
+  String get answerAudioError => 'Could not generate or play the answer audio';
+
+  @override
+  String get aiAudio => 'AI Audio';
 }

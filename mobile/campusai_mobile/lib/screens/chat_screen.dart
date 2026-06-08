@@ -17,6 +17,7 @@ import '../theme/app_theme.dart';
 import '../widgets/chat/chat_input.dart';
 import '../widgets/chat/chat_messages.dart';
 import '../widgets/sidebar.dart';
+import '../widgets/mini_player.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String documentId;
@@ -762,10 +763,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ),
             ),
           ),
+        const MiniPlayer(),
         ChatInput(
           controller: questionController,
           isLoading: isLoading,
           onSend: askQuestion,
+          autoSendVoiceInput: isVoiceModeEnabled,
+          onVoiceInputCompleted: askQuestion,
         ),
       ],
     );

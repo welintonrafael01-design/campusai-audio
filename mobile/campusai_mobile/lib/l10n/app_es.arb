@@ -288,5 +288,9 @@
   "voiceModeReady": "Habla tu pregunta. Se enviará automáticamente al detener el micrófono.",
   "voiceAnswerGeneratingAudio": "Generando respuesta en audio...",
   "voiceAnswerPlaybackError": "No se pudo reproducir la respuesta en audio",
-  "voiceAnswerAudioTitle": "Respuesta de StudyBook AI"
+  "voiceAnswerAudioTitle": "Respuesta de StudyBook AI",
+  "listenAnswer": "Escuchar respuesta",
+  "generatingAnswerAudio": "Generando audio de la respuesta...",
+  "answerAudioError": "No se pudo generar o reproducir el audio de la respuesta",
+  "aiAudio": "Audio IA"
 }

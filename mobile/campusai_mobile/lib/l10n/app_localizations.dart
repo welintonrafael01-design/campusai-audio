@@ -1613,6 +1613,30 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Respuesta de StudyBook AI'**
   String get voiceAnswerAudioTitle;
+
+  /// No description provided for @listenAnswer.
+  ///
+  /// In es, this message translates to:
+  /// **'Escuchar respuesta'**
+  String get listenAnswer;
+
+  /// No description provided for @generatingAnswerAudio.
+  ///
+  /// In es, this message translates to:
+  /// **'Generando audio de la respuesta...'**
+  String get generatingAnswerAudio;
+
+  /// No description provided for @answerAudioError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo generar o reproducir el audio de la respuesta'**
+  String get answerAudioError;
+
+  /// No description provided for @aiAudio.
+  ///
+  /// In es, this message translates to:
+  /// **'Audio IA'**
+  String get aiAudio;
 }
 
 class _AppLocalizationsDelegate
