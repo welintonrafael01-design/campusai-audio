@@ -7,6 +7,7 @@ import '../l10n/app_localizations.dart';
 import '../models/chat_message_model.dart';
 import '../providers/document_provider.dart';
 import '../services/api_service.dart';
+import '../services/audio_player_service.dart';
 import '../services/chat_history_service.dart';
 import '../services/cloud_api_service.dart';
 import '../services/export_service.dart';
@@ -37,8 +38,11 @@ class ChatScreen extends ConsumerStatefulWidget {
 
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController questionController = TextEditingController();
+  final AudioPlayerService voiceAudioService = AudioPlayerService();
 
   bool isLoading = false;
+  bool isVoiceModeEnabled = false;
+  bool isGeneratingVoiceAudio = false;
   String errorMessage = '';
   String cloudChatId = '';
   Timer? fakeStreamTimer;
@@ -75,6 +79,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   void dispose() {
     fakeStreamTimer?.cancel();
     questionController.dispose();
+    voiceAudioService.dispose();
     super.dispose();
   }
 
@@ -190,6 +195,46 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       );
     } catch (error) {
       debugPrint('No se pudo guardar mensaje cloud: $error');
+    }
+  }
+
+  Future<void> playVoiceAnswer(String response) async {
+    final cleanResponse = response.trim();
+
+    if (!isVoiceModeEnabled || cleanResponse.isEmpty) return;
+
+    try {
+      if (mounted) {
+        setState(() {
+          isGeneratingVoiceAudio = true;
+        });
+      }
+
+      final data = await ApiService.generateAudioFromText(
+        text: cleanResponse,
+      );
+
+      final audioUrl = data['audio_url']?.toString() ?? '';
+
+      if (audioUrl.trim().isEmpty) return;
+
+      final fullAudioUrl = ApiService.buildAudioUrl(audioUrl);
+
+      await voiceAudioService.play(fullAudioUrl);
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${l10n.voiceAnswerPlaybackError}: $error'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isGeneratingVoiceAudio = false;
+        });
+      }
     }
   }
 
@@ -317,6 +362,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         saveCloudMessage(
           role: 'assistant',
           content: messages[responseIndex].text,
+        ),
+      );
+
+      unawaited(
+        playVoiceAnswer(
+          messages[responseIndex].text,
         ),
       );
 

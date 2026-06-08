@@ -903,9 +903,16 @@ class _CreateWorkspaceDialogState extends State<_CreateWorkspaceDialog> {
   void initState() {
     super.initState();
 
-    nameController = TextEditingController(
-      text: AppLocalizations.of(context).myWorkspace,
-    );
+    nameController = TextEditingController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (nameController.text.trim().isEmpty) {
+      nameController.text = AppLocalizations.of(context).myWorkspace;
+    }
   }
 
   @override

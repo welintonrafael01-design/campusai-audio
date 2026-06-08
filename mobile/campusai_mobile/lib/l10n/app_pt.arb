@@ -282,5 +282,11 @@
   "listening": "Ouvindo...",
   "voiceNotAvailable": "O reconhecimento de voz não está disponível neste navegador.",
   "microphonePermissionDenied": "Permissão de microfone negada.",
-  "voiceInputTooltip": "Ditar pergunta por voz"
+  "voiceInputTooltip": "Ditar pergunta por voz",
+  "voiceModeActive": "Modo voz ativo",
+  "voiceModeInactive": "Modo voz inativo",
+  "voiceModeReady": "Fale sua pergunta. Ela será enviada automaticamente ao parar o microfone.",
+  "voiceAnswerGeneratingAudio": "Gerando resposta em áudio...",
+  "voiceAnswerPlaybackError": "Não foi possível reproduzir a resposta em áudio",
+  "voiceAnswerAudioTitle": "Resposta do StudyBook AI"
 }

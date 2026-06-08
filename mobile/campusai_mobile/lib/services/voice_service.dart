@@ -38,9 +38,6 @@ class VoiceService {
     if (!available) return false;
 
     await _speech.listen(
-      localeId: localeId,
-      listenMode: ListenMode.confirmation,
-      partialResults: true,
       onResult: (SpeechRecognitionResult result) {
         final recognized = result.recognizedWords.trim();
 
@@ -48,6 +45,11 @@ class VoiceService {
           onResult(recognized);
         }
       },
+      listenOptions: SpeechListenOptions(
+        listenMode: ListenMode.confirmation,
+        partialResults: true,
+      ),
+      localeId: localeId,
     );
 
     return true;

@@ -9,6 +9,8 @@ class ChatInput extends StatelessWidget {
   final bool isLoading;
   final VoidCallback onSend;
   final bool enableVoiceMode;
+  final bool autoSendVoiceInput;
+  final VoidCallback? onVoiceInputCompleted;
 
   const ChatInput({
     super.key,
@@ -16,6 +18,8 @@ class ChatInput extends StatelessWidget {
     required this.isLoading,
     required this.onSend,
     this.enableVoiceMode = true,
+    this.autoSendVoiceInput = false,
+    this.onVoiceInputCompleted,
   });
 
   void applyRecognizedText(String text) {
@@ -80,6 +84,15 @@ class ChatInput extends StatelessWidget {
             VoiceModeButton(
               isDisabled: isLoading,
               onTextRecognized: applyRecognizedText,
+              onListeningStopped: () {
+                if (!autoSendVoiceInput) return;
+
+                final cleanText = controller.text.trim();
+
+                if (cleanText.isEmpty) return;
+
+                onVoiceInputCompleted?.call();
+              },
             ),
             const SizedBox(width: 12),
           ],

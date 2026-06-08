@@ -282,5 +282,11 @@
   "listening": "Listening...",
   "voiceNotAvailable": "Speech recognition is not available in this browser.",
   "microphonePermissionDenied": "Microphone permission denied.",
-  "voiceInputTooltip": "Dictate question by voice"
+  "voiceInputTooltip": "Dictate question by voice",
+  "voiceModeActive": "Voice mode active",
+  "voiceModeInactive": "Voice mode inactive",
+  "voiceModeReady": "Speak your question. It will be sent automatically when the microphone stops.",
+  "voiceAnswerGeneratingAudio": "Generating audio response...",
+  "voiceAnswerPlaybackError": "Could not play the audio response",
+  "voiceAnswerAudioTitle": "StudyBook AI response"
 }

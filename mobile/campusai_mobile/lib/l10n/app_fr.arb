@@ -282,5 +282,11 @@
   "listening": "Écoute...",
   "voiceNotAvailable": "La reconnaissance vocale n’est pas disponible dans ce navigateur.",
   "microphonePermissionDenied": "Autorisation du microphone refusée.",
-  "voiceInputTooltip": "Dicter la question par la voix"
+  "voiceInputTooltip": "Dicter la question par la voix",
+  "voiceModeActive": "Mode vocal actif",
+  "voiceModeInactive": "Mode vocal inactif",
+  "voiceModeReady": "Dictez votre question. Elle sera envoyée automatiquement lorsque le microphone s’arrête.",
+  "voiceAnswerGeneratingAudio": "Génération de la réponse audio...",
+  "voiceAnswerPlaybackError": "Impossible de lire la réponse audio",
+  "voiceAnswerAudioTitle": "Réponse de StudyBook AI"
 }

@@ -794,4 +794,23 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get voiceInputTooltip => 'Dicter la question par la voix';
+
+  @override
+  String get voiceModeActive => 'Mode vocal actif';
+
+  @override
+  String get voiceModeInactive => 'Mode vocal inactif';
+
+  @override
+  String get voiceModeReady =>
+      'Dictez votre question. Elle sera envoyée automatiquement lorsque le microphone s’arrête.';
+
+  @override
+  String get voiceAnswerGeneratingAudio => 'Génération de la réponse audio...';
+
+  @override
+  String get voiceAnswerPlaybackError => 'Impossible de lire la réponse audio';
+
+  @override
+  String get voiceAnswerAudioTitle => 'Réponse de StudyBook AI';
 }

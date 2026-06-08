@@ -1577,6 +1577,42 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Dictar pregunta por voz'**
   String get voiceInputTooltip;
+
+  /// No description provided for @voiceModeActive.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo voz activo'**
+  String get voiceModeActive;
+
+  /// No description provided for @voiceModeInactive.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo voz inactivo'**
+  String get voiceModeInactive;
+
+  /// No description provided for @voiceModeReady.
+  ///
+  /// In es, this message translates to:
+  /// **'Habla tu pregunta. Se enviará automáticamente al detener el micrófono.'**
+  String get voiceModeReady;
+
+  /// No description provided for @voiceAnswerGeneratingAudio.
+  ///
+  /// In es, this message translates to:
+  /// **'Generando respuesta en audio...'**
+  String get voiceAnswerGeneratingAudio;
+
+  /// No description provided for @voiceAnswerPlaybackError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo reproducir la respuesta en audio'**
+  String get voiceAnswerPlaybackError;
+
+  /// No description provided for @voiceAnswerAudioTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Respuesta de StudyBook AI'**
+  String get voiceAnswerAudioTitle;
 }
 
 class _AppLocalizationsDelegate

@@ -784,4 +784,24 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get voiceInputTooltip => 'Ditar pergunta por voz';
+
+  @override
+  String get voiceModeActive => 'Modo voz ativo';
+
+  @override
+  String get voiceModeInactive => 'Modo voz inativo';
+
+  @override
+  String get voiceModeReady =>
+      'Fale sua pergunta. Ela será enviada automaticamente ao parar o microfone.';
+
+  @override
+  String get voiceAnswerGeneratingAudio => 'Gerando resposta em áudio...';
+
+  @override
+  String get voiceAnswerPlaybackError =>
+      'Não foi possível reproduzir a resposta em áudio';
+
+  @override
+  String get voiceAnswerAudioTitle => 'Resposta do StudyBook AI';
 }
