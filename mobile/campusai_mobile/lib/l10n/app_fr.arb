@@ -232,5 +232,14 @@
     "placeholders": {
       "planName": {}
     }
-  }
+  },
+  "completeEmailAndPassword": "Complétez l’e-mail et le mot de passe.",
+  "loginSubtitle": "Connectez-vous pour continuer.",
+  "signupSubtitle": "Créez votre compte pour commencer.",
+  "emailLabel": "Adresse e-mail",
+  "passwordLabel": "Mot de passe",
+  "loginButton": "Se connecter",
+  "createAccountButton": "Créer un compte",
+  "createAccountLink": "Créer un compte",
+  "alreadyHaveAccount": "J’ai déjà un compte"
 }

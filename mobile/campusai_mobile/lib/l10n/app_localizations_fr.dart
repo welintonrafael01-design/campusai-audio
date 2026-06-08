@@ -653,4 +653,32 @@ class AppLocalizationsFr extends AppLocalizations {
   String upgradeToPlan(Object planName) {
     return 'Passer à $planName';
   }
+
+  @override
+  String get completeEmailAndPassword =>
+      'Complétez l’e-mail et le mot de passe.';
+
+  @override
+  String get loginSubtitle => 'Connectez-vous pour continuer.';
+
+  @override
+  String get signupSubtitle => 'Créez votre compte pour commencer.';
+
+  @override
+  String get emailLabel => 'Adresse e-mail';
+
+  @override
+  String get passwordLabel => 'Mot de passe';
+
+  @override
+  String get loginButton => 'Se connecter';
+
+  @override
+  String get createAccountButton => 'Créer un compte';
+
+  @override
+  String get createAccountLink => 'Créer un compte';
+
+  @override
+  String get alreadyHaveAccount => 'J’ai déjà un compte';
 }

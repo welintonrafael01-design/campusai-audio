@@ -645,4 +645,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String upgradeToPlan(Object planName) {
     return 'Upgrade to $planName';
   }
+
+  @override
+  String get completeEmailAndPassword => 'Complete email and password.';
+
+  @override
+  String get loginSubtitle => 'Sign in to continue.';
+
+  @override
+  String get signupSubtitle => 'Create your account to get started.';
+
+  @override
+  String get emailLabel => 'Email address';
+
+  @override
+  String get passwordLabel => 'Password';
+
+  @override
+  String get loginButton => 'Sign in';
+
+  @override
+  String get createAccountButton => 'Create account';
+
+  @override
+  String get createAccountLink => 'Create an account';
+
+  @override
+  String get alreadyHaveAccount => 'I already have an account';
 }

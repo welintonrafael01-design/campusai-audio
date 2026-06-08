@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../l10n/app_localizations.dart';
 import '../services/auth_service.dart';
 import '../services/subscription_service.dart';
 import '../theme/app_theme.dart';
@@ -9,8 +10,7 @@ class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
 
   @override
-  State<AuthScreen> createState() =>
-      _AuthScreenState();
+  State<AuthScreen> createState() => _AuthScreenState();
 }
 
 class _AuthScreenState extends State<AuthScreen> {
@@ -21,13 +21,15 @@ class _AuthScreenState extends State<AuthScreen> {
   bool isLoading = false;
   String errorMessage = '';
 
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   Future<void> submit() async {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
       setState(() {
-        errorMessage = 'Completa correo y contraseña.';
+        errorMessage = l10n.completeEmailAndPassword;
       });
       return;
     }
@@ -95,8 +97,7 @@ class _AuthScreenState extends State<AuthScreen> {
               padding: const EdgeInsets.all(28),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment:
-                    CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Text(
                     'StudyBook AI',
@@ -109,9 +110,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    isLogin
-                        ? 'Inicia sesión para continuar.'
-                        : 'Crea tu cuenta para empezar.',
+                    isLogin ? l10n.loginSubtitle : l10n.signupSubtitle,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: AppTheme.textMuted,
@@ -120,18 +119,17 @@ class _AuthScreenState extends State<AuthScreen> {
                   const SizedBox(height: 28),
                   TextField(
                     controller: emailController,
-                    keyboardType:
-                        TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Correo electrónico',
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      labelText: l10n.emailLabel,
                     ),
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: passwordController,
                     obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Contraseña',
+                    decoration: InputDecoration(
+                      labelText: l10n.passwordLabel,
                     ),
                   ),
                   if (errorMessage.isNotEmpty) ...[
@@ -146,21 +144,19 @@ class _AuthScreenState extends State<AuthScreen> {
                   ],
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed:
-                        isLoading ? null : submit,
+                    onPressed: isLoading ? null : submit,
                     child: isLoading
                         ? const SizedBox(
                             width: 18,
                             height: 18,
-                            child:
-                                CircularProgressIndicator(
+                            child: CircularProgressIndicator(
                               strokeWidth: 2,
                             ),
                           )
                         : Text(
                             isLogin
-                                ? 'Entrar'
-                                : 'Crear cuenta',
+                                ? l10n.loginButton
+                                : l10n.createAccountButton,
                           ),
                   ),
                   const SizedBox(height: 12),
@@ -175,8 +171,8 @@ class _AuthScreenState extends State<AuthScreen> {
                           },
                     child: Text(
                       isLogin
-                          ? 'Crear una cuenta'
-                          : 'Ya tengo cuenta',
+                          ? l10n.createAccountLink
+                          : l10n.alreadyHaveAccount,
                     ),
                   ),
                 ],

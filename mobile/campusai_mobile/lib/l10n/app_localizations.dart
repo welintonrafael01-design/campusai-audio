@@ -1307,6 +1307,60 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Actualizar a {planName}'**
   String upgradeToPlan(Object planName);
+
+  /// No description provided for @completeEmailAndPassword.
+  ///
+  /// In es, this message translates to:
+  /// **'Completa correo y contraseña.'**
+  String get completeEmailAndPassword;
+
+  /// No description provided for @loginSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Inicia sesión para continuar.'**
+  String get loginSubtitle;
+
+  /// No description provided for @signupSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Crea tu cuenta para empezar.'**
+  String get signupSubtitle;
+
+  /// No description provided for @emailLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Correo electrónico'**
+  String get emailLabel;
+
+  /// No description provided for @passwordLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Contraseña'**
+  String get passwordLabel;
+
+  /// No description provided for @loginButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Entrar'**
+  String get loginButton;
+
+  /// No description provided for @createAccountButton.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear cuenta'**
+  String get createAccountButton;
+
+  /// No description provided for @createAccountLink.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear una cuenta'**
+  String get createAccountLink;
+
+  /// No description provided for @alreadyHaveAccount.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya tengo cuenta'**
+  String get alreadyHaveAccount;
 }
 
 class _AppLocalizationsDelegate
