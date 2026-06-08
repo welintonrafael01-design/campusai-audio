@@ -92,6 +92,8 @@ class ApiService {
   // =========================
 
   static Future<Map<String, dynamic>> uploadPdf() async {
+    AuthService.requireAccessToken;
+
     const usageLimitService = UsageLimitService();
 
     if (!usageLimitService.canUploadPdfToday()) {

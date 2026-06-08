@@ -26,18 +26,25 @@ class AuthService {
   static User? get currentUser =>
       isConfigured ? _client.auth.currentUser : null;
 
-  static bool get isLoggedIn =>
-      currentUser != null;
+  static bool get isLoggedIn => currentUser != null;
 
   static String? get accessToken =>
       isConfigured ? _client.auth.currentSession?.accessToken : null;
 
-  static Map<String, String> get authHeaders {
-    final token = accessToken;
+  static String get requireAccessToken {
+    final token = accessToken?.trim();
 
     if (token == null || token.isEmpty) {
-      return {};
+      throw Exception(
+        'Debes iniciar sesión nuevamente para continuar.',
+      );
     }
+
+    return token;
+  }
+
+  static Map<String, String> get authHeaders {
+    final token = requireAccessToken;
 
     return {
       'Authorization': 'Bearer $token',
