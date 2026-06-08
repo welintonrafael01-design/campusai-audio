@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../services/document_service.dart';
 import '../../theme/app_theme.dart';
 
@@ -46,8 +47,8 @@ class SourceViewerSheet extends StatelessWidget {
 
     if (!opened && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se pudo abrir el PDF.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).pdfOpenError),
         ),
       );
     }
@@ -61,19 +62,19 @@ class SourceViewerSheet extends StatelessWidget {
     if (!context.mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Fuente copiada al portapapeles.'),
+      SnackBar(
+        content: Text(AppLocalizations.of(context).sourceCopied),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final metadataEntries = metadata.entries
         .where(
           (entry) =>
-              entry.value != null &&
-              entry.value.toString().trim().isNotEmpty,
+              entry.value != null && entry.value.toString().trim().isNotEmpty,
         )
         .take(6)
         .toList();
@@ -108,7 +109,7 @@ class SourceViewerSheet extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Fuente citada',
+                    l10n.citedSource,
                     style: const TextStyle(
                       color: AppTheme.textPrimary,
                       fontSize: 21,
@@ -117,7 +118,7 @@ class SourceViewerSheet extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Copiar fuente',
+                  tooltip: l10n.copySource,
                   onPressed: () => copySource(context),
                   icon: const Icon(
                     Icons.copy_rounded,
@@ -125,7 +126,7 @@ class SourceViewerSheet extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Cerrar',
+                  tooltip: l10n.close,
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(
                     Icons.close_rounded,
@@ -135,36 +136,34 @@ class SourceViewerSheet extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-
             Wrap(
               spacing: 10,
               runSpacing: 10,
               children: [
                 _InfoPill(
                   icon: Icons.description_outlined,
-                  label: 'Documento',
+                  label: l10n.document,
                   value: shortDocumentId,
                 ),
                 if (metadata['page_number'] != null)
                   _InfoPill(
                     icon: Icons.menu_book_rounded,
-                    label: 'Página',
+                    label: l10n.page,
                     value: metadata['page_number'].toString(),
                   ),
                 _InfoPill(
                   icon: Icons.tag_rounded,
-                  label: 'Chunk',
+                  label: l10n.chunk,
                   value: chunkIndex.toString(),
                 ),
                 if (metadataEntries.isNotEmpty)
                   _InfoPill(
                     icon: Icons.dataset_outlined,
-                    label: 'Metadata',
-                    value: '${metadataEntries.length} campos',
+                    label: l10n.metadata,
+                    value: '${metadataEntries.length} ${l10n.fields}',
                   ),
               ],
             ),
-
             if (metadataEntries.isNotEmpty) ...[
               const SizedBox(height: 16),
               Container(
@@ -203,13 +202,11 @@ class SourceViewerSheet extends StatelessWidget {
                 ),
               ),
             ],
-
             const SizedBox(height: 18),
-
             Row(
               children: [
-                const Text(
-                  'Fragmento original',
+                Text(
+                  l10n.originalFragment,
                   style: TextStyle(
                     color: AppTheme.textPrimary,
                     fontSize: 15,
@@ -220,12 +217,11 @@ class SourceViewerSheet extends StatelessWidget {
                 TextButton.icon(
                   onPressed: () => openPdf(context),
                   icon: const Icon(Icons.picture_as_pdf_rounded),
-                  label: const Text('Abrir PDF'),
+                  label: Text(l10n.openPdf),
                 ),
               ],
             ),
             const SizedBox(height: 10),
-
             Expanded(
               child: Container(
                 width: double.infinity,

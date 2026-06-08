@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../models/chat_message_model.dart';
 import '../../theme/app_theme.dart';
 import '../../services/source_service.dart';
@@ -25,6 +26,7 @@ class ChatMessages extends StatefulWidget {
 
 class _ChatMessagesState extends State<ChatMessages> {
   Widget buildTypingIndicator() {
+    final l10n = AppLocalizations.of(context);
     if (!widget.isLoading) {
       return const SizedBox.shrink();
     }
@@ -51,13 +53,13 @@ class _ChatMessagesState extends State<ChatMessages> {
             ),
           ],
         ),
-        child: const Row(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TypingDots(),
-            SizedBox(width: 14),
+            const TypingDots(),
+            const SizedBox(width: 14),
             Text(
-              'StudyBook AI está pensando...',
+              l10n.aiThinking,
               style: TextStyle(
                 color: AppTheme.textSecondary,
                 fontWeight: FontWeight.w600,
@@ -99,7 +101,7 @@ class _ChatMessagesState extends State<ChatMessages> {
       );
 
       debugPrint('Source loaded successfully');
-      
+
       if (!mounted) return;
 
       showModalBottomSheet(
@@ -122,19 +124,18 @@ class _ChatMessagesState extends State<ChatMessages> {
       );
     } catch (error) {
       debugPrint('Source loaded successfully');
-      
+
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'No se pudo cargar la fuente: $error',
+            '${AppLocalizations.of(context).sourceLoadError}: $error',
           ),
         ),
       );
     }
   }
-
 
   Widget buildConfidenceBanner(ChatMessageModel message) {
     if (message.isUser) return const SizedBox.shrink();
@@ -147,20 +148,20 @@ class _ChatMessagesState extends State<ChatMessages> {
     }
 
     IconData icon = Icons.help_outline_rounded;
-    String label = 'Confianza desconocida';
+    String label = AppLocalizations.of(context).unknownConfidence;
     Color color = AppTheme.textMuted;
 
     if (confidence == 'high') {
       icon = Icons.verified_rounded;
-      label = 'Alta confianza';
+      label = AppLocalizations.of(context).highConfidence;
       color = Colors.greenAccent;
     } else if (confidence == 'medium') {
       icon = Icons.info_rounded;
-      label = 'Confianza media';
+      label = AppLocalizations.of(context).mediumConfidence;
       color = Colors.amberAccent;
     } else if (confidence == 'low') {
       icon = Icons.warning_rounded;
-      label = 'Confianza baja';
+      label = AppLocalizations.of(context).lowConfidence;
       color = Colors.redAccent;
     }
 
@@ -191,8 +192,7 @@ class _ChatMessagesState extends State<ChatMessages> {
             const SizedBox(width: 8),
             Flexible(
               child: Text(
-                confidenceMessage == null ||
-                        confidenceMessage.trim().isEmpty
+                confidenceMessage == null || confidenceMessage.trim().isEmpty
                     ? label
                     : '$label · $confidenceMessage',
                 style: TextStyle(
@@ -224,20 +224,17 @@ class _ChatMessagesState extends State<ChatMessages> {
         ...widget.messages.map(
           (message) {
             return Column(
-              crossAxisAlignment:
-                  message.isUser
-                      ? CrossAxisAlignment.end
-                      : CrossAxisAlignment.start,
+              crossAxisAlignment: message.isUser
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
               children: [
-                if (!message.isUser)
-                  buildConfidenceBanner(message),
+                if (!message.isUser) buildConfidenceBanner(message),
                 ChatBubble(
                   text: message.text,
                   isUser: message.isUser,
                   createdAt: message.createdAt,
                 ),
-                if (!message.isUser &&
-                    message.citations.isNotEmpty)
+                if (!message.isUser && message.citations.isNotEmpty)
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Container(

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
 import '../../layout/responsive_layout.dart';
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_theme.dart';
 
 class ChatBubble extends StatelessWidget {
@@ -47,8 +48,8 @@ class ChatBubble extends StatelessWidget {
     );
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Respuesta copiada al portapapeles.'),
+      SnackBar(
+        content: Text(AppLocalizations.of(context).answerCopied),
       ),
     );
   }
@@ -89,56 +90,48 @@ class ChatBubble extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             MarkdownBody(
-  data: cleanVisibleText(),
-  selectable: true,
-  styleSheet: MarkdownStyleSheet(
-    p: const TextStyle(
-      color: AppTheme.textPrimary,
-      fontSize: 15.5,
-      height: 1.6,
-    ),
-
-    h1: const TextStyle(
-      color: Colors.white,
-      fontSize: 24,
-      fontWeight: FontWeight.w900,
-    ),
-
-    h2: const TextStyle(
-      color: Colors.white,
-      fontSize: 20,
-      fontWeight: FontWeight.w800,
-    ),
-
-    h3: const TextStyle(
-      color: Colors.white,
-      fontSize: 18,
-      fontWeight: FontWeight.w800,
-    ),
-
-    strong: const TextStyle(
-      color: Colors.white,
-      fontWeight: FontWeight.w900,
-    ),
-
-    listBullet: const TextStyle(
-      color: AppTheme.accent,
-      fontWeight: FontWeight.bold,
-    ),
-
-    code: TextStyle(
-      color: AppTheme.accent,
-      backgroundColor:
-          Colors.black.withValues(alpha: 0.22),
-      fontSize: 14,
-    ),
-
-    blockquote: const TextStyle(
-      color: AppTheme.textSecondary,
-      fontStyle: FontStyle.italic,
-    ),
-  ),
-),
+              data: cleanVisibleText(),
+              selectable: true,
+              styleSheet: MarkdownStyleSheet(
+                p: const TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 15.5,
+                  height: 1.6,
+                ),
+                h1: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                ),
+                h2: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                ),
+                h3: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                ),
+                strong: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
+                listBullet: const TextStyle(
+                  color: AppTheme.accent,
+                  fontWeight: FontWeight.bold,
+                ),
+                code: TextStyle(
+                  color: AppTheme.accent,
+                  backgroundColor: Colors.black.withValues(alpha: 0.22),
+                  fontSize: 14,
+                ),
+                blockquote: const TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
             const SizedBox(height: 12),
             Row(
               mainAxisSize: MainAxisSize.min,

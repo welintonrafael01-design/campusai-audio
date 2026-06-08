@@ -691,4 +691,84 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get premiumAiDescription =>
       'Lecture IA complète et synchronisation cloud prochainement.';
+
+  @override
+  String upgradeRequiredMessage(Object featureName) {
+    return 'La fonction \"$featureName\" nécessite une mise à niveau de votre forfait.';
+  }
+
+  @override
+  String get viewPlans => 'Voir les forfaits';
+
+  @override
+  String get askAboutDocumentHint => 'Posez une question sur le document...';
+
+  @override
+  String get answerCopied => 'Réponse copiée dans le presse-papiers.';
+
+  @override
+  String get aiThinking => 'StudyBook AI réfléchit...';
+
+  @override
+  String get sourceLoadError => 'Impossible de charger la source';
+
+  @override
+  String get unknownConfidence => 'Confiance inconnue';
+
+  @override
+  String get highConfidence => 'Haute confiance';
+
+  @override
+  String get mediumConfidence => 'Confiance moyenne';
+
+  @override
+  String get lowConfidence => 'Faible confiance';
+
+  @override
+  String get pdfOpenError => 'Impossible d’ouvrir le PDF.';
+
+  @override
+  String get sourceCopied => 'Source copiée dans le presse-papiers.';
+
+  @override
+  String get citedSource => 'Source citée';
+
+  @override
+  String get copySource => 'Copier la source';
+
+  @override
+  String get close => 'Fermer';
+
+  @override
+  String get document => 'Document';
+
+  @override
+  String get page => 'Page';
+
+  @override
+  String get chunk => 'Chunk';
+
+  @override
+  String get metadata => 'Metadata';
+
+  @override
+  String get fields => 'champs';
+
+  @override
+  String get originalFragment => 'Fragment original';
+
+  @override
+  String get openPdf => 'Ouvrir le PDF';
+
+  @override
+  String get smartSearch => 'Recherche intelligente';
+
+  @override
+  String get searchAllDocumentsHint => 'Rechercher dans tous les documents...';
+
+  @override
+  String get search => 'Rechercher';
+
+  @override
+  String get score => 'Score';
 }

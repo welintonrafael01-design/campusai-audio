@@ -682,4 +682,84 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get premiumAiDescription =>
       'Lectura completa IA y sincronización cloud próximamente.';
+
+  @override
+  String upgradeRequiredMessage(Object featureName) {
+    return 'La función \"$featureName\" requiere actualizar tu plan.';
+  }
+
+  @override
+  String get viewPlans => 'Ver planes';
+
+  @override
+  String get askAboutDocumentHint => 'Pregunta sobre el documento...';
+
+  @override
+  String get answerCopied => 'Respuesta copiada al portapapeles.';
+
+  @override
+  String get aiThinking => 'StudyBook AI está pensando...';
+
+  @override
+  String get sourceLoadError => 'No se pudo cargar la fuente';
+
+  @override
+  String get unknownConfidence => 'Confianza desconocida';
+
+  @override
+  String get highConfidence => 'Alta confianza';
+
+  @override
+  String get mediumConfidence => 'Confianza media';
+
+  @override
+  String get lowConfidence => 'Confianza baja';
+
+  @override
+  String get pdfOpenError => 'No se pudo abrir el PDF.';
+
+  @override
+  String get sourceCopied => 'Fuente copiada al portapapeles.';
+
+  @override
+  String get citedSource => 'Fuente citada';
+
+  @override
+  String get copySource => 'Copiar fuente';
+
+  @override
+  String get close => 'Cerrar';
+
+  @override
+  String get document => 'Documento';
+
+  @override
+  String get page => 'Página';
+
+  @override
+  String get chunk => 'Chunk';
+
+  @override
+  String get metadata => 'Metadata';
+
+  @override
+  String get fields => 'campos';
+
+  @override
+  String get originalFragment => 'Fragmento original';
+
+  @override
+  String get openPdf => 'Abrir PDF';
+
+  @override
+  String get smartSearch => 'Búsqueda Inteligente';
+
+  @override
+  String get searchAllDocumentsHint => 'Buscar en todos los documentos...';
+
+  @override
+  String get search => 'Buscar';
+
+  @override
+  String get score => 'Score';
 }

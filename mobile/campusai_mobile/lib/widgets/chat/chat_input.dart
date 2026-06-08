@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_theme.dart';
 
 class ChatInput extends StatelessWidget {
@@ -16,6 +17,7 @@ class ChatInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.fromLTRB(
         16,
@@ -44,35 +46,29 @@ class ChatInput extends StatelessWidget {
                 color: AppTheme.textPrimary,
               ),
               decoration: InputDecoration(
-                hintText: 'Pregunta sobre el documento...',
+                hintText: l10n.askAboutDocumentHint,
                 filled: true,
                 fillColor: AppTheme.card,
-                contentPadding:
-                    const EdgeInsets.symmetric(
+                contentPadding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 18,
                 ),
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(24),
                   borderSide: BorderSide.none,
                 ),
               ),
             ),
           ),
-
           const SizedBox(width: 12),
-
           SizedBox(
             height: 56,
             width: 56,
             child: ElevatedButton(
-              onPressed:
-                  isLoading ? null : onSend,
+              onPressed: isLoading ? null : onSend,
               style: ElevatedButton.styleFrom(
                 shape: RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 padding: EdgeInsets.zero,
               ),
@@ -80,8 +76,7 @@ class ChatInput extends StatelessWidget {
                   ? const SizedBox(
                       width: 22,
                       height: 22,
-                      child:
-                          CircularProgressIndicator(
+                      child: CircularProgressIndicator(
                         strokeWidth: 2.4,
                         color: Colors.white,
                       ),

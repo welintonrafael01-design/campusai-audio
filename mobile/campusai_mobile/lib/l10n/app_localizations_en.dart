@@ -682,4 +682,84 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get premiumAiDescription =>
       'Full AI reading and cloud sync coming soon.';
+
+  @override
+  String upgradeRequiredMessage(Object featureName) {
+    return 'The feature \"$featureName\" requires upgrading your plan.';
+  }
+
+  @override
+  String get viewPlans => 'View plans';
+
+  @override
+  String get askAboutDocumentHint => 'Ask about the document...';
+
+  @override
+  String get answerCopied => 'Answer copied to clipboard.';
+
+  @override
+  String get aiThinking => 'StudyBook AI is thinking...';
+
+  @override
+  String get sourceLoadError => 'Could not load the source';
+
+  @override
+  String get unknownConfidence => 'Unknown confidence';
+
+  @override
+  String get highConfidence => 'High confidence';
+
+  @override
+  String get mediumConfidence => 'Medium confidence';
+
+  @override
+  String get lowConfidence => 'Low confidence';
+
+  @override
+  String get pdfOpenError => 'Could not open the PDF.';
+
+  @override
+  String get sourceCopied => 'Source copied to clipboard.';
+
+  @override
+  String get citedSource => 'Cited source';
+
+  @override
+  String get copySource => 'Copy source';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get document => 'Document';
+
+  @override
+  String get page => 'Page';
+
+  @override
+  String get chunk => 'Chunk';
+
+  @override
+  String get metadata => 'Metadata';
+
+  @override
+  String get fields => 'fields';
+
+  @override
+  String get originalFragment => 'Original fragment';
+
+  @override
+  String get openPdf => 'Open PDF';
+
+  @override
+  String get smartSearch => 'Smart Search';
+
+  @override
+  String get searchAllDocumentsHint => 'Search all documents...';
+
+  @override
+  String get search => 'Search';
+
+  @override
+  String get score => 'Score';
 }

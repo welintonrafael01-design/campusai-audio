@@ -1379,6 +1379,162 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Lectura completa IA y sincronización cloud próximamente.'**
   String get premiumAiDescription;
+
+  /// No description provided for @upgradeRequiredMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'La función \"{featureName}\" requiere actualizar tu plan.'**
+  String upgradeRequiredMessage(Object featureName);
+
+  /// No description provided for @viewPlans.
+  ///
+  /// In es, this message translates to:
+  /// **'Ver planes'**
+  String get viewPlans;
+
+  /// No description provided for @askAboutDocumentHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Pregunta sobre el documento...'**
+  String get askAboutDocumentHint;
+
+  /// No description provided for @answerCopied.
+  ///
+  /// In es, this message translates to:
+  /// **'Respuesta copiada al portapapeles.'**
+  String get answerCopied;
+
+  /// No description provided for @aiThinking.
+  ///
+  /// In es, this message translates to:
+  /// **'StudyBook AI está pensando...'**
+  String get aiThinking;
+
+  /// No description provided for @sourceLoadError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo cargar la fuente'**
+  String get sourceLoadError;
+
+  /// No description provided for @unknownConfidence.
+  ///
+  /// In es, this message translates to:
+  /// **'Confianza desconocida'**
+  String get unknownConfidence;
+
+  /// No description provided for @highConfidence.
+  ///
+  /// In es, this message translates to:
+  /// **'Alta confianza'**
+  String get highConfidence;
+
+  /// No description provided for @mediumConfidence.
+  ///
+  /// In es, this message translates to:
+  /// **'Confianza media'**
+  String get mediumConfidence;
+
+  /// No description provided for @lowConfidence.
+  ///
+  /// In es, this message translates to:
+  /// **'Confianza baja'**
+  String get lowConfidence;
+
+  /// No description provided for @pdfOpenError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo abrir el PDF.'**
+  String get pdfOpenError;
+
+  /// No description provided for @sourceCopied.
+  ///
+  /// In es, this message translates to:
+  /// **'Fuente copiada al portapapeles.'**
+  String get sourceCopied;
+
+  /// No description provided for @citedSource.
+  ///
+  /// In es, this message translates to:
+  /// **'Fuente citada'**
+  String get citedSource;
+
+  /// No description provided for @copySource.
+  ///
+  /// In es, this message translates to:
+  /// **'Copiar fuente'**
+  String get copySource;
+
+  /// No description provided for @close.
+  ///
+  /// In es, this message translates to:
+  /// **'Cerrar'**
+  String get close;
+
+  /// No description provided for @document.
+  ///
+  /// In es, this message translates to:
+  /// **'Documento'**
+  String get document;
+
+  /// No description provided for @page.
+  ///
+  /// In es, this message translates to:
+  /// **'Página'**
+  String get page;
+
+  /// No description provided for @chunk.
+  ///
+  /// In es, this message translates to:
+  /// **'Chunk'**
+  String get chunk;
+
+  /// No description provided for @metadata.
+  ///
+  /// In es, this message translates to:
+  /// **'Metadata'**
+  String get metadata;
+
+  /// No description provided for @fields.
+  ///
+  /// In es, this message translates to:
+  /// **'campos'**
+  String get fields;
+
+  /// No description provided for @originalFragment.
+  ///
+  /// In es, this message translates to:
+  /// **'Fragmento original'**
+  String get originalFragment;
+
+  /// No description provided for @openPdf.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir PDF'**
+  String get openPdf;
+
+  /// No description provided for @smartSearch.
+  ///
+  /// In es, this message translates to:
+  /// **'Búsqueda Inteligente'**
+  String get smartSearch;
+
+  /// No description provided for @searchAllDocumentsHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar en todos los documentos...'**
+  String get searchAllDocumentsHint;
+
+  /// No description provided for @search.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar'**
+  String get search;
+
+  /// No description provided for @score.
+  ///
+  /// In es, this message translates to:
+  /// **'Score'**
+  String get score;
 }
 
 class _AppLocalizationsDelegate

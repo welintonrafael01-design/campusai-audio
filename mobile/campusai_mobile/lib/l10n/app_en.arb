@@ -244,5 +244,36 @@
   "alreadyHaveAccount": "I already have an account",
   "dashboard": "Dashboard",
   "premiumAi": "Premium AI",
-  "premiumAiDescription": "Full AI reading and cloud sync coming soon."
+  "premiumAiDescription": "Full AI reading and cloud sync coming soon.",
+  "upgradeRequiredMessage": "The feature \"{featureName}\" requires upgrading your plan.",
+  "@upgradeRequiredMessage": {
+    "placeholders": {
+      "featureName": {}
+    }
+  },
+  "viewPlans": "View plans",
+  "askAboutDocumentHint": "Ask about the document...",
+  "answerCopied": "Answer copied to clipboard.",
+  "aiThinking": "StudyBook AI is thinking...",
+  "sourceLoadError": "Could not load the source",
+  "unknownConfidence": "Unknown confidence",
+  "highConfidence": "High confidence",
+  "mediumConfidence": "Medium confidence",
+  "lowConfidence": "Low confidence",
+  "pdfOpenError": "Could not open the PDF.",
+  "sourceCopied": "Source copied to clipboard.",
+  "citedSource": "Cited source",
+  "copySource": "Copy source",
+  "close": "Close",
+  "document": "Document",
+  "page": "Page",
+  "chunk": "Chunk",
+  "metadata": "Metadata",
+  "fields": "fields",
+  "originalFragment": "Original fragment",
+  "openPdf": "Open PDF",
+  "smartSearch": "Smart Search",
+  "searchAllDocumentsHint": "Search all documents...",
+  "search": "Search",
+  "score": "Score"
 }

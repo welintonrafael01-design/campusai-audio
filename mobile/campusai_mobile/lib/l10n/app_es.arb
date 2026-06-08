@@ -244,5 +244,36 @@
   "alreadyHaveAccount": "Ya tengo cuenta",
   "dashboard": "Dashboard",
   "premiumAi": "Premium AI",
-  "premiumAiDescription": "Lectura completa IA y sincronización cloud próximamente."
+  "premiumAiDescription": "Lectura completa IA y sincronización cloud próximamente.",
+  "upgradeRequiredMessage": "La función \"{featureName}\" requiere actualizar tu plan.",
+  "@upgradeRequiredMessage": {
+    "placeholders": {
+      "featureName": {}
+    }
+  },
+  "viewPlans": "Ver planes",
+  "askAboutDocumentHint": "Pregunta sobre el documento...",
+  "answerCopied": "Respuesta copiada al portapapeles.",
+  "aiThinking": "StudyBook AI está pensando...",
+  "sourceLoadError": "No se pudo cargar la fuente",
+  "unknownConfidence": "Confianza desconocida",
+  "highConfidence": "Alta confianza",
+  "mediumConfidence": "Confianza media",
+  "lowConfidence": "Confianza baja",
+  "pdfOpenError": "No se pudo abrir el PDF.",
+  "sourceCopied": "Fuente copiada al portapapeles.",
+  "citedSource": "Fuente citada",
+  "copySource": "Copiar fuente",
+  "close": "Cerrar",
+  "document": "Documento",
+  "page": "Página",
+  "chunk": "Chunk",
+  "metadata": "Metadata",
+  "fields": "campos",
+  "originalFragment": "Fragmento original",
+  "openPdf": "Abrir PDF",
+  "smartSearch": "Búsqueda Inteligente",
+  "searchAllDocumentsHint": "Buscar en todos los documentos...",
+  "search": "Buscar",
+  "score": "Score"
 }
