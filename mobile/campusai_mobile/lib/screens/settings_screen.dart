@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../config/app_plans.dart';
 import '../providers/theme_provider.dart';
+import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../services/history_service.dart';
 import '../services/plan_guard_service.dart';
@@ -90,6 +91,218 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
+
+
+  Widget buildUsageSummaryCard(
+    BuildContext context,
+  ) {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: ApiService.getUsageSummary(),
+      builder: (context, snapshot) {
+        Widget usageRow(
+          String label,
+          String value,
+        ) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      color: AppTheme.textMuted,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        String usedLimit(
+          Map<String, dynamic>? usage,
+          String key,
+          String limitKey,
+        ) {
+          final item = usage?[key];
+
+          if (item is! Map) {
+            return '0 / -';
+          }
+
+          final used = item['used_today']?.toString() ?? '0';
+          final limit = item[limitKey]?.toString() ?? '-';
+
+          return '$used / $limit';
+        }
+
+        String exportsText(
+          Map<String, dynamic>? usage,
+        ) {
+          final item = usage?['exports_generated'];
+
+          if (item is! Map) {
+            return '0 hoy';
+          }
+
+          final used = item['used_today']?.toString() ?? '0';
+          final permissions = item['permissions'];
+
+          if (permissions is! Map) {
+            return '$used hoy';
+          }
+
+          final pdf = permissions['pdf'] == true ? 'PDF' : '';
+          final docx = permissions['docx'] == true ? 'DOCX' : '';
+          final pptx = permissions['pptx'] == true ? 'PPTX' : '';
+
+          final allowed = [
+            pdf,
+            docx,
+            pptx,
+          ].where((item) => item.isNotEmpty).join(', ');
+
+          return '$used hoy · $allowed';
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return SectionCard(
+            child: Row(
+              children: const [
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                  ),
+                ),
+                SizedBox(width: 14),
+                Text(
+                  'Cargando uso del plan...',
+                  style: TextStyle(
+                    color: AppTheme.textMuted,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return SectionCard(
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.error_outline_rounded,
+                  color: AppTheme.danger,
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    'No se pudo cargar el uso del plan: ${snapshot.error}',
+                    style: const TextStyle(
+                      color: AppTheme.textMuted,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final data = snapshot.data ?? {};
+        final plan = data['plan']?.toString() ??
+            const PlanGuardService().currentPlanName;
+
+        final rawUsage = data['usage'];
+        final usage = rawUsage is Map<String, dynamic>
+            ? rawUsage
+            : rawUsage is Map
+                ? Map<String, dynamic>.from(rawUsage)
+                : <String, dynamic>{};
+
+        return SectionCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: const [
+                  Icon(
+                    Icons.analytics_rounded,
+                    color: AppTheme.accent,
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    'Uso del plan',
+                    style: TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Plan activo: $plan',
+                style: const TextStyle(
+                  color: AppTheme.textMuted,
+                ),
+              ),
+              const SizedBox(height: 16),
+              usageRow(
+                'PDFs subidos hoy',
+                usedLimit(
+                  usage,
+                  'pdf_uploads',
+                  'limit',
+                ),
+              ),
+              usageRow(
+                'Mensajes de chat hoy',
+                usedLimit(
+                  usage,
+                  'chat_messages',
+                  'limit',
+                ),
+              ),
+              usageRow(
+                'Flashcards',
+                '${usedLimit(
+                  usage,
+                  'flashcards_generated',
+                  'limit_per_pdf',
+                )} por PDF',
+              ),
+              usageRow(
+                'Exámenes',
+                '${usedLimit(
+                  usage,
+                  'exams_generated',
+                  'limit_per_pdf',
+                )} por PDF',
+              ),
+              usageRow(
+                'Exportaciones',
+                exportsText(usage),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
 
   @override
   Widget build(
@@ -318,6 +531,10 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ),
+
+          const SizedBox(height: 18),
+
+          buildUsageSummaryCard(context),
 
           const SizedBox(height: 18),
 
