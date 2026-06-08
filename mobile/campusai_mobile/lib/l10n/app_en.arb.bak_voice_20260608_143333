@@ -275,12 +275,5 @@
   "smartSearch": "Smart Search",
   "searchAllDocumentsHint": "Search all documents...",
   "search": "Search",
-  "score": "Score",
-  "voiceMode": "Voice mode",
-  "startListening": "Speak",
-  "stopListening": "Stop",
-  "listening": "Listening...",
-  "voiceNotAvailable": "Speech recognition is not available in this browser.",
-  "microphonePermissionDenied": "Microphone permission denied.",
-  "voiceInputTooltip": "Dictate question by voice"
+  "score": "Score"
 }

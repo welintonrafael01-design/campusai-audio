@@ -762,4 +762,26 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get score => 'Score';
+
+  @override
+  String get voiceMode => 'Modo voz';
+
+  @override
+  String get startListening => 'Hablar';
+
+  @override
+  String get stopListening => 'Detener';
+
+  @override
+  String get listening => 'Escuchando...';
+
+  @override
+  String get voiceNotAvailable =>
+      'El reconocimiento de voz no está disponible en este navegador.';
+
+  @override
+  String get microphonePermissionDenied => 'Permiso de micrófono denegado.';
+
+  @override
+  String get voiceInputTooltip => 'Dictar pregunta por voz';
 }

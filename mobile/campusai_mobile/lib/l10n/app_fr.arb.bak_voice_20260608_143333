@@ -275,12 +275,5 @@
   "smartSearch": "Recherche intelligente",
   "searchAllDocumentsHint": "Rechercher dans tous les documents...",
   "search": "Rechercher",
-  "score": "Score",
-  "voiceMode": "Mode vocal",
-  "startListening": "Parler",
-  "stopListening": "Arrêter",
-  "listening": "Écoute...",
-  "voiceNotAvailable": "La reconnaissance vocale n’est pas disponible dans ce navigateur.",
-  "microphonePermissionDenied": "Autorisation du microphone refusée.",
-  "voiceInputTooltip": "Dicter la question par la voix"
+  "score": "Score"
 }

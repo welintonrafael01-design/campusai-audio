@@ -2,22 +2,37 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../theme/app_theme.dart';
+import 'voice_mode_button.dart';
 
 class ChatInput extends StatelessWidget {
   final TextEditingController controller;
   final bool isLoading;
   final VoidCallback onSend;
+  final bool enableVoiceMode;
 
   const ChatInput({
     super.key,
     required this.controller,
     required this.isLoading,
     required this.onSend,
+    this.enableVoiceMode = true,
   });
+
+  void applyRecognizedText(String text) {
+    final cleanText = text.trim();
+
+    if (cleanText.isEmpty) return;
+
+    controller.text = cleanText;
+    controller.selection = TextSelection.fromPosition(
+      TextPosition(offset: controller.text.length),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+
     return Container(
       padding: const EdgeInsets.fromLTRB(
         16,
@@ -61,6 +76,13 @@ class ChatInput extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
+          if (enableVoiceMode) ...[
+            VoiceModeButton(
+              isDisabled: isLoading,
+              onTextRecognized: applyRecognizedText,
+            ),
+            const SizedBox(width: 12),
+          ],
           SizedBox(
             height: 56,
             width: 56,

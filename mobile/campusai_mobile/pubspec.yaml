@@ -78,6 +78,8 @@ dependencies:
   flutter_markdown: ^0.7.7+1
   supabase_flutter: ^2.12.4
   url_launcher: ^6.3.2
+  speech_to_text: ^7.4.0
+  permission_handler: ^12.0.3
 
 # =========================================================
 # DEV DEPENDENCIES

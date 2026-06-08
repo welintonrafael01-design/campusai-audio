@@ -1535,6 +1535,48 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Score'**
   String get score;
+
+  /// No description provided for @voiceMode.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo voz'**
+  String get voiceMode;
+
+  /// No description provided for @startListening.
+  ///
+  /// In es, this message translates to:
+  /// **'Hablar'**
+  String get startListening;
+
+  /// No description provided for @stopListening.
+  ///
+  /// In es, this message translates to:
+  /// **'Detener'**
+  String get stopListening;
+
+  /// No description provided for @listening.
+  ///
+  /// In es, this message translates to:
+  /// **'Escuchando...'**
+  String get listening;
+
+  /// No description provided for @voiceNotAvailable.
+  ///
+  /// In es, this message translates to:
+  /// **'El reconocimiento de voz no está disponible en este navegador.'**
+  String get voiceNotAvailable;
+
+  /// No description provided for @microphonePermissionDenied.
+  ///
+  /// In es, this message translates to:
+  /// **'Permiso de micrófono denegado.'**
+  String get microphonePermissionDenied;
+
+  /// No description provided for @voiceInputTooltip.
+  ///
+  /// In es, this message translates to:
+  /// **'Dictar pregunta por voz'**
+  String get voiceInputTooltip;
 }
 
 class _AppLocalizationsDelegate
