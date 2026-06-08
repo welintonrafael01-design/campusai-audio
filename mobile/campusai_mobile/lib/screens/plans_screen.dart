@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../config/app_plans.dart';
+import '../l10n/app_localizations.dart';
 import '../services/billing_service.dart';
 import '../services/plan_guard_service.dart';
 import '../theme/app_theme.dart';
@@ -40,9 +41,8 @@ class _PlansScreenState extends State<PlansScreen> {
       final fragment = Uri.base.fragment;
 
       if (fragment.isNotEmpty) {
-        final normalizedFragment = fragment.startsWith('/')
-            ? fragment
-            : '/$fragment';
+        final normalizedFragment =
+            fragment.startsWith('/') ? fragment : '/$fragment';
 
         final fragmentUri = Uri.tryParse(normalizedFragment);
         checkoutStatus = fragmentUri?.queryParameters['checkout'];
@@ -69,9 +69,8 @@ class _PlansScreenState extends State<PlansScreen> {
       final fragment = Uri.base.fragment;
 
       if (fragment.isNotEmpty) {
-        final normalizedFragment = fragment.startsWith('/')
-            ? fragment
-            : '/$fragment';
+        final normalizedFragment =
+            fragment.startsWith('/') ? fragment : '/$fragment';
 
         final fragmentUri = Uri.tryParse(normalizedFragment);
         planCode = fragmentUri?.queryParameters['plan'];
@@ -89,11 +88,11 @@ class _PlansScreenState extends State<PlansScreen> {
     if (status == 'success') {
       const PlanGuardService().saveCurrentPlan(plan);
 
-      return 'Pago completado correctamente. Tu plan actual es $planName.';
+      return AppLocalizations.of(context).checkoutSuccessMessage(planName);
     }
 
     if (status == 'cancel') {
-      return 'Pago cancelado.';
+      return AppLocalizations.of(context).checkoutCancelMessage;
     }
 
     return null;
@@ -138,7 +137,8 @@ class _PlansScreenState extends State<PlansScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'No se pudo iniciar el pago de $planName: $error',
+            AppLocalizations.of(context)
+                .paymentStartError(planName, error.toString()),
           ),
           behavior: SnackBarBehavior.floating,
         ),
@@ -148,12 +148,13 @@ class _PlansScreenState extends State<PlansScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final current = const PlanGuardService().currentPlan;
     final checkoutMessage = _checkoutMessage();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Planes StudyBook AI'),
+        title: Text(l10n.plansStudyBookTitle),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -172,8 +173,8 @@ class _PlansScreenState extends State<PlansScreen> {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                subtitle: const Text(
-                  'Tu solicitud de pago fue procesada por Stripe en modo prueba.',
+                subtitle: Text(
+                  l10n.checkoutTestModeMessage,
                   style: TextStyle(
                     color: AppTheme.textMuted,
                   ),
@@ -182,8 +183,8 @@ class _PlansScreenState extends State<PlansScreen> {
             ),
             const SizedBox(height: 16),
           ],
-          const Text(
-            'Elige el plan que se adapte a tu forma de estudiar o enseñar.',
+          Text(
+            l10n.plansIntro,
             style: TextStyle(
               color: AppTheme.textMuted,
               height: 1.4,
@@ -210,52 +211,53 @@ class _PlansScreenState extends State<PlansScreen> {
                         ),
                         const SizedBox(width: 12),
                         if (isCurrent)
-                          const Chip(
-                            label: Text('Plan actual'),
+                          Chip(
+                            label: Text(l10n.currentPlan),
                           ),
                       ],
                     ),
                     const SizedBox(height: 12),
                     _PlanFeature(
-                      label: 'PDFs por día',
+                      label: l10n.pdfsPerDay,
                       value: limits.maxPdfUploadsPerDay.toString(),
                     ),
                     _PlanFeature(
-                      label: 'Chats por día',
+                      label: l10n.chatsPerDay,
                       value: limits.maxChatMessagesPerDay.toString(),
                     ),
                     _PlanFeature(
-                      label: 'Flashcards por PDF',
+                      label: l10n.flashcardsPerPdf,
                       value: limits.maxFlashcardsPerPdf.toString(),
                     ),
                     _PlanFeature(
-                      label: 'Preguntas de examen por PDF',
+                      label: l10n.examQuestionsPerPdf,
                       value: limits.maxExamQuestionsPerPdf.toString(),
                     ),
                     const SizedBox(height: 12),
                     _PlanFeature(
-                      label: 'Exportar PDF',
-                      value: limits.canExportPdf ? 'Sí' : 'No',
+                      label: l10n.exportPdf,
+                      value: limits.canExportPdf ? l10n.yes : l10n.no,
                     ),
                     _PlanFeature(
-                      label: 'Exportar DOCX',
-                      value: limits.canExportDocx ? 'Sí' : 'No',
+                      label: l10n.exportDocx,
+                      value: limits.canExportDocx ? l10n.yes : l10n.no,
                     ),
                     _PlanFeature(
-                      label: 'Exportar PPTX',
-                      value: limits.canExportPptx ? 'Sí' : 'No',
+                      label: l10n.exportPptx,
+                      value: limits.canExportPptx ? l10n.yes : l10n.no,
                     ),
                     _PlanFeature(
-                      label: 'Analytics avanzado',
-                      value: limits.canUseAdvancedAnalytics ? 'Sí' : 'No',
+                      label: l10n.advancedAnalytics,
+                      value:
+                          limits.canUseAdvancedAnalytics ? l10n.yes : l10n.no,
                     ),
                     _PlanFeature(
-                      label: 'Herramientas profesor',
-                      value: limits.canUseEducatorTools ? 'Sí' : 'No',
+                      label: l10n.teacherTools,
+                      value: limits.canUseEducatorTools ? l10n.yes : l10n.no,
                     ),
                     _PlanFeature(
-                      label: 'Voz guiada',
-                      value: limits.canUseVoiceOnboarding ? 'Sí' : 'No',
+                      label: l10n.guidedVoice,
+                      value: limits.canUseVoiceOnboarding ? l10n.yes : l10n.no,
                     ),
                     const SizedBox(height: 18),
                     SizedBox(
@@ -264,7 +266,7 @@ class _PlansScreenState extends State<PlansScreen> {
                           ? OutlinedButton.icon(
                               onPressed: null,
                               icon: const Icon(Icons.check_circle_outline),
-                              label: const Text('Plan actual'),
+                              label: Text(l10n.currentPlan),
                             )
                           : FilledButton.icon(
                               onPressed: () {
@@ -273,7 +275,7 @@ class _PlansScreenState extends State<PlansScreen> {
                               icon: const Icon(
                                 Icons.workspace_premium_rounded,
                               ),
-                              label: Text('Actualizar a $planName'),
+                              label: Text(l10n.upgradeToPlan(planName)),
                             ),
                     ),
                   ],

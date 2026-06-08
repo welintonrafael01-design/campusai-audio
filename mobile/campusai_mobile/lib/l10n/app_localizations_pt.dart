@@ -583,4 +583,66 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get generatingFlashcards => 'Gerando cartões com IA...';
+
+  @override
+  String get plansStudyBookTitle => 'Planos StudyBook AI';
+
+  @override
+  String checkoutSuccessMessage(Object planName) {
+    return 'Pagamento concluído corretamente. Seu plano atual é $planName.';
+  }
+
+  @override
+  String get checkoutCancelMessage => 'Pagamento cancelado.';
+
+  @override
+  String get checkoutTestModeMessage =>
+      'Sua solicitação de pagamento foi processada pelo Stripe em modo de teste.';
+
+  @override
+  String get plansIntro =>
+      'Escolha o plano que se adapta à sua forma de estudar ou ensinar.';
+
+  @override
+  String paymentStartError(Object planName, Object error) {
+    return 'Não foi possível iniciar o pagamento de $planName: $error';
+  }
+
+  @override
+  String get pdfsPerDay => 'PDFs por dia';
+
+  @override
+  String get chatsPerDay => 'Chats por dia';
+
+  @override
+  String get flashcardsPerPdf => 'Flashcards por PDF';
+
+  @override
+  String get examQuestionsPerPdf => 'Perguntas de exame por PDF';
+
+  @override
+  String get exportDocx => 'Exportar DOCX';
+
+  @override
+  String get exportPptx => 'Exportar PPTX';
+
+  @override
+  String get advancedAnalytics => 'Analytics avançado';
+
+  @override
+  String get teacherTools => 'Ferramentas para professor';
+
+  @override
+  String get guidedVoice => 'Voz guiada';
+
+  @override
+  String get yes => 'Sim';
+
+  @override
+  String get no => 'Não';
+
+  @override
+  String upgradeToPlan(Object planName) {
+    return 'Atualizar para $planName';
+  }
 }

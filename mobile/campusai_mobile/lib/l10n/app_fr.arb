@@ -198,5 +198,39 @@
   "flashcardsEmptyPrompt": "Appuyez sur le bouton pour générer des flashcards du document actif.",
   "generateFlashcards": "Générer des flashcards",
   "regenerateFlashcards": "Regénérer les flashcards",
-  "generatingFlashcards": "Génération des cartes avec IA..."
+  "generatingFlashcards": "Génération des cartes avec IA...",
+  "plansStudyBookTitle": "Forfaits StudyBook AI",
+  "checkoutSuccessMessage": "Paiement effectué correctement. Votre forfait actuel est {planName}.",
+  "@checkoutSuccessMessage": {
+    "placeholders": {
+      "planName": {}
+    }
+  },
+  "checkoutCancelMessage": "Paiement annulé.",
+  "checkoutTestModeMessage": "Votre demande de paiement a été traitée par Stripe en mode test.",
+  "plansIntro": "Choisissez le forfait adapté à votre façon d’étudier ou d’enseigner.",
+  "paymentStartError": "Impossible de démarrer le paiement de {planName}: {error}",
+  "@paymentStartError": {
+    "placeholders": {
+      "planName": {},
+      "error": {}
+    }
+  },
+  "pdfsPerDay": "PDFs par jour",
+  "chatsPerDay": "Chats par jour",
+  "flashcardsPerPdf": "Flashcards par PDF",
+  "examQuestionsPerPdf": "Questions d’examen par PDF",
+  "exportDocx": "Exporter DOCX",
+  "exportPptx": "Exporter PPTX",
+  "advancedAnalytics": "Analytics avancé",
+  "teacherTools": "Outils enseignant",
+  "guidedVoice": "Voix guidée",
+  "yes": "Oui",
+  "no": "Non",
+  "upgradeToPlan": "Passer à {planName}",
+  "@upgradeToPlan": {
+    "placeholders": {
+      "planName": {}
+    }
+  }
 }

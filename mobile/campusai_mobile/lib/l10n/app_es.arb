@@ -198,5 +198,39 @@
   "flashcardsEmptyPrompt": "Presiona el botón para generar flashcards del documento activo.",
   "generateFlashcards": "Generar flashcards",
   "regenerateFlashcards": "Regenerar flashcards",
-  "generatingFlashcards": "Generando tarjetas con IA..."
+  "generatingFlashcards": "Generando tarjetas con IA...",
+  "plansStudyBookTitle": "Planes StudyBook AI",
+  "checkoutSuccessMessage": "Pago completado correctamente. Tu plan actual es {planName}.",
+  "@checkoutSuccessMessage": {
+    "placeholders": {
+      "planName": {}
+    }
+  },
+  "checkoutCancelMessage": "Pago cancelado.",
+  "checkoutTestModeMessage": "Tu solicitud de pago fue procesada por Stripe en modo prueba.",
+  "plansIntro": "Elige el plan que se adapte a tu forma de estudiar o enseñar.",
+  "paymentStartError": "No se pudo iniciar el pago de {planName}: {error}",
+  "@paymentStartError": {
+    "placeholders": {
+      "planName": {},
+      "error": {}
+    }
+  },
+  "pdfsPerDay": "PDFs por día",
+  "chatsPerDay": "Chats por día",
+  "flashcardsPerPdf": "Flashcards por PDF",
+  "examQuestionsPerPdf": "Preguntas de examen por PDF",
+  "exportDocx": "Exportar DOCX",
+  "exportPptx": "Exportar PPTX",
+  "advancedAnalytics": "Analytics avanzado",
+  "teacherTools": "Herramientas profesor",
+  "guidedVoice": "Voz guiada",
+  "yes": "Sí",
+  "no": "No",
+  "upgradeToPlan": "Actualizar a {planName}",
+  "@upgradeToPlan": {
+    "placeholders": {
+      "planName": {}
+    }
+  }
 }

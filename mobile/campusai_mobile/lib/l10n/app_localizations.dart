@@ -1199,6 +1199,114 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Generando tarjetas con IA...'**
   String get generatingFlashcards;
+
+  /// No description provided for @plansStudyBookTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Planes StudyBook AI'**
+  String get plansStudyBookTitle;
+
+  /// No description provided for @checkoutSuccessMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Pago completado correctamente. Tu plan actual es {planName}.'**
+  String checkoutSuccessMessage(Object planName);
+
+  /// No description provided for @checkoutCancelMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Pago cancelado.'**
+  String get checkoutCancelMessage;
+
+  /// No description provided for @checkoutTestModeMessage.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu solicitud de pago fue procesada por Stripe en modo prueba.'**
+  String get checkoutTestModeMessage;
+
+  /// No description provided for @plansIntro.
+  ///
+  /// In es, this message translates to:
+  /// **'Elige el plan que se adapte a tu forma de estudiar o enseñar.'**
+  String get plansIntro;
+
+  /// No description provided for @paymentStartError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo iniciar el pago de {planName}: {error}'**
+  String paymentStartError(Object planName, Object error);
+
+  /// No description provided for @pdfsPerDay.
+  ///
+  /// In es, this message translates to:
+  /// **'PDFs por día'**
+  String get pdfsPerDay;
+
+  /// No description provided for @chatsPerDay.
+  ///
+  /// In es, this message translates to:
+  /// **'Chats por día'**
+  String get chatsPerDay;
+
+  /// No description provided for @flashcardsPerPdf.
+  ///
+  /// In es, this message translates to:
+  /// **'Flashcards por PDF'**
+  String get flashcardsPerPdf;
+
+  /// No description provided for @examQuestionsPerPdf.
+  ///
+  /// In es, this message translates to:
+  /// **'Preguntas de examen por PDF'**
+  String get examQuestionsPerPdf;
+
+  /// No description provided for @exportDocx.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar DOCX'**
+  String get exportDocx;
+
+  /// No description provided for @exportPptx.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar PPTX'**
+  String get exportPptx;
+
+  /// No description provided for @advancedAnalytics.
+  ///
+  /// In es, this message translates to:
+  /// **'Analytics avanzado'**
+  String get advancedAnalytics;
+
+  /// No description provided for @teacherTools.
+  ///
+  /// In es, this message translates to:
+  /// **'Herramientas profesor'**
+  String get teacherTools;
+
+  /// No description provided for @guidedVoice.
+  ///
+  /// In es, this message translates to:
+  /// **'Voz guiada'**
+  String get guidedVoice;
+
+  /// No description provided for @yes.
+  ///
+  /// In es, this message translates to:
+  /// **'Sí'**
+  String get yes;
+
+  /// No description provided for @no.
+  ///
+  /// In es, this message translates to:
+  /// **'No'**
+  String get no;
+
+  /// No description provided for @upgradeToPlan.
+  ///
+  /// In es, this message translates to:
+  /// **'Actualizar a {planName}'**
+  String upgradeToPlan(Object planName);
 }
 
 class _AppLocalizationsDelegate
