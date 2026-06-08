@@ -125,7 +125,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ChatMessageModel(
             text:
                 isWorkspaceChat
-                    ? 'Hola. Soy StudyBook AI.\n\nEstoy listo para ayudarte a estudiar este workspace con ${widget.workspaceDocumentIds.length} documentos.\n\nPuedes pedir comparaciones, síntesis cruzadas o análisis combinados.'
+                    ? 'Hola. Soy StudyBook AI.\n\nEstoy listo para ayudarte a estudiar este workspace con ${effectiveDocumentIds.length} documentos.\n\nPuedes pedir comparaciones, síntesis cruzadas o análisis combinados.'
                     : 'Hola. Soy StudyBook AI.\n\nEstoy listo para ayudarte a comprender el documento "${widget.fileName}".\n\nPuedes hacer preguntas, pedir explicaciones, resúmenes, conceptos clave o análisis académicos.',
             isUser: false,
             createdAt: DateTime.now(),

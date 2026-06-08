@@ -284,13 +284,21 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     final firstDocument = workspace.documents.first;
 
-    await openRecentDocument(firstDocument);
-
-    if (!mounted) return;
-
     final workspaceDocumentIds = workspace.documents
         .map((item) => item.documentId)
+        .where((item) => item.trim().isNotEmpty)
         .toList();
+
+    if (workspaceDocumentIds.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Este workspace no tiene documentos válidos.',
+          ),
+        ),
+      );
+      return;
+    }
 
     ref
         .read(activeWorkspaceProvider.notifier)
@@ -302,7 +310,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         'documentId': firstDocument.documentId,
       },
       queryParameters: {
-        'fileName': firstDocument.fileName,
+        'fileName': workspace.name,
       },
     );
   }
