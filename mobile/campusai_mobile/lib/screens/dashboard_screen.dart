@@ -767,6 +767,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         if (!isLoading) ...[
           DashboardSummarySection(
             summary: summary,
+            onListenSummary: generateAudio,
+            onVoiceChat: openChatScreen,
+            isGeneratingAudio: isGeneratingAudio,
           ),
           if (summary.isNotEmpty) const SizedBox(height: 24),
           DashboardAudioSection(

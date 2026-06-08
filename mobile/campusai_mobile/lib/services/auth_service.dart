@@ -71,6 +71,31 @@ class AuthService {
     );
   }
 
+  static String friendlyAuthError(Object error) {
+    final message = error.toString().toLowerCase();
+
+    if (message.contains('email not confirmed') ||
+        message.contains('email_not_confirmed')) {
+      return 'Debes confirmar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada o spam.';
+    }
+
+    if (message.contains('invalid login credentials') ||
+        message.contains('invalid_credentials')) {
+      return 'Correo o contraseña incorrectos. Verifica tus datos o restablece tu contraseña.';
+    }
+
+    if (message.contains('user already registered') ||
+        message.contains('already registered')) {
+      return 'Este correo ya está registrado. Intenta iniciar sesión.';
+    }
+
+    if (message.contains('password') && message.contains('6')) {
+      return 'La contraseña debe tener al menos 6 caracteres.';
+    }
+
+    return 'No se pudo completar la autenticación. Intenta nuevamente.';
+  }
+
   static Future<void> signOut() async {
     await _client.auth.signOut();
 

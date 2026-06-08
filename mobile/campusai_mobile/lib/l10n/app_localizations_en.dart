@@ -815,4 +815,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiAudio => 'AI Audio';
+
+  @override
+  String get premiumFeatureTitle => 'Premium Feature';
+
+  @override
+  String get premiumFeatureDescription =>
+      'Unlock more StudyBook AI tools to study, listen, and work with your documents in a more advanced way.';
+
+  @override
+  String get premiumBenefitAudio => 'Listen to summaries and answers in audio.';
+
+  @override
+  String get premiumBenefitVoice => 'Use voice mode to ask without typing.';
+
+  @override
+  String get premiumBenefitExports => 'Access exports and advanced features.';
+
+  @override
+  String get notNow => 'Not now';
+
+  @override
+  String get upgradePlan => 'Upgrade plan';
 }

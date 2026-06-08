@@ -1637,6 +1637,48 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Audio IA'**
   String get aiAudio;
+
+  /// No description provided for @premiumFeatureTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Función Premium'**
+  String get premiumFeatureTitle;
+
+  /// No description provided for @premiumFeatureDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Desbloquea más herramientas de StudyBook AI para estudiar, escuchar y trabajar con tus documentos de forma más avanzada.'**
+  String get premiumFeatureDescription;
+
+  /// No description provided for @premiumBenefitAudio.
+  ///
+  /// In es, this message translates to:
+  /// **'Escucha resúmenes y respuestas en audio.'**
+  String get premiumBenefitAudio;
+
+  /// No description provided for @premiumBenefitVoice.
+  ///
+  /// In es, this message translates to:
+  /// **'Usa modo voz para preguntar sin escribir.'**
+  String get premiumBenefitVoice;
+
+  /// No description provided for @premiumBenefitExports.
+  ///
+  /// In es, this message translates to:
+  /// **'Accede a exportaciones y funciones avanzadas.'**
+  String get premiumBenefitExports;
+
+  /// No description provided for @notNow.
+  ///
+  /// In es, this message translates to:
+  /// **'Ahora no'**
+  String get notNow;
+
+  /// No description provided for @upgradePlan.
+  ///
+  /// In es, this message translates to:
+  /// **'Actualizar plan'**
+  String get upgradePlan;
 }
 
 class _AppLocalizationsDelegate

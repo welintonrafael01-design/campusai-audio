@@ -20,6 +20,7 @@ class _AuthScreenState extends State<AuthScreen> {
   bool isLogin = true;
   bool isLoading = false;
   String errorMessage = '';
+  String successMessage = '';
 
   AppLocalizations get l10n => AppLocalizations.of(context);
 
@@ -30,6 +31,7 @@ class _AuthScreenState extends State<AuthScreen> {
     if (email.isEmpty || password.isEmpty) {
       setState(() {
         errorMessage = l10n.completeEmailAndPassword;
+        successMessage = '';
       });
       return;
     }
@@ -37,6 +39,7 @@ class _AuthScreenState extends State<AuthScreen> {
     setState(() {
       isLoading = true;
       errorMessage = '';
+      successMessage = '';
     });
 
     try {
@@ -45,27 +48,37 @@ class _AuthScreenState extends State<AuthScreen> {
           email: email,
           password: password,
         );
+
+        try {
+          await const SubscriptionService().syncCurrentUserPlan();
+        } catch (syncError) {
+          debugPrint('No se pudo sincronizar el plan del usuario: $syncError');
+        }
+
+        if (!mounted) return;
+
+        context.go('/dashboard');
       } else {
         await AuthService.signUp(
           email: email,
           password: password,
         );
+
+        if (!mounted) return;
+
+        setState(() {
+          isLogin = true;
+          successMessage =
+              'Cuenta creada correctamente. Revisa tu correo electrónico para confirmar tu cuenta antes de iniciar sesión.';
+          errorMessage = '';
+        });
       }
-
-      try {
-        await const SubscriptionService().syncCurrentUserPlan();
-      } catch (syncError) {
-        debugPrint('No se pudo sincronizar el plan del usuario: $syncError');
-      }
-
-      if (!mounted) return;
-
-      context.go('/dashboard');
     } catch (error) {
       if (!mounted) return;
 
       setState(() {
-        errorMessage = error.toString();
+        errorMessage = AuthService.friendlyAuthError(error);
+        successMessage = '';
       });
     } finally {
       if (mounted) {
@@ -136,6 +149,17 @@ class _AuthScreenState extends State<AuthScreen> {
                       labelText: l10n.passwordLabel,
                     ),
                   ),
+                  if (successMessage.isNotEmpty) ...[
+                    const SizedBox(height: 14),
+                    Text(
+                      successMessage,
+                      style: const TextStyle(
+                        color: Colors.greenAccent,
+                        fontSize: 12,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
                   if (errorMessage.isNotEmpty) ...[
                     const SizedBox(height: 14),
                     Text(
@@ -143,6 +167,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       style: const TextStyle(
                         color: Colors.redAccent,
                         fontSize: 12,
+                        height: 1.35,
                       ),
                     ),
                   ],
@@ -171,6 +196,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             setState(() {
                               isLogin = !isLogin;
                               errorMessage = '';
+                              successMessage = '';
                             });
                           },
                     child: Text(

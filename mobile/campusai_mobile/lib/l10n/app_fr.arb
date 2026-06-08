@@ -292,5 +292,12 @@
   "listenAnswer": "Écouter la réponse",
   "generatingAnswerAudio": "Génération de l’audio de la réponse...",
   "answerAudioError": "Impossible de générer ou lire l’audio de la réponse",
-  "aiAudio": "Audio IA"
+  "aiAudio": "Audio IA",
+  "premiumFeatureTitle": "Fonction Premium",
+  "premiumFeatureDescription": "Débloquez plus d’outils StudyBook AI pour étudier, écouter et travailler avec vos documents de manière plus avancée.",
+  "premiumBenefitAudio": "Écoutez les résumés et les réponses en audio.",
+  "premiumBenefitVoice": "Utilisez le mode vocal pour poser des questions sans écrire.",
+  "premiumBenefitExports": "Accédez aux exportations et aux fonctions avancées.",
+  "notNow": "Pas maintenant",
+  "upgradePlan": "Mettre à niveau"
 }

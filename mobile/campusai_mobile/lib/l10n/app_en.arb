@@ -292,5 +292,12 @@
   "listenAnswer": "Listen to answer",
   "generatingAnswerAudio": "Generating answer audio...",
   "answerAudioError": "Could not generate or play the answer audio",
-  "aiAudio": "AI Audio"
+  "aiAudio": "AI Audio",
+  "premiumFeatureTitle": "Premium Feature",
+  "premiumFeatureDescription": "Unlock more StudyBook AI tools to study, listen, and work with your documents in a more advanced way.",
+  "premiumBenefitAudio": "Listen to summaries and answers in audio.",
+  "premiumBenefitVoice": "Use voice mode to ask without typing.",
+  "premiumBenefitExports": "Access exports and advanced features.",
+  "notNow": "Not now",
+  "upgradePlan": "Upgrade plan"
 }
