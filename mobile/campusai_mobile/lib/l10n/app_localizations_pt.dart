@@ -685,7 +685,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String upgradeRequiredMessage(Object featureName) {
-    return 'A função \"$featureName\" requer atualizar seu plano.';
+    return 'Para usar \"$featureName\", você precisa atualizar seu plano.';
   }
 
   @override

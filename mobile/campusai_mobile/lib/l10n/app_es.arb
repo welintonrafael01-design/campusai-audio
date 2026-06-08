@@ -245,7 +245,7 @@
   "dashboard": "Dashboard",
   "premiumAi": "Premium AI",
   "premiumAiDescription": "Lectura completa IA y sincronización cloud próximamente.",
-  "upgradeRequiredMessage": "La función \"{featureName}\" requiere actualizar tu plan.",
+  "upgradeRequiredMessage": "Para usar \"{featureName}\" debes actualizar tu plan.",
   "@upgradeRequiredMessage": {
     "placeholders": {
       "featureName": {}

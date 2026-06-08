@@ -694,7 +694,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String upgradeRequiredMessage(Object featureName) {
-    return 'La fonction \"$featureName\" nécessite une mise à niveau de votre forfait.';
+    return 'Pour utiliser \"$featureName\", vous devez mettre à niveau votre forfait.';
   }
 
   @override

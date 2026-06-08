@@ -1383,7 +1383,7 @@ abstract class AppLocalizations {
   /// No description provided for @upgradeRequiredMessage.
   ///
   /// In es, this message translates to:
-  /// **'La función \"{featureName}\" requiere actualizar tu plan.'**
+  /// **'Para usar \"{featureName}\" debes actualizar tu plan.'**
   String upgradeRequiredMessage(Object featureName);
 
   /// No description provided for @viewPlans.

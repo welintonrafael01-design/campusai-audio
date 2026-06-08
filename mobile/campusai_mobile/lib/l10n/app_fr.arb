@@ -245,7 +245,7 @@
   "dashboard": "Tableau de bord",
   "premiumAi": "Premium AI",
   "premiumAiDescription": "Lecture IA complète et synchronisation cloud prochainement.",
-  "upgradeRequiredMessage": "La fonction \"{featureName}\" nécessite une mise à niveau de votre forfait.",
+  "upgradeRequiredMessage": "Pour utiliser \"{featureName}\", vous devez mettre à niveau votre forfait.",
   "@upgradeRequiredMessage": {
     "placeholders": {
       "featureName": {}
