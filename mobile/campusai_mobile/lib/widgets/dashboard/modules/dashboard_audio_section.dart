@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../theme/app_theme.dart';
 import '../../section_card.dart';
 
@@ -43,15 +44,16 @@ class DashboardAudioSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (!hasSummary) return const SizedBox.shrink();
 
     if (fullAudioUrl.isEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _DashboardAudioTitle(
-            title: 'Audio generado',
-            subtitle: 'Convierte el resumen en una audioclase.',
+          _DashboardAudioTitle(
+            title: l10n.generatedAudio,
+            subtitle: l10n.audioNotGeneratedSubtitle,
           ),
           const SizedBox(height: 12),
           SectionCard(
@@ -63,9 +65,9 @@ class DashboardAudioSection extends StatelessWidget {
                   size: 34,
                 ),
                 const SizedBox(width: 16),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'El audio aún no ha sido generado. Puedes crearlo ahora sin bloquear la carga del documento.',
+                    l10n.audioNotGeneratedDescription,
                     style: TextStyle(
                       color: AppTheme.textSecondary,
                       height: 1.45,
@@ -86,7 +88,7 @@ class DashboardAudioSection extends StatelessWidget {
                         )
                       : const Icon(Icons.auto_awesome_rounded),
                   label: Text(
-                    isGeneratingAudio ? 'Generando...' : 'Generar audio',
+                    isGeneratingAudio ? l10n.generating : l10n.generateAudio,
                   ),
                 ),
               ],
@@ -105,9 +107,9 @@ class DashboardAudioSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _DashboardAudioTitle(
-          title: 'Audio generado',
-          subtitle: 'Escucha el resumen como audioclase.',
+        _DashboardAudioTitle(
+          title: l10n.generatedAudio,
+          subtitle: l10n.audioGeneratedSubtitle,
         ),
         const SizedBox(height: 12),
         SectionCard(
@@ -115,7 +117,7 @@ class DashboardAudioSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                fileName.isEmpty ? 'Audiolibro inteligente' : fileName,
+                fileName.isEmpty ? l10n.smartAudiobook : fileName,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -156,7 +158,7 @@ class DashboardAudioSection extends StatelessWidget {
                             : Icons.play_arrow_rounded,
                       ),
                       label: Text(
-                        isPlaying ? 'Pausar audio' : 'Reproducir audio',
+                        isPlaying ? l10n.pauseAudio : l10n.playAudio,
                       ),
                     ),
                   ),

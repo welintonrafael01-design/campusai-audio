@@ -208,7 +208,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get ragReady => 'Listo';
 
   @override
-  String get ragActive => 'Activo';
+  String get ragActive => 'RAG activo';
 
   @override
   String get aiTools => 'Herramientas IA';
@@ -320,4 +320,70 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get clear => 'Limpiar';
+
+  @override
+  String get generatedAudio => 'Audio generado';
+
+  @override
+  String get audioNotGeneratedSubtitle =>
+      'Convierte el resumen en una audioclase.';
+
+  @override
+  String get audioGeneratedSubtitle => 'Escucha el resumen como audioclase.';
+
+  @override
+  String get audioNotGeneratedDescription =>
+      'El audio aún no ha sido generado. Puedes crearlo ahora sin bloquear la carga del documento.';
+
+  @override
+  String get generating => 'Generando...';
+
+  @override
+  String get generateAudio => 'Generar audio';
+
+  @override
+  String get smartAudiobook => 'Audiolibro inteligente';
+
+  @override
+  String get pauseAudio => 'Pausar audio';
+
+  @override
+  String get playAudio => 'Reproducir audio';
+
+  @override
+  String get aiSummary => 'Resumen IA';
+
+  @override
+  String get summarySubtitle => 'Síntesis clara del documento cargado.';
+
+  @override
+  String get exportSummaryToWord => 'Exportar resumen a Word';
+
+  @override
+  String get exportSummaryToPowerPoint => 'Exportar resumen a PowerPoint';
+
+  @override
+  String get exportSummaryToPdf => 'Exportar resumen a PDF';
+
+  @override
+  String get processingDocument => 'Procesando documento...';
+
+  @override
+  String get processingDocumentDescription =>
+      'Generando resumen IA, audio y embeddings RAG.';
+
+  @override
+  String get activeWorkspace => 'Workspace activo';
+
+  @override
+  String get documentReadyToStudy => 'Documento listo para estudiar';
+
+  @override
+  String get aiReady => 'IA lista';
+
+  @override
+  String get audioAvailable => 'Audio disponible';
+
+  @override
+  String get openAiChat => 'Abrir Chat IA';
 }

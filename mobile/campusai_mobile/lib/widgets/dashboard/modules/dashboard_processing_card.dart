@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../theme/app_theme.dart';
 import '../../section_card.dart';
 
@@ -8,6 +9,7 @@ class DashboardProcessingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SectionCard(
       child: Row(
         children: [
@@ -20,18 +22,18 @@ class DashboardProcessingCard extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
-                  'Procesando documento...',
+                  l10n.processingDocument,
                   style: TextStyle(
                     color: AppTheme.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                SizedBox(height: 6),
+                const SizedBox(height: 6),
                 Text(
-                  'Generando resumen IA, audio y embeddings RAG.',
+                  l10n.processingDocumentDescription,
                   style: TextStyle(
                     color: AppTheme.textMuted,
                     height: 1.45,

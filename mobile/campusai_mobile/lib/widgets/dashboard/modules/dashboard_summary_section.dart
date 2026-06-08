@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/app_localizations.dart';
 import '../../../services/export_service.dart';
 import '../../../services/plan_guard_service.dart';
 import '../../../theme/app_theme.dart';
@@ -27,6 +28,7 @@ class DashboardSummarySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (summary.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -35,25 +37,25 @@ class DashboardSummarySection extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Expanded(
+            Expanded(
               child: _DashboardSectionTitle(
-                title: 'Resumen IA',
-                subtitle: 'Síntesis clara del documento cargado.',
+                title: l10n.aiSummary,
+                subtitle: l10n.summarySubtitle,
               ),
             ),
             IconButton(
-              tooltip: 'Exportar resumen a Word',
+              tooltip: l10n.exportSummaryToWord,
               onPressed: () {
                 if (!const PlanGuardService().canExportDocx) {
                   showUpgradeRequired(
                     context,
-                    featureName: 'Exportar resumen a Word',
+                    featureName: l10n.exportSummaryToWord,
                   );
                   return;
                 }
 
                 ExportService.exportTextToDocx(
-                  title: 'Resumen IA',
+                  title: l10n.aiSummary,
                   content: _cleanMarkdown(summary),
                 );
               },
@@ -63,18 +65,18 @@ class DashboardSummarySection extends StatelessWidget {
               ),
             ),
             IconButton(
-              tooltip: 'Exportar resumen a PowerPoint',
+              tooltip: l10n.exportSummaryToPowerPoint,
               onPressed: () {
                 if (!const PlanGuardService().canExportPptx) {
                   showUpgradeRequired(
                     context,
-                    featureName: 'Exportar resumen a PowerPoint',
+                    featureName: l10n.exportSummaryToPowerPoint,
                   );
                   return;
                 }
 
                 ExportService.exportTextToPptx(
-                  title: 'Resumen IA',
+                  title: l10n.aiSummary,
                   content: _cleanMarkdown(summary),
                 );
               },
@@ -84,18 +86,18 @@ class DashboardSummarySection extends StatelessWidget {
               ),
             ),
             IconButton(
-              tooltip: 'Exportar resumen a PDF',
+              tooltip: l10n.exportSummaryToPdf,
               onPressed: () {
                 if (!const PlanGuardService().canExportPdf) {
                   showUpgradeRequired(
                     context,
-                    featureName: 'Exportar resumen a PDF',
+                    featureName: l10n.exportSummaryToPdf,
                   );
                   return;
                 }
 
                 ExportService.exportTextToPdf(
-                  title: 'Resumen IA',
+                  title: l10n.aiSummary,
                   content: _cleanMarkdown(summary),
                 );
               },

@@ -210,7 +210,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get ragReady => 'Prêt';
 
   @override
-  String get ragActive => 'Actif';
+  String get ragActive => 'RAG actif';
 
   @override
   String get aiTools => 'Outils IA';
@@ -326,4 +326,71 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get clear => 'Effacer';
+
+  @override
+  String get generatedAudio => 'Audio généré';
+
+  @override
+  String get audioNotGeneratedSubtitle =>
+      'Transformez le résumé en cours audio.';
+
+  @override
+  String get audioGeneratedSubtitle =>
+      'Écoutez le résumé comme un cours audio.';
+
+  @override
+  String get audioNotGeneratedDescription =>
+      'L’audio n’a pas encore été généré. Vous pouvez le créer maintenant sans bloquer le chargement du document.';
+
+  @override
+  String get generating => 'Génération...';
+
+  @override
+  String get generateAudio => 'Générer l’audio';
+
+  @override
+  String get smartAudiobook => 'Livre audio intelligent';
+
+  @override
+  String get pauseAudio => 'Mettre l’audio en pause';
+
+  @override
+  String get playAudio => 'Lire l’audio';
+
+  @override
+  String get aiSummary => 'Résumé IA';
+
+  @override
+  String get summarySubtitle => 'Synthèse claire du document importé.';
+
+  @override
+  String get exportSummaryToWord => 'Exporter le résumé vers Word';
+
+  @override
+  String get exportSummaryToPowerPoint => 'Exporter le résumé vers PowerPoint';
+
+  @override
+  String get exportSummaryToPdf => 'Exporter le résumé en PDF';
+
+  @override
+  String get processingDocument => 'Traitement du document...';
+
+  @override
+  String get processingDocumentDescription =>
+      'Génération du résumé IA, de l’audio et des embeddings RAG.';
+
+  @override
+  String get activeWorkspace => 'Workspace actif';
+
+  @override
+  String get documentReadyToStudy => 'Document prêt à étudier';
+
+  @override
+  String get aiReady => 'IA prête';
+
+  @override
+  String get audioAvailable => 'Audio disponible';
+
+  @override
+  String get openAiChat => 'Ouvrir le Chat IA';
 }

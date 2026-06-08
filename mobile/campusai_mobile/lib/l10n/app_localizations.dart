@@ -489,7 +489,7 @@ abstract class AppLocalizations {
   /// No description provided for @ragActive.
   ///
   /// In es, this message translates to:
-  /// **'Activo'**
+  /// **'RAG activo'**
   String get ragActive;
 
   /// No description provided for @aiTools.
@@ -707,6 +707,132 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Limpiar'**
   String get clear;
+
+  /// No description provided for @generatedAudio.
+  ///
+  /// In es, this message translates to:
+  /// **'Audio generado'**
+  String get generatedAudio;
+
+  /// No description provided for @audioNotGeneratedSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Convierte el resumen en una audioclase.'**
+  String get audioNotGeneratedSubtitle;
+
+  /// No description provided for @audioGeneratedSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Escucha el resumen como audioclase.'**
+  String get audioGeneratedSubtitle;
+
+  /// No description provided for @audioNotGeneratedDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'El audio aún no ha sido generado. Puedes crearlo ahora sin bloquear la carga del documento.'**
+  String get audioNotGeneratedDescription;
+
+  /// No description provided for @generating.
+  ///
+  /// In es, this message translates to:
+  /// **'Generando...'**
+  String get generating;
+
+  /// No description provided for @generateAudio.
+  ///
+  /// In es, this message translates to:
+  /// **'Generar audio'**
+  String get generateAudio;
+
+  /// No description provided for @smartAudiobook.
+  ///
+  /// In es, this message translates to:
+  /// **'Audiolibro inteligente'**
+  String get smartAudiobook;
+
+  /// No description provided for @pauseAudio.
+  ///
+  /// In es, this message translates to:
+  /// **'Pausar audio'**
+  String get pauseAudio;
+
+  /// No description provided for @playAudio.
+  ///
+  /// In es, this message translates to:
+  /// **'Reproducir audio'**
+  String get playAudio;
+
+  /// No description provided for @aiSummary.
+  ///
+  /// In es, this message translates to:
+  /// **'Resumen IA'**
+  String get aiSummary;
+
+  /// No description provided for @summarySubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Síntesis clara del documento cargado.'**
+  String get summarySubtitle;
+
+  /// No description provided for @exportSummaryToWord.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar resumen a Word'**
+  String get exportSummaryToWord;
+
+  /// No description provided for @exportSummaryToPowerPoint.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar resumen a PowerPoint'**
+  String get exportSummaryToPowerPoint;
+
+  /// No description provided for @exportSummaryToPdf.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportar resumen a PDF'**
+  String get exportSummaryToPdf;
+
+  /// No description provided for @processingDocument.
+  ///
+  /// In es, this message translates to:
+  /// **'Procesando documento...'**
+  String get processingDocument;
+
+  /// No description provided for @processingDocumentDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Generando resumen IA, audio y embeddings RAG.'**
+  String get processingDocumentDescription;
+
+  /// No description provided for @activeWorkspace.
+  ///
+  /// In es, this message translates to:
+  /// **'Workspace activo'**
+  String get activeWorkspace;
+
+  /// No description provided for @documentReadyToStudy.
+  ///
+  /// In es, this message translates to:
+  /// **'Documento listo para estudiar'**
+  String get documentReadyToStudy;
+
+  /// No description provided for @aiReady.
+  ///
+  /// In es, this message translates to:
+  /// **'IA lista'**
+  String get aiReady;
+
+  /// No description provided for @audioAvailable.
+  ///
+  /// In es, this message translates to:
+  /// **'Audio disponible'**
+  String get audioAvailable;
+
+  /// No description provided for @openAiChat.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir Chat IA'**
+  String get openAiChat;
 }
 
 class _AppLocalizationsDelegate

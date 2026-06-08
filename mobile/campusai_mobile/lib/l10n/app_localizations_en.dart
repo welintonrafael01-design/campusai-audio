@@ -208,7 +208,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ragReady => 'Ready';
 
   @override
-  String get ragActive => 'Active';
+  String get ragActive => 'RAG active';
 
   @override
   String get aiTools => 'AI Tools';
@@ -320,4 +320,71 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clear => 'Clear';
+
+  @override
+  String get generatedAudio => 'Generated audio';
+
+  @override
+  String get audioNotGeneratedSubtitle =>
+      'Turn the summary into an audio lesson.';
+
+  @override
+  String get audioGeneratedSubtitle =>
+      'Listen to the summary as an audio lesson.';
+
+  @override
+  String get audioNotGeneratedDescription =>
+      'The audio has not been generated yet. You can create it now without blocking the document load.';
+
+  @override
+  String get generating => 'Generating...';
+
+  @override
+  String get generateAudio => 'Generate audio';
+
+  @override
+  String get smartAudiobook => 'Smart audiobook';
+
+  @override
+  String get pauseAudio => 'Pause audio';
+
+  @override
+  String get playAudio => 'Play audio';
+
+  @override
+  String get aiSummary => 'AI Summary';
+
+  @override
+  String get summarySubtitle => 'Clear synthesis of the uploaded document.';
+
+  @override
+  String get exportSummaryToWord => 'Export summary to Word';
+
+  @override
+  String get exportSummaryToPowerPoint => 'Export summary to PowerPoint';
+
+  @override
+  String get exportSummaryToPdf => 'Export summary to PDF';
+
+  @override
+  String get processingDocument => 'Processing document...';
+
+  @override
+  String get processingDocumentDescription =>
+      'Generating AI summary, audio, and RAG embeddings.';
+
+  @override
+  String get activeWorkspace => 'Active workspace';
+
+  @override
+  String get documentReadyToStudy => 'Document ready to study';
+
+  @override
+  String get aiReady => 'AI ready';
+
+  @override
+  String get audioAvailable => 'Audio available';
+
+  @override
+  String get openAiChat => 'Open AI Chat';
 }

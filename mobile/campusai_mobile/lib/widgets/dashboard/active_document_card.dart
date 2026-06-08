@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/section_card.dart';
 
@@ -17,6 +18,7 @@ class ActiveDocumentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (!hasActiveDocument) {
       return const SizedBox.shrink();
     }
@@ -40,21 +42,21 @@ class ActiveDocumentCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Workspace activo',
+                      l10n.activeWorkspace,
                       style: TextStyle(
                         color: AppTheme.textMuted,
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'Documento listo para estudiar',
+                      l10n.documentReadyToStudy,
                       style: TextStyle(
                         color: AppTheme.textPrimary,
                         fontSize: 19,
@@ -69,7 +71,7 @@ class ActiveDocumentCard extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           Text(
-            fileName.isEmpty ? 'Documento PDF' : fileName,
+            fileName.isEmpty ? l10n.defaultPdfDocumentName : fileName,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
@@ -83,18 +85,18 @@ class ActiveDocumentCard extends StatelessWidget {
           Wrap(
             spacing: 10,
             runSpacing: 10,
-            children: const [
+            children: [
               _MiniBadge(
                 icon: Icons.hub_rounded,
-                label: 'RAG activo',
+                label: l10n.ragActive,
               ),
               _MiniBadge(
                 icon: Icons.auto_awesome_rounded,
-                label: 'IA lista',
+                label: l10n.aiReady,
               ),
               _MiniBadge(
                 icon: Icons.graphic_eq_rounded,
-                label: 'Audio disponible',
+                label: l10n.audioAvailable,
               ),
             ],
           ),
@@ -102,7 +104,7 @@ class ActiveDocumentCard extends StatelessWidget {
           ElevatedButton.icon(
             onPressed: openChat,
             icon: const Icon(Icons.chat_bubble_rounded),
-            label: const Text('Abrir Chat IA'),
+            label: Text(l10n.openAiChat),
           ),
         ],
       ),
@@ -125,8 +127,8 @@ class _StatusBadge extends StatelessWidget {
           color: AppTheme.success.withValues(alpha: 0.35),
         ),
       ),
-      child: const Text(
-        'Activo',
+      child: Text(
+        AppLocalizations.of(context).ragActive,
         style: TextStyle(
           color: AppTheme.success,
           fontWeight: FontWeight.w900,
