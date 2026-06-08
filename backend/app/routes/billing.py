@@ -218,19 +218,6 @@ def get_my_subscription_endpoint(
         )
 
 
-@router.get("/subscription/{user_id}")
-def get_subscription_endpoint(user_id: str):
-    try:
-        return get_user_subscription(
-            user_id=user_id,
-        )
-    except Exception as error:
-        raise HTTPException(
-            status_code=500,
-            detail=str(error),
-        )
-
-
 @router.get("/usage/me")
 def get_my_usage_endpoint(
     current_user: AuthenticatedUser = Depends(require_current_user),
