@@ -179,6 +179,144 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Idioma'**
   String get language;
+
+  /// No description provided for @preferences.
+  ///
+  /// In es, this message translates to:
+  /// **'Preferencias'**
+  String get preferences;
+
+  /// No description provided for @settingsSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Personaliza tu experiencia StudyBook AI.'**
+  String get settingsSubtitle;
+
+  /// No description provided for @darkMode.
+  ///
+  /// In es, this message translates to:
+  /// **'Modo oscuro'**
+  String get darkMode;
+
+  /// No description provided for @darkModeDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambia entre tema claro y oscuro.'**
+  String get darkModeDescription;
+
+  /// No description provided for @languageDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Selecciona el idioma de la aplicación.'**
+  String get languageDescription;
+
+  /// No description provided for @clearHistory.
+  ///
+  /// In es, this message translates to:
+  /// **'Limpiar historial'**
+  String get clearHistory;
+
+  /// No description provided for @clearHistoryDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Elimina documentos y datos locales.'**
+  String get clearHistoryDescription;
+
+  /// No description provided for @historyCleared.
+  ///
+  /// In es, this message translates to:
+  /// **'Historial eliminado correctamente.'**
+  String get historyCleared;
+
+  /// No description provided for @planAndSubscription.
+  ///
+  /// In es, this message translates to:
+  /// **'Plan y suscripción'**
+  String get planAndSubscription;
+
+  /// No description provided for @planAndSubscriptionDescription.
+  ///
+  /// In es, this message translates to:
+  /// **'Sincroniza tu plan real desde Supabase. El selector manual solo se activa en modo desarrollo.'**
+  String get planAndSubscriptionDescription;
+
+  /// No description provided for @syncReal.
+  ///
+  /// In es, this message translates to:
+  /// **'Sincronizar real'**
+  String get syncReal;
+
+  /// No description provided for @useFree.
+  ///
+  /// In es, this message translates to:
+  /// **'Usar Free'**
+  String get useFree;
+
+  /// No description provided for @usePro.
+  ///
+  /// In es, this message translates to:
+  /// **'Usar Pro'**
+  String get usePro;
+
+  /// No description provided for @useEducator.
+  ///
+  /// In es, this message translates to:
+  /// **'Usar Educator'**
+  String get useEducator;
+
+  /// No description provided for @usageTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Uso del plan'**
+  String get usageTitle;
+
+  /// No description provided for @loadingPlanUsage.
+  ///
+  /// In es, this message translates to:
+  /// **'Cargando uso del plan...'**
+  String get loadingPlanUsage;
+
+  /// No description provided for @activePlan.
+  ///
+  /// In es, this message translates to:
+  /// **'Plan activo'**
+  String get activePlan;
+
+  /// No description provided for @pdfsUploadedToday.
+  ///
+  /// In es, this message translates to:
+  /// **'PDFs subidos hoy'**
+  String get pdfsUploadedToday;
+
+  /// No description provided for @chatMessagesToday.
+  ///
+  /// In es, this message translates to:
+  /// **'Mensajes de chat hoy'**
+  String get chatMessagesToday;
+
+  /// No description provided for @exams.
+  ///
+  /// In es, this message translates to:
+  /// **'Exámenes'**
+  String get exams;
+
+  /// No description provided for @exports.
+  ///
+  /// In es, this message translates to:
+  /// **'Exportaciones'**
+  String get exports;
+
+  /// No description provided for @today.
+  ///
+  /// In es, this message translates to:
+  /// **'hoy'**
+  String get today;
+
+  /// No description provided for @perPdf.
+  ///
+  /// In es, this message translates to:
+  /// **'por PDF'**
+  String get perPdf;
 }
 
 class _AppLocalizationsDelegate

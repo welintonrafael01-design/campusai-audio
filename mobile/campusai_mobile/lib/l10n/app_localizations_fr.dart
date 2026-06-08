@@ -46,4 +46,75 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get language => 'Langue';
+
+  @override
+  String get preferences => 'Préférences';
+
+  @override
+  String get settingsSubtitle => 'Personnalisez votre expérience StudyBook AI.';
+
+  @override
+  String get darkMode => 'Mode sombre';
+
+  @override
+  String get darkModeDescription => 'Basculez entre le thème clair et sombre.';
+
+  @override
+  String get languageDescription => 'Sélectionnez la langue de l’application.';
+
+  @override
+  String get clearHistory => 'Effacer l’historique';
+
+  @override
+  String get clearHistoryDescription =>
+      'Supprime les documents et données locaux.';
+
+  @override
+  String get historyCleared => 'Historique supprimé correctement.';
+
+  @override
+  String get planAndSubscription => 'Forfait et abonnement';
+
+  @override
+  String get planAndSubscriptionDescription =>
+      'Synchronisez votre forfait réel depuis Supabase. Le sélecteur manuel n’est activé qu’en mode développement.';
+
+  @override
+  String get syncReal => 'Synchroniser le forfait';
+
+  @override
+  String get useFree => 'Utiliser Free';
+
+  @override
+  String get usePro => 'Utiliser Pro';
+
+  @override
+  String get useEducator => 'Utiliser Educator';
+
+  @override
+  String get usageTitle => 'Utilisation du forfait';
+
+  @override
+  String get loadingPlanUsage => 'Chargement de l’utilisation du forfait...';
+
+  @override
+  String get activePlan => 'Forfait actif';
+
+  @override
+  String get pdfsUploadedToday => 'PDFs importés aujourd’hui';
+
+  @override
+  String get chatMessagesToday => 'Messages de chat aujourd’hui';
+
+  @override
+  String get exams => 'Examens';
+
+  @override
+  String get exports => 'Exportations';
+
+  @override
+  String get today => 'aujourd’hui';
+
+  @override
+  String get perPdf => 'par PDF';
 }

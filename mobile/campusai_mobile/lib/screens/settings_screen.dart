@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../config/app_plans.dart';
+import '../l10n/app_localizations.dart';
 import '../providers/theme_provider.dart';
 import '../providers/locale_provider.dart';
 import '../services/api_service.dart';
@@ -68,7 +69,6 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-
   Future<void> openBillingPortal(
     BuildContext context,
   ) async {
@@ -106,17 +106,17 @@ class SettingsScreen extends ConsumerWidget {
     if (!context.mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Text(
-          'Historial eliminado correctamente.',
+          AppLocalizations.of(context).historyCleared,
         ),
       ),
     );
   }
 
-
   Widget buildUsageSummaryCard(
     BuildContext context,
+    AppLocalizations l10n,
   ) {
     return FutureBuilder<Map<String, dynamic>>(
       future: ApiService.getUsageSummary(),
@@ -132,7 +132,7 @@ class SettingsScreen extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     label,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppTheme.textMuted,
                       fontWeight: FontWeight.w700,
                     ),
@@ -140,7 +140,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppTheme.textPrimary,
                     fontWeight: FontWeight.w900,
                   ),
@@ -199,8 +199,8 @@ class SettingsScreen extends ConsumerWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return SectionCard(
             child: Row(
-              children: const [
-                SizedBox(
+              children: [
+                const SizedBox(
                   width: 18,
                   height: 18,
                   child: CircularProgressIndicator(
@@ -209,7 +209,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 SizedBox(width: 14),
                 Text(
-                  'Cargando uso del plan...',
+                  l10n.loadingPlanUsage,
                   style: TextStyle(
                     color: AppTheme.textMuted,
                   ),
@@ -231,7 +231,7 @@ class SettingsScreen extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     'No se pudo cargar el uso del plan: ${snapshot.error}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppTheme.textMuted,
                       height: 1.4,
                     ),
@@ -258,8 +258,8 @@ class SettingsScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                children: const [
-                  Icon(
+                children: [
+                  const Icon(
                     Icons.analytics_rounded,
                     color: AppTheme.accent,
                   ),
@@ -276,14 +276,14 @@ class SettingsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                'Plan activo: $plan',
-                style: const TextStyle(
+                '${l10n.activePlan}: $plan',
+                style: TextStyle(
                   color: AppTheme.textMuted,
                 ),
               ),
               const SizedBox(height: 16),
               usageRow(
-                'PDFs subidos hoy',
+                l10n.pdfsUploadedToday,
                 usedLimit(
                   usage,
                   'pdf_uploads',
@@ -291,7 +291,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ),
               usageRow(
-                'Mensajes de chat hoy',
+                l10n.chatMessagesToday,
                 usedLimit(
                   usage,
                   'chat_messages',
@@ -307,7 +307,7 @@ class SettingsScreen extends ConsumerWidget {
                 )} por PDF',
               ),
               usageRow(
-                'Exámenes',
+                l10n.exams,
                 '${usedLimit(
                   usage,
                   'exams_generated',
@@ -315,7 +315,7 @@ class SettingsScreen extends ConsumerWidget {
                 )} por PDF',
               ),
               usageRow(
-                'Exportaciones',
+                l10n.exports,
                 exportsText(usage),
               ),
             ],
@@ -325,37 +325,34 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-
   @override
   Widget build(
     BuildContext context,
     WidgetRef ref,
   ) {
-    final themeMode =
-        ref.watch(themeProvider);
+    final l10n = AppLocalizations.of(context);
+
+    final themeMode = ref.watch(themeProvider);
 
     final locale = ref.watch(localeProvider);
 
-    final localeNotifier =
-        ref.read(localeProvider.notifier);
+    final localeNotifier = ref.read(localeProvider.notifier);
 
-    final themeNotifier =
-        ref.read(themeProvider.notifier);
+    final themeNotifier = ref.read(themeProvider.notifier);
 
-    final isDark =
-        themeMode == ThemeMode.dark;
+    final isDark = themeMode == ThemeMode.dark;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Configuración',
+        title: Text(
+          l10n.settingsTitle,
         ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(22),
         children: [
-          const Text(
-            'Preferencias',
+          Text(
+            l10n.preferences,
             style: TextStyle(
               color: AppTheme.textPrimary,
               fontSize: 28,
@@ -363,8 +360,8 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Personaliza tu experiencia StudyBook AI.',
+          Text(
+            l10n.settingsSubtitle,
             style: TextStyle(
               color: AppTheme.textMuted,
               height: 1.4,
@@ -377,13 +374,10 @@ class SettingsScreen extends ConsumerWidget {
             child: Row(
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    gradient:
-                        AppTheme.mainGradient,
-                    borderRadius:
-                        BorderRadius.circular(
+                    gradient: AppTheme.mainGradient,
+                    borderRadius: BorderRadius.circular(
                       16,
                     ),
                   ),
@@ -393,28 +387,23 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 14),
-                const Expanded(
+                Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment
-                            .start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Modo oscuro',
                         style: TextStyle(
-                          color: AppTheme
-                              .textPrimary,
-                          fontWeight:
-                              FontWeight.w800,
+                          color: AppTheme.textPrimary,
+                          fontWeight: FontWeight.w800,
                           fontSize: 16,
                         ),
                       ),
                       SizedBox(height: 4),
                       Text(
-                        'Cambia entre tema claro y oscuro.',
+                        l10n.darkModeDescription,
                         style: TextStyle(
-                          color: AppTheme
-                              .textMuted,
+                          color: AppTheme.textMuted,
                           height: 1.4,
                         ),
                       ),
@@ -424,14 +413,12 @@ class SettingsScreen extends ConsumerWidget {
                 Switch(
                   value: isDark,
                   onChanged: (_) {
-                    themeNotifier
-                        .toggleTheme();
+                    themeNotifier.toggleTheme();
                   },
                 ),
               ],
             ),
           ),
-
 
           const SizedBox(height: 18),
 
@@ -440,13 +427,10 @@ class SettingsScreen extends ConsumerWidget {
             child: Row(
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    gradient:
-                        AppTheme.mainGradient,
-                    borderRadius:
-                        BorderRadius.circular(
+                    gradient: AppTheme.mainGradient,
+                    borderRadius: BorderRadius.circular(
                       16,
                     ),
                   ),
@@ -456,28 +440,23 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 14),
-                const Expanded(
+                Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment
-                            .start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Idioma',
+                        l10n.language,
                         style: TextStyle(
-                          color: AppTheme
-                              .textPrimary,
-                          fontWeight:
-                              FontWeight.w800,
+                          color: AppTheme.textPrimary,
+                          fontWeight: FontWeight.w800,
                           fontSize: 16,
                         ),
                       ),
                       SizedBox(height: 4),
                       Text(
-                        'Selecciona el idioma de la aplicación.',
+                        l10n.languageDescription,
                         style: TextStyle(
-                          color: AppTheme
-                              .textMuted,
+                          color: AppTheme.textMuted,
                           height: 1.4,
                         ),
                       ),
@@ -521,20 +500,16 @@ class SettingsScreen extends ConsumerWidget {
 
           /// HISTORY
           SectionCard(
-            onTap: () =>
-                clearHistory(context),
+            onTap: () => clearHistory(context),
             child: Row(
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.danger
-                        .withValues(
+                    color: AppTheme.danger.withValues(
                       alpha: 0.15,
                     ),
-                    borderRadius:
-                        BorderRadius.circular(
+                    borderRadius: BorderRadius.circular(
                       16,
                     ),
                   ),
@@ -544,28 +519,23 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 14),
-                const Expanded(
+                Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment
-                            .start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Limpiar historial',
+                        l10n.clearHistory,
                         style: TextStyle(
-                          color: AppTheme
-                              .textPrimary,
-                          fontWeight:
-                              FontWeight.w800,
+                          color: AppTheme.textPrimary,
+                          fontWeight: FontWeight.w800,
                           fontSize: 16,
                         ),
                       ),
                       SizedBox(height: 4),
                       Text(
-                        'Elimina documentos y datos locales.',
+                        l10n.clearHistoryDescription,
                         style: TextStyle(
-                          color: AppTheme
-                              .textMuted,
+                          color: AppTheme.textMuted,
                           height: 1.4,
                         ),
                       ),
@@ -589,13 +559,10 @@ class SettingsScreen extends ConsumerWidget {
             child: Row(
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    gradient:
-                        AppTheme.mainGradient,
-                    borderRadius:
-                        BorderRadius.circular(
+                    gradient: AppTheme.mainGradient,
+                    borderRadius: BorderRadius.circular(
                       16,
                     ),
                   ),
@@ -607,19 +574,15 @@ class SettingsScreen extends ConsumerWidget {
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment
-                            .start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         'Plan actual: ${const PlanGuardService().currentPlanName}\n'
                         'Fuente: ${const PlanGuardService().currentPlanSource}\n'
                         'Estado: ${const PlanGuardService().currentSubscriptionStatus}',
                         style: TextStyle(
-                          color: AppTheme
-                              .textPrimary,
-                          fontWeight:
-                              FontWeight.w800,
+                          color: AppTheme.textPrimary,
+                          fontWeight: FontWeight.w800,
                           fontSize: 16,
                         ),
                       ),
@@ -627,8 +590,7 @@ class SettingsScreen extends ConsumerWidget {
                       Text(
                         'Ver planes Free, Pro y Educator, límites y beneficios.',
                         style: TextStyle(
-                          color: AppTheme
-                              .textMuted,
+                          color: AppTheme.textMuted,
                           height: 1.4,
                         ),
                       ),
@@ -646,7 +608,7 @@ class SettingsScreen extends ConsumerWidget {
 
           const SizedBox(height: 18),
 
-          buildUsageSummaryCard(context),
+          buildUsageSummaryCard(context, l10n),
 
           const SizedBox(height: 18),
 
@@ -655,8 +617,8 @@ class SettingsScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Plan y suscripción',
+                Text(
+                  l10n.planAndSubscription,
                   style: TextStyle(
                     color: AppTheme.textPrimary,
                     fontWeight: FontWeight.w800,
@@ -664,8 +626,8 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  'Sincroniza tu plan real desde Supabase. El selector manual solo se activa en modo desarrollo.',
+                Text(
+                  l10n.planAndSubscriptionDescription,
                   style: TextStyle(
                     color: AppTheme.textMuted,
                     height: 1.4,
@@ -684,21 +646,21 @@ class SettingsScreen extends ConsumerWidget {
                             CampusPlan.free,
                           );
                         },
-                        child: const Text('Usar Free'),
+                        child: Text(l10n.useFree),
                       ),
                     ],
                     OutlinedButton(
                       onPressed: () {
                         syncRealPlan(context);
                       },
-                      child: const Text('Sincronizar real'),
+                      child: Text(l10n.syncReal),
                     ),
                     FilledButton.icon(
                       onPressed: () {
                         openBillingPortal(context);
                       },
                       icon: const Icon(Icons.credit_card_rounded),
-                      label: const Text('Administrar suscripción'),
+                      label: Text(l10n.manageSubscription),
                     ),
                     if (enablePlanTester) ...[
                       FilledButton(
@@ -708,7 +670,7 @@ class SettingsScreen extends ConsumerWidget {
                             CampusPlan.pro,
                           );
                         },
-                        child: const Text('Usar Pro'),
+                        child: Text(l10n.usePro),
                       ),
                       FilledButton(
                         onPressed: () {
@@ -717,7 +679,7 @@ class SettingsScreen extends ConsumerWidget {
                             CampusPlan.educator,
                           );
                         },
-                        child: const Text('Usar Educator'),
+                        child: Text(l10n.useEducator),
                       ),
                     ],
                   ],
@@ -747,7 +709,7 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 14),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
