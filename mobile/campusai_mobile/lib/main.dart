@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'providers/theme_provider.dart';
+import 'providers/locale_provider.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 import 'l10n/app_localizations.dart';
@@ -40,6 +41,7 @@ class StudyBookApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeProvider);
+    final locale = ref.watch(localeProvider);
 
     return MaterialApp.router(
       title: 'StudyBook AI',
@@ -47,7 +49,7 @@ class StudyBookApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
-      locale: const Locale('es'),
+      locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
         AppLocalizations.delegate,

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../config/app_plans.dart';
 import '../providers/theme_provider.dart';
+import '../providers/locale_provider.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../services/billing_service.dart';
@@ -333,6 +334,11 @@ class SettingsScreen extends ConsumerWidget {
     final themeMode =
         ref.watch(themeProvider);
 
+    final locale = ref.watch(localeProvider);
+
+    final localeNotifier =
+        ref.read(localeProvider.notifier);
+
     final themeNotifier =
         ref.read(themeProvider.notifier);
 
@@ -426,7 +432,92 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
 
+
           const SizedBox(height: 18),
+
+          /// LANGUAGE
+          SectionCard(
+            child: Row(
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient:
+                        AppTheme.mainGradient,
+                    borderRadius:
+                        BorderRadius.circular(
+                      16,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.language_rounded,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment
+                            .start,
+                    children: [
+                      Text(
+                        'Idioma',
+                        style: TextStyle(
+                          color: AppTheme
+                              .textPrimary,
+                          fontWeight:
+                              FontWeight.w800,
+                          fontSize: 16,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Selecciona el idioma de la aplicación.',
+                        style: TextStyle(
+                          color: AppTheme
+                              .textMuted,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 14),
+                DropdownButton<String>(
+                  value: locale.languageCode,
+                  underline: const SizedBox.shrink(),
+                  borderRadius: BorderRadius.circular(16),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'es',
+                      child: Text('Español'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'en',
+                      child: Text('English'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'pt',
+                      child: Text('Português'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'fr',
+                      child: Text('Français'),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    if (value == null) {
+                      return;
+                    }
+
+                    localeNotifier.changeLocale(value);
+                  },
+                ),
+              ],
+            ),
+          ),
 
           /// HISTORY
           SectionCard(
