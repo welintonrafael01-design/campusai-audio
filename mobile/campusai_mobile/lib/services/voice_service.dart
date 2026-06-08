@@ -46,10 +46,10 @@ class VoiceService {
         }
       },
       listenOptions: SpeechListenOptions(
+        localeId: localeId,
         listenMode: ListenMode.confirmation,
         partialResults: true,
       ),
-      localeId: localeId,
     );
 
     return true;
