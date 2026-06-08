@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'api_service.dart';
+import 'auth_service.dart';
 
 class CloudApiService {
   static Future<Map<String, dynamic>>
@@ -16,6 +17,7 @@ class CloudApiService {
       ),
       headers: {
         'Content-Type': 'application/json',
+        ...AuthService.authHeaders,
       },
       body: jsonEncode({
         'name': name,
@@ -34,6 +36,7 @@ class CloudApiService {
       Uri.parse(
         '${ApiService.baseUrl}/cloud/workspaces',
       ),
+      headers: AuthService.authHeaders,
     );
 
     final data =
@@ -54,6 +57,7 @@ class CloudApiService {
       ),
       headers: {
         'Content-Type': 'application/json',
+        ...AuthService.authHeaders,
       },
       body: jsonEncode({
         'workspace_id': workspaceId,
@@ -83,7 +87,10 @@ class CloudApiService {
                 },
     );
 
-    final response = await http.get(uri);
+    final response = await http.get(
+      uri,
+      headers: AuthService.authHeaders,
+    );
 
     final data =
         ApiService.decodeResponse(response);
@@ -104,6 +111,7 @@ class CloudApiService {
       ),
       headers: {
         'Content-Type': 'application/json',
+        ...AuthService.authHeaders,
       },
       body: jsonEncode({
         if (workspaceId != null && workspaceId.isNotEmpty)
@@ -131,6 +139,7 @@ class CloudApiService {
       ),
       headers: {
         'Content-Type': 'application/json',
+        ...AuthService.authHeaders,
       },
       body: jsonEncode({
         'chat_id': chatId,
@@ -152,6 +161,7 @@ class CloudApiService {
       Uri.parse(
         '${ApiService.baseUrl}/cloud/messages/$chatId',
       ),
+      headers: AuthService.authHeaders,
     );
 
     final data =
@@ -167,6 +177,7 @@ class CloudApiService {
       Uri.parse(
         '${ApiService.baseUrl}/cloud/chats',
       ),
+      headers: AuthService.authHeaders,
     );
 
     final data = ApiService.decodeResponse(response);
@@ -183,6 +194,7 @@ class CloudApiService {
       Uri.parse(
         '${ApiService.baseUrl}/cloud/chats/$chatId/messages',
       ),
+      headers: AuthService.authHeaders,
     );
 
     final data = ApiService.decodeResponse(response);
@@ -199,6 +211,7 @@ class CloudApiService {
       Uri.parse(
         '${ApiService.baseUrl}/cloud/chats/$chatId',
       ),
+      headers: AuthService.authHeaders,
     );
 
     return ApiService.decodeResponse(response);
@@ -216,6 +229,7 @@ class CloudApiService {
       ),
       headers: {
         'Content-Type': 'application/json',
+        ...AuthService.authHeaders,
       },
       body: jsonEncode({
         'title': title,
