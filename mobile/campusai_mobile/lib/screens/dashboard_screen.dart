@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../layout/responsive_layout.dart';
+import '../l10n/app_localizations.dart';
 import '../models/document_history.dart';
 import '../models/recent_document_model.dart';
 import '../models/workspace_model.dart';
@@ -61,6 +62,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   String get fullAudioUrl => ApiService.buildAudioUrl(audioUrl);
 
   bool get hasActiveDocument => documentId.trim().isNotEmpty;
+
+  AppLocalizations get l10n => AppLocalizations.of(context);
 
   @override
   void initState() {
@@ -138,7 +141,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     });
   }
 
-
   Future<void> loadWorkspaces() async {
     final data = await WorkspaceService.getWorkspaces();
 
@@ -154,9 +156,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'Primero debes subir al menos un documento.',
+            l10n.uploadAtLeastOneDocument,
           ),
         ),
       );
@@ -184,23 +186,21 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     if (selectedDocuments.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'Debes seleccionar al menos un documento.',
+            l10n.selectAtLeastOneDocument,
           ),
         ),
       );
       return;
     }
 
-    String workspaceId =
-        DateTime.now().millisecondsSinceEpoch.toString();
+    String workspaceId = DateTime.now().millisecondsSinceEpoch.toString();
 
     try {
-      final cloudWorkspace =
-          await CloudApiService.createWorkspace(
+      final cloudWorkspace = await CloudApiService.createWorkspace(
         name: draft.name,
-        description: 'Workspace creado desde StudyBook AI',
+        description: l10n.workspaceCreatedFromStudyBook,
       );
 
       workspaceId = cloudWorkspace['id'] ?? workspaceId;
@@ -246,14 +246,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Future<void> openCloudChat(Map<String, dynamic> chat) async {
     final chatId = chat['id'] ?? '';
     final documentId = chat['document_id'] ?? '';
-    final title = chat['title'] ?? 'Conversación cloud';
+    final title = chat['title'] ?? l10n.cloudConversation;
 
-    if (chatId.toString().isEmpty ||
-        documentId.toString().isEmpty) {
+    if (chatId.toString().isEmpty || documentId.toString().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'Esta conversación no tiene documento asociado.',
+            l10n.conversationWithoutDocument,
           ),
         ),
       );
@@ -275,8 +274,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Future<void> openWorkspace(WorkspaceModel workspace) async {
     if (workspace.documents.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Este workspace no tiene documentos.'),
+        SnackBar(
+          content: Text(l10n.workspaceWithoutDocuments),
         ),
       );
       return;
@@ -291,9 +290,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     if (workspaceDocumentIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'Este workspace no tiene documentos válidos.',
+            l10n.workspaceWithoutValidDocuments,
           ),
         ),
       );
@@ -351,8 +350,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
       final document = DocumentHistory(
         documentId: data['document_id'] ?? '',
-        fileName: data['file_name'] ?? data['filename'] ?? 'Documento PDF',
-        summary: data['ai_summary'] ?? 'No se recibió resumen.',
+        fileName: data['file_name'] ??
+            data['filename'] ??
+            l10n.defaultPdfDocumentName,
+        summary: data['ai_summary'] ?? l10n.summaryNotReceived,
         audioUrl: data['audio_url'] ?? '',
         createdAt: DateTime.now().toIso8601String(),
       );
@@ -379,7 +380,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       );
       await ref.read(activeDocumentProvider.notifier).setDocument(document);
       await loadHistory();
-    await loadRecentDocuments();
+      await loadRecentDocuments();
     } catch (error) {
       if (!mounted) return;
 
@@ -410,8 +411,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
       if (!mounted) return;
 
-      final generatedAudioUrl =
-          data['audio_url'] ?? '';
+      final generatedAudioUrl = data['audio_url'] ?? '';
 
       setState(() {
         audioUrl = generatedAudioUrl;
@@ -428,7 +428,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       if (!mounted) return;
 
       setState(() {
-        errorMessage = 'No se pudo generar el audio: $error';
+        errorMessage = '${l10n.audioGenerationErrorPrefix}: $error';
       });
     } finally {
       if (mounted) {
@@ -454,7 +454,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       if (!mounted) return;
 
       setState(() {
-        errorMessage = 'No se pudo reproducir el audio: $error';
+        errorMessage = '${l10n.audioPlaybackErrorPrefix}: $error';
       });
     }
   }
@@ -484,7 +484,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       if (!mounted) return;
 
       setState(() {
-        errorMessage = 'No se pudo reiniciar el audio: $error';
+        errorMessage = '${l10n.audioReplayErrorPrefix}: $error';
       });
     }
   }
@@ -520,7 +520,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Documento cargado: ${item.fileName}')),
+      SnackBar(content: Text('${l10n.documentLoaded}: ${item.fileName}')),
     );
   }
 
@@ -611,13 +611,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         fileName = activeDocument.fileName;
       });
 
-      await ref.read(activeDocumentProvider.notifier).setDocument(activeDocument);
+      await ref
+          .read(activeDocumentProvider.notifier)
+          .setDocument(activeDocument);
     }
 
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Documento eliminado del historial.')),
+      SnackBar(content: Text(l10n.documentDeletedFromHistory)),
     );
   }
 
@@ -641,7 +643,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Historial eliminado.')),
+      SnackBar(content: Text(l10n.historyDeleted)),
     );
   }
 
@@ -652,14 +654,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         'documentId': selectedDocumentId,
       },
       queryParameters: {
-        'fileName': 'Resultado de búsqueda',
+        'fileName': l10n.searchResult,
       },
     );
   }
 
   void showNoActiveDocumentMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Primero sube o selecciona un documento.')),
+      SnackBar(content: Text(l10n.uploadOrSelectDocumentFirst)),
     );
   }
 
@@ -672,7 +674,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     context.pushNamed(
       'chat',
       pathParameters: {'documentId': documentId},
-      queryParameters: {'fileName': fileName.isEmpty ? 'Documento activo' : fileName},
+      queryParameters: {
+        'fileName': fileName.isEmpty ? l10n.activeDocument : fileName
+      },
     );
   }
 
@@ -719,134 +723,119 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget buildDashboardBody({
-  required bool effectiveHasActiveDocument,
-  required String effectiveFileName,
-}) {
-  return ListView(
-    padding: const EdgeInsets.all(22),
-    children: [
-      AnimatedFadeSlide(
-        child: DashboardHero(
-          documentCount: history.length,
-          hasActiveDocument: effectiveHasActiveDocument,
+    required bool effectiveHasActiveDocument,
+    required String effectiveFileName,
+  }) {
+    return ListView(
+      padding: const EdgeInsets.all(22),
+      children: [
+        AnimatedFadeSlide(
+          child: DashboardHero(
+            documentCount: history.length,
+            hasActiveDocument: effectiveHasActiveDocument,
+          ),
         ),
-      ),
-      const SizedBox(height: 18),
-
-      AnimatedFadeSlide(
-        delay: const Duration(milliseconds: 80),
-        child: DashboardStats(
-          documentCount: history.length,
-          hasActiveDocument: effectiveHasActiveDocument,
+        const SizedBox(height: 18),
+        AnimatedFadeSlide(
+          delay: const Duration(milliseconds: 80),
+          child: DashboardStats(
+            documentCount: history.length,
+            hasActiveDocument: effectiveHasActiveDocument,
+          ),
         ),
-      ),
-      const SizedBox(height: 28),
-
-      AnimatedFadeSlide(
-        delay: const Duration(milliseconds: 160),
-        child: DashboardTools(
-          isLoading: isLoading,
-          hasActiveDocument: effectiveHasActiveDocument,
-          uploadPdf: uploadPdf,
-          openChat: openChatScreen,
-          openExam: openExamScreen,
-          openFlashcards: openFlashcardsScreen,
+        const SizedBox(height: 28),
+        AnimatedFadeSlide(
+          delay: const Duration(milliseconds: 160),
+          child: DashboardTools(
+            isLoading: isLoading,
+            hasActiveDocument: effectiveHasActiveDocument,
+            uploadPdf: uploadPdf,
+            openChat: openChatScreen,
+            openExam: openExamScreen,
+            openFlashcards: openFlashcardsScreen,
+          ),
         ),
-      ),
-      const SizedBox(height: 22),
-
-      DashboardErrorCard(
+        const SizedBox(height: 22),
+        DashboardErrorCard(
           errorMessage: errorMessage,
         ),
-
-      if (errorMessage.isNotEmpty) const SizedBox(height: 20),
-
-      if (isLoading) ...[
-        const DashboardProcessingCard(),
+        if (errorMessage.isNotEmpty) const SizedBox(height: 20),
+        if (isLoading) ...[
+          const DashboardProcessingCard(),
+          const SizedBox(height: 24),
+        ],
+        if (!isLoading) ...[
+          DashboardSummarySection(
+            summary: summary,
+          ),
+          if (summary.isNotEmpty) const SizedBox(height: 24),
+          DashboardAudioSection(
+            fileName: fileName,
+            fullAudioUrl: fullAudioUrl,
+            isPlaying: isPlaying,
+            isGeneratingAudio: isGeneratingAudio,
+            hasSummary: summary.trim().isNotEmpty,
+            currentPosition: currentPosition,
+            totalDuration: totalDuration,
+            onGenerateAudio: generateAudio,
+            onPlayPause: isPlaying ? pauseAudio : playAudio,
+            onReplay: replayAudio,
+            onSeek: (value) {
+              audioService.seek(
+                Duration(seconds: value.toInt()),
+              );
+            },
+          ),
+          if (fullAudioUrl.isNotEmpty) const SizedBox(height: 28),
+        ],
+        AnimatedFadeSlide(
+          delay: const Duration(milliseconds: 240),
+          child: SemanticSearchPanel(
+            onOpenDocument: openSemanticSearchDocument,
+          ),
+        ),
         const SizedBox(height: 24),
+        AnimatedFadeSlide(
+          delay: const Duration(milliseconds: 280),
+          child: WorkspacesPanel(
+            workspaces: workspaces,
+            onCreateWorkspace: createWorkspace,
+            onOpenWorkspace: openWorkspace,
+            onDeleteWorkspace: deleteWorkspace,
+          ),
+        ),
+        const SizedBox(height: 24),
+        AnimatedFadeSlide(
+          delay: const Duration(milliseconds: 320),
+          child: RecentDocumentsPanel(
+            documents: recentDocuments,
+            onOpen: openRecentDocument,
+            onDelete: deleteRecentDocument,
+          ),
+        ),
+        const SizedBox(height: 24),
+        AnimatedFadeSlide(
+          delay: const Duration(milliseconds: 340),
+          child: CloudChatsPanel(
+            onOpenChat: openCloudChat,
+          ),
+        ),
+        const SizedBox(height: 24),
+        AnimatedFadeSlide(
+          delay: const Duration(milliseconds: 360),
+          child: HistoryList(
+            history: history,
+            clearHistory: clearAllHistory,
+            loadDocument: loadHistoryItem,
+            deleteDocument: deleteHistoryItem,
+          ),
+        ),
+        const SizedBox(height: 24),
+        const MiniPlayer(),
       ],
+    );
+  }
 
-      if (!isLoading) ...[
-        DashboardSummarySection(
-          summary: summary,
-        ),
-        if (summary.isNotEmpty) const SizedBox(height: 24),
-        DashboardAudioSection(
-          fileName: fileName,
-          fullAudioUrl: fullAudioUrl,
-          isPlaying: isPlaying,
-          isGeneratingAudio: isGeneratingAudio,
-          hasSummary: summary.trim().isNotEmpty,
-          currentPosition: currentPosition,
-          totalDuration: totalDuration,
-          onGenerateAudio: generateAudio,
-          onPlayPause: isPlaying ? pauseAudio : playAudio,
-          onReplay: replayAudio,
-          onSeek: (value) {
-            audioService.seek(
-              Duration(seconds: value.toInt()),
-            );
-          },
-        ),
-        if (fullAudioUrl.isNotEmpty) const SizedBox(height: 28),
-      ],
-
-      AnimatedFadeSlide(
-        delay: const Duration(milliseconds: 240),
-        child: SemanticSearchPanel(
-          onOpenDocument: openSemanticSearchDocument,
-        ),
-      ),
-
-      const SizedBox(height: 24),
-
-      AnimatedFadeSlide(
-        delay: const Duration(milliseconds: 280),
-        child: WorkspacesPanel(
-          workspaces: workspaces,
-          onCreateWorkspace: createWorkspace,
-          onOpenWorkspace: openWorkspace,
-          onDeleteWorkspace: deleteWorkspace,
-        ),
-      ),
-
-      const SizedBox(height: 24),
-
-      AnimatedFadeSlide(
-        delay: const Duration(milliseconds: 320),
-        child: RecentDocumentsPanel(
-          documents: recentDocuments,
-          onOpen: openRecentDocument,
-          onDelete: deleteRecentDocument,
-        ),
-      ),
-
-      const SizedBox(height: 24),
-
-      AnimatedFadeSlide(
-        delay: const Duration(milliseconds: 340),
-        child: CloudChatsPanel(
-          onOpenChat: openCloudChat,
-        ),
-      ),
-
-      const SizedBox(height: 24),
-
-      AnimatedFadeSlide(
-        delay: const Duration(milliseconds: 360),
-        child: HistoryList(
-          history: history,
-          clearHistory: clearAllHistory,
-          loadDocument: loadHistoryItem,
-          deleteDocument: deleteHistoryItem,
-        ),
-      ),
-
-      const SizedBox(height: 24),
-      const MiniPlayer(),
-    ],
-  );
-}
   @override
   Widget build(BuildContext context) {
     final activeDocument = ref.watch(activeDocumentProvider);
@@ -903,12 +892,10 @@ class _CreateWorkspaceDialog extends StatefulWidget {
   });
 
   @override
-  State<_CreateWorkspaceDialog> createState() =>
-      _CreateWorkspaceDialogState();
+  State<_CreateWorkspaceDialog> createState() => _CreateWorkspaceDialogState();
 }
 
-class _CreateWorkspaceDialogState
-    extends State<_CreateWorkspaceDialog> {
+class _CreateWorkspaceDialogState extends State<_CreateWorkspaceDialog> {
   late final TextEditingController nameController;
   final Set<String> selectedDocumentIds = {};
 
@@ -917,7 +904,7 @@ class _CreateWorkspaceDialogState
     super.initState();
 
     nameController = TextEditingController(
-      text: 'Mi workspace',
+      text: AppLocalizations.of(context).myWorkspace,
     );
   }
 
@@ -947,41 +934,37 @@ class _CreateWorkspaceDialogState
   @override
   Widget build(BuildContext context) {
     final canCreate =
-        nameController.text.trim().isNotEmpty &&
-        selectedDocumentIds.isNotEmpty;
+        nameController.text.trim().isNotEmpty && selectedDocumentIds.isNotEmpty;
 
     return AlertDialog(
-      title: const Text('Crear workspace'),
+      title: Text(AppLocalizations.of(context).createWorkspace),
       content: SizedBox(
         width: 520,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre del workspace',
-                  hintText:
-                      'Ej.: Tesis, Derecho Penal, Proyecto final',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).workspaceName,
+                  hintText: AppLocalizations.of(context).workspaceNameHint,
                 ),
                 onChanged: (_) {
                   setState(() {});
                 },
               ),
               const SizedBox(height: 18),
-              const Text(
-                'Selecciona documentos',
+              Text(
+                AppLocalizations.of(context).selectDocuments,
                 style: TextStyle(
                   fontWeight: FontWeight.w800,
                 ),
               ),
               const SizedBox(height: 8),
               ...widget.documents.map((document) {
-                final isSelected =
-                    selectedDocumentIds.contains(
+                final isSelected = selectedDocumentIds.contains(
                   document.documentId,
                 );
 
@@ -1017,14 +1000,13 @@ class _CreateWorkspaceDialogState
           onPressed: () {
             Navigator.of(context).pop();
           },
-          child: const Text('Cancelar'),
+          child: Text(AppLocalizations.of(context).cancel),
         ),
         FilledButton(
           onPressed: canCreate ? submit : null,
-          child: const Text('Crear'),
+          child: Text(AppLocalizations.of(context).create),
         ),
       ],
     );
   }
 }
-

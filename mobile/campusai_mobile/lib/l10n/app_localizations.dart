@@ -317,6 +317,156 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'por PDF'**
   String get perPdf;
+
+  /// No description provided for @uploadAtLeastOneDocument.
+  ///
+  /// In es, this message translates to:
+  /// **'Primero debes subir al menos un documento.'**
+  String get uploadAtLeastOneDocument;
+
+  /// No description provided for @selectAtLeastOneDocument.
+  ///
+  /// In es, this message translates to:
+  /// **'Debes seleccionar al menos un documento.'**
+  String get selectAtLeastOneDocument;
+
+  /// No description provided for @workspaceCreatedFromStudyBook.
+  ///
+  /// In es, this message translates to:
+  /// **'Workspace creado desde StudyBook AI'**
+  String get workspaceCreatedFromStudyBook;
+
+  /// No description provided for @cloudConversation.
+  ///
+  /// In es, this message translates to:
+  /// **'Conversación cloud'**
+  String get cloudConversation;
+
+  /// No description provided for @conversationWithoutDocument.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta conversación no tiene documento asociado.'**
+  String get conversationWithoutDocument;
+
+  /// No description provided for @workspaceWithoutDocuments.
+  ///
+  /// In es, this message translates to:
+  /// **'Este workspace no tiene documentos.'**
+  String get workspaceWithoutDocuments;
+
+  /// No description provided for @workspaceWithoutValidDocuments.
+  ///
+  /// In es, this message translates to:
+  /// **'Este workspace no tiene documentos válidos.'**
+  String get workspaceWithoutValidDocuments;
+
+  /// No description provided for @defaultPdfDocumentName.
+  ///
+  /// In es, this message translates to:
+  /// **'Documento PDF'**
+  String get defaultPdfDocumentName;
+
+  /// No description provided for @summaryNotReceived.
+  ///
+  /// In es, this message translates to:
+  /// **'No se recibió resumen.'**
+  String get summaryNotReceived;
+
+  /// No description provided for @audioGenerationErrorPrefix.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo generar el audio'**
+  String get audioGenerationErrorPrefix;
+
+  /// No description provided for @audioPlaybackErrorPrefix.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo reproducir el audio'**
+  String get audioPlaybackErrorPrefix;
+
+  /// No description provided for @audioReplayErrorPrefix.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo reiniciar el audio'**
+  String get audioReplayErrorPrefix;
+
+  /// No description provided for @documentLoaded.
+  ///
+  /// In es, this message translates to:
+  /// **'Documento cargado'**
+  String get documentLoaded;
+
+  /// No description provided for @documentDeletedFromHistory.
+  ///
+  /// In es, this message translates to:
+  /// **'Documento eliminado del historial.'**
+  String get documentDeletedFromHistory;
+
+  /// No description provided for @historyDeleted.
+  ///
+  /// In es, this message translates to:
+  /// **'Historial eliminado.'**
+  String get historyDeleted;
+
+  /// No description provided for @searchResult.
+  ///
+  /// In es, this message translates to:
+  /// **'Resultado de búsqueda'**
+  String get searchResult;
+
+  /// No description provided for @uploadOrSelectDocumentFirst.
+  ///
+  /// In es, this message translates to:
+  /// **'Primero sube o selecciona un documento.'**
+  String get uploadOrSelectDocumentFirst;
+
+  /// No description provided for @activeDocument.
+  ///
+  /// In es, this message translates to:
+  /// **'Documento activo'**
+  String get activeDocument;
+
+  /// No description provided for @createWorkspace.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear workspace'**
+  String get createWorkspace;
+
+  /// No description provided for @workspaceName.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre del workspace'**
+  String get workspaceName;
+
+  /// No description provided for @workspaceNameHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ej.: Tesis, Derecho Penal, Proyecto final'**
+  String get workspaceNameHint;
+
+  /// No description provided for @selectDocuments.
+  ///
+  /// In es, this message translates to:
+  /// **'Selecciona documentos'**
+  String get selectDocuments;
+
+  /// No description provided for @cancel.
+  ///
+  /// In es, this message translates to:
+  /// **'Cancelar'**
+  String get cancel;
+
+  /// No description provided for @create.
+  ///
+  /// In es, this message translates to:
+  /// **'Crear'**
+  String get create;
+
+  /// No description provided for @myWorkspace.
+  ///
+  /// In es, this message translates to:
+  /// **'Mi workspace'**
+  String get myWorkspace;
 }
 
 class _AppLocalizationsDelegate

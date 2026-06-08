@@ -116,4 +116,85 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get perPdf => 'por PDF';
+
+  @override
+  String get uploadAtLeastOneDocument =>
+      'Primero debes subir al menos un documento.';
+
+  @override
+  String get selectAtLeastOneDocument =>
+      'Debes seleccionar al menos un documento.';
+
+  @override
+  String get workspaceCreatedFromStudyBook =>
+      'Workspace creado desde StudyBook AI';
+
+  @override
+  String get cloudConversation => 'Conversación cloud';
+
+  @override
+  String get conversationWithoutDocument =>
+      'Esta conversación no tiene documento asociado.';
+
+  @override
+  String get workspaceWithoutDocuments => 'Este workspace no tiene documentos.';
+
+  @override
+  String get workspaceWithoutValidDocuments =>
+      'Este workspace no tiene documentos válidos.';
+
+  @override
+  String get defaultPdfDocumentName => 'Documento PDF';
+
+  @override
+  String get summaryNotReceived => 'No se recibió resumen.';
+
+  @override
+  String get audioGenerationErrorPrefix => 'No se pudo generar el audio';
+
+  @override
+  String get audioPlaybackErrorPrefix => 'No se pudo reproducir el audio';
+
+  @override
+  String get audioReplayErrorPrefix => 'No se pudo reiniciar el audio';
+
+  @override
+  String get documentLoaded => 'Documento cargado';
+
+  @override
+  String get documentDeletedFromHistory => 'Documento eliminado del historial.';
+
+  @override
+  String get historyDeleted => 'Historial eliminado.';
+
+  @override
+  String get searchResult => 'Resultado de búsqueda';
+
+  @override
+  String get uploadOrSelectDocumentFirst =>
+      'Primero sube o selecciona un documento.';
+
+  @override
+  String get activeDocument => 'Documento activo';
+
+  @override
+  String get createWorkspace => 'Crear workspace';
+
+  @override
+  String get workspaceName => 'Nombre del workspace';
+
+  @override
+  String get workspaceNameHint => 'Ej.: Tesis, Derecho Penal, Proyecto final';
+
+  @override
+  String get selectDocuments => 'Selecciona documentos';
+
+  @override
+  String get cancel => 'Cancelar';
+
+  @override
+  String get create => 'Crear';
+
+  @override
+  String get myWorkspace => 'Mi workspace';
 }

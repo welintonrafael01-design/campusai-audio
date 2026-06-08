@@ -117,4 +117,86 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get perPdf => 'par PDF';
+
+  @override
+  String get uploadAtLeastOneDocument =>
+      'Vous devez d’abord importer au moins un document.';
+
+  @override
+  String get selectAtLeastOneDocument =>
+      'Vous devez sélectionner au moins un document.';
+
+  @override
+  String get workspaceCreatedFromStudyBook =>
+      'Workspace créé depuis StudyBook AI';
+
+  @override
+  String get cloudConversation => 'Conversation cloud';
+
+  @override
+  String get conversationWithoutDocument =>
+      'Cette conversation n’a pas de document associé.';
+
+  @override
+  String get workspaceWithoutDocuments =>
+      'Ce workspace ne contient aucun document.';
+
+  @override
+  String get workspaceWithoutValidDocuments =>
+      'Ce workspace ne contient aucun document valide.';
+
+  @override
+  String get defaultPdfDocumentName => 'Document PDF';
+
+  @override
+  String get summaryNotReceived => 'Aucun résumé n’a été reçu.';
+
+  @override
+  String get audioGenerationErrorPrefix => 'Impossible de générer l’audio';
+
+  @override
+  String get audioPlaybackErrorPrefix => 'Impossible de lire l’audio';
+
+  @override
+  String get audioReplayErrorPrefix => 'Impossible de redémarrer l’audio';
+
+  @override
+  String get documentLoaded => 'Document chargé';
+
+  @override
+  String get documentDeletedFromHistory => 'Document supprimé de l’historique.';
+
+  @override
+  String get historyDeleted => 'Historique supprimé.';
+
+  @override
+  String get searchResult => 'Résultat de recherche';
+
+  @override
+  String get uploadOrSelectDocumentFirst =>
+      'Importez ou sélectionnez d’abord un document.';
+
+  @override
+  String get activeDocument => 'Document actif';
+
+  @override
+  String get createWorkspace => 'Créer un workspace';
+
+  @override
+  String get workspaceName => 'Nom du workspace';
+
+  @override
+  String get workspaceNameHint => 'Ex.: Thèse, Droit pénal, Projet final';
+
+  @override
+  String get selectDocuments => 'Sélectionnez des documents';
+
+  @override
+  String get cancel => 'Annuler';
+
+  @override
+  String get create => 'Créer';
+
+  @override
+  String get myWorkspace => 'Mon workspace';
 }
