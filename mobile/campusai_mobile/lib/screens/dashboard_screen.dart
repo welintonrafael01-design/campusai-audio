@@ -150,30 +150,198 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Future<void> createWorkspace() async {
+    if (recentDocuments.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Primero debes subir al menos un documento.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    final nameController = TextEditingController(
+      text: 'Mi workspace',
+    );
+
+    final selectedDocumentIds = <String>{};
+
+    final shouldCreate = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Crear workspace'),
+              content: SizedBox(
+                width: 520,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre del workspace',
+                          hintText: 'Ej.: Tesis, Derecho Penal, Proyecto final',
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Selecciona documentos',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ...recentDocuments.map((document) {
+                        final isSelected = selectedDocumentIds.contains(
+                          document.documentId,
+                        );
+
+                        return CheckboxListTile(
+                          value: isSelected,
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            document.fileName,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          onChanged: (value) {
+                            setDialogState(() {
+                              if (value == true) {
+                                selectedDocumentIds.add(
+                                  document.documentId,
+                                );
+                              } else {
+                                selectedDocumentIds.remove(
+                                  document.documentId,
+                                );
+                              }
+                            });
+                          },
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop(false);
+                  },
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: selectedDocumentIds.isEmpty
+                      ? null
+                      : () {
+                          Navigator.of(dialogContext).pop(true);
+                        },
+                  child: const Text('Crear'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (shouldCreate != true) {
+      nameController.dispose();
+      return;
+    }
+
+    final workspaceName = nameController.text.trim();
+
+    nameController.dispose();
+
+    if (workspaceName.isEmpty) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'El nombre del workspace no puede estar vacío.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    final selectedDocuments = recentDocuments
+        .where(
+          (document) => selectedDocumentIds.contains(
+            document.documentId,
+          ),
+        )
+        .toList();
+
+    if (selectedDocuments.isEmpty) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Debes seleccionar al menos un documento.',
+          ),
+        ),
+      );
+      return;
+    }
+
     String workspaceId =
         DateTime.now().millisecondsSinceEpoch.toString();
 
     try {
       final cloudWorkspace =
           await CloudApiService.createWorkspace(
-        name: 'Nuevo workspace',
+        name: workspaceName,
         description: 'Workspace creado desde StudyBook AI',
       );
 
       workspaceId = cloudWorkspace['id'] ?? workspaceId;
+
+      for (final document in selectedDocuments) {
+        try {
+          await CloudApiService.createDocument(
+            workspaceId: workspaceId,
+            documentName: document.fileName,
+            documentId: document.documentId,
+          );
+        } catch (error) {
+          debugPrint(
+            'No se pudo sincronizar documento cloud: $error',
+          );
+        }
+      }
     } catch (error) {
       debugPrint('No se pudo sincronizar workspace cloud: $error');
     }
 
     final workspace = WorkspaceModel(
       workspaceId: workspaceId,
-      name: 'Nuevo workspace',
-      documents: recentDocuments.take(3).toList(),
+      name: workspaceName,
+      documents: selectedDocuments,
       updatedAt: DateTime.now(),
     );
 
     await WorkspaceService.saveWorkspace(workspace);
     await loadWorkspaces();
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Workspace "$workspaceName" creado con ${selectedDocuments.length} documento(s).',
+        ),
+      ),
+    );
   }
 
   Future<void> openCloudChat(Map<String, dynamic> chat) async {

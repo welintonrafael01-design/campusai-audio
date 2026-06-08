@@ -180,6 +180,32 @@ def validate_document_owner(
         ) from error
 
 
+
+
+def validate_documents_owner(
+    *,
+    document_ids: list[str],
+    current_user: AuthenticatedUser,
+) -> None:
+    clean_document_ids = [
+        item.strip()
+        for item in document_ids
+        if item and item.strip()
+    ]
+
+    if not clean_document_ids:
+        raise HTTPException(
+            status_code=400,
+            detail="No hay documentos válidos.",
+        )
+
+    for document_id in clean_document_ids:
+        validate_document_owner(
+            document_id=document_id,
+            current_user=current_user,
+        )
+
+
 def build_document_context(
     document_id: str,
     question: str,
@@ -700,8 +726,14 @@ async def document_info(
 async def source_chunk(
     document_id: str = Query(default=""),
     chunk_index: int = Query(default=0),
+    current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
+        validate_document_owner(
+            document_id=document_id,
+            current_user=current_user,
+        )
+
         return get_source_chunk(
             document_id=document_id,
             chunk_index=chunk_index,
@@ -775,8 +807,14 @@ async def chat_workspace(
     document_ids: list[str] = Body(...),
     question: str = Query(default=""),
     history: list[dict] | None = Body(default=None),
+    current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
+        validate_documents_owner(
+            document_ids=document_ids,
+            current_user=current_user,
+        )
+
         answer = chat_with_workspace(
             document_ids=document_ids,
             question=question,
@@ -802,8 +840,14 @@ async def chat_workspace(
 async def stream_chat_workspace(
     document_ids: list[str] = Body(...),
     question: str = Query(default=""),
+    current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
+        validate_documents_owner(
+            document_ids=document_ids,
+            current_user=current_user,
+        )
+
         async def event_generator():
             async for chunk in stream_chat_with_workspace(
                 document_ids=document_ids,

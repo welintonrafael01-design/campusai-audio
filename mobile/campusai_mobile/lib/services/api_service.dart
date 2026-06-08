@@ -172,6 +172,7 @@ class ApiService {
           uri,
           headers: {
             'Content-Type': 'application/json',
+            ...AuthService.authHeaders,
           },
           body: jsonEncode({
             'document_ids': cleanDocumentIds,
