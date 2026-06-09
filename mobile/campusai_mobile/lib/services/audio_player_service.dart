@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:just_audio/just_audio.dart';
 
 class AudioPlayerService {
@@ -33,16 +31,12 @@ class AudioPlayerService {
 
         await player.stop();
 
-        await player.setAudioSource(
-          AudioSource.uri(
-            Uri.parse(cleanUrl),
-          ),
-        );
+        await player.setUrl(cleanUrl);
 
         await player.setSpeed(_currentSpeed);
       }
 
-      unawaited(player.play());
+      await player.play();
     } catch (error) {
       _currentUrl = null;
 
@@ -94,7 +88,7 @@ class AudioPlayerService {
 
   Future<void> replay() async {
     await player.seek(Duration.zero);
-    unawaited(player.play());
+    await player.play();
   }
 
   Future<void> skipForward({

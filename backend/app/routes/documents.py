@@ -41,6 +41,7 @@ from app.services.usage_limit_service import (
 from app.services.audio_service import (
     build_audio_url,
     generate_audio_from_text,
+    generate_audiobook_from_text,
 )
 
 from app.services.pdf_service import (
@@ -848,6 +849,61 @@ async def generate_audio_endpoint(
 
     except Exception as error:
         print(f"[AUDIO] error after {time.perf_counter() - start_time:.2f}s: {error}")
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
+
+
+@router.post("/audiobook")
+async def generate_audiobook_endpoint(
+    text: str = Query(default=""),
+    max_chapters: int = Query(default=6, ge=1, le=12),
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    start_time = time.perf_counter()
+
+    try:
+        if not text.strip():
+            raise HTTPException(
+                status_code=400,
+                detail="El texto para generar audiolibro está vacío.",
+            )
+
+        chapters = generate_audiobook_from_text(
+            text=text,
+            max_chapters=max_chapters,
+        )
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="audiobook_generated",
+            plan="unknown",
+            metadata={
+                "chapter_count": len(chapters),
+                "max_chapters": max_chapters,
+            },
+        )
+
+        print(
+            f"[AUDIOBOOK] chapters={len(chapters)} "
+            f"total={time.perf_counter() - start_time:.2f}s"
+        )
+
+        return {
+            "chapter_count": len(chapters),
+            "chapters": chapters,
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        print(
+            f"[AUDIOBOOK] error after "
+            f"{time.perf_counter() - start_time:.2f}s: {error}"
+        )
         raise HTTPException(
             status_code=500,
             detail=str(error),

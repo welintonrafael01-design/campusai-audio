@@ -72,3 +72,69 @@ def clean_input_text(text: str) -> str:
 
 def build_audio_url(audio_filename: str) -> str:
     return f"/audio/{audio_filename}"
+
+def split_text_into_chapters(
+    text: str,
+    max_chars: int = 2500,
+) -> list[str]:
+    clean_text = clean_input_text(text)
+
+    if not clean_text:
+        return []
+
+    paragraphs = [
+        item.strip()
+        for item in clean_text.split("\n")
+        if item.strip()
+    ]
+
+    if not paragraphs:
+        paragraphs = [
+            clean_text[index:index + max_chars]
+            for index in range(0, len(clean_text), max_chars)
+        ]
+
+    chapters: list[str] = []
+    current = ""
+
+    for paragraph in paragraphs:
+        if len(current) + len(paragraph) + 2 <= max_chars:
+            current = f"{current}\n\n{paragraph}".strip()
+        else:
+            if current:
+                chapters.append(current)
+            current = paragraph[:max_chars]
+
+    if current:
+        chapters.append(current)
+
+    return chapters
+
+
+def generate_audiobook_from_text(
+    text: str,
+    max_chapters: int = 6,
+) -> list[dict]:
+    chapters = split_text_into_chapters(text)
+
+    if not chapters:
+        raise ValueError("No hay texto suficiente para generar audiolibro.")
+
+    selected_chapters = chapters[:max_chapters]
+    audiobook: list[dict] = []
+
+    for index, chapter_text in enumerate(selected_chapters, start=1):
+        audio_filename = generate_audio_from_text(chapter_text)
+
+        audiobook.append(
+            {
+                "chapter": index,
+                "title": f"Capítulo {index}",
+                "text_preview": chapter_text[:280],
+                "audio_file": audio_filename,
+                "audio_url": build_audio_url(audio_filename),
+                "estimated_minutes": max(1, round(len(chapter_text) / 900)),
+            }
+        )
+
+    return audiobook

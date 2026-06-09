@@ -1,23 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/document_history.dart';
+import '../providers/audio_provider.dart';
 import '../services/history_service.dart';
+import '../services/api_service.dart';
+import '../services/audiobook_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/sidebar.dart';
 import '../layout/responsive_layout.dart';
 import '../widgets/section_card.dart';
+import '../widgets/mini_player.dart';
 
-class LibraryScreen extends StatefulWidget {
+class LibraryScreen extends ConsumerStatefulWidget {
   const LibraryScreen({super.key});
 
   @override
-  State<LibraryScreen> createState() => _LibraryScreenState();
+  ConsumerState<LibraryScreen> createState() => _LibraryScreenState();
 }
 
-class _LibraryScreenState extends State<LibraryScreen> {
+class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   List<DocumentHistory> documents = [];
   bool isLoading = true;
+  bool isGeneratingAudiobook = false;
 
   @override
   void initState() {
@@ -83,6 +89,109 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
   void openFlashcards(DocumentHistory document) {
     context.go('/flashcards/${document.documentId}');
+  }
+
+  Future<void> generateAudiobook(DocumentHistory document) async {
+    final text = document.cleanSummary;
+
+    if (text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Este documento no tiene resumen suficiente para crear un audiolibro.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    if (isGeneratingAudiobook) return;
+
+    setState(() {
+      isGeneratingAudiobook = true;
+    });
+
+    try {
+      final data = await const AudiobookService().generateAudiobookFromText(
+        text: text,
+        maxChapters: 6,
+      );
+
+      final rawChapters = data['chapters'];
+      final chapters = rawChapters is List ? rawChapters : [];
+
+      if (chapters.isEmpty) {
+        throw Exception('No se generaron capítulos de audio.');
+      }
+
+      if (!mounted) return;
+
+      await showDialog<void>(
+        context: context,
+        builder: (_) => _AudiobookChaptersDialog(
+          documentTitle: document.fileName,
+          chapters: chapters,
+          onPlayChapter: (chapter) async {
+            final audioUrl = chapter['audio_url']?.toString() ?? '';
+
+            if (audioUrl.trim().isEmpty) return;
+
+            final fullAudioUrl = ApiService.buildAudioUrl(audioUrl);
+
+            try {
+              debugPrint('[AUDIOBOOK_PLAY] url=$fullAudioUrl');
+
+              await ref.read(audioProvider.notifier).play(
+                    audioUrl: fullAudioUrl,
+                    title:
+                        '${chapter['title']?.toString() ?? 'Capítulo'} · ${document.fileName}',
+                  );
+
+              if (!mounted) return;
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Reproduciendo capítulo del audiolibro...'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            } catch (error) {
+              debugPrint('[AUDIOBOOK_PLAY_ERROR] $error');
+
+              if (!mounted) return;
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'No se pudo reproducir el capítulo: $error',
+                  ),
+                  behavior: SnackBarBehavior.floating,
+                  backgroundColor: AppTheme.danger,
+                ),
+              );
+            }
+          },
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'No se pudo crear el audiolibro: $error',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isGeneratingAudiobook = false;
+        });
+      }
+    }
   }
 
   Widget buildEmptyState() {
@@ -160,14 +269,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
               padding: const EdgeInsets.only(bottom: 14),
               child: _DocumentLibraryCard(
                 document: document,
+                isGeneratingAudiobook: isGeneratingAudiobook,
                 onSetActive: () => setActiveDocument(document),
                 onChat: () => openChat(document),
-                onAudio: () async {
-                  await setActiveDocument(document);
-
-                  if (!mounted) return;
-
-                  context.go('/dashboard');
+                onAudio: () {
+                  generateAudiobook(document);
                 },
                 onFlashcards: () => openFlashcards(document),
                 onExam: () => openExam(document),
@@ -220,6 +326,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
         ),
         const SizedBox(height: 22),
         buildLibraryContent(),
+        const SizedBox(height: 18),
+        const MiniPlayer(),
       ],
     );
   }
@@ -341,6 +449,7 @@ class _LibraryMetric extends StatelessWidget {
 
 class _DocumentLibraryCard extends StatelessWidget {
   final DocumentHistory document;
+  final bool isGeneratingAudiobook;
   final VoidCallback onSetActive;
   final VoidCallback onChat;
   final VoidCallback onAudio;
@@ -350,6 +459,7 @@ class _DocumentLibraryCard extends StatelessWidget {
 
   const _DocumentLibraryCard({
     required this.document,
+    required this.isGeneratingAudiobook,
     required this.onSetActive,
     required this.onChat,
     required this.onAudio,
@@ -435,10 +545,22 @@ class _DocumentLibraryCard extends StatelessWidget {
                 label: const Text('Chat'),
               ),
               OutlinedButton.icon(
-                onPressed: onAudio,
-                icon: const Icon(Icons.headphones_rounded),
+                onPressed: isGeneratingAudiobook ? null : onAudio,
+                icon: isGeneratingAudiobook
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.2,
+                        ),
+                      )
+                    : const Icon(Icons.headphones_rounded),
                 label: Text(
-                  document.hasAudio ? 'Escuchar' : 'Crear audio',
+                  isGeneratingAudiobook
+                      ? 'Creando...'
+                      : document.hasAudio
+                          ? 'Escuchar'
+                          : 'Crear audiolibro',
                 ),
               ),
               OutlinedButton.icon(
@@ -460,6 +582,154 @@ class _DocumentLibraryCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _AudiobookChaptersDialog extends StatelessWidget {
+  final String documentTitle;
+  final List<dynamic> chapters;
+  final Future<void> Function(Map<String, dynamic> chapter) onPlayChapter;
+
+  const _AudiobookChaptersDialog({
+    required this.documentTitle,
+    required this.chapters,
+    required this.onPlayChapter,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppTheme.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(28),
+      ),
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: AppTheme.mainGradient,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.headphones_rounded,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text(
+              'Audiolibro generado',
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ],
+      ),
+      content: SizedBox(
+        width: 520,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              documentTitle,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppTheme.textMuted,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              'Selecciona un capítulo. Luego usa el MiniPlayer para pausar, avanzar o reiniciar.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: AppTheme.textMuted,
+                height: 1.35,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: chapters.length,
+                itemBuilder: (context, index) {
+                  final rawChapter = chapters[index];
+                  final chapter = rawChapter is Map<String, dynamic>
+                      ? rawChapter
+                      : Map<String, dynamic>.from(rawChapter as Map);
+
+                  final title =
+                      chapter['title']?.toString() ?? 'Capítulo ${index + 1}';
+                  final estimatedMinutes =
+                      chapter['estimated_minutes']?.toString() ?? '1';
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      color: AppTheme.card,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: ListTile(
+                      leading: const Icon(
+                        Icons.headphones_rounded,
+                        color: AppTheme.accent,
+                      ),
+                      title: Text(
+                        title,
+                        style: const TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      subtitle: Text(
+                        '$estimatedMinutes min aprox. · toca reproducir',
+                        style: const TextStyle(
+                          color: AppTheme.textMuted,
+                        ),
+                      ),
+                      trailing: IconButton(
+                        tooltip: 'Reproducir capítulo',
+                        onPressed: () async {
+                          await onPlayChapter(chapter);
+
+                          if (!context.mounted) return;
+
+                          Navigator.of(context).pop();
+                        },
+                        icon: const Icon(
+                          Icons.play_circle_fill_rounded,
+                          color: AppTheme.accent,
+                        ),
+                      ),
+                      onTap: () async {
+                        await onPlayChapter(chapter);
+
+                        if (!context.mounted) return;
+
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text('Cerrar'),
+        ),
+      ],
     );
   }
 }
