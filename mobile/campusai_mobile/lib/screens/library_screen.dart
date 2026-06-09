@@ -9,6 +9,8 @@ import '../services/history_service.dart';
 import '../services/api_service.dart';
 import '../services/audiobook_service.dart';
 import '../services/audiobook_library_service.dart';
+import '../services/chat_history_service.dart';
+import '../services/study_result_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/sidebar.dart';
 import '../layout/responsive_layout.dart';
@@ -25,6 +27,9 @@ class LibraryScreen extends ConsumerStatefulWidget {
 class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   List<DocumentHistory> documents = [];
   List<AudiobookHistory> audiobooks = [];
+  List<_LibraryChatItem> savedChats = [];
+  List<_LibraryStudyItem> savedFlashcards = [];
+  List<_LibraryStudyItem> savedExams = [];
   bool isLoading = true;
   bool isGeneratingAudiobook = false;
 
@@ -40,11 +45,67 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     final savedAudiobooks =
         await const AudiobookLibraryService().getAudiobooks();
 
+    final chats = <_LibraryChatItem>[];
+    final flashcards = <_LibraryStudyItem>[];
+    final exams = <_LibraryStudyItem>[];
+
+    for (final document in items) {
+      final messages = await ChatHistoryService.loadMessages(
+        documentId: document.documentId,
+      );
+
+      final validMessages =
+          messages.where((message) => message.text.trim().isNotEmpty).toList();
+
+      if (validMessages.isNotEmpty) {
+        chats.add(
+          _LibraryChatItem(
+            document: document,
+            messageCount: validMessages.length,
+            lastMessage: validMessages.last.text,
+          ),
+        );
+      }
+
+      final flashcardResult = await StudyResultService.getResult(
+        documentId: document.documentId,
+        type: 'flashcards',
+      );
+
+      if (flashcardResult != null) {
+        flashcards.add(
+          _LibraryStudyItem(
+            document: document,
+            content: flashcardResult.content,
+            createdAt: flashcardResult.createdAt,
+          ),
+        );
+      }
+
+      final examResult = await StudyResultService.getResult(
+        documentId: document.documentId,
+        type: 'exam',
+      );
+
+      if (examResult != null) {
+        exams.add(
+          _LibraryStudyItem(
+            document: document,
+            content: examResult.content,
+            createdAt: examResult.createdAt,
+          ),
+        );
+      }
+    }
+
     if (!mounted) return;
 
     setState(() {
       documents = items;
       audiobooks = savedAudiobooks;
+      savedChats = chats;
+      savedFlashcards = flashcards;
+      savedExams = exams;
       isLoading = false;
     });
   }
@@ -313,6 +374,35 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             },
           ),
         ],
+        if (savedChats.isNotEmpty) ...[
+          const SizedBox(height: 18),
+          _SavedChatsSection(
+            chats: savedChats,
+            onOpenChat: openChat,
+          ),
+        ],
+        if (savedFlashcards.isNotEmpty) ...[
+          const SizedBox(height: 18),
+          _SavedStudySection(
+            icon: Icons.style_rounded,
+            title: 'Flashcards guardadas',
+            subtitle: 'Repasa tarjetas generadas desde tus documentos.',
+            items: savedFlashcards,
+            actionLabel: 'Abrir flashcards',
+            onOpen: openFlashcards,
+          ),
+        ],
+        if (savedExams.isNotEmpty) ...[
+          const SizedBox(height: 18),
+          _SavedStudySection(
+            icon: Icons.quiz_rounded,
+            title: 'Exámenes guardados',
+            subtitle: 'Accede a exámenes generados previamente.',
+            items: savedExams,
+            actionLabel: 'Abrir examen',
+            onOpen: openExam,
+          ),
+        ],
         const SizedBox(height: 18),
         ...documents.asMap().entries.map(
           (entry) {
@@ -493,6 +583,290 @@ class _LibraryMetric extends StatelessWidget {
               color: AppTheme.textPrimary,
               fontWeight: FontWeight.w900,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LibraryChatItem {
+  final DocumentHistory document;
+  final int messageCount;
+  final String lastMessage;
+
+  const _LibraryChatItem({
+    required this.document,
+    required this.messageCount,
+    required this.lastMessage,
+  });
+}
+
+class _LibraryStudyItem {
+  final DocumentHistory document;
+  final String content;
+  final String createdAt;
+
+  const _LibraryStudyItem({
+    required this.document,
+    required this.content,
+    required this.createdAt,
+  });
+
+  String get preview {
+    final cleanContent = content
+        .replaceAll('###', '')
+        .replaceAll('##', '')
+        .replaceAll('#', '')
+        .replaceAll('**', '')
+        .replaceAll('__', '')
+        .replaceAll('*', '')
+        .trim();
+
+    return cleanContent;
+  }
+}
+
+class _SavedChatsSection extends StatelessWidget {
+  final List<_LibraryChatItem> chats;
+  final void Function(DocumentHistory document) onOpenChat;
+
+  const _SavedChatsSection({
+    required this.chats,
+    required this.onOpenChat,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(
+                Icons.chat_bubble_rounded,
+                color: AppTheme.accent,
+              ),
+              SizedBox(width: 10),
+              Text(
+                'Chats guardados',
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Continúa conversaciones anteriores con tus documentos.',
+            style: TextStyle(
+              color: AppTheme.textMuted,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...chats.map(
+            (item) => _SavedChatTile(
+              item: item,
+              onOpenChat: onOpenChat,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SavedChatTile extends StatelessWidget {
+  final _LibraryChatItem item;
+  final void Function(DocumentHistory document) onOpenChat;
+
+  const _SavedChatTile({
+    required this.item,
+    required this.onOpenChat,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.card,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.06),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.forum_rounded,
+            color: AppTheme.accent,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.document.fileName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${item.messageCount} mensajes · ${item.lastMessage}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppTheme.textMuted,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          OutlinedButton.icon(
+            onPressed: () => onOpenChat(item.document),
+            icon: const Icon(Icons.open_in_new_rounded),
+            label: const Text('Abrir chat'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SavedStudySection extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final List<_LibraryStudyItem> items;
+  final String actionLabel;
+  final void Function(DocumentHistory document) onOpen;
+
+  const _SavedStudySection({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.items,
+    required this.actionLabel,
+    required this.onOpen,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                icon,
+                color: AppTheme.accent,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                title,
+                style: const TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            subtitle,
+            style: const TextStyle(
+              color: AppTheme.textMuted,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...items.map(
+            (item) => _SavedStudyTile(
+              item: item,
+              actionLabel: actionLabel,
+              onOpen: onOpen,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SavedStudyTile extends StatelessWidget {
+  final _LibraryStudyItem item;
+  final String actionLabel;
+  final void Function(DocumentHistory document) onOpen;
+
+  const _SavedStudyTile({
+    required this.item,
+    required this.actionLabel,
+    required this.onOpen,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.card,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.06),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.library_books_rounded,
+            color: AppTheme.success,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.document.fileName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  item.preview,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppTheme.textMuted,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          OutlinedButton.icon(
+            onPressed: () => onOpen(item.document),
+            icon: const Icon(Icons.open_in_new_rounded),
+            label: Text(actionLabel),
           ),
         ],
       ),
