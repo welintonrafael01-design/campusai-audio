@@ -64,8 +64,16 @@ class Sidebar extends StatelessWidget {
             },
           ),
           _SidebarItem(
-            title: l10n.settingsTitle,
-            icon: Icons.settings_rounded,
+            title: 'Planes',
+            icon: Icons.workspace_premium_rounded,
+            selected: currentRoute == '/plans',
+            onTap: () {
+              context.go('/plans');
+            },
+          ),
+          _SidebarItem(
+            title: 'Mi Cuenta',
+            icon: Icons.account_circle_rounded,
             selected: currentRoute == '/settings',
             onTap: () {
               context.go('/settings');
@@ -98,7 +106,7 @@ class Sidebar extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  l10n.premiumAiDescription,
+                  'Desbloquea audiolibros, voz, exportaciones y mayor capacidad.',
                   maxLines: 4,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(

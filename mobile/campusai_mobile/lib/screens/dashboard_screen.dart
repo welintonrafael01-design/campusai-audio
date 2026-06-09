@@ -768,6 +768,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             openChat: openChatScreen,
             openExam: openExamScreen,
             openFlashcards: openFlashcardsScreen,
+            openAudiobook: generateAudio,
           ),
         ),
         const SizedBox(height: 22),
