@@ -12,6 +12,7 @@ import '../services/api_service.dart';
 import '../services/cloud_api_service.dart';
 import '../services/audio_player_service.dart';
 import '../services/history_service.dart';
+import '../services/onboarding_service.dart';
 import '../services/recent_documents_service.dart';
 import '../services/subscription_service.dart';
 import '../services/workspace_service.dart';
@@ -25,6 +26,7 @@ import '../widgets/dashboard/recent_documents_panel.dart';
 import '../widgets/dashboard/workspaces_panel.dart';
 import '../widgets/dashboard/cloud_chats_panel.dart';
 import '../widgets/mini_player.dart';
+import '../widgets/onboarding/studybook_onboarding_dialog.dart';
 import '../widgets/sidebar.dart';
 import '../widgets/search/semantic_search_panel.dart';
 import '../widgets/dashboard/modules/dashboard_audio_section.dart';
@@ -98,6 +100,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Future<void> initializeDashboard() async {
     await syncSubscriptionPlan();
+    await checkOnboarding();
 
     await Future.wait([
       loadHistory(),
@@ -105,6 +108,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       loadWorkspaces(),
       restoreActiveDocument(),
     ]);
+  }
+
+  Future<void> checkOnboarding() async {
+    final shouldShow = await const OnboardingService().shouldShowOnboarding();
+
+    if (!shouldShow || !mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const StudyBookOnboardingDialog(),
+    );
   }
 
   Future<void> syncSubscriptionPlan() async {
