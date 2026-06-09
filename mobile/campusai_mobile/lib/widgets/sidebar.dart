@@ -64,6 +64,14 @@ class Sidebar extends StatelessWidget {
             },
           ),
           _SidebarItem(
+            title: 'Biblioteca',
+            icon: Icons.library_books_rounded,
+            selected: currentRoute == '/library',
+            onTap: () {
+              context.go('/library');
+            },
+          ),
+          _SidebarItem(
             title: 'Planes',
             icon: Icons.workspace_premium_rounded,
             selected: currentRoute == '/plans',

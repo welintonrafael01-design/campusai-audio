@@ -9,6 +9,7 @@ import '../screens/flashcards_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/admin_analytics_screen.dart';
 import '../screens/plans_screen.dart';
+import '../screens/library_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/auth',
@@ -41,11 +42,9 @@ final appRouter = GoRouter(
         final fileName =
             state.uri.queryParameters['fileName'] ?? 'Documento activo';
 
-        final cloudChatId =
-            state.uri.queryParameters['cloudChatId'] ?? '';
+        final cloudChatId = state.uri.queryParameters['cloudChatId'] ?? '';
 
-        final workspaceIdsRaw =
-            state.uri.queryParameters['workspaceIds'] ?? '';
+        final workspaceIdsRaw = state.uri.queryParameters['workspaceIds'] ?? '';
 
         final workspaceDocumentIds = workspaceIdsRaw
             .split(',')
@@ -99,6 +98,16 @@ final appRouter = GoRouter(
         return _buildPage(
           state: state,
           child: const AdminAnalyticsScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/library',
+      name: 'library',
+      pageBuilder: (context, state) {
+        return _buildPage(
+          state: state,
+          child: const LibraryScreen(),
         );
       },
     ),
