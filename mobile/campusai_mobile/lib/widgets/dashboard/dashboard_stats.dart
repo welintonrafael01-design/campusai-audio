@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../config/app_plans.dart';
 import '../../layout/responsive_layout.dart';
-import '../../l10n/app_localizations.dart';
+import '../../services/api_service.dart';
+import '../../services/plan_guard_service.dart';
 import '../../theme/app_theme.dart';
 import '../section_card.dart';
 
@@ -15,9 +17,41 @@ class DashboardStats extends StatelessWidget {
     required this.hasActiveDocument,
   });
 
+  String _usedLimit(
+    Map<String, dynamic> usage,
+    String key,
+    String limitKey,
+  ) {
+    final item = usage[key];
+
+    if (item is! Map) {
+      return '0 / -';
+    }
+
+    final used = item['used_today']?.toString() ?? '0';
+    final limit = item[limitKey]?.toString() ?? '-';
+
+    return '$used / $limit';
+  }
+
+  Map<String, dynamic> _usageFromResponse(
+    Map<String, dynamic> data,
+  ) {
+    final rawUsage = data['usage'];
+
+    if (rawUsage is Map<String, dynamic>) {
+      return rawUsage;
+    }
+
+    if (rawUsage is Map) {
+      return Map<String, dynamic>.from(rawUsage);
+    }
+
+    return {};
+  }
+
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     int crossAxisCount = 1;
 
     if (ResponsiveLayout.isTablet(context)) {
@@ -28,39 +62,74 @@ class DashboardStats extends StatelessWidget {
       crossAxisCount = 4;
     }
 
-    return GridView.count(
-      crossAxisCount: crossAxisCount,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      childAspectRatio: ResponsiveLayout.isDesktop(context) ? 1.8 : 1.5,
-      children: [
-        _StatCard(
-          title: l10n.documents,
-          value: '$documentCount',
-          icon: Icons.folder_copy_rounded,
-          color: AppTheme.primary,
-        ),
-        _StatCard(
-          title: l10n.aiStatus,
-          value: hasActiveDocument ? l10n.ragActive : l10n.noDocument,
-          icon: Icons.auto_awesome_rounded,
-          color: AppTheme.accent,
-        ),
-        _StatCard(
-          title: l10n.flashcardsTitle,
-          value: 'AI',
-          icon: Icons.style_rounded,
-          color: AppTheme.secondary,
-        ),
-        _StatCard(
-          title: 'Audio',
-          value: l10n.ready,
-          icon: Icons.graphic_eq_rounded,
-          color: AppTheme.success,
-        ),
-      ],
+    final currentPlan = const PlanGuardService().currentPlan;
+    final currentPlanName = AppPlans.planNames[currentPlan] ?? 'Free';
+    final canUseVoice = const PlanGuardService().canUseVoiceOnboarding;
+
+    return FutureBuilder<Map<String, dynamic>>(
+      future: ApiService.getUsageSummary(),
+      builder: (context, snapshot) {
+        final usage = _usageFromResponse(snapshot.data ?? {});
+        final backendPlan = snapshot.data?['plan']?.toString();
+        final planName = backendPlan?.isNotEmpty == true
+            ? backendPlan!.toUpperCase()
+            : currentPlanName.toUpperCase();
+
+        final isLoading = snapshot.connectionState == ConnectionState.waiting;
+
+        final limits = AppPlans.limits[currentPlan]!;
+        final fallbackPdfs = '0 / ${limits.maxPdfUploadsPerDay}';
+        final fallbackChats = '0 / ${limits.maxChatMessagesPerDay}';
+
+        return GridView.count(
+          crossAxisCount: crossAxisCount,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: ResponsiveLayout.isDesktop(context) ? 1.8 : 1.5,
+          children: [
+            _StatCard(
+              title: 'Plan actual',
+              value: isLoading ? currentPlanName.toUpperCase() : planName,
+              icon: Icons.workspace_premium_rounded,
+              color: currentPlan == CampusPlan.free
+                  ? AppTheme.textMuted
+                  : AppTheme.accent,
+            ),
+            _StatCard(
+              title: 'PDFs hoy',
+              value: isLoading || usage.isEmpty
+                  ? fallbackPdfs
+                  : _usedLimit(
+                      usage,
+                      'pdf_uploads',
+                      'limit',
+                    ),
+              icon: Icons.upload_file_rounded,
+              color: AppTheme.primary,
+            ),
+            _StatCard(
+              title: 'Chats hoy',
+              value: isLoading || usage.isEmpty
+                  ? fallbackChats
+                  : _usedLimit(
+                      usage,
+                      'chat_messages',
+                      'limit',
+                    ),
+              icon: Icons.chat_bubble_rounded,
+              color: AppTheme.secondary,
+            ),
+            _StatCard(
+              title: 'Audio y voz',
+              value: canUseVoice ? 'Premium activo' : 'Bloqueado',
+              icon: canUseVoice ? Icons.graphic_eq_rounded : Icons.lock_rounded,
+              color: canUseVoice ? AppTheme.success : AppTheme.textMuted,
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -86,12 +155,8 @@ class _StatCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: color.withValues(
-                alpha: 0.14,
-              ),
-              borderRadius: BorderRadius.circular(
-                18,
-              ),
+              color: color.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(18),
             ),
             child: Icon(
               icon,

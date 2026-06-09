@@ -13,6 +13,7 @@ class DashboardTools extends StatelessWidget {
   final VoidCallback openChat;
   final VoidCallback openExam;
   final VoidCallback openFlashcards;
+  final VoidCallback openAudiobook;
 
   const DashboardTools({
     super.key,
@@ -22,6 +23,7 @@ class DashboardTools extends StatelessWidget {
     required this.openChat,
     required this.openExam,
     required this.openFlashcards,
+    required this.openAudiobook,
   });
 
   @override
@@ -34,7 +36,7 @@ class DashboardTools extends StatelessWidget {
     }
 
     if (ResponsiveLayout.isDesktop(context)) {
-      crossAxisCount = 4;
+      crossAxisCount = 5;
     }
 
     return Column(
@@ -42,7 +44,7 @@ class DashboardTools extends StatelessWidget {
       children: [
         Text(
           l10n.aiTools,
-          style: TextStyle(
+          style: const TextStyle(
             color: AppTheme.textPrimary,
             fontSize: 28,
             fontWeight: FontWeight.w900,
@@ -51,7 +53,7 @@ class DashboardTools extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           l10n.aiToolsSubtitle,
-          style: TextStyle(
+          style: const TextStyle(
             color: AppTheme.textMuted,
             height: 1.4,
           ),
@@ -63,7 +65,7 @@ class DashboardTools extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
-          childAspectRatio: ResponsiveLayout.isDesktop(context) ? 1.0 : 1.0,
+          childAspectRatio: ResponsiveLayout.isDesktop(context) ? 0.74 : 0.90,
           children: [
             _ToolCard(
               title: l10n.uploadPdf,
@@ -79,6 +81,14 @@ class DashboardTools extends StatelessWidget {
               color: AppTheme.accent,
               enabled: hasActiveDocument,
               onTap: hasActiveDocument ? openChat : null,
+            ),
+            _ToolCard(
+              title: 'Audiolibro',
+              subtitle: 'Escucha el resumen del documento activo.',
+              icon: Icons.headphones_rounded,
+              color: AppTheme.success,
+              enabled: hasActiveDocument,
+              onTap: hasActiveDocument ? openAudiobook : null,
             ),
             _ToolCard(
               title: l10n.aiExam,
@@ -132,12 +142,8 @@ class _ToolCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: color.withValues(
-                  alpha: 0.14,
-                ),
-                borderRadius: BorderRadius.circular(
-                  18,
-                ),
+                color: color.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(18),
               ),
               child: Icon(
                 icon,
@@ -145,7 +151,7 @@ class _ToolCard extends StatelessWidget {
                 size: 28,
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
             Text(
               title,
               maxLines: 1,
@@ -159,7 +165,7 @@ class _ToolCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               subtitle,
-              maxLines: 3,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: AppTheme.textMuted,
