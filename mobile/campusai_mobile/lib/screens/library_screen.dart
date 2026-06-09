@@ -3,10 +3,12 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/document_history.dart';
+import '../models/audiobook_history.dart';
 import '../providers/audio_provider.dart';
 import '../services/history_service.dart';
 import '../services/api_service.dart';
 import '../services/audiobook_service.dart';
+import '../services/audiobook_library_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/sidebar.dart';
 import '../layout/responsive_layout.dart';
@@ -22,6 +24,7 @@ class LibraryScreen extends ConsumerStatefulWidget {
 
 class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   List<DocumentHistory> documents = [];
+  List<AudiobookHistory> audiobooks = [];
   bool isLoading = true;
   bool isGeneratingAudiobook = false;
 
@@ -34,11 +37,14 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
   Future<void> loadLibrary() async {
     final items = await HistoryService.getHistory();
+    final savedAudiobooks =
+        await const AudiobookLibraryService().getAudiobooks();
 
     if (!mounted) return;
 
     setState(() {
       documents = items;
+      audiobooks = savedAudiobooks;
       isLoading = false;
     });
   }
@@ -125,6 +131,20 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         throw Exception('No se generaron capítulos de audio.');
       }
 
+      await const AudiobookLibraryService().saveAudiobook(
+        AudiobookHistory(
+          documentId: document.documentId,
+          fileName: document.fileName,
+          chapters: chapters
+              .whereType<Map>()
+              .map((item) => Map<String, dynamic>.from(item))
+              .toList(),
+          createdAt: DateTime.now().toIso8601String(),
+        ),
+      );
+
+      await loadLibrary();
+
       if (!mounted) return;
 
       await showDialog<void>(
@@ -194,6 +214,20 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     }
   }
 
+  Future<void> deleteSavedAudiobook(String documentId) async {
+    await const AudiobookLibraryService().deleteAudiobook(documentId);
+    await loadLibrary();
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Audiolibro eliminado de la biblioteca.'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   Widget buildEmptyState() {
     return SectionCard(
       child: Column(
@@ -256,9 +290,29 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       children: [
         _LibrarySummary(
           totalDocuments: documents.length,
-          audioCount: documents.where((item) => item.hasAudio).length,
+          audioCount: audiobooks.length,
           summaryCount: documents.where((item) => item.hasSummary).length,
         ),
+        if (audiobooks.isNotEmpty) ...[
+          const SizedBox(height: 18),
+          _SavedAudiobooksSection(
+            audiobooks: audiobooks,
+            onDeleteAudiobook: deleteSavedAudiobook,
+            onPlayChapter: (audiobook, chapter) async {
+              final audioUrl = chapter['audio_url']?.toString() ?? '';
+
+              if (audioUrl.trim().isEmpty) return;
+
+              final fullAudioUrl = ApiService.buildAudioUrl(audioUrl);
+
+              await ref.read(audioProvider.notifier).play(
+                    audioUrl: fullAudioUrl,
+                    title:
+                        '${chapter['title']?.toString() ?? 'Capítulo'} · ${audiobook.fileName}',
+                  );
+            },
+          ),
+        ],
         const SizedBox(height: 18),
         ...documents.asMap().entries.map(
           (entry) {
@@ -326,8 +380,6 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         ),
         const SizedBox(height: 22),
         buildLibraryContent(),
-        const SizedBox(height: 18),
-        const MiniPlayer(),
       ],
     );
   }
@@ -338,6 +390,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.background,
+      bottomNavigationBar: const MiniPlayer(),
       body: SafeArea(
         child: ResponsiveLayout(
           mobile: content,
@@ -440,6 +493,206 @@ class _LibraryMetric extends StatelessWidget {
               color: AppTheme.textPrimary,
               fontWeight: FontWeight.w900,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SavedAudiobooksSection extends StatelessWidget {
+  final List<AudiobookHistory> audiobooks;
+  final Future<void> Function(String documentId) onDeleteAudiobook;
+  final Future<void> Function(
+    AudiobookHistory audiobook,
+    Map<String, dynamic> chapter,
+  ) onPlayChapter;
+
+  const _SavedAudiobooksSection({
+    required this.audiobooks,
+    required this.onDeleteAudiobook,
+    required this.onPlayChapter,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(
+                Icons.headphones_rounded,
+                color: AppTheme.accent,
+              ),
+              SizedBox(width: 10),
+              Text(
+                'Audiolibros guardados',
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Escucha tus audiolibros generados sin volver a procesarlos.',
+            style: TextStyle(
+              color: AppTheme.textMuted,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...audiobooks.map(
+            (audiobook) => _SavedAudiobookTile(
+              audiobook: audiobook,
+              onDeleteAudiobook: onDeleteAudiobook,
+              onPlayChapter: onPlayChapter,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SavedAudiobookTile extends StatelessWidget {
+  final AudiobookHistory audiobook;
+  final Future<void> Function(String documentId) onDeleteAudiobook;
+  final Future<void> Function(
+    AudiobookHistory audiobook,
+    Map<String, dynamic> chapter,
+  ) onPlayChapter;
+
+  const _SavedAudiobookTile({
+    required this.audiobook,
+    required this.onDeleteAudiobook,
+    required this.onPlayChapter,
+  });
+
+  int get totalEstimatedMinutes {
+    int total = 0;
+
+    for (final chapter in audiobook.chapters) {
+      final value = chapter['estimated_minutes'];
+
+      if (value is int) {
+        total += value;
+      } else {
+        total += int.tryParse(value?.toString() ?? '') ?? 1;
+      }
+    }
+
+    return total <= 0 ? 1 : total;
+  }
+
+  String get formattedDate {
+    try {
+      final date = DateTime.parse(audiobook.createdAt);
+
+      return '${date.day.toString().padLeft(2, '0')}/'
+          '${date.month.toString().padLeft(2, '0')}/'
+          '${date.year} '
+          '${date.hour.toString().padLeft(2, '0')}:'
+          '${date.minute.toString().padLeft(2, '0')}';
+    } catch (_) {
+      return audiobook.createdAt;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final firstChapter =
+        audiobook.chapters.isNotEmpty ? audiobook.chapters.first : null;
+
+    final hasMultipleChapters = audiobook.chapters.length > 1;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.card,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.06),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.audiotrack_rounded,
+                color: AppTheme.success,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  audiobook.fileName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              IconButton(
+                tooltip: 'Eliminar audiolibro',
+                onPressed: () async {
+                  await onDeleteAudiobook(audiobook.documentId);
+                },
+                icon: const Icon(
+                  Icons.delete_outline_rounded,
+                  color: AppTheme.danger,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '${audiobook.chapterCount} capítulo${audiobook.chapterCount == 1 ? '' : 's'}'
+            ' • $totalEstimatedMinutes min aprox. • $formattedDate',
+            style: const TextStyle(
+              color: AppTheme.textMuted,
+              fontSize: 12,
+              height: 1.35,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (firstChapter != null)
+                FilledButton.icon(
+                  onPressed: () async {
+                    await onPlayChapter(audiobook, firstChapter);
+                  },
+                  icon: const Icon(Icons.play_arrow_rounded),
+                  label: Text(
+                    hasMultipleChapters
+                        ? 'Escuchar desde inicio'
+                        : 'Escuchar audiolibro',
+                  ),
+                ),
+              if (hasMultipleChapters)
+                ...audiobook.chapters.take(6).map(
+                      (chapter) => OutlinedButton.icon(
+                        onPressed: () async {
+                          await onPlayChapter(audiobook, chapter);
+                        },
+                        icon: const Icon(Icons.play_circle_outline_rounded),
+                        label: Text(
+                          chapter['title']?.toString() ?? 'Capítulo',
+                        ),
+                      ),
+                    ),
+            ],
           ),
         ],
       ),
