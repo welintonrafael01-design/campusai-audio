@@ -51,15 +51,20 @@ class WorkspaceService {
     );
   }
 
+  static Future<void> updateWorkspace(
+    WorkspaceModel workspace,
+  ) async {
+    await saveWorkspace(workspace);
+  }
+
   static Future<void> removeWorkspace(
     String workspaceId,
   ) async {
     final prefs = await SharedPreferences.getInstance();
     final current = await getWorkspaces();
 
-    final updated = current
-        .where((item) => item.workspaceId != workspaceId)
-        .toList();
+    final updated =
+        current.where((item) => item.workspaceId != workspaceId).toList();
 
     await prefs.setString(
       _key,

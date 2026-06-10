@@ -631,6 +631,32 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     ),
                   ),
                 ),
+                if (isWorkspaceChat) ...[
+                  const SizedBox(height: 5),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.16),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.18),
+                      ),
+                    ),
+                    child: Text(
+                      'Workspace Multi-PDF · ${effectiveDocumentIds.length} documentos conectados',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

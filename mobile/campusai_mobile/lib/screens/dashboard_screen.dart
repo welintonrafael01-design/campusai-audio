@@ -325,7 +325,95 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       },
       queryParameters: {
         'fileName': workspace.name,
+        'workspaceIds': workspaceDocumentIds.join(','),
       },
+    );
+  }
+
+  Future<void> addDocumentsToWorkspace(WorkspaceModel workspace) async {
+    final existingIds = workspace.documents
+        .map((item) => item.documentId)
+        .where((item) => item.trim().isNotEmpty)
+        .toSet();
+
+    final availableDocuments = recentDocuments
+        .where((document) => !existingIds.contains(document.documentId))
+        .toList();
+
+    if (availableDocuments.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'No hay documentos nuevos disponibles para agregar.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final draft = await showDialog<_WorkspaceDraft>(
+      context: context,
+      builder: (_) {
+        return _CreateWorkspaceDialog(
+          documents: availableDocuments,
+        );
+      },
+    );
+
+    if (!mounted || draft == null) return;
+
+    final selectedDocuments = availableDocuments
+        .where((document) => draft.documentIds.contains(document.documentId))
+        .toList();
+
+    if (selectedDocuments.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.selectAtLeastOneDocument),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final updatedWorkspace = WorkspaceModel(
+      workspaceId: workspace.workspaceId,
+      name: workspace.name,
+      documents: [
+        ...workspace.documents,
+        ...selectedDocuments,
+      ],
+      updatedAt: DateTime.now(),
+    );
+
+    await WorkspaceService.updateWorkspace(updatedWorkspace);
+
+    for (final document in selectedDocuments) {
+      try {
+        await CloudApiService.createDocument(
+          workspaceId: workspace.workspaceId,
+          documentName: document.fileName,
+          documentId: document.documentId,
+        );
+      } catch (error) {
+        debugPrint(
+          'No se pudo sincronizar documento agregado al workspace: $error',
+        );
+      }
+    }
+
+    await loadWorkspaces();
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '${selectedDocuments.length} documento(s) agregado(s) a "${workspace.name}".',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
@@ -820,6 +908,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             workspaces: workspaces,
             onCreateWorkspace: createWorkspace,
             onOpenWorkspace: openWorkspace,
+            onAddDocuments: addDocumentsToWorkspace,
             onDeleteWorkspace: deleteWorkspace,
           ),
         ),

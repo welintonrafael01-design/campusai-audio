@@ -9,6 +9,7 @@ class WorkspacesPanel extends StatelessWidget {
   final List<WorkspaceModel> workspaces;
   final VoidCallback onCreateWorkspace;
   final void Function(WorkspaceModel workspace) onOpenWorkspace;
+  final void Function(WorkspaceModel workspace) onAddDocuments;
   final void Function(WorkspaceModel workspace) onDeleteWorkspace;
 
   const WorkspacesPanel({
@@ -16,6 +17,7 @@ class WorkspacesPanel extends StatelessWidget {
     required this.workspaces,
     required this.onCreateWorkspace,
     required this.onOpenWorkspace,
+    required this.onAddDocuments,
     required this.onDeleteWorkspace,
   });
 
@@ -157,6 +159,10 @@ class WorkspacesPanel extends StatelessWidget {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 14),
+                    _WorkspaceDocumentsPreview(
+                      documents: workspace.documents,
+                    ),
                     const SizedBox(height: 18),
                     Row(
                       children: [
@@ -171,6 +177,18 @@ class WorkspacesPanel extends StatelessWidget {
                             ),
                           ),
                         ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => onAddDocuments(workspace),
+                            icon: const Icon(
+                              Icons.add_rounded,
+                            ),
+                            label: const Text(
+                              'Agregar PDFs',
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -178,6 +196,109 @@ class WorkspacesPanel extends StatelessWidget {
               ),
             ),
           ),
+      ],
+    );
+  }
+}
+
+class _WorkspaceDocumentsPreview extends StatelessWidget {
+  final List<dynamic> documents;
+
+  const _WorkspaceDocumentsPreview({
+    required this.documents,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (documents.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final visibleDocuments = documents.take(4).toList();
+    final remaining = documents.length - visibleDocuments.length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Documentos incluidos',
+          style: TextStyle(
+            color: AppTheme.textMuted,
+            fontWeight: FontWeight.w800,
+            fontSize: 12,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ...visibleDocuments.map(
+              (document) {
+                final fileName = document.fileName?.toString() ?? 'Documento';
+
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.card,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.06),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.picture_as_pdf_rounded,
+                        color: AppTheme.accent,
+                        size: 15,
+                      ),
+                      const SizedBox(width: 6),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: 220,
+                        ),
+                        child: Text(
+                          fileName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            if (remaining > 0)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  '+$remaining más',
+                  style: const TextStyle(
+                    color: AppTheme.accent,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ],
     );
   }
