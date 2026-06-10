@@ -9,6 +9,7 @@ import '../services/export_service.dart';
 import '../services/plan_guard_service.dart';
 import '../utils/upgrade_dialog.dart';
 import '../services/study_result_service.dart';
+import '../services/cloud_api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
 
@@ -87,14 +88,26 @@ class _ExamScreenState extends State<ExamScreen> {
         resetQuizState();
       });
 
+      final content = jsonEncode(parsedQuestions);
+
       await StudyResultService.saveResult(
         StudyResult(
           documentId: widget.documentId,
           type: 'exam',
-          content: jsonEncode(parsedQuestions),
+          content: content,
           createdAt: DateTime.now().toIso8601String(),
         ),
       );
+
+      try {
+        await CloudApiService.saveStudyResult(
+          documentId: widget.documentId,
+          type: 'exam',
+          content: content,
+        );
+      } catch (cloudError) {
+        debugPrint('No se pudo guardar examen cloud: $cloudError');
+      }
     } catch (error) {
       if (!mounted) return;
 

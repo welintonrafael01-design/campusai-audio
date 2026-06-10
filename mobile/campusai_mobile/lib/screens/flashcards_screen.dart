@@ -10,6 +10,7 @@ import '../services/export_service.dart';
 import '../services/plan_guard_service.dart';
 import '../utils/upgrade_dialog.dart';
 import '../services/study_result_service.dart';
+import '../services/cloud_api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
 
@@ -81,14 +82,26 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
         currentIndex = 0;
       });
 
+      final content = jsonEncode(parsed);
+
       await StudyResultService.saveResult(
         StudyResult(
           documentId: widget.documentId,
           type: 'flashcards',
-          content: jsonEncode(parsed),
+          content: content,
           createdAt: DateTime.now().toIso8601String(),
         ),
       );
+
+      try {
+        await CloudApiService.saveStudyResult(
+          documentId: widget.documentId,
+          type: 'flashcards',
+          content: content,
+        );
+      } catch (cloudError) {
+        debugPrint('No se pudo guardar flashcards cloud: $cloudError');
+      }
     } catch (error) {
       if (!mounted) return;
 

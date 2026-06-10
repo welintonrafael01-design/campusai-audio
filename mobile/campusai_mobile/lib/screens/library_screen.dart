@@ -10,6 +10,7 @@ import '../services/api_service.dart';
 import '../services/audiobook_service.dart';
 import '../services/audiobook_library_service.dart';
 import '../services/cloud_api_service.dart';
+import '../services/library_favorites_service.dart';
 import '../services/chat_history_service.dart';
 import '../services/study_result_service.dart';
 import '../theme/app_theme.dart';
@@ -33,6 +34,7 @@ enum LibrarySourceFilter {
 
 enum LibraryCategory {
   all,
+  favorites,
   documents,
   audiobooks,
   chats,
@@ -52,6 +54,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   List<AudiobookHistory> audiobooks = [];
   final Set<String> cloudDocumentIds = {};
   final Set<String> cloudAudiobookIds = {};
+  final Set<String> favoriteDocumentIds = {};
   List<_LibraryChatItem> savedChats = [];
   List<_LibraryStudyItem> savedFlashcards = [];
   List<_LibraryStudyItem> savedExams = [];
@@ -78,6 +81,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
   Future<void> loadLibrary() async {
     final localItems = await HistoryService.getHistory();
+    final loadedFavorites =
+        await const LibraryFavoritesService().getFavorites();
     final cloudItems = <DocumentHistory>[];
     final loadedCloudDocumentIds = <String>{};
 
@@ -246,6 +251,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       cloudAudiobookIds
         ..clear()
         ..addAll(loadedCloudAudiobookIds);
+      favoriteDocumentIds
+        ..clear()
+        ..addAll(loadedFavorites);
       savedChats = chats;
       savedFlashcards = flashcards;
       savedExams = exams;
@@ -262,6 +270,24 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       SnackBar(
         content: Text(
           '${document.fileName} seleccionado como documento activo.',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  Future<void> toggleFavorite(String documentId) async {
+    await const LibraryFavoritesService().toggleFavorite(documentId);
+    await loadLibrary();
+
+    if (!mounted) return;
+
+    final isNowFavorite = favoriteDocumentIds.contains(documentId);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isNowFavorite ? 'Agregado a favoritos.' : 'Eliminado de favoritos.',
         ),
         behavior: SnackBarBehavior.floating,
       ),
@@ -305,6 +331,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
     await const AudiobookLibraryService().deleteAudiobook(document.documentId);
     await ChatHistoryService.clearChat(documentId: document.documentId);
+    await const LibraryFavoritesService().removeFavorite(document.documentId);
     await StudyResultService.deleteResult(
       documentId: document.documentId,
       type: 'flashcards',
@@ -538,6 +565,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           filteredChats.length +
           filteredFlashcards.length +
           filteredExams.length,
+      LibraryCategory.favorites => filteredDocuments
+          .where((item) => favoriteDocumentIds.contains(item.documentId))
+          .length,
       LibraryCategory.documents => filteredDocuments.length,
       LibraryCategory.audiobooks => filteredAudiobooks.length,
       LibraryCategory.chats => filteredChats.length,
@@ -549,6 +579,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   String categoryLabel(LibraryCategory category) {
     return switch (category) {
       LibraryCategory.all => 'Todo',
+      LibraryCategory.favorites => 'Favoritos',
       LibraryCategory.documents => 'Documentos',
       LibraryCategory.audiobooks => 'Audiolibros',
       LibraryCategory.chats => 'Chats',
@@ -560,6 +591,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   IconData categoryIcon(LibraryCategory category) {
     return switch (category) {
       LibraryCategory.all => Icons.dashboard_customize_rounded,
+      LibraryCategory.favorites => Icons.star_rounded,
       LibraryCategory.documents => Icons.picture_as_pdf_rounded,
       LibraryCategory.audiobooks => Icons.headphones_rounded,
       LibraryCategory.chats => Icons.chat_bubble_rounded,
@@ -644,6 +676,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
     return switch (selectedCategory) {
       LibraryCategory.all => countAll(),
+      LibraryCategory.favorites => documents
+          .where(
+            (item) =>
+                favoriteDocumentIds.contains(item.documentId) &&
+                accept(isCloudDocument(item)),
+          )
+          .length,
       LibraryCategory.documents =>
         documents.where((item) => accept(isCloudDocument(item))).length,
       LibraryCategory.audiobooks =>
@@ -862,12 +901,21 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   }
 
   List<DocumentHistory> get filteredDocuments {
-    return documents
-        .where(
-          (item) =>
-              matchesSearch(item.fileName) || matchesSearch(item.cleanSummary),
-        )
-        .toList();
+    final items = documents.where((item) {
+      if (selectedCategory == LibraryCategory.favorites &&
+          !favoriteDocumentIds.contains(item.documentId)) {
+        return false;
+      }
+
+      return matchesSource(isCloud: isCloudDocument(item)) &&
+          (matchesSearch(item.fileName) || matchesSearch(item.cleanSummary));
+    }).toList();
+
+    return sortItems<DocumentHistory>(
+      items: items,
+      name: (item) => item.fileName,
+      date: (item) => item.createdAt,
+    );
   }
 
   List<AudiobookHistory> get filteredAudiobooks {
@@ -1213,6 +1261,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           ),
         ],
         if ((shouldShowCategory(LibraryCategory.documents) ||
+                selectedCategory == LibraryCategory.favorites ||
                 selectedCategory == LibraryCategory.all) &&
             filteredDocuments.isNotEmpty &&
             sourceFilterCount(selectedSourceFilter) > 0) ...[
@@ -1228,6 +1277,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                   document: document,
                   isGeneratingAudiobook:
                       generatingAudiobookDocumentId == document.documentId,
+                  isFavorite: favoriteDocumentIds.contains(document.documentId),
+                  onToggleFavorite: () => toggleFavorite(document.documentId),
                   onSetActive: () => setActiveDocument(document),
                   onChat: () => openChat(document),
                   onAudio: () {
@@ -1897,6 +1948,8 @@ class _SavedAudiobookTile extends StatelessWidget {
 class _DocumentLibraryCard extends StatelessWidget {
   final DocumentHistory document;
   final bool isGeneratingAudiobook;
+  final bool isFavorite;
+  final VoidCallback onToggleFavorite;
   final VoidCallback onSetActive;
   final VoidCallback onChat;
   final VoidCallback onAudio;
@@ -1907,6 +1960,8 @@ class _DocumentLibraryCard extends StatelessWidget {
   const _DocumentLibraryCard({
     required this.document,
     required this.isGeneratingAudiobook,
+    required this.isFavorite,
+    required this.onToggleFavorite,
     required this.onSetActive,
     required this.onChat,
     required this.onAudio,
@@ -1982,6 +2037,14 @@ class _DocumentLibraryCard extends StatelessWidget {
                       ],
                     ),
                   ],
+                ),
+              ),
+              IconButton(
+                tooltip: isFavorite ? 'Quitar favorito' : 'Marcar favorito',
+                onPressed: onToggleFavorite,
+                icon: Icon(
+                  isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
+                  color: isFavorite ? AppTheme.warning : AppTheme.textMuted,
                 ),
               ),
               IconButton(
