@@ -6,8 +6,7 @@ import 'api_service.dart';
 import 'auth_service.dart';
 
 class CloudApiService {
-  static Future<Map<String, dynamic>>
-      createWorkspace({
+  static Future<Map<String, dynamic>> createWorkspace({
     required String name,
     String description = '',
   }) async {
@@ -30,8 +29,7 @@ class CloudApiService {
     );
   }
 
-  static Future<List<dynamic>>
-      getWorkspaces() async {
+  static Future<List<dynamic>> getWorkspaces() async {
     final response = await http.get(
       Uri.parse(
         '${ApiService.baseUrl}/cloud/workspaces',
@@ -39,17 +37,17 @@ class CloudApiService {
       headers: AuthService.authHeaders,
     );
 
-    final data =
-        ApiService.decodeResponse(response);
+    final data = ApiService.decodeResponse(response);
 
     return data['workspaces'] ?? [];
   }
 
-  static Future<Map<String, dynamic>>
-      createDocument({
+  static Future<Map<String, dynamic>> createDocument({
     required String workspaceId,
     required String documentName,
     required String documentId,
+    String summary = '',
+    String audioUrl = '',
   }) async {
     final response = await http.post(
       Uri.parse(
@@ -63,6 +61,8 @@ class CloudApiService {
         'workspace_id': workspaceId,
         'document_name': documentName,
         'document_id': documentId,
+        'summary': summary,
+        'audio_url': audioUrl,
       }),
     );
 
@@ -71,20 +71,17 @@ class CloudApiService {
     );
   }
 
-  static Future<List<dynamic>>
-      getDocuments({
+  static Future<List<dynamic>> getDocuments({
     String? workspaceId,
   }) async {
     final uri = Uri.parse(
       '${ApiService.baseUrl}/cloud/documents',
     ).replace(
-      queryParameters:
-          workspaceId == null
-              ? {}
-              : {
-                  'workspace_id':
-                      workspaceId,
-                },
+      queryParameters: workspaceId == null
+          ? {}
+          : {
+              'workspace_id': workspaceId,
+            },
     );
 
     final response = await http.get(
@@ -92,15 +89,12 @@ class CloudApiService {
       headers: AuthService.authHeaders,
     );
 
-    final data =
-        ApiService.decodeResponse(response);
+    final data = ApiService.decodeResponse(response);
 
     return data['documents'] ?? [];
   }
 
-
-  static Future<Map<String, dynamic>>
-      createChat({
+  static Future<Map<String, dynamic>> createChat({
     String? workspaceId,
     String? documentId,
     String title = 'Nuevo chat',
@@ -127,8 +121,7 @@ class CloudApiService {
     );
   }
 
-  static Future<Map<String, dynamic>>
-      saveMessage({
+  static Future<Map<String, dynamic>> saveMessage({
     required String chatId,
     required String role,
     required String content,
@@ -153,8 +146,7 @@ class CloudApiService {
     );
   }
 
-  static Future<List<dynamic>>
-      getMessages({
+  static Future<List<dynamic>> getMessages({
     required String chatId,
   }) async {
     final response = await http.get(
@@ -164,13 +156,10 @@ class CloudApiService {
       headers: AuthService.authHeaders,
     );
 
-    final data =
-        ApiService.decodeResponse(response);
+    final data = ApiService.decodeResponse(response);
 
     return data['messages'] ?? [];
   }
-
-
 
   static Future<List<dynamic>> getChats() async {
     final response = await http.get(
@@ -184,8 +173,6 @@ class CloudApiService {
 
     return data['chats'] ?? [];
   }
-
-
 
   static Future<List<dynamic>> getChatMessages({
     required String chatId,
@@ -202,8 +189,6 @@ class CloudApiService {
     return data['messages'] ?? [];
   }
 
-
-
   static Future<Map<String, dynamic>> deleteChat({
     required String chatId,
   }) async {
@@ -216,8 +201,6 @@ class CloudApiService {
 
     return ApiService.decodeResponse(response);
   }
-
-
 
   static Future<Map<String, dynamic>> updateChatTitle({
     required String chatId,
@@ -239,4 +222,141 @@ class CloudApiService {
     return ApiService.decodeResponse(response);
   }
 
+  static Future<Map<String, dynamic>> saveStudyResult({
+    required String documentId,
+    required String type,
+    required String content,
+  }) async {
+    final response = await http.post(
+      Uri.parse(
+        '${ApiService.baseUrl}/cloud/study-results',
+      ),
+      headers: {
+        'Content-Type': 'application/json',
+        ...AuthService.authHeaders,
+      },
+      body: jsonEncode({
+        'document_id': documentId,
+        'type': type,
+        'content': content,
+      }),
+    );
+
+    return ApiService.decodeResponse(response);
+  }
+
+  static Future<Map<String, dynamic>?> getStudyResult({
+    required String documentId,
+    required String type,
+  }) async {
+    final response = await http.get(
+      Uri.parse(
+        '${ApiService.baseUrl}/cloud/study-results/$documentId/$type',
+      ),
+      headers: AuthService.authHeaders,
+    );
+
+    final data = ApiService.decodeResponse(response);
+
+    return data['study_result'];
+  }
+
+  static Future<List<dynamic>> getStudyResults({
+    String? type,
+  }) async {
+    final uri = Uri.parse(
+      '${ApiService.baseUrl}/cloud/study-results',
+    ).replace(
+      queryParameters: type == null
+          ? {}
+          : {
+              'type': type,
+            },
+    );
+
+    final response = await http.get(
+      uri,
+      headers: AuthService.authHeaders,
+    );
+
+    final data = ApiService.decodeResponse(response);
+
+    return data['study_results'] ?? [];
+  }
+
+  static Future<Map<String, dynamic>> saveAudiobook({
+    required String documentId,
+    required String fileName,
+    required List<Map<String, dynamic>> chapters,
+  }) async {
+    final response = await http.post(
+      Uri.parse(
+        '${ApiService.baseUrl}/cloud/audiobooks',
+      ),
+      headers: {
+        'Content-Type': 'application/json',
+        ...AuthService.authHeaders,
+      },
+      body: jsonEncode({
+        'document_id': documentId,
+        'file_name': fileName,
+        'chapters': chapters,
+      }),
+    );
+
+    return ApiService.decodeResponse(response);
+  }
+
+  static Future<List<dynamic>> getAudiobooks() async {
+    final response = await http.get(
+      Uri.parse(
+        '${ApiService.baseUrl}/cloud/audiobooks',
+      ),
+      headers: AuthService.authHeaders,
+    );
+
+    final data = ApiService.decodeResponse(response);
+
+    return data['audiobooks'] ?? [];
+  }
+
+  static Future<Map<String, dynamic>> deleteAudiobook({
+    required String documentId,
+  }) async {
+    final response = await http.delete(
+      Uri.parse(
+        '${ApiService.baseUrl}/cloud/audiobooks/$documentId',
+      ),
+      headers: AuthService.authHeaders,
+    );
+
+    return ApiService.decodeResponse(response);
+  }
+
+  static Future<Map<String, dynamic>> deleteStudyResult({
+    required String documentId,
+    required String type,
+  }) async {
+    final response = await http.delete(
+      Uri.parse(
+        '${ApiService.baseUrl}/cloud/study-results/$documentId/$type',
+      ),
+      headers: AuthService.authHeaders,
+    );
+
+    return ApiService.decodeResponse(response);
+  }
+
+  static Future<Map<String, dynamic>> deleteDocument({
+    required String documentId,
+  }) async {
+    final response = await http.delete(
+      Uri.parse(
+        '${ApiService.baseUrl}/cloud/documents/$documentId',
+      ),
+      headers: AuthService.authHeaders,
+    );
+
+    return ApiService.decodeResponse(response);
+  }
 }

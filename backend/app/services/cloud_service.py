@@ -77,6 +77,8 @@ def create_document(
     document_id: str,
     user_id: str,
     file_url: str = "",
+    summary: str = "",
+    audio_url: str = "",
 ) -> dict:
     client = get_supabase_admin_client()
 
@@ -90,6 +92,8 @@ def create_document(
         "document_name": document_name,
         "document_id": document_id,
         "file_url": file_url,
+        "summary": summary,
+        "audio_url": audio_url,
     }
 
     response = (
@@ -141,6 +145,238 @@ def list_documents(
     )
 
     return response.data
+
+
+
+
+
+
+def delete_document(
+    *,
+    user_id: str,
+    document_id: str,
+) -> dict:
+    client = get_supabase_admin_client()
+
+    workspace_response = (
+        client
+        .table("workspaces")
+        .select("id")
+        .eq("user_id", user_id)
+        .execute()
+    )
+
+    workspace_ids = [
+        item["id"]
+        for item in workspace_response.data
+    ]
+
+    if not workspace_ids:
+        return {
+            "deleted": True,
+            "document_id": document_id,
+        }
+
+    (
+        client
+        .table("documents")
+        .delete()
+        .in_("workspace_id", workspace_ids)
+        .eq("document_id", document_id)
+        .execute()
+    )
+
+    return {
+        "deleted": True,
+        "document_id": document_id,
+    }
+
+
+def upsert_study_result(
+    *,
+    user_id: str,
+    document_id: str,
+    type: str,
+    content: str,
+) -> dict:
+    client = get_supabase_admin_client()
+
+    clean_type = type.strip().lower()
+
+    if clean_type not in {"flashcards", "exam"}:
+        raise ValueError("Tipo de resultado inválido.")
+
+    payload = {
+        "user_id": user_id,
+        "document_id": document_id,
+        "type": clean_type,
+        "content": content,
+    }
+
+    response = (
+        client
+        .table("study_results")
+        .upsert(
+            payload,
+            on_conflict="user_id,document_id,type",
+        )
+        .execute()
+    )
+
+    return response.data[0]
+
+
+def get_study_result(
+    *,
+    user_id: str,
+    document_id: str,
+    type: str,
+) -> dict | None:
+    client = get_supabase_admin_client()
+
+    response = (
+        client
+        .table("study_results")
+        .select("*")
+        .eq("user_id", user_id)
+        .eq("document_id", document_id)
+        .eq("type", type.strip().lower())
+        .maybe_single()
+        .execute()
+    )
+
+    return response.data
+
+
+def list_study_results(
+    *,
+    user_id: str,
+    type: str | None = None,
+) -> list[dict]:
+    client = get_supabase_admin_client()
+
+    query = (
+        client
+        .table("study_results")
+        .select("*")
+        .eq("user_id", user_id)
+    )
+
+    if type:
+        query = query.eq("type", type.strip().lower())
+
+    response = (
+        query
+        .order("updated_at", desc=True)
+        .execute()
+    )
+
+    return response.data
+
+
+def delete_study_result(
+    *,
+    user_id: str,
+    document_id: str,
+    type: str,
+) -> dict:
+    client = get_supabase_admin_client()
+
+    (
+        client
+        .table("study_results")
+        .delete()
+        .eq("user_id", user_id)
+        .eq("document_id", document_id)
+        .eq("type", type.strip().lower())
+        .execute()
+    )
+
+    return {
+        "deleted": True,
+        "document_id": document_id,
+        "type": type,
+    }
+
+
+
+
+def upsert_audiobook(
+    *,
+    user_id: str,
+    document_id: str,
+    file_name: str,
+    chapters: list[dict],
+) -> dict:
+    client = get_supabase_admin_client()
+
+    if not document_id.strip():
+        raise ValueError("document_id es requerido.")
+
+    if not file_name.strip():
+        raise ValueError("file_name es requerido.")
+
+    if not chapters:
+        raise ValueError("chapters es requerido.")
+
+    payload = {
+        "user_id": user_id,
+        "document_id": document_id,
+        "file_name": file_name,
+        "chapters": chapters,
+    }
+
+    response = (
+        client
+        .table("audiobooks")
+        .upsert(
+            payload,
+            on_conflict="user_id,document_id",
+        )
+        .execute()
+    )
+
+    return response.data[0]
+
+
+def list_audiobooks(
+    *,
+    user_id: str,
+) -> list[dict]:
+    client = get_supabase_admin_client()
+
+    response = (
+        client
+        .table("audiobooks")
+        .select("*")
+        .eq("user_id", user_id)
+        .order("updated_at", desc=True)
+        .execute()
+    )
+
+    return response.data
+
+
+def delete_audiobook(
+    *,
+    user_id: str,
+    document_id: str,
+) -> dict:
+    client = get_supabase_admin_client()
+
+    (
+        client
+        .table("audiobooks")
+        .delete()
+        .eq("user_id", user_id)
+        .eq("document_id", document_id)
+        .execute()
+    )
+
+    return {
+        "deleted": True,
+        "document_id": document_id,
+    }
 
 
 def create_chat(

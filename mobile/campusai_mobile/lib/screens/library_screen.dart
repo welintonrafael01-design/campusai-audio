@@ -18,6 +18,28 @@ import '../layout/responsive_layout.dart';
 import '../widgets/section_card.dart';
 import '../widgets/mini_player.dart';
 
+enum LibrarySortOption {
+  newest,
+  oldest,
+  nameAsc,
+  nameDesc,
+}
+
+enum LibrarySourceFilter {
+  all,
+  local,
+  cloud,
+}
+
+enum LibraryCategory {
+  all,
+  documents,
+  audiobooks,
+  chats,
+  flashcards,
+  exams,
+}
+
 class LibraryScreen extends ConsumerStatefulWidget {
   const LibraryScreen({super.key});
 
@@ -28,11 +50,18 @@ class LibraryScreen extends ConsumerStatefulWidget {
 class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   List<DocumentHistory> documents = [];
   List<AudiobookHistory> audiobooks = [];
+  final Set<String> cloudDocumentIds = {};
+  final Set<String> cloudAudiobookIds = {};
   List<_LibraryChatItem> savedChats = [];
   List<_LibraryStudyItem> savedFlashcards = [];
   List<_LibraryStudyItem> savedExams = [];
+  LibraryCategory selectedCategory = LibraryCategory.all;
+  LibrarySourceFilter selectedSourceFilter = LibrarySourceFilter.all;
+  LibrarySortOption selectedSortOption = LibrarySortOption.newest;
+  final TextEditingController searchController = TextEditingController();
+  String searchQuery = '';
   bool isLoading = true;
-  bool isGeneratingAudiobook = false;
+  String generatingAudiobookDocumentId = '';
 
   @override
   void initState() {
@@ -41,9 +70,16 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     loadLibrary();
   }
 
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
+
   Future<void> loadLibrary() async {
     final localItems = await HistoryService.getHistory();
     final cloudItems = <DocumentHistory>[];
+    final loadedCloudDocumentIds = <String>{};
 
     try {
       final cloudDocuments = await CloudApiService.getDocuments();
@@ -60,16 +96,21 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         final fileName = item['document_name']?.toString().trim() ?? '';
         final createdAt = item['created_at']?.toString().trim() ??
             DateTime.now().toIso8601String();
+        final summary = item['summary']?.toString().trim() ?? '';
+        final audioUrl = item['audio_url']?.toString().trim() ?? '';
 
         if (documentId.isEmpty || fileName.isEmpty) continue;
+
+        loadedCloudDocumentIds.add(documentId);
+
         if (localIds.contains(documentId)) continue;
 
         cloudItems.add(
           DocumentHistory(
             documentId: documentId,
             fileName: fileName,
-            summary: '',
-            audioUrl: '',
+            summary: summary,
+            audioUrl: audioUrl,
             createdAt: createdAt,
           ),
         );
@@ -83,8 +124,63 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       ...cloudItems,
     ];
 
-    final savedAudiobooks =
+    final localAudiobooks =
         await const AudiobookLibraryService().getAudiobooks();
+
+    final cloudAudiobooks = <AudiobookHistory>[];
+    final loadedCloudAudiobookIds = <String>{};
+
+    try {
+      final rawCloudAudiobooks = await CloudApiService.getAudiobooks();
+
+      final localAudiobookIds = localAudiobooks
+          .map((item) => item.documentId)
+          .where((item) => item.trim().isNotEmpty)
+          .toSet();
+
+      for (final item in rawCloudAudiobooks) {
+        if (item is! Map) continue;
+
+        final documentId = item['document_id']?.toString().trim() ?? '';
+        final fileName = item['file_name']?.toString().trim() ?? '';
+        final createdAt = item['created_at']?.toString().trim() ??
+            DateTime.now().toIso8601String();
+        final rawChapters = item['chapters'];
+
+        final chapters = rawChapters is List
+            ? rawChapters
+                .whereType<Map>()
+                .map((chapter) => Map<String, dynamic>.from(chapter))
+                .toList()
+            : <Map<String, dynamic>>[];
+
+        if (documentId.isEmpty || fileName.isEmpty || chapters.isEmpty) {
+          continue;
+        }
+
+        loadedCloudAudiobookIds.add(documentId);
+
+        if (localAudiobookIds.contains(documentId)) {
+          continue;
+        }
+
+        cloudAudiobooks.add(
+          AudiobookHistory(
+            documentId: documentId,
+            fileName: fileName,
+            chapters: chapters,
+            createdAt: createdAt,
+          ),
+        );
+      }
+    } catch (error) {
+      debugPrint('No se pudo cargar audiolibros cloud: $error');
+    }
+
+    final savedAudiobooks = [
+      ...localAudiobooks,
+      ...cloudAudiobooks,
+    ];
 
     final chats = <_LibraryChatItem>[];
     final flashcards = <_LibraryStudyItem>[];
@@ -144,6 +240,12 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     setState(() {
       documents = items;
       audiobooks = savedAudiobooks;
+      cloudDocumentIds
+        ..clear()
+        ..addAll(loadedCloudDocumentIds);
+      cloudAudiobookIds
+        ..clear()
+        ..addAll(loadedCloudAudiobookIds);
       savedChats = chats;
       savedFlashcards = flashcards;
       savedExams = exams;
@@ -167,14 +269,87 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   }
 
   Future<void> deleteDocument(int index) async {
-    await HistoryService.deleteDocument(index);
+    if (index < 0 || index >= filteredDocuments.length) return;
+
+    final document = filteredDocuments[index];
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Eliminar documento'),
+        content: Text(
+          'Se eliminará "${document.fileName}" de la biblioteca. '
+          'También se limpiarán audiolibros, chats, flashcards y exámenes asociados.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.pop(context, true),
+            icon: const Icon(Icons.delete_outline_rounded),
+            label: const Text('Eliminar todo'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    await HistoryService.deleteDocument(
+      documents.indexWhere(
+        (item) => item.documentId == document.documentId,
+      ),
+    );
+
+    await const AudiobookLibraryService().deleteAudiobook(document.documentId);
+    await ChatHistoryService.clearChat(documentId: document.documentId);
+    await StudyResultService.deleteResult(
+      documentId: document.documentId,
+      type: 'flashcards',
+    );
+    await StudyResultService.deleteResult(
+      documentId: document.documentId,
+      type: 'exam',
+    );
+
+    try {
+      await CloudApiService.deleteDocument(
+        documentId: document.documentId,
+      );
+    } catch (cloudError) {
+      debugPrint('No se pudo eliminar documento cloud: $cloudError');
+    }
+
+    try {
+      await CloudApiService.deleteAudiobook(
+        documentId: document.documentId,
+      );
+    } catch (cloudError) {
+      debugPrint('No se pudo eliminar audiolibro cloud: $cloudError');
+    }
+
+    try {
+      await CloudApiService.deleteStudyResult(
+        documentId: document.documentId,
+        type: 'flashcards',
+      );
+      await CloudApiService.deleteStudyResult(
+        documentId: document.documentId,
+        type: 'exam',
+      );
+    } catch (cloudError) {
+      debugPrint('No se pudieron eliminar resultados cloud: $cloudError');
+    }
+
     await loadLibrary();
 
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Documento eliminado de la biblioteca.'),
+        content: Text('Documento y datos asociados eliminados.'),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -214,10 +389,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       return;
     }
 
-    if (isGeneratingAudiobook) return;
+    if (generatingAudiobookDocumentId.isNotEmpty) return;
 
     setState(() {
-      isGeneratingAudiobook = true;
+      generatingAudiobookDocumentId = document.documentId;
     });
 
     try {
@@ -233,17 +408,29 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         throw Exception('No se generaron capítulos de audio.');
       }
 
-      await const AudiobookLibraryService().saveAudiobook(
-        AudiobookHistory(
-          documentId: document.documentId,
-          fileName: document.fileName,
-          chapters: chapters
-              .whereType<Map>()
-              .map((item) => Map<String, dynamic>.from(item))
-              .toList(),
-          createdAt: DateTime.now().toIso8601String(),
-        ),
+      final audiobookHistory = AudiobookHistory(
+        documentId: document.documentId,
+        fileName: document.fileName,
+        chapters: chapters
+            .whereType<Map>()
+            .map((item) => Map<String, dynamic>.from(item))
+            .toList(),
+        createdAt: DateTime.now().toIso8601String(),
       );
+
+      await const AudiobookLibraryService().saveAudiobook(
+        audiobookHistory,
+      );
+
+      try {
+        await CloudApiService.saveAudiobook(
+          documentId: audiobookHistory.documentId,
+          fileName: audiobookHistory.fileName,
+          chapters: audiobookHistory.chapters,
+        );
+      } catch (cloudError) {
+        debugPrint('No se pudo guardar audiolibro cloud: $cloudError');
+      }
 
       await loadLibrary();
 
@@ -310,7 +497,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     } finally {
       if (mounted) {
         setState(() {
-          isGeneratingAudiobook = false;
+          generatingAudiobookDocumentId = '';
         });
       }
     }
@@ -318,6 +505,15 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
   Future<void> deleteSavedAudiobook(String documentId) async {
     await const AudiobookLibraryService().deleteAudiobook(documentId);
+
+    try {
+      await CloudApiService.deleteAudiobook(
+        documentId: documentId,
+      );
+    } catch (cloudError) {
+      debugPrint('No se pudo eliminar audiolibro cloud: $cloudError');
+    }
+
     await loadLibrary();
 
     if (!mounted) return;
@@ -326,6 +522,529 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       const SnackBar(
         content: Text('Audiolibro eliminado de la biblioteca.'),
         behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  bool shouldShowCategory(LibraryCategory category) {
+    return selectedCategory == LibraryCategory.all ||
+        selectedCategory == category;
+  }
+
+  int categoryCount(LibraryCategory category) {
+    return switch (category) {
+      LibraryCategory.all => filteredDocuments.length +
+          filteredAudiobooks.length +
+          filteredChats.length +
+          filteredFlashcards.length +
+          filteredExams.length,
+      LibraryCategory.documents => filteredDocuments.length,
+      LibraryCategory.audiobooks => filteredAudiobooks.length,
+      LibraryCategory.chats => filteredChats.length,
+      LibraryCategory.flashcards => filteredFlashcards.length,
+      LibraryCategory.exams => filteredExams.length,
+    };
+  }
+
+  String categoryLabel(LibraryCategory category) {
+    return switch (category) {
+      LibraryCategory.all => 'Todo',
+      LibraryCategory.documents => 'Documentos',
+      LibraryCategory.audiobooks => 'Audiolibros',
+      LibraryCategory.chats => 'Chats',
+      LibraryCategory.flashcards => 'Flashcards',
+      LibraryCategory.exams => 'Exámenes',
+    };
+  }
+
+  IconData categoryIcon(LibraryCategory category) {
+    return switch (category) {
+      LibraryCategory.all => Icons.dashboard_customize_rounded,
+      LibraryCategory.documents => Icons.picture_as_pdf_rounded,
+      LibraryCategory.audiobooks => Icons.headphones_rounded,
+      LibraryCategory.chats => Icons.chat_bubble_rounded,
+      LibraryCategory.flashcards => Icons.style_rounded,
+      LibraryCategory.exams => Icons.quiz_rounded,
+    };
+  }
+
+  bool isCloudDocument(DocumentHistory item) {
+    return cloudDocumentIds.contains(item.documentId);
+  }
+
+  bool isCloudAudiobook(AudiobookHistory item) {
+    return cloudAudiobookIds.contains(item.documentId);
+  }
+
+  bool isCloudDocumentId(String documentId) {
+    return cloudDocumentIds.contains(documentId) ||
+        cloudAudiobookIds.contains(documentId);
+  }
+
+  bool matchesSource({
+    required bool isCloud,
+  }) {
+    return switch (selectedSourceFilter) {
+      LibrarySourceFilter.all => true,
+      LibrarySourceFilter.local => !isCloud,
+      LibrarySourceFilter.cloud => isCloud,
+    };
+  }
+
+  String sourceFilterLabel(LibrarySourceFilter filter) {
+    return switch (filter) {
+      LibrarySourceFilter.all => 'Todos',
+      LibrarySourceFilter.local => 'Local',
+      LibrarySourceFilter.cloud => 'Cloud',
+    };
+  }
+
+  IconData sourceFilterIcon(LibrarySourceFilter filter) {
+    return switch (filter) {
+      LibrarySourceFilter.all => Icons.layers_rounded,
+      LibrarySourceFilter.local => Icons.computer_rounded,
+      LibrarySourceFilter.cloud => Icons.cloud_done_rounded,
+    };
+  }
+
+  int sourceFilterCount(LibrarySourceFilter filter) {
+    bool accept(bool isCloud) {
+      return switch (filter) {
+        LibrarySourceFilter.all => true,
+        LibrarySourceFilter.local => !isCloud,
+        LibrarySourceFilter.cloud => isCloud,
+      };
+    }
+
+    int countAll() {
+      return documents.where((item) => accept(isCloudDocument(item))).length +
+          audiobooks.where((item) => accept(isCloudAudiobook(item))).length +
+          savedChats
+              .where(
+                (item) => accept(
+                  isCloudDocumentId(item.document.documentId),
+                ),
+              )
+              .length +
+          savedFlashcards
+              .where(
+                (item) => accept(
+                  isCloudDocumentId(item.document.documentId),
+                ),
+              )
+              .length +
+          savedExams
+              .where(
+                (item) => accept(
+                  isCloudDocumentId(item.document.documentId),
+                ),
+              )
+              .length;
+    }
+
+    return switch (selectedCategory) {
+      LibraryCategory.all => countAll(),
+      LibraryCategory.documents =>
+        documents.where((item) => accept(isCloudDocument(item))).length,
+      LibraryCategory.audiobooks =>
+        audiobooks.where((item) => accept(isCloudAudiobook(item))).length,
+      LibraryCategory.chats => savedChats
+          .where(
+            (item) => accept(
+              isCloudDocumentId(item.document.documentId),
+            ),
+          )
+          .length,
+      LibraryCategory.flashcards => savedFlashcards
+          .where(
+            (item) => accept(
+              isCloudDocumentId(item.document.documentId),
+            ),
+          )
+          .length,
+      LibraryCategory.exams => savedExams
+          .where(
+            (item) => accept(
+              isCloudDocumentId(item.document.documentId),
+            ),
+          )
+          .length,
+    };
+  }
+
+  Widget buildSourceFilterTabs() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: LibrarySourceFilter.values.map((filter) {
+          final isSelected = selectedSourceFilter == filter;
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: ChoiceChip(
+              selected: isSelected,
+              avatar: Icon(
+                sourceFilterIcon(filter),
+                size: 17,
+                color: isSelected ? Colors.white : AppTheme.accent,
+              ),
+              label: Text(
+                '${sourceFilterLabel(filter)} (${sourceFilterCount(filter)})',
+              ),
+              onSelected: (_) {
+                setState(() {
+                  selectedSourceFilter = filter;
+                });
+              },
+              selectedColor: AppTheme.secondary,
+              backgroundColor: AppTheme.card,
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : AppTheme.textPrimary,
+                fontWeight: FontWeight.w800,
+              ),
+              side: BorderSide(
+                color: isSelected
+                    ? AppTheme.secondary
+                    : Colors.white.withValues(alpha: 0.08),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  bool matchesSearch(String value) {
+    final query = searchQuery.trim().toLowerCase();
+
+    if (query.isEmpty) return true;
+
+    return value.toLowerCase().contains(query);
+  }
+
+  String sortLabel(LibrarySortOption option) {
+    return switch (option) {
+      LibrarySortOption.newest => 'Más reciente',
+      LibrarySortOption.oldest => 'Más antiguo',
+      LibrarySortOption.nameAsc => 'Nombre A-Z',
+      LibrarySortOption.nameDesc => 'Nombre Z-A',
+    };
+  }
+
+  DateTime parseDate(String value) {
+    return DateTime.tryParse(value) ?? DateTime.fromMillisecondsSinceEpoch(0);
+  }
+
+  List<T> sortItems<T>({
+    required List<T> items,
+    required String Function(T item) name,
+    required String Function(T item) date,
+  }) {
+    final sorted = List<T>.from(items);
+
+    int compareNames(T a, T b) {
+      final left = name(a).trim().toLowerCase();
+      final right = name(b).trim().toLowerCase();
+
+      return left.compareTo(right);
+    }
+
+    int compareDates(T a, T b) {
+      final left = parseDate(date(a));
+      final right = parseDate(date(b));
+
+      return left.compareTo(right);
+    }
+
+    sorted.sort((a, b) {
+      switch (selectedSortOption) {
+        case LibrarySortOption.newest:
+          return compareDates(b, a);
+        case LibrarySortOption.oldest:
+          return compareDates(a, b);
+        case LibrarySortOption.nameAsc:
+          return compareNames(a, b);
+        case LibrarySortOption.nameDesc:
+          return compareNames(b, a);
+      }
+    });
+
+    return sorted;
+  }
+
+  Widget buildSortDropdown() {
+    return PopupMenuButton<LibrarySortOption>(
+      color: AppTheme.surface,
+      elevation: 14,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ),
+      onSelected: (value) {
+        setState(() {
+          selectedSortOption = value;
+        });
+      },
+      itemBuilder: (context) {
+        return LibrarySortOption.values.map((option) {
+          final isSelected = selectedSortOption == option;
+
+          return PopupMenuItem<LibrarySortOption>(
+            value: option,
+            child: Row(
+              children: [
+                Icon(
+                  isSelected ? Icons.check_circle_rounded : Icons.sort_rounded,
+                  color: isSelected ? AppTheme.success : AppTheme.accent,
+                  size: 18,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  sortLabel(option),
+                  style: TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 15,
+        ),
+        decoration: BoxDecoration(
+          color: AppTheme.card,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.08),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.sort_rounded,
+              color: AppTheme.accent,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              sortLabel(selectedSortOption),
+              style: const TextStyle(
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: AppTheme.accent,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildSearchAndSortRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: buildSearchBox(),
+        ),
+        const SizedBox(width: 12),
+        buildSortDropdown(),
+      ],
+    );
+  }
+
+  List<DocumentHistory> get filteredDocuments {
+    return documents
+        .where(
+          (item) =>
+              matchesSearch(item.fileName) || matchesSearch(item.cleanSummary),
+        )
+        .toList();
+  }
+
+  List<AudiobookHistory> get filteredAudiobooks {
+    final items = audiobooks
+        .where(
+          (item) =>
+              matchesSource(isCloud: isCloudAudiobook(item)) &&
+              matchesSearch(item.fileName),
+        )
+        .toList();
+
+    return sortItems<AudiobookHistory>(
+      items: items,
+      name: (item) => item.fileName,
+      date: (item) => item.createdAt,
+    );
+  }
+
+  List<_LibraryChatItem> get filteredChats {
+    final items = savedChats
+        .where(
+          (item) =>
+              matchesSource(
+                isCloud: isCloudDocumentId(item.document.documentId),
+              ) &&
+              (matchesSearch(item.document.fileName) ||
+                  matchesSearch(item.lastMessage)),
+        )
+        .toList();
+
+    return sortItems<_LibraryChatItem>(
+      items: items,
+      name: (item) => item.document.fileName,
+      date: (item) => item.document.createdAt,
+    );
+  }
+
+  List<_LibraryStudyItem> get filteredFlashcards {
+    final items = savedFlashcards
+        .where(
+          (item) =>
+              matchesSource(
+                isCloud: isCloudDocumentId(item.document.documentId),
+              ) &&
+              (matchesSearch(item.document.fileName) ||
+                  matchesSearch(item.preview)),
+        )
+        .toList();
+
+    return sortItems<_LibraryStudyItem>(
+      items: items,
+      name: (item) => item.document.fileName,
+      date: (item) => item.createdAt,
+    );
+  }
+
+  List<_LibraryStudyItem> get filteredExams {
+    final items = savedExams
+        .where(
+          (item) =>
+              matchesSource(
+                isCloud: isCloudDocumentId(item.document.documentId),
+              ) &&
+              (matchesSearch(item.document.fileName) ||
+                  matchesSearch(item.preview)),
+        )
+        .toList();
+
+    return sortItems<_LibraryStudyItem>(
+      items: items,
+      name: (item) => item.document.fileName,
+      date: (item) => item.createdAt,
+    );
+  }
+
+  Widget buildSearchBox() {
+    return TextField(
+      controller: searchController,
+      onChanged: (value) {
+        setState(() {
+          searchQuery = value;
+        });
+      },
+      style: const TextStyle(
+        color: AppTheme.textPrimary,
+        fontWeight: FontWeight.w700,
+      ),
+      decoration: InputDecoration(
+        hintText: 'Buscar en la biblioteca...',
+        hintStyle: const TextStyle(
+          color: AppTheme.textMuted,
+        ),
+        prefixIcon: const Icon(
+          Icons.search_rounded,
+          color: AppTheme.accent,
+        ),
+        suffixIcon: searchQuery.trim().isEmpty
+            ? null
+            : IconButton(
+                onPressed: () {
+                  searchController.clear();
+                  setState(() {
+                    searchQuery = '';
+                  });
+                },
+                icon: const Icon(
+                  Icons.close_rounded,
+                  color: AppTheme.textMuted,
+                ),
+              ),
+        filled: true,
+        fillColor: AppTheme.card,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 16,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(22),
+          borderSide: BorderSide(
+            color: Colors.white.withValues(alpha: 0.08),
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(22),
+          borderSide: BorderSide(
+            color: Colors.white.withValues(alpha: 0.08),
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(22),
+          borderSide: const BorderSide(
+            color: AppTheme.accent,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildCategoryTabs() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: LibraryCategory.values.map((category) {
+          final isSelected = selectedCategory == category;
+          final count = categoryCount(category);
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: ChoiceChip(
+              selected: isSelected,
+              avatar: Icon(
+                categoryIcon(category),
+                size: 17,
+                color: isSelected ? Colors.white : AppTheme.accent,
+              ),
+              label: Text(
+                '${categoryLabel(category)} ($count)',
+              ),
+              onSelected: (_) {
+                setState(() {
+                  selectedCategory = category;
+                });
+              },
+              selectedColor: AppTheme.primary,
+              backgroundColor: AppTheme.card,
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : AppTheme.textPrimary,
+                fontWeight: FontWeight.w800,
+              ),
+              side: BorderSide(
+                color: isSelected
+                    ? AppTheme.primary
+                    : Colors.white.withValues(alpha: 0.08),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -388,6 +1107,12 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       return buildEmptyState();
     }
 
+    final documentsToRender = sortItems<DocumentHistory>(
+      items: filteredDocuments,
+      name: (item) => item.fileName,
+      date: (item) => item.createdAt,
+    );
+
     return Column(
       children: [
         _LibrarySummary(
@@ -395,10 +1120,50 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           audioCount: audiobooks.length,
           summaryCount: documents.where((item) => item.hasSummary).length,
         ),
-        if (audiobooks.isNotEmpty) ...[
+        const SizedBox(height: 18),
+        buildCategoryTabs(),
+        const SizedBox(height: 12),
+        buildSourceFilterTabs(),
+        const SizedBox(height: 14),
+        buildSearchAndSortRow(),
+        if (sourceFilterCount(selectedSourceFilter) == 0) ...[
+          const SizedBox(height: 22),
+          SectionCard(
+            child: Column(
+              children: [
+                const Icon(
+                  Icons.search_off_rounded,
+                  color: AppTheme.textMuted,
+                  size: 42,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'No hay elementos para mostrar',
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Cambia el filtro, la categoría o el texto de búsqueda.',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: AppTheme.textMuted,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        if (shouldShowCategory(LibraryCategory.audiobooks) &&
+            filteredAudiobooks.isNotEmpty) ...[
           const SizedBox(height: 18),
           _SavedAudiobooksSection(
-            audiobooks: audiobooks,
+            audiobooks: filteredAudiobooks,
+            cloudAudiobookIds: cloudAudiobookIds,
             onDeleteAudiobook: deleteSavedAudiobook,
             onPlayChapter: (audiobook, chapter) async {
               final audioUrl = chapter['audio_url']?.toString() ?? '';
@@ -415,58 +1180,67 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             },
           ),
         ],
-        if (savedChats.isNotEmpty) ...[
+        if (shouldShowCategory(LibraryCategory.chats) &&
+            filteredChats.isNotEmpty) ...[
           const SizedBox(height: 18),
           _SavedChatsSection(
-            chats: savedChats,
+            chats: filteredChats,
             onOpenChat: openChat,
           ),
         ],
-        if (savedFlashcards.isNotEmpty) ...[
+        if (shouldShowCategory(LibraryCategory.flashcards) &&
+            filteredFlashcards.isNotEmpty) ...[
           const SizedBox(height: 18),
           _SavedStudySection(
             icon: Icons.style_rounded,
             title: 'Flashcards guardadas',
             subtitle: 'Repasa tarjetas generadas desde tus documentos.',
-            items: savedFlashcards,
+            items: filteredFlashcards,
             actionLabel: 'Abrir flashcards',
             onOpen: openFlashcards,
           ),
         ],
-        if (savedExams.isNotEmpty) ...[
+        if (shouldShowCategory(LibraryCategory.exams) &&
+            filteredExams.isNotEmpty) ...[
           const SizedBox(height: 18),
           _SavedStudySection(
             icon: Icons.quiz_rounded,
             title: 'Exámenes guardados',
             subtitle: 'Accede a exámenes generados previamente.',
-            items: savedExams,
+            items: filteredExams,
             actionLabel: 'Abrir examen',
             onOpen: openExam,
           ),
         ],
-        const SizedBox(height: 18),
-        ...documents.asMap().entries.map(
-          (entry) {
-            final index = entry.key;
-            final document = entry.value;
+        if ((shouldShowCategory(LibraryCategory.documents) ||
+                selectedCategory == LibraryCategory.all) &&
+            filteredDocuments.isNotEmpty &&
+            sourceFilterCount(selectedSourceFilter) > 0) ...[
+          const SizedBox(height: 18),
+          ...documentsToRender.asMap().entries.map(
+            (entry) {
+              final index = entry.key;
+              final document = entry.value;
 
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 14),
-              child: _DocumentLibraryCard(
-                document: document,
-                isGeneratingAudiobook: isGeneratingAudiobook,
-                onSetActive: () => setActiveDocument(document),
-                onChat: () => openChat(document),
-                onAudio: () {
-                  generateAudiobook(document);
-                },
-                onFlashcards: () => openFlashcards(document),
-                onExam: () => openExam(document),
-                onDelete: () => deleteDocument(index),
-              ),
-            );
-          },
-        ),
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 14),
+                child: _DocumentLibraryCard(
+                  document: document,
+                  isGeneratingAudiobook:
+                      generatingAudiobookDocumentId == document.documentId,
+                  onSetActive: () => setActiveDocument(document),
+                  onChat: () => openChat(document),
+                  onAudio: () {
+                    generateAudiobook(document);
+                  },
+                  onFlashcards: () => openFlashcards(document),
+                  onExam: () => openExam(document),
+                  onDelete: () => deleteDocument(index),
+                ),
+              );
+            },
+          ),
+        ],
       ],
     );
   }
@@ -917,6 +1691,7 @@ class _SavedStudyTile extends StatelessWidget {
 
 class _SavedAudiobooksSection extends StatelessWidget {
   final List<AudiobookHistory> audiobooks;
+  final Set<String> cloudAudiobookIds;
   final Future<void> Function(String documentId) onDeleteAudiobook;
   final Future<void> Function(
     AudiobookHistory audiobook,
@@ -925,6 +1700,7 @@ class _SavedAudiobooksSection extends StatelessWidget {
 
   const _SavedAudiobooksSection({
     required this.audiobooks,
+    required this.cloudAudiobookIds,
     required this.onDeleteAudiobook,
     required this.onPlayChapter,
   });
@@ -964,6 +1740,7 @@ class _SavedAudiobooksSection extends StatelessWidget {
           ...audiobooks.map(
             (audiobook) => _SavedAudiobookTile(
               audiobook: audiobook,
+              isCloud: cloudAudiobookIds.contains(audiobook.documentId),
               onDeleteAudiobook: onDeleteAudiobook,
               onPlayChapter: onPlayChapter,
             ),
@@ -976,6 +1753,7 @@ class _SavedAudiobooksSection extends StatelessWidget {
 
 class _SavedAudiobookTile extends StatelessWidget {
   final AudiobookHistory audiobook;
+  final bool isCloud;
   final Future<void> Function(String documentId) onDeleteAudiobook;
   final Future<void> Function(
     AudiobookHistory audiobook,
@@ -984,6 +1762,7 @@ class _SavedAudiobookTile extends StatelessWidget {
 
   const _SavedAudiobookTile({
     required this.audiobook,
+    required this.isCloud,
     required this.onDeleteAudiobook,
     required this.onPlayChapter,
   });

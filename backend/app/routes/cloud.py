@@ -11,6 +11,7 @@ from app.services.cloud_service import (
     list_workspaces,
     create_document,
     list_documents,
+    delete_document,
     create_chat,
     list_chats,
     save_message,
@@ -18,6 +19,13 @@ from app.services.cloud_service import (
     get_chat_messages,
     delete_chat,
     update_chat_title,
+    upsert_study_result,
+    get_study_result,
+    list_study_results,
+    delete_study_result,
+    upsert_audiobook,
+    list_audiobooks,
+    delete_audiobook,
 )
 
 
@@ -37,6 +45,8 @@ class DocumentCreate(BaseModel):
     document_name: str
     document_id: str
     file_url: str = ""
+    summary: str = ""
+    audio_url: str = ""
 
 
 class ChatCreate(BaseModel):
@@ -53,6 +63,18 @@ class MessageCreate(BaseModel):
     chat_id: str
     role: str
     content: str
+
+
+class StudyResultCreate(BaseModel):
+    document_id: str
+    type: str
+    content: str
+
+
+class AudiobookCreate(BaseModel):
+    document_id: str
+    file_name: str
+    chapters: list[dict]
 
 
 def handle_cloud_error(error: Exception) -> HTTPException:
@@ -108,6 +130,8 @@ async def create_document_endpoint(
             document_name=payload.document_name,
             document_id=payload.document_id,
             file_url=payload.file_url,
+            summary=payload.summary,
+            audio_url=payload.audio_url,
             user_id=current_user.user_id,
         )
     except Exception as error:
@@ -233,6 +257,130 @@ async def update_chat_endpoint(
             chat_id=chat_id,
             title=payload.title,
             user_id=current_user.user_id,
+        )
+    except Exception as error:
+        raise handle_cloud_error(error)
+
+
+@router.post("/study-results")
+async def upsert_study_result_endpoint(
+    payload: StudyResultCreate,
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        return upsert_study_result(
+            user_id=current_user.user_id,
+            document_id=payload.document_id,
+            type=payload.type,
+            content=payload.content,
+        )
+    except Exception as error:
+        raise handle_cloud_error(error)
+
+
+@router.get("/study-results")
+async def list_study_results_endpoint(
+    type: str | None = None,
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        return {
+            "study_results": list_study_results(
+                user_id=current_user.user_id,
+                type=type,
+            )
+        }
+    except Exception as error:
+        raise handle_cloud_error(error)
+
+
+@router.get("/study-results/{document_id}/{type}")
+async def get_study_result_endpoint(
+    document_id: str,
+    type: str,
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        return {
+            "study_result": get_study_result(
+                user_id=current_user.user_id,
+                document_id=document_id,
+                type=type,
+            )
+        }
+    except Exception as error:
+        raise handle_cloud_error(error)
+
+
+@router.delete("/study-results/{document_id}/{type}")
+async def delete_study_result_endpoint(
+    document_id: str,
+    type: str,
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        return delete_study_result(
+            user_id=current_user.user_id,
+            document_id=document_id,
+            type=type,
+        )
+    except Exception as error:
+        raise handle_cloud_error(error)
+
+
+@router.post("/audiobooks")
+async def upsert_audiobook_endpoint(
+    payload: AudiobookCreate,
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        return upsert_audiobook(
+            user_id=current_user.user_id,
+            document_id=payload.document_id,
+            file_name=payload.file_name,
+            chapters=payload.chapters,
+        )
+    except Exception as error:
+        raise handle_cloud_error(error)
+
+
+@router.get("/audiobooks")
+async def list_audiobooks_endpoint(
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        return {
+            "audiobooks": list_audiobooks(
+                user_id=current_user.user_id,
+            )
+        }
+    except Exception as error:
+        raise handle_cloud_error(error)
+
+
+@router.delete("/audiobooks/{document_id}")
+async def delete_audiobook_endpoint(
+    document_id: str,
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        return delete_audiobook(
+            user_id=current_user.user_id,
+            document_id=document_id,
+        )
+    except Exception as error:
+        raise handle_cloud_error(error)
+
+
+@router.delete("/documents/{document_id}")
+async def delete_document_endpoint(
+    document_id: str,
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        return delete_document(
+            user_id=current_user.user_id,
+            document_id=document_id,
         )
     except Exception as error:
         raise handle_cloud_error(error)
