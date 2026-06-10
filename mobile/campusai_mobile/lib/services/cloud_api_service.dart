@@ -161,11 +161,21 @@ class CloudApiService {
     return data['messages'] ?? [];
   }
 
-  static Future<List<dynamic>> getChats() async {
+  static Future<List<dynamic>> getChats({
+    String? workspaceId,
+  }) async {
+    final uri = Uri.parse(
+      '${ApiService.baseUrl}/cloud/chats',
+    ).replace(
+      queryParameters: workspaceId == null || workspaceId.trim().isEmpty
+          ? {}
+          : {
+              'workspace_id': workspaceId,
+            },
+    );
+
     final response = await http.get(
-      Uri.parse(
-        '${ApiService.baseUrl}/cloud/chats',
-      ),
+      uri,
       headers: AuthService.authHeaders,
     );
 
@@ -353,6 +363,41 @@ class CloudApiService {
     final response = await http.delete(
       Uri.parse(
         '${ApiService.baseUrl}/cloud/documents/$documentId',
+      ),
+      headers: AuthService.authHeaders,
+    );
+
+    return ApiService.decodeResponse(response);
+  }
+
+  static Future<Map<String, dynamic>> updateWorkspace({
+    required String workspaceId,
+    required String name,
+    String description = '',
+  }) async {
+    final response = await http.patch(
+      Uri.parse(
+        '${ApiService.baseUrl}/cloud/workspaces/$workspaceId',
+      ),
+      headers: {
+        'Content-Type': 'application/json',
+        ...AuthService.authHeaders,
+      },
+      body: jsonEncode({
+        'name': name,
+        'description': description,
+      }),
+    );
+
+    return ApiService.decodeResponse(response);
+  }
+
+  static Future<Map<String, dynamic>> deleteWorkspace({
+    required String workspaceId,
+  }) async {
+    final response = await http.delete(
+      Uri.parse(
+        '${ApiService.baseUrl}/cloud/workspaces/$workspaceId',
       ),
       headers: AuthService.authHeaders,
     );

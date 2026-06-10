@@ -4,14 +4,17 @@ import '../../l10n/app_localizations.dart';
 import '../../models/workspace_model.dart';
 import '../../theme/app_theme.dart';
 import '../section_card.dart';
+import 'cloud_chats_panel.dart';
 
 class WorkspacesPanel extends StatelessWidget {
   final List<WorkspaceModel> workspaces;
   final VoidCallback onCreateWorkspace;
   final void Function(WorkspaceModel workspace) onOpenWorkspace;
+  final void Function(Map<String, dynamic> chat) onOpenChat;
   final void Function(WorkspaceModel workspace) onAddDocuments;
   final void Function(WorkspaceModel workspace) onRenameWorkspace;
-  final void Function(WorkspaceModel workspace, String documentId) onRemoveDocument;
+  final void Function(WorkspaceModel workspace, String documentId)
+      onRemoveDocument;
   final void Function(WorkspaceModel workspace) onDeleteWorkspace;
 
   const WorkspacesPanel({
@@ -19,6 +22,7 @@ class WorkspacesPanel extends StatelessWidget {
     required this.workspaces,
     required this.onCreateWorkspace,
     required this.onOpenWorkspace,
+    required this.onOpenChat,
     required this.onAddDocuments,
     required this.onRenameWorkspace,
     required this.onRemoveDocument,
@@ -178,6 +182,11 @@ class WorkspacesPanel extends StatelessWidget {
                       onRemoveDocument: (documentId) {
                         onRemoveDocument(workspace, documentId);
                       },
+                    ),
+                    const SizedBox(height: 16),
+                    CloudChatsPanel(
+                      workspaceId: workspace.workspaceId,
+                      onOpenChat: onOpenChat,
                     ),
                     const SizedBox(height: 18),
                     Row(

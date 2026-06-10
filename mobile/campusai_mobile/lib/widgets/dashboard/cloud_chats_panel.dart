@@ -7,10 +7,12 @@ import '../section_card.dart';
 
 class CloudChatsPanel extends StatefulWidget {
   final void Function(Map<String, dynamic> chat) onOpenChat;
+  final String? workspaceId;
 
   const CloudChatsPanel({
     super.key,
     required this.onOpenChat,
+    this.workspaceId,
   });
 
   @override
@@ -116,7 +118,9 @@ class _CloudChatsPanelState extends State<CloudChatsPanel> {
 
   Future<void> loadChats() async {
     try {
-      final data = await CloudApiService.getChats();
+      final data = await CloudApiService.getChats(
+        workspaceId: widget.workspaceId,
+      );
 
       if (!mounted) return;
 

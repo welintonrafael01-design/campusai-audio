@@ -70,6 +70,83 @@ def get_workspace(
     return response.data
 
 
+
+
+def update_workspace(
+    *,
+    workspace_id: str,
+    user_id: str,
+    name: str,
+    description: str = "",
+) -> dict:
+    client = get_supabase_admin_client()
+
+    get_workspace(
+        workspace_id=workspace_id,
+        user_id=user_id,
+    )
+
+    payload = {
+        "name": name.strip() or "Workspace",
+        "description": description,
+    }
+
+    response = (
+        client
+        .table("workspaces")
+        .update(payload)
+        .eq("id", workspace_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
+
+    return response.data[0]
+
+
+def delete_workspace(
+    *,
+    workspace_id: str,
+    user_id: str,
+) -> dict:
+    client = get_supabase_admin_client()
+
+    get_workspace(
+        workspace_id=workspace_id,
+        user_id=user_id,
+    )
+
+    (
+        client
+        .table("documents")
+        .delete()
+        .eq("workspace_id", workspace_id)
+        .execute()
+    )
+
+    (
+        client
+        .table("chats")
+        .delete()
+        .eq("workspace_id", workspace_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
+
+    (
+        client
+        .table("workspaces")
+        .delete()
+        .eq("id", workspace_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
+
+    return {
+        "deleted": True,
+        "workspace_id": workspace_id,
+    }
+
+
 def create_document(
     *,
     workspace_id: str,

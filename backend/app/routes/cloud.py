@@ -9,6 +9,8 @@ from app.security.user_auth import (
 from app.services.cloud_service import (
     create_workspace,
     list_workspaces,
+    update_workspace,
+    delete_workspace,
     create_document,
     list_documents,
     delete_document,
@@ -36,6 +38,11 @@ router = APIRouter(
 
 
 class WorkspaceCreate(BaseModel):
+    name: str
+    description: str = ""
+
+
+class WorkspaceUpdate(BaseModel):
     name: str
     description: str = ""
 
@@ -381,6 +388,37 @@ async def delete_document_endpoint(
         return delete_document(
             user_id=current_user.user_id,
             document_id=document_id,
+        )
+    except Exception as error:
+        raise handle_cloud_error(error)
+
+
+@router.patch("/workspaces/{workspace_id}")
+async def update_workspace_endpoint(
+    workspace_id: str,
+    payload: WorkspaceUpdate,
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        return update_workspace(
+            workspace_id=workspace_id,
+            user_id=current_user.user_id,
+            name=payload.name,
+            description=payload.description,
+        )
+    except Exception as error:
+        raise handle_cloud_error(error)
+
+
+@router.delete("/workspaces/{workspace_id}")
+async def delete_workspace_endpoint(
+    workspace_id: str,
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        return delete_workspace(
+            workspace_id=workspace_id,
+            user_id=current_user.user_id,
         )
     except Exception as error:
         raise handle_cloud_error(error)

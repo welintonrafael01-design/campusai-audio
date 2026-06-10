@@ -371,6 +371,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
 
     await WorkspaceService.updateWorkspace(updatedWorkspace);
+
+    try {
+      await CloudApiService.updateWorkspace(
+        workspaceId: workspace.workspaceId,
+        name: newName.trim(),
+        description: l10n.workspaceCreatedFromStudyBook,
+      );
+    } catch (error) {
+      debugPrint('No se pudo renombrar workspace cloud: $error');
+    }
+
     await loadWorkspaces();
 
     if (!mounted) return;
@@ -513,7 +524,39 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Future<void> deleteWorkspace(WorkspaceModel workspace) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Eliminar workspace'),
+        content: Text(
+          'Se eliminará "${workspace.name}" y su relación con los documentos y chats cloud asociados.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.pop(context, true),
+            icon: const Icon(Icons.delete_outline_rounded),
+            label: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
     await WorkspaceService.removeWorkspace(workspace.workspaceId);
+
+    try {
+      await CloudApiService.deleteWorkspace(
+        workspaceId: workspace.workspaceId,
+      );
+    } catch (error) {
+      debugPrint('No se pudo eliminar workspace cloud: $error');
+    }
+
     await loadWorkspaces();
   }
 
@@ -1003,6 +1046,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             workspaces: workspaces,
             onCreateWorkspace: createWorkspace,
             onOpenWorkspace: openWorkspace,
+            onOpenChat: openCloudChat,
             onAddDocuments: addDocumentsToWorkspace,
             onRenameWorkspace: renameWorkspace,
             onRemoveDocument: removeDocumentFromWorkspace,
