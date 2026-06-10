@@ -9,6 +9,7 @@ import '../services/history_service.dart';
 import '../services/api_service.dart';
 import '../services/audiobook_service.dart';
 import '../services/audiobook_library_service.dart';
+import '../services/cloud_api_service.dart';
 import '../services/chat_history_service.dart';
 import '../services/study_result_service.dart';
 import '../theme/app_theme.dart';
@@ -41,7 +42,47 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   }
 
   Future<void> loadLibrary() async {
-    final items = await HistoryService.getHistory();
+    final localItems = await HistoryService.getHistory();
+    final cloudItems = <DocumentHistory>[];
+
+    try {
+      final cloudDocuments = await CloudApiService.getDocuments();
+
+      final localIds = localItems
+          .map((item) => item.documentId)
+          .where((item) => item.trim().isNotEmpty)
+          .toSet();
+
+      for (final item in cloudDocuments) {
+        if (item is! Map) continue;
+
+        final documentId = item['document_id']?.toString().trim() ?? '';
+        final fileName = item['document_name']?.toString().trim() ?? '';
+        final createdAt = item['created_at']?.toString().trim() ??
+            DateTime.now().toIso8601String();
+
+        if (documentId.isEmpty || fileName.isEmpty) continue;
+        if (localIds.contains(documentId)) continue;
+
+        cloudItems.add(
+          DocumentHistory(
+            documentId: documentId,
+            fileName: fileName,
+            summary: '',
+            audioUrl: '',
+            createdAt: createdAt,
+          ),
+        );
+      }
+    } catch (error) {
+      debugPrint('No se pudo cargar Biblioteca Cloud: $error');
+    }
+
+    final items = [
+      ...localItems,
+      ...cloudItems,
+    ];
+
     final savedAudiobooks =
         await const AudiobookLibraryService().getAudiobooks();
 
@@ -1130,11 +1171,36 @@ class _DocumentLibraryCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      document.formattedDate,
-                      style: const TextStyle(
-                        color: AppTheme.textMuted,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            document.formattedDate,
+                            style: const TextStyle(
+                              color: AppTheme.textMuted,
+                            ),
+                          ),
+                        ),
+                        if (!document.hasSummary && !document.hasAudio)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.accent.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: const Text(
+                              'Cloud',
+                              style: TextStyle(
+                                color: AppTheme.accent,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),

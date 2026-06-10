@@ -171,7 +171,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     try {
       final cloudChat = await CloudApiService.createChat(
         documentId: widget.documentId,
-        title: widget.fileName,
+        title:
+            isWorkspaceChat ? 'Workspace: ${widget.fileName}' : widget.fileName,
       );
 
       cloudChatId = cloudChat['id'] ?? '';
