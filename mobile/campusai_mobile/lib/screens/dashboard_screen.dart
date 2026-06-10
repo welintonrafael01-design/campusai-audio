@@ -330,6 +330,101 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
+  Future<void> renameWorkspace(WorkspaceModel workspace) async {
+    final controller = TextEditingController(text: workspace.name);
+
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          title: const Text('Renombrar workspace'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            decoration: const InputDecoration(
+              labelText: 'Nombre del workspace',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(context, controller.text.trim());
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!mounted || newName == null || newName.trim().isEmpty) return;
+
+    final updatedWorkspace = WorkspaceModel(
+      workspaceId: workspace.workspaceId,
+      name: newName.trim(),
+      documents: workspace.documents,
+      updatedAt: DateTime.now(),
+    );
+
+    await WorkspaceService.updateWorkspace(updatedWorkspace);
+    await loadWorkspaces();
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Workspace renombrado a "$newName".'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  Future<void> removeDocumentFromWorkspace(
+    WorkspaceModel workspace,
+    String documentId,
+  ) async {
+    if (workspace.documents.length <= 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'El workspace debe conservar al menos un documento.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final updatedDocuments = workspace.documents
+        .where((document) => document.documentId != documentId)
+        .toList();
+
+    final updatedWorkspace = WorkspaceModel(
+      workspaceId: workspace.workspaceId,
+      name: workspace.name,
+      documents: updatedDocuments,
+      updatedAt: DateTime.now(),
+    );
+
+    await WorkspaceService.updateWorkspace(updatedWorkspace);
+    await loadWorkspaces();
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Documento removido de "${workspace.name}".',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   Future<void> addDocumentsToWorkspace(WorkspaceModel workspace) async {
     final existingIds = workspace.documents
         .map((item) => item.documentId)
@@ -909,6 +1004,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             onCreateWorkspace: createWorkspace,
             onOpenWorkspace: openWorkspace,
             onAddDocuments: addDocumentsToWorkspace,
+            onRenameWorkspace: renameWorkspace,
+            onRemoveDocument: removeDocumentFromWorkspace,
             onDeleteWorkspace: deleteWorkspace,
           ),
         ),

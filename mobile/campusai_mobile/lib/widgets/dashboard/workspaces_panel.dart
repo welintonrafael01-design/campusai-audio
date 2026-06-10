@@ -10,6 +10,8 @@ class WorkspacesPanel extends StatelessWidget {
   final VoidCallback onCreateWorkspace;
   final void Function(WorkspaceModel workspace) onOpenWorkspace;
   final void Function(WorkspaceModel workspace) onAddDocuments;
+  final void Function(WorkspaceModel workspace) onRenameWorkspace;
+  final void Function(WorkspaceModel workspace, String documentId) onRemoveDocument;
   final void Function(WorkspaceModel workspace) onDeleteWorkspace;
 
   const WorkspacesPanel({
@@ -18,6 +20,8 @@ class WorkspacesPanel extends StatelessWidget {
     required this.onCreateWorkspace,
     required this.onOpenWorkspace,
     required this.onAddDocuments,
+    required this.onRenameWorkspace,
+    required this.onRemoveDocument,
     required this.onDeleteWorkspace,
   });
 
@@ -151,6 +155,15 @@ class WorkspacesPanel extends StatelessWidget {
                           ),
                         ),
                         IconButton(
+                          tooltip: 'Renombrar workspace',
+                          onPressed: () => onRenameWorkspace(workspace),
+                          icon: const Icon(
+                            Icons.edit_rounded,
+                            color: AppTheme.textMuted,
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Eliminar workspace',
                           onPressed: () => onDeleteWorkspace(workspace),
                           icon: const Icon(
                             Icons.delete_outline_rounded,
@@ -162,6 +175,9 @@ class WorkspacesPanel extends StatelessWidget {
                     const SizedBox(height: 14),
                     _WorkspaceDocumentsPreview(
                       documents: workspace.documents,
+                      onRemoveDocument: (documentId) {
+                        onRemoveDocument(workspace, documentId);
+                      },
                     ),
                     const SizedBox(height: 18),
                     Row(
@@ -203,9 +219,11 @@ class WorkspacesPanel extends StatelessWidget {
 
 class _WorkspaceDocumentsPreview extends StatelessWidget {
   final List<dynamic> documents;
+  final void Function(String documentId) onRemoveDocument;
 
   const _WorkspaceDocumentsPreview({
     required this.documents,
+    required this.onRemoveDocument,
   });
 
   @override
@@ -236,6 +254,7 @@ class _WorkspaceDocumentsPreview extends StatelessWidget {
             ...visibleDocuments.map(
               (document) {
                 final fileName = document.fileName?.toString() ?? 'Documento';
+                final documentId = document.documentId?.toString() ?? '';
 
                 return Container(
                   padding: const EdgeInsets.symmetric(
@@ -260,7 +279,7 @@ class _WorkspaceDocumentsPreview extends StatelessWidget {
                       const SizedBox(width: 6),
                       ConstrainedBox(
                         constraints: const BoxConstraints(
-                          maxWidth: 220,
+                          maxWidth: 190,
                         ),
                         child: Text(
                           fileName,
@@ -270,6 +289,21 @@ class _WorkspaceDocumentsPreview extends StatelessWidget {
                             color: AppTheme.textPrimary,
                             fontWeight: FontWeight.w700,
                             fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(999),
+                        onTap: documentId.isEmpty
+                            ? null
+                            : () => onRemoveDocument(documentId),
+                        child: const Padding(
+                          padding: EdgeInsets.all(3),
+                          child: Icon(
+                            Icons.close_rounded,
+                            color: AppTheme.textMuted,
+                            size: 14,
                           ),
                         ),
                       ),
