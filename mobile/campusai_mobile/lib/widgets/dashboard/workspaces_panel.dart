@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/workspace_model.dart';
+import '../../services/cloud_api_service.dart';
 import '../../theme/app_theme.dart';
 import '../section_card.dart';
-import 'cloud_chats_panel.dart';
 
-class WorkspacesPanel extends StatelessWidget {
+class WorkspacesPanel extends StatefulWidget {
   final List<WorkspaceModel> workspaces;
   final VoidCallback onCreateWorkspace;
   final void Function(WorkspaceModel workspace) onOpenWorkspace;
@@ -29,8 +29,29 @@ class WorkspacesPanel extends StatelessWidget {
     required this.onDeleteWorkspace,
   });
 
+  @override
+  State<WorkspacesPanel> createState() => _WorkspacesPanelState();
+}
+
+class _WorkspacesPanelState extends State<WorkspacesPanel> {
+  final Set<String> expandedWorkspaceIds = {};
+
   String formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
+  }
+
+  bool isExpanded(WorkspaceModel workspace) {
+    return expandedWorkspaceIds.contains(workspace.workspaceId);
+  }
+
+  void toggleExpanded(WorkspaceModel workspace) {
+    setState(() {
+      if (expandedWorkspaceIds.contains(workspace.workspaceId)) {
+        expandedWorkspaceIds.remove(workspace.workspaceId);
+      } else {
+        expandedWorkspaceIds.add(workspace.workspaceId);
+      }
+    });
   }
 
   @override
@@ -52,14 +73,14 @@ class WorkspacesPanel extends StatelessWidget {
               ),
             ),
             ElevatedButton.icon(
-              onPressed: onCreateWorkspace,
+              onPressed: widget.onCreateWorkspace,
               icon: const Icon(Icons.add_rounded),
               label: Text(l10n.createWorkspaceButton),
             ),
           ],
         ),
         const SizedBox(height: 14),
-        if (workspaces.isEmpty)
+        if (widget.workspaces.isEmpty)
           SectionCard(
             child: Row(
               children: [
@@ -80,7 +101,7 @@ class WorkspacesPanel extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 ElevatedButton.icon(
-                  onPressed: onCreateWorkspace,
+                  onPressed: widget.onCreateWorkspace,
                   icon: const Icon(Icons.add_rounded),
                   label: Text(l10n.newWorkspace),
                 ),
@@ -88,11 +109,11 @@ class WorkspacesPanel extends StatelessWidget {
             ),
           )
         else
-          ...workspaces.map(
+          ...widget.workspaces.map(
             (workspace) => Padding(
               padding: const EdgeInsets.only(bottom: 14),
               child: SectionCard(
-                onTap: () => onOpenWorkspace(workspace),
+                onTap: () => toggleExpanded(workspace),
                 child: Column(
                   children: [
                     Row(
@@ -146,6 +167,10 @@ class WorkspacesPanel extends StatelessWidget {
                                     ),
                                   ),
                                   const SizedBox(width: 10),
+                                  _WorkspaceChatCount(
+                                    workspaceId: workspace.workspaceId,
+                                  ),
+                                  const SizedBox(width: 10),
                                   Text(
                                     '${l10n.updatedAt} ${formatDate(workspace.updatedAt)}',
                                     style: const TextStyle(
@@ -159,8 +184,20 @@ class WorkspacesPanel extends StatelessWidget {
                           ),
                         ),
                         IconButton(
+                          tooltip: isExpanded(workspace)
+                              ? 'Contraer workspace'
+                              : 'Expandir workspace',
+                          onPressed: () => toggleExpanded(workspace),
+                          icon: Icon(
+                            isExpanded(workspace)
+                                ? Icons.expand_less_rounded
+                                : Icons.expand_more_rounded,
+                            color: AppTheme.textMuted,
+                          ),
+                        ),
+                        IconButton(
                           tooltip: 'Renombrar workspace',
-                          onPressed: () => onRenameWorkspace(workspace),
+                          onPressed: () => widget.onRenameWorkspace(workspace),
                           icon: const Icon(
                             Icons.edit_rounded,
                             color: AppTheme.textMuted,
@@ -168,7 +205,7 @@ class WorkspacesPanel extends StatelessWidget {
                         ),
                         IconButton(
                           tooltip: 'Eliminar workspace',
-                          onPressed: () => onDeleteWorkspace(workspace),
+                          onPressed: () => widget.onDeleteWorkspace(workspace),
                           icon: const Icon(
                             Icons.delete_outline_rounded,
                             color: AppTheme.textMuted,
@@ -176,52 +213,127 @@ class WorkspacesPanel extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 14),
-                    _WorkspaceDocumentsPreview(
-                      documents: workspace.documents,
-                      onRemoveDocument: (documentId) {
-                        onRemoveDocument(workspace, documentId);
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    CloudChatsPanel(
-                      workspaceId: workspace.workspaceId,
-                      onOpenChat: onOpenChat,
-                    ),
-                    const SizedBox(height: 18),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => onOpenWorkspace(workspace),
-                            icon: const Icon(
-                              Icons.auto_awesome_rounded,
-                            ),
-                            label: Text(
-                              l10n.openWorkspace,
+                    if (isExpanded(workspace)) ...[
+                      const SizedBox(height: 14),
+                      _WorkspaceDocumentsPreview(
+                        documents: workspace.documents,
+                        onRemoveDocument: (documentId) {
+                          widget.onRemoveDocument(workspace, documentId);
+                        },
+                      ),
+                      const SizedBox(height: 18),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () =>
+                                  widget.onOpenWorkspace(workspace),
+                              icon: const Icon(
+                                Icons.auto_awesome_rounded,
+                              ),
+                              label: Text(
+                                l10n.openWorkspace,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => onAddDocuments(workspace),
-                            icon: const Icon(
-                              Icons.add_rounded,
-                            ),
-                            label: const Text(
-                              'Agregar PDFs',
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => widget.onAddDocuments(workspace),
+                              icon: const Icon(
+                                Icons.add_rounded,
+                              ),
+                              label: const Text(
+                                'Agregar PDFs',
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
             ),
           ),
       ],
+    );
+  }
+}
+
+class _WorkspaceChatCount extends StatefulWidget {
+  final String workspaceId;
+
+  const _WorkspaceChatCount({
+    required this.workspaceId,
+  });
+
+  @override
+  State<_WorkspaceChatCount> createState() => _WorkspaceChatCountState();
+}
+
+class _WorkspaceChatCountState extends State<_WorkspaceChatCount> {
+  int chatCount = 0;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    loadCount();
+  }
+
+  Future<void> loadCount() async {
+    try {
+      final chats = await CloudApiService.getChats(
+        workspaceId: widget.workspaceId,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        chatCount = chats.length;
+        isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        chatCount = 0;
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 4,
+      ),
+      decoration: BoxDecoration(
+        color: AppTheme.card,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.chat_bubble_outline_rounded,
+            color: AppTheme.accent,
+            size: 13,
+          ),
+          const SizedBox(width: 5),
+          Text(
+            isLoading ? '...' : '$chatCount chats',
+            style: const TextStyle(
+              color: AppTheme.textMuted,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
