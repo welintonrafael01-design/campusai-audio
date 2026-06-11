@@ -376,17 +376,21 @@ class _PlanCard extends StatelessWidget {
         color: AppTheme.card,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: data.isHighlighted
-              ? AppTheme.accent
-              : Colors.white.withValues(alpha: 0.07),
-          width: data.isHighlighted ? 1.6 : 1,
+          color: isCurrent
+              ? AppTheme.success
+              : data.isHighlighted
+                  ? AppTheme.accent
+                  : Colors.white.withValues(alpha: 0.07),
+          width: isCurrent || data.isHighlighted ? 1.8 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: data.isHighlighted
-                ? AppTheme.accent.withValues(alpha: 0.2)
-                : Colors.black.withValues(alpha: 0.14),
-            blurRadius: data.isHighlighted ? 28 : 18,
+            color: isCurrent
+                ? AppTheme.success.withValues(alpha: 0.18)
+                : data.isHighlighted
+                    ? AppTheme.accent.withValues(alpha: 0.2)
+                    : Colors.black.withValues(alpha: 0.14),
+            blurRadius: isCurrent || data.isHighlighted ? 28 : 18,
             offset: const Offset(0, 14),
           ),
         ],
@@ -439,8 +443,38 @@ class _PlanCard extends StatelessWidget {
                 ),
               ),
               if (isCurrent)
-                const Chip(
-                  label: Text('Actual'),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.success.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: AppTheme.success.withValues(alpha: 0.45),
+                    ),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.verified_rounded,
+                        color: AppTheme.success,
+                        size: 16,
+                      ),
+                      SizedBox(width: 5),
+                      Text(
+                        'PLAN ACTUAL',
+                        style: TextStyle(
+                          color: AppTheme.success,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
             ],
           ),
@@ -494,10 +528,10 @@ class _PlanCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: isCurrent
-                ? OutlinedButton.icon(
+                ? FilledButton.icon(
                     onPressed: null,
-                    icon: const Icon(Icons.check_circle_outline),
-                    label: const Text('Plan actual'),
+                    icon: const Icon(Icons.check_circle_rounded),
+                    label: Text('${data.name} activo'),
                   )
                 : FilledButton.icon(
                     onPressed: isFree ? null : onSelect,

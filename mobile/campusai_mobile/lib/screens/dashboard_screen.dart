@@ -100,6 +100,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   Future<void> initializeDashboard() async {
     await syncSubscriptionPlan();
+    await handleCheckoutReturn();
     await checkOnboarding();
 
     await Future.wait([
@@ -108,6 +109,41 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       loadWorkspaces(),
       restoreActiveDocument(),
     ]);
+  }
+
+  Future<void> handleCheckoutReturn() async {
+    String? checkoutStatus;
+    String? planCode;
+
+    try {
+      final uri = GoRouterState.of(context).uri;
+      checkoutStatus = uri.queryParameters['checkout'];
+      planCode = uri.queryParameters['plan'];
+    } catch (_) {
+      checkoutStatus = Uri.base.queryParameters['checkout'];
+      planCode = Uri.base.queryParameters['plan'];
+    }
+
+    if (checkoutStatus != 'success') return;
+
+    await syncSubscriptionPlan();
+
+    if (!mounted) return;
+
+    final cleanPlan = (planCode ?? '').trim().toUpperCase();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          cleanPlan.isEmpty
+              ? 'Plan actualizado correctamente.'
+              : 'Plan $cleanPlan activado correctamente.',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    context.go('/dashboard');
   }
 
   Future<void> checkOnboarding() async {

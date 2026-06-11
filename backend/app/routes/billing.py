@@ -31,6 +31,32 @@ class CustomerPortalResponse(BaseModel):
     portal_url: str
 
 
+
+def _resolve_plan_from_stripe_object(data_object: dict, fallback: str = "free") -> str:
+    metadata = data_object.get("metadata", {}) or {}
+
+    plan = str(metadata.get("plan") or "").strip().lower()
+    if plan in {"pro", "educator"}:
+        return plan
+
+    price_pro = os.getenv("STRIPE_PRICE_PRO", "")
+    price_educator = os.getenv("STRIPE_PRICE_EDUCATOR", "")
+
+    items = data_object.get("items", {}).get("data", []) or []
+
+    for item in items:
+        price = item.get("price", {}) or {}
+        price_id = price.get("id") or item.get("plan", {}).get("id")
+
+        if price_id == price_educator:
+            return "educator"
+
+        if price_id == price_pro:
+            return "pro"
+
+    return fallback.strip().lower() or "free"
+
+
 def _get_price_id(plan: str) -> str:
     price_map = {
         "pro": os.getenv("STRIPE_PRICE_PRO", ""),
@@ -270,7 +296,17 @@ async def stripe_webhook(request: Request):
 
         user_id = metadata.get("user_id", "")
         email = metadata.get("email") or data_object.get("customer_email")
-        plan = metadata.get("plan", "free")
+        plan = _resolve_plan_from_stripe_object(
+            data_object,
+            metadata.get("plan", "free"),
+        )
+
+        if not user_id:
+            return {
+                "received": True,
+                "type": event_type,
+                "ignored": "missing_user_id",
+            }
 
         upsert_user_subscription(
             user_id=user_id,
@@ -282,6 +318,7 @@ async def stripe_webhook(request: Request):
         )
 
     elif event_type in {
+        "customer.subscription.created",
         "customer.subscription.updated",
         "customer.subscription.deleted",
     }:
@@ -289,7 +326,17 @@ async def stripe_webhook(request: Request):
 
         user_id = metadata.get("user_id", "")
         email = metadata.get("email")
-        plan = metadata.get("plan", "free")
+        plan = _resolve_plan_from_stripe_object(
+            data_object,
+            metadata.get("plan", "free"),
+        )
+
+        if not user_id:
+            return {
+                "received": True,
+                "type": event_type,
+                "ignored": "missing_user_id",
+            }
 
         status = data_object.get("status")
 
