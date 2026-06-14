@@ -248,17 +248,21 @@ def delete_document(
         for item in workspace_response.data
     ]
 
-    if not workspace_ids:
-        return {
-            "deleted": True,
-            "document_id": document_id,
-        }
+    if workspace_ids:
+        (
+            client
+            .table("documents")
+            .delete()
+            .in_("workspace_id", workspace_ids)
+            .eq("document_id", document_id)
+            .execute()
+        )
 
     (
         client
         .table("documents")
         .delete()
-        .in_("workspace_id", workspace_ids)
+        .is_("workspace_id", "null")
         .eq("document_id", document_id)
         .execute()
     )
@@ -480,6 +484,16 @@ def create_chat(
     if document_id:
         payload["document_id"] = document_id
 
+    print(
+        "[CLOUD_CHAT_CREATE]",
+        {
+            "workspace_id": payload.get("workspace_id"),
+            "document_id": payload.get("document_id"),
+            "title": payload.get("title"),
+            "user_id": user_id,
+        },
+    )
+
     response = (
         client
         .table("chats")
@@ -493,14 +507,26 @@ def create_chat(
 def list_chats(
     *,
     user_id: str,
+    workspace_id: str | None = None,
 ) -> list[dict]:
     client = get_supabase_admin_client()
 
-    response = (
+    query = (
         client
         .table("chats")
         .select("*")
         .eq("user_id", user_id)
+    )
+
+    if workspace_id:
+        get_workspace(
+            workspace_id=workspace_id,
+            user_id=user_id,
+        )
+        query = query.eq("workspace_id", workspace_id)
+
+    response = (
+        query
         .order("created_at", desc=True)
         .execute()
     )

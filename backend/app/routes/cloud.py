@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
+from pathlib import Path
+from uuid import uuid4
 from pydantic import BaseModel
 
 from app.security.user_auth import (
@@ -6,6 +8,11 @@ from app.security.user_auth import (
     require_current_user,
 )
 
+from app.services.documents_cloud_service import list_library_documents, get_document_download_url
+from app.services.storage_service import download_document_from_storage
+from app.services.pdf_service import extract_pages_from_pdf
+from app.services.ai_service import index_document_pages_for_rag
+from app.services.document_registry_service import register_document_file
 from app.services.cloud_service import (
     create_workspace,
     list_workspaces,
@@ -126,6 +133,95 @@ async def list_workspaces_endpoint(
         raise handle_cloud_error(error)
 
 
+
+
+@router.get("/library-documents")
+async def list_library_documents_endpoint(
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        return {
+            "documents": list_library_documents(),
+        }
+    except Exception as error:
+        raise handle_cloud_error(error)
+
+
+
+
+
+
+@router.post("/rehydrate-document/{document_id}")
+async def rehydrate_document_endpoint(
+    document_id: str,
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        download_info = get_document_download_url(
+            document_id=document_id,
+            user_id=current_user.user_id,
+        )
+
+        bucket = download_info["bucket"]
+        storage_path = download_info["storage_path"]
+
+        filename = Path(storage_path).name
+        uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
+        local_path = uploads_dir / f"rehydrated_{uuid4()}_{filename}"
+
+        storage_result = download_document_from_storage(
+            bucket=bucket,
+            storage_path=storage_path,
+            destination_path=str(local_path),
+        )
+
+        pages = extract_pages_from_pdf(str(local_path))
+
+        new_document_id = index_document_pages_for_rag(pages)
+
+        if new_document_id != document_id:
+            raise ValueError(
+                "El document_id rehidratado no coincide con el document_id cloud."
+            )
+
+        document_record = register_document_file(
+            document_id=document_id,
+            filename=filename,
+            file_path=str(local_path),
+            size_bytes=local_path.stat().st_size,
+            user_id=current_user.user_id,
+            storage_bucket=bucket,
+            storage_path=storage_path,
+        )
+
+        return {
+            "ready": True,
+            "document_id": document_id,
+            "filename": filename,
+            "file_path": str(local_path),
+            "page_count": len(pages),
+            "storage": storage_result,
+            "document_info": document_record,
+        }
+
+    except Exception as error:
+        raise handle_cloud_error(error)
+
+
+@router.get("/document-download-url/{document_id}")
+async def document_download_url_endpoint(
+    document_id: str,
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        return get_document_download_url(
+            document_id=document_id,
+            user_id=current_user.user_id,
+        )
+    except Exception as error:
+        raise handle_cloud_error(error)
+
+
 @router.post("/documents")
 async def create_document_endpoint(
     payload: DocumentCreate,
@@ -179,12 +275,14 @@ async def create_chat_endpoint(
 
 @router.get("/chats")
 async def list_chats_endpoint(
+    workspace_id: str | None = None,
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
         return {
             "chats": list_chats(
                 user_id=current_user.user_id,
+                workspace_id=workspace_id,
             ),
         }
     except Exception as error:

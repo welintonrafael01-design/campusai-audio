@@ -94,6 +94,53 @@ class CloudApiService {
     return data['documents'] ?? [];
   }
 
+  static Future<Map<String, dynamic>> rehydrateDocument({
+    required String documentId,
+  }) async {
+    final response = await http.post(
+      Uri.parse(
+        '${ApiService.baseUrl}/cloud/rehydrate-document/$documentId',
+      ),
+      headers: AuthService.authHeaders,
+    );
+
+    return ApiService.decodeResponse(response);
+  }
+
+  static Future<String> getDocumentDownloadUrl({
+    required String documentId,
+  }) async {
+    final response = await http.get(
+      Uri.parse(
+        '${ApiService.baseUrl}/cloud/document-download-url/$documentId',
+      ),
+      headers: AuthService.authHeaders,
+    );
+
+    final data = ApiService.decodeResponse(response);
+
+    final url = data['signed_url']?.toString() ?? '';
+
+    if (url.trim().isEmpty) {
+      throw Exception('El servidor no devolvió una URL de descarga.');
+    }
+
+    return url;
+  }
+
+  static Future<List<dynamic>> getLibraryDocuments() async {
+    final response = await http.get(
+      Uri.parse(
+        '${ApiService.baseUrl}/cloud/library-documents',
+      ),
+      headers: AuthService.authHeaders,
+    );
+
+    final data = ApiService.decodeResponse(response);
+
+    return data['documents'] ?? [];
+  }
+
   static Future<Map<String, dynamic>> createChat({
     String? workspaceId,
     String? documentId,
@@ -163,15 +210,22 @@ class CloudApiService {
 
   static Future<List<dynamic>> getChats({
     String? workspaceId,
+    String? documentId,
   }) async {
+    final queryParameters = <String, String>{};
+
+    if (workspaceId != null && workspaceId.trim().isNotEmpty) {
+      queryParameters['workspace_id'] = workspaceId.trim();
+    }
+
+    if (documentId != null && documentId.trim().isNotEmpty) {
+      queryParameters['document_id'] = documentId.trim();
+    }
+
     final uri = Uri.parse(
       '${ApiService.baseUrl}/cloud/chats',
     ).replace(
-      queryParameters: workspaceId == null || workspaceId.trim().isEmpty
-          ? {}
-          : {
-              'workspace_id': workspaceId,
-            },
+      queryParameters: queryParameters,
     );
 
     final response = await http.get(

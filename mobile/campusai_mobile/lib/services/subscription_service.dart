@@ -20,9 +20,12 @@ class SubscriptionService {
     final status = response['subscription_status']?.toString();
     final source = response['source']?.toString() ?? 'backend';
 
-    final plan = status == 'active'
-        ? planFromCode(planCode)
-        : CampusPlan.free;
+    final plan = status == 'active' ? planFromCode(planCode) : CampusPlan.free;
+
+    if (plan == CampusPlan.free) {
+      const PlanGuardService().resetToFree();
+      return CampusPlan.free;
+    }
 
     const PlanGuardService().saveCurrentPlan(
       plan,

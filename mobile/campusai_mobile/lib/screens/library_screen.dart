@@ -1,3 +1,4 @@
+import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -87,7 +88,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     final loadedCloudDocumentIds = <String>{};
 
     try {
-      final cloudDocuments = await CloudApiService.getDocuments();
+      final cloudDocuments = await CloudApiService.getLibraryDocuments();
 
       final localIds = localItems
           .map((item) => item.documentId)
@@ -98,9 +99,12 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         if (item is! Map) continue;
 
         final documentId = item['document_id']?.toString().trim() ?? '';
-        final fileName = item['document_name']?.toString().trim() ?? '';
-        final createdAt = item['created_at']?.toString().trim() ??
-            DateTime.now().toIso8601String();
+        final fileName =
+            (item['document_name'] ?? item['filename'])?.toString().trim() ??
+                '';
+        final createdAt =
+            (item['uploaded_at'] ?? item['created_at'])?.toString().trim() ??
+                DateTime.now().toIso8601String();
         final summary = item['summary']?.toString().trim() ?? '';
         final audioUrl = item['audio_url']?.toString().trim() ?? '';
 
@@ -382,23 +386,132 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     );
   }
 
-  void openChat(DocumentHistory document) {
-    context.go(
-      Uri(
-        path: '/chat/${document.documentId}',
-        queryParameters: {
-          'fileName': document.fileName,
-        },
-      ).toString(),
+  Future<void> openPdf(DocumentHistory document) async {
+    try {
+      final signedUrl = await CloudApiService.getDocumentDownloadUrl(
+        documentId: document.documentId,
+      );
+
+      html.window.open(
+        signedUrl,
+        '_blank',
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se pudo abrir el PDF: $error'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> openChat(DocumentHistory document) async {
+    try {
+      String cloudChatId = '';
+
+      if (isCloudDocument(document)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Preparando documento cloud...'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+
+        await CloudApiService.rehydrateDocument(
+          documentId: document.documentId,
+        );
+
+        final chats = await CloudApiService.getChats(
+          documentId: document.documentId,
+        );
+
+        if (chats.isNotEmpty && chats.first is Map) {
+          cloudChatId = chats.first['id']?.toString() ?? '';
+        }
+      }
+
+      if (!mounted) return;
+
+      final queryParameters = <String, String>{
+        'fileName': document.fileName,
+      };
+
+      if (cloudChatId.trim().isNotEmpty) {
+        queryParameters['cloudChatId'] = cloudChatId.trim();
+      }
+
+      context.go(
+        Uri(
+          path: '/chat/${document.documentId}',
+          queryParameters: queryParameters,
+        ).toString(),
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se pudo preparar el chat: $error'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> prepareCloudDocument(DocumentHistory document) async {
+    if (!isCloudDocument(document)) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Preparando documento cloud...'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    await CloudApiService.rehydrateDocument(
+      documentId: document.documentId,
     );
   }
 
-  void openExam(DocumentHistory document) {
-    context.go('/exam/${document.documentId}');
+  Future<void> openExam(DocumentHistory document) async {
+    try {
+      await prepareCloudDocument(document);
+
+      if (!mounted) return;
+
+      context.go('/exam/${document.documentId}');
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se pudo preparar el examen: $error'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
-  void openFlashcards(DocumentHistory document) {
-    context.go('/flashcards/${document.documentId}');
+  Future<void> openFlashcards(DocumentHistory document) async {
+    try {
+      await prepareCloudDocument(document);
+
+      if (!mounted) return;
+
+      context.go('/flashcards/${document.documentId}');
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se pudieron preparar las flashcards: $error'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Future<void> generateAudiobook(DocumentHistory document) async {
@@ -423,6 +536,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     });
 
     try {
+      await prepareCloudDocument(document);
+
       final data = await const AudiobookService().generateAudiobookFromText(
         text: text,
         maxChapters: 6,
@@ -1245,7 +1360,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             subtitle: 'Repasa tarjetas generadas desde tus documentos.',
             items: filteredFlashcards,
             actionLabel: 'Abrir flashcards',
-            onOpen: openFlashcards,
+            onOpen: (document) {
+              openFlashcards(document);
+            },
           ),
         ],
         if (shouldShowCategory(LibraryCategory.exams) &&
@@ -1257,7 +1374,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             subtitle: 'Accede a exámenes generados previamente.',
             items: filteredExams,
             actionLabel: 'Abrir examen',
-            onOpen: openExam,
+            onOpen: (document) {
+              openExam(document);
+            },
           ),
         ],
         if ((shouldShowCategory(LibraryCategory.documents) ||
@@ -1280,12 +1399,19 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                   isFavorite: favoriteDocumentIds.contains(document.documentId),
                   onToggleFavorite: () => toggleFavorite(document.documentId),
                   onSetActive: () => setActiveDocument(document),
-                  onChat: () => openChat(document),
+                  onOpenPdf: () => openPdf(document),
+                  onChat: () {
+                    openChat(document);
+                  },
                   onAudio: () {
                     generateAudiobook(document);
                   },
-                  onFlashcards: () => openFlashcards(document),
-                  onExam: () => openExam(document),
+                  onFlashcards: () {
+                    openFlashcards(document);
+                  },
+                  onExam: () {
+                    openExam(document);
+                  },
                   onDelete: () => deleteDocument(index),
                 ),
               );
@@ -1951,6 +2077,7 @@ class _DocumentLibraryCard extends StatelessWidget {
   final bool isFavorite;
   final VoidCallback onToggleFavorite;
   final VoidCallback onSetActive;
+  final VoidCallback onOpenPdf;
   final VoidCallback onChat;
   final VoidCallback onAudio;
   final VoidCallback onFlashcards;
@@ -1963,6 +2090,7 @@ class _DocumentLibraryCard extends StatelessWidget {
     required this.isFavorite,
     required this.onToggleFavorite,
     required this.onSetActive,
+    required this.onOpenPdf,
     required this.onChat,
     required this.onAudio,
     required this.onFlashcards,
@@ -2074,6 +2202,11 @@ class _DocumentLibraryCard extends StatelessWidget {
             spacing: 10,
             runSpacing: 10,
             children: [
+              FilledButton.icon(
+                onPressed: onOpenPdf,
+                icon: const Icon(Icons.open_in_new_rounded),
+                label: const Text('Abrir PDF'),
+              ),
               FilledButton.icon(
                 onPressed: onChat,
                 icon: const Icon(Icons.chat_bubble_rounded),

@@ -1,4 +1,5 @@
 import time
+import json
 import asyncio
 from pathlib import Path
 from uuid import uuid4
@@ -49,6 +50,8 @@ from app.services.pdf_service import (
     extract_pages_from_pdf,
 )
 
+from app.services.storage_service import upload_document_to_storage
+from app.services.documents_cloud_service import create_document as create_cloud_document
 from app.services.document_registry_service import (
     register_document_file,
     get_document_info,
@@ -62,6 +65,7 @@ from app.services.file_access_service import (
 )
 
 from app.services.rag_service import (
+    search_similar_chunks_multi,
     search_similar_chunks,
     semantic_search_all_documents,
     get_source_chunk,
@@ -284,12 +288,31 @@ async def upload_document(
         print(f"[UPLOAD] rag_page_index: {time.perf_counter() - step:.2f}s")
 
         step = time.perf_counter()
+        storage_result = {
+            "bucket": None,
+            "storage_path": None,
+        }
+
+        try:
+            storage_result = upload_document_to_storage(
+                user_id=current_user.user_id,
+                document_id=document_id,
+                filename=file.filename or file_path.name,
+                file_path=str(file_path),
+            )
+            print(f"[UPLOAD] storage_upload: {time.perf_counter() - step:.2f}s")
+        except Exception as storage_error:
+            print(f"[UPLOAD] storage_upload_failed: {storage_error}")
+
+        step = time.perf_counter()
         document_record = register_document_file(
             document_id=document_id,
             filename=file.filename or file_path.name,
             file_path=str(file_path),
             size_bytes=file_path.stat().st_size,
             user_id=current_user.user_id,
+            storage_bucket=storage_result.get("bucket"),
+            storage_path=storage_result.get("storage_path"),
         )
         print(f"[UPLOAD] register_document: {time.perf_counter() - step:.2f}s")
 
@@ -310,6 +333,22 @@ async def upload_document(
             language=language,
         )
         print(f"[UPLOAD] ai_summary: {time.perf_counter() - step:.2f}s")
+
+        step = time.perf_counter()
+        try:
+            create_cloud_document(
+                user_id=current_user.user_id,
+                document_id=document_id,
+                filename=file.filename or file_path.name,
+                storage_bucket=document_record.get("storage_bucket"),
+                storage_path=document_record.get("storage_path"),
+                file_path=str(file_path),
+                size_bytes=file_path.stat().st_size,
+                summary=ai_summary,
+            )
+            print(f"[UPLOAD] cloud_document_insert: {time.perf_counter() - step:.2f}s")
+        except Exception as cloud_document_error:
+            print(f"[UPLOAD] cloud_document_insert_failed: {cloud_document_error}")
 
         print(f"[UPLOAD] total: {time.perf_counter() - start_time:.2f}s")
 
@@ -909,6 +948,34 @@ async def generate_audiobook_endpoint(
             detail=str(error),
         )
 
+
+
+def parse_ai_json_list(raw_value, expected_key: str):
+    if isinstance(raw_value, list):
+        return raw_value
+
+    if isinstance(raw_value, dict):
+        value = raw_value.get(expected_key)
+        return value if isinstance(value, list) else []
+
+    if isinstance(raw_value, str):
+        clean = raw_value.strip()
+
+        if clean.startswith("```"):
+            clean = clean.replace("```json", "").replace("```", "").strip()
+
+        parsed = json.loads(clean)
+
+        if isinstance(parsed, list):
+            return parsed
+
+        if isinstance(parsed, dict):
+            value = parsed.get(expected_key)
+            return value if isinstance(value, list) else []
+
+    return []
+
+
 @router.post("/chat-workspace")
 async def chat_workspace(
     document_ids: list[str] = Body(...),
@@ -1003,6 +1070,137 @@ async def stream_chat_workspace(
                 "Connection": "keep-alive",
             },
         )
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
+
+
+@router.post("/workspace-flashcards")
+async def workspace_flashcards(
+    document_ids: list[str] = Body(...),
+    number: int = Query(default=20),
+    language: str = Query(default="es"),
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        validate_documents_owner(
+            document_ids=document_ids,
+            current_user=current_user,
+        )
+
+        plan = enforce_flashcard_limit(
+            user_id=current_user.user_id,
+            requested_amount=number,
+        )
+
+        context = search_similar_chunks_multi(
+            document_ids=document_ids,
+            question=(
+                "conceptos principales definiciones fechas ideas clave "
+                "preguntas de estudio evaluación académica"
+            ),
+            top_k_per_document=6,
+        )
+
+        if not context.strip():
+            raise HTTPException(
+                status_code=404,
+                detail="No se encontró contexto suficiente en el workspace.",
+            )
+
+        flashcards = generate_flashcards_from_context(
+            context=context,
+            number_of_cards=number,
+            language=language,
+        )
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="flashcards_generated",
+            plan=plan,
+            metadata={
+                "document_count": len(document_ids),
+                "mode": "workspace_flashcards",
+                "requested_number": number,
+            },
+        )
+
+        return {
+            "flashcards": parse_ai_json_list(flashcards, "flashcards"),
+            "document_count": len(document_ids),
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
+
+@router.post("/workspace-exam")
+async def workspace_exam(
+    document_ids: list[str] = Body(...),
+    number: int = Query(default=20),
+    language: str = Query(default="es"),
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        validate_documents_owner(
+            document_ids=document_ids,
+            current_user=current_user,
+        )
+
+        plan = enforce_exam_limit(
+            user_id=current_user.user_id,
+            requested_amount=number,
+        )
+
+        context = search_similar_chunks_multi(
+            document_ids=document_ids,
+            question=(
+                "temas principales preguntas de examen conceptos clave "
+                "aplicación análisis académico evaluación"
+            ),
+            top_k_per_document=6,
+        )
+
+        if not context.strip():
+            raise HTTPException(
+                status_code=404,
+                detail="No se encontró contexto suficiente en el workspace.",
+            )
+
+        questions = generate_exam_questions_from_context(
+            context=context,
+            number_of_questions=number,
+            language=language,
+        )
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="exam_generated",
+            plan=plan,
+            metadata={
+                "document_count": len(document_ids),
+                "mode": "workspace_exam",
+                "requested_number": number,
+            },
+        )
+
+        return {
+            "questions": parse_ai_json_list(questions, "questions"),
+            "document_count": len(document_ids),
+        }
 
     except HTTPException:
         raise

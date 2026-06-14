@@ -44,6 +44,8 @@ final appRouter = GoRouter(
 
         final cloudChatId = state.uri.queryParameters['cloudChatId'] ?? '';
 
+        final workspaceId = state.uri.queryParameters['workspaceId'] ?? '';
+
         final workspaceIdsRaw = state.uri.queryParameters['workspaceIds'] ?? '';
 
         final workspaceDocumentIds = workspaceIdsRaw
@@ -57,6 +59,7 @@ final appRouter = GoRouter(
           child: ChatScreen(
             documentId: documentId,
             fileName: fileName,
+            workspaceId: workspaceId,
             workspaceDocumentIds: workspaceDocumentIds,
             cloudChatId: cloudChatId,
           ),
@@ -69,10 +72,18 @@ final appRouter = GoRouter(
       pageBuilder: (context, state) {
         final documentId = state.pathParameters['documentId'] ?? '';
 
+        final initialQuestions = state.extra is List
+            ? (state.extra as List)
+                .whereType<Map>()
+                .map((item) => Map<String, dynamic>.from(item))
+                .toList()
+            : <Map<String, dynamic>>[];
+
         return _buildPage(
           state: state,
           child: ExamScreen(
             documentId: documentId,
+            initialQuestions: initialQuestions,
           ),
         );
       },
@@ -83,10 +94,18 @@ final appRouter = GoRouter(
       pageBuilder: (context, state) {
         final documentId = state.pathParameters['documentId'] ?? '';
 
+        final initialFlashcards = state.extra is List
+            ? (state.extra as List)
+                .whereType<Map>()
+                .map((item) => Map<String, dynamic>.from(item))
+                .toList()
+            : <Map<String, dynamic>>[];
+
         return _buildPage(
           state: state,
           child: FlashcardsScreen(
             documentId: documentId,
+            initialFlashcards: initialFlashcards,
           ),
         );
       },

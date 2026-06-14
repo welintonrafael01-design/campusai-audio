@@ -347,6 +347,82 @@ class ApiService {
     return decodeResponse(response);
   }
 
+  static Future<Map<String, dynamic>> generateWorkspaceFlashcards({
+    required List<String> documentIds,
+    int numberOfCards = 20,
+  }) async {
+    final cleanDocumentIds = documentIds
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList();
+
+    if (cleanDocumentIds.isEmpty) {
+      throw Exception('El workspace no tiene documentos válidos.');
+    }
+
+    final language = await getCurrentLanguageCode();
+
+    final uri = Uri.parse(
+      '$baseUrl/documents/workspace-flashcards',
+    ).replace(
+      queryParameters: {
+        'number': numberOfCards.toString(),
+        'language': language,
+      },
+    );
+
+    final response = await http
+        .post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+            ...AuthService.authHeaders,
+          },
+          body: jsonEncode(cleanDocumentIds),
+        )
+        .timeout(timeoutDuration);
+
+    return decodeResponse(response);
+  }
+
+  static Future<Map<String, dynamic>> generateWorkspaceExam({
+    required List<String> documentIds,
+    int numberOfQuestions = 20,
+  }) async {
+    final cleanDocumentIds = documentIds
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList();
+
+    if (cleanDocumentIds.isEmpty) {
+      throw Exception('El workspace no tiene documentos válidos.');
+    }
+
+    final language = await getCurrentLanguageCode();
+
+    final uri = Uri.parse(
+      '$baseUrl/documents/workspace-exam',
+    ).replace(
+      queryParameters: {
+        'number': numberOfQuestions.toString(),
+        'language': language,
+      },
+    );
+
+    final response = await http
+        .post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+            ...AuthService.authHeaders,
+          },
+          body: jsonEncode(cleanDocumentIds),
+        )
+        .timeout(timeoutDuration);
+
+    return decodeResponse(response);
+  }
+
   // =========================
   // GENERATE AUDIO
   // =========================

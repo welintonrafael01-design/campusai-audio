@@ -10,6 +10,8 @@ class WorkspacesPanel extends StatefulWidget {
   final List<WorkspaceModel> workspaces;
   final VoidCallback onCreateWorkspace;
   final void Function(WorkspaceModel workspace) onOpenWorkspace;
+  final void Function(WorkspaceModel workspace) onWorkspaceFlashcards;
+  final void Function(WorkspaceModel workspace) onWorkspaceExam;
   final void Function(Map<String, dynamic> chat) onOpenChat;
   final void Function(WorkspaceModel workspace) onAddDocuments;
   final void Function(WorkspaceModel workspace) onRenameWorkspace;
@@ -22,6 +24,8 @@ class WorkspacesPanel extends StatefulWidget {
     required this.workspaces,
     required this.onCreateWorkspace,
     required this.onOpenWorkspace,
+    required this.onWorkspaceFlashcards,
+    required this.onWorkspaceExam,
     required this.onOpenChat,
     required this.onAddDocuments,
     required this.onRenameWorkspace,
@@ -222,31 +226,66 @@ class _WorkspacesPanelState extends State<WorkspacesPanel> {
                         },
                       ),
                       const SizedBox(height: 18),
-                      Row(
+                      Column(
                         children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () =>
-                                  widget.onOpenWorkspace(workspace),
-                              icon: const Icon(
-                                Icons.auto_awesome_rounded,
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () =>
+                                      widget.onOpenWorkspace(workspace),
+                                  icon: const Icon(
+                                    Icons.chat_bubble_outline_rounded,
+                                  ),
+                                  label: const Text(
+                                    'Chat Workspace IA',
+                                  ),
+                                ),
                               ),
-                              label: Text(
-                                l10n.openWorkspace,
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () =>
+                                      widget.onWorkspaceFlashcards(workspace),
+                                  icon: const Icon(
+                                    Icons.style_rounded,
+                                  ),
+                                  label: const Text(
+                                    'Flashcards IA',
+                                  ),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => widget.onAddDocuments(workspace),
-                              icon: const Icon(
-                                Icons.add_rounded,
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () =>
+                                      widget.onWorkspaceExam(workspace),
+                                  icon: const Icon(
+                                    Icons.quiz_rounded,
+                                  ),
+                                  label: const Text(
+                                    'Examen IA',
+                                  ),
+                                ),
                               ),
-                              label: const Text(
-                                'Agregar PDFs',
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () =>
+                                      widget.onAddDocuments(workspace),
+                                  icon: const Icon(
+                                    Icons.add_rounded,
+                                  ),
+                                  label: const Text(
+                                    'Agregar PDFs',
+                                  ),
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                         ],
                       ),

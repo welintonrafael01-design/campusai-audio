@@ -56,6 +56,8 @@ def register_document_file(
     file_path: str,
     size_bytes: int,
     user_id: str | None = None,
+    storage_bucket: str | None = None,
+    storage_path: str | None = None,
 ) -> dict:
     registry = _read_registry()
 
@@ -68,6 +70,8 @@ def register_document_file(
         ).isoformat(),
         "size_bytes": size_bytes,
         "user_id": user_id,
+        "storage_bucket": storage_bucket,
+        "storage_path": storage_path,
     }
 
     registry[document_id] = record

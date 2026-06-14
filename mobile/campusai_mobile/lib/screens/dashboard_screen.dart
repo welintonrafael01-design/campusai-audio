@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,7 @@ import '../layout/responsive_layout.dart';
 import '../l10n/app_localizations.dart';
 import '../models/document_history.dart';
 import '../models/recent_document_model.dart';
+import '../models/study_result.dart';
 import '../models/workspace_model.dart';
 import '../providers/document_provider.dart';
 import '../services/api_service.dart';
@@ -15,6 +17,7 @@ import '../services/history_service.dart';
 import '../services/onboarding_service.dart';
 import '../services/recent_documents_service.dart';
 import '../services/subscription_service.dart';
+import '../services/study_result_service.dart';
 import '../services/workspace_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_fade_slide.dart';
@@ -361,9 +364,205 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       },
       queryParameters: {
         'fileName': workspace.name,
+        'workspaceId': workspace.workspaceId,
         'workspaceIds': workspaceDocumentIds.join(','),
       },
     );
+  }
+
+  List<String> workspaceDocumentIdsFrom(WorkspaceModel workspace) {
+    return workspace.documents
+        .map((item) => item.documentId)
+        .where((item) => item.trim().isNotEmpty)
+        .toList();
+  }
+
+  List<Map<String, dynamic>> parseWorkspaceGeneratedList(
+    dynamic raw,
+    String key,
+  ) {
+    dynamic decoded = raw;
+
+    if (raw is String) {
+      final clean = raw.replaceAll('```json', '').replaceAll('```', '').trim();
+      decoded = jsonDecode(clean);
+    }
+
+    if (decoded is Map<String, dynamic>) {
+      final list =
+          decoded[key] ?? decoded['questions'] ?? decoded['flashcards'];
+
+      if (list is List) {
+        return list
+            .whereType<Map>()
+            .map((item) => Map<String, dynamic>.from(item))
+            .toList();
+      }
+    }
+
+    if (decoded is List) {
+      return decoded
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
+    }
+
+    return [];
+  }
+
+  Future<void> openWorkspaceFlashcards(WorkspaceModel workspace) async {
+    final documentIds = workspaceDocumentIdsFrom(workspace);
+
+    if (documentIds.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.workspaceWithoutValidDocuments),
+        ),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Generando flashcards del workspace...'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    try {
+      final data = await ApiService.generateWorkspaceFlashcards(
+        documentIds: documentIds,
+        numberOfCards: 20,
+      );
+
+      final parsed = parseWorkspaceGeneratedList(
+        data['flashcards'],
+        'flashcards',
+      );
+
+      if (parsed.isEmpty) {
+        throw Exception('La IA generó una respuesta vacía o no válida.');
+      }
+
+      final workspaceResultId = 'workspace_${workspace.workspaceId}_flashcards';
+      final content = jsonEncode(parsed);
+
+      await StudyResultService.saveResult(
+        StudyResult(
+          documentId: workspaceResultId,
+          type: 'flashcards',
+          content: content,
+          createdAt: DateTime.now().toIso8601String(),
+        ),
+      );
+
+      try {
+        await CloudApiService.saveStudyResult(
+          documentId: workspaceResultId,
+          type: 'flashcards',
+          content: content,
+        );
+      } catch (cloudError) {
+        debugPrint(
+            'No se pudo guardar flashcards workspace cloud: $cloudError');
+      }
+
+      if (!mounted) return;
+
+      context.pushNamed(
+        'flashcards',
+        pathParameters: {
+          'documentId': workspaceResultId,
+        },
+        extra: parsed,
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se pudieron generar flashcards: $error'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> openWorkspaceExam(WorkspaceModel workspace) async {
+    final documentIds = workspaceDocumentIdsFrom(workspace);
+
+    if (documentIds.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.workspaceWithoutValidDocuments),
+        ),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Generando examen del workspace...'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    try {
+      final data = await ApiService.generateWorkspaceExam(
+        documentIds: documentIds,
+        numberOfQuestions: 20,
+      );
+
+      final parsed = parseWorkspaceGeneratedList(
+        data['questions'] ?? data['exam'],
+        'questions',
+      );
+
+      if (parsed.isEmpty) {
+        throw Exception('La IA generó una respuesta vacía o no válida.');
+      }
+
+      final workspaceResultId = 'workspace_${workspace.workspaceId}_exam';
+      final content = jsonEncode(parsed);
+
+      await StudyResultService.saveResult(
+        StudyResult(
+          documentId: workspaceResultId,
+          type: 'exam',
+          content: content,
+          createdAt: DateTime.now().toIso8601String(),
+        ),
+      );
+
+      try {
+        await CloudApiService.saveStudyResult(
+          documentId: workspaceResultId,
+          type: 'exam',
+          content: content,
+        );
+      } catch (cloudError) {
+        debugPrint('No se pudo guardar examen workspace cloud: $cloudError');
+      }
+
+      if (!mounted) return;
+
+      context.pushNamed(
+        'exam',
+        pathParameters: {
+          'documentId': workspaceResultId,
+        },
+        extra: parsed,
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se pudo generar el examen: $error'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Future<void> renameWorkspace(WorkspaceModel workspace) async {
@@ -1082,6 +1281,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             workspaces: workspaces,
             onCreateWorkspace: createWorkspace,
             onOpenWorkspace: openWorkspace,
+            onWorkspaceFlashcards: openWorkspaceFlashcards,
+            onWorkspaceExam: openWorkspaceExam,
             onOpenChat: openCloudChat,
             onAddDocuments: addDocumentsToWorkspace,
             onRenameWorkspace: renameWorkspace,

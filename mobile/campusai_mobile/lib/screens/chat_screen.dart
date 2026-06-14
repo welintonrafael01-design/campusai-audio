@@ -23,6 +23,7 @@ class ChatScreen extends ConsumerStatefulWidget {
   final String documentId;
   final String fileName;
   final String cloudChatId;
+  final String workspaceId;
   final List<String> workspaceDocumentIds;
 
   const ChatScreen({
@@ -30,6 +31,7 @@ class ChatScreen extends ConsumerStatefulWidget {
     required this.documentId,
     required this.fileName,
     this.cloudChatId = '',
+    this.workspaceId = '',
     this.workspaceDocumentIds = const [],
   });
 
@@ -64,7 +66,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     return [widget.documentId];
   }
 
-  bool get isWorkspaceChat => activeWorkspaceIds.length > 1;
+  bool get isWorkspaceChat =>
+      widget.workspaceId.trim().isNotEmpty ||
+      widget.workspaceDocumentIds.isNotEmpty;
 
   List<String> get effectiveDocumentIds => activeWorkspaceIds;
 
@@ -170,7 +174,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     debugPrint('STEP 1: Entrando a askQuestion');
     try {
       final cloudChat = await CloudApiService.createChat(
-        documentId: widget.documentId,
+        workspaceId: isWorkspaceChat ? widget.workspaceId : null,
+        documentId: isWorkspaceChat ? null : widget.documentId,
         title:
             isWorkspaceChat ? 'Workspace: ${widget.fileName}' : widget.fileName,
       );

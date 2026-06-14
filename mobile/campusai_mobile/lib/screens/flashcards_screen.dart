@@ -16,10 +16,12 @@ import '../widgets/section_card.dart';
 
 class FlashcardsScreen extends StatefulWidget {
   final String documentId;
+  final List<Map<String, dynamic>> initialFlashcards;
 
   const FlashcardsScreen({
     super.key,
     required this.documentId,
+    this.initialFlashcards = const [],
   });
 
   @override
@@ -40,7 +42,13 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
   @override
   void initState() {
     super.initState();
-    loadSavedFlashcards();
+
+    if (widget.initialFlashcards.isNotEmpty) {
+      flashcards = widget.initialFlashcards;
+      currentIndex = 0;
+    } else {
+      loadSavedFlashcards();
+    }
   }
 
   Future<void> loadSavedFlashcards() async {

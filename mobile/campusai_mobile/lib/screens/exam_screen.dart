@@ -15,10 +15,12 @@ import '../widgets/section_card.dart';
 
 class ExamScreen extends StatefulWidget {
   final String documentId;
+  final List<Map<String, dynamic>> initialQuestions;
 
   const ExamScreen({
     super.key,
     required this.documentId,
+    this.initialQuestions = const [],
   });
 
   @override
@@ -46,7 +48,13 @@ class _ExamScreenState extends State<ExamScreen> {
   @override
   void initState() {
     super.initState();
-    loadSavedExam();
+
+    if (widget.initialQuestions.isNotEmpty) {
+      questions = widget.initialQuestions;
+      resetQuizState();
+    } else {
+      loadSavedExam();
+    }
   }
 
   Future<void> loadSavedExam() async {
