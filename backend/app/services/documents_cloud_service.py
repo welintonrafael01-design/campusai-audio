@@ -73,8 +73,10 @@ def delete_document(
 
 
 
-def list_library_documents():
+def list_library_documents(*, user_id: str):
     client = get_supabase_admin_client()
+
+    expected_prefix = f"{user_id}/documents/%"
 
     result = (
         client
@@ -82,6 +84,7 @@ def list_library_documents():
         .select("*")
         .not_.is_("filename", "null")
         .not_.is_("storage_path", "null")
+        .like("storage_path", expected_prefix)
         .order("uploaded_at", desc=True)
         .execute()
     )

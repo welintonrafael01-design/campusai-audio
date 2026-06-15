@@ -141,7 +141,9 @@ async def list_library_documents_endpoint(
 ):
     try:
         return {
-            "documents": list_library_documents(),
+            "documents": list_library_documents(
+                user_id=current_user.user_id,
+            ),
         }
     except Exception as error:
         raise handle_cloud_error(error)

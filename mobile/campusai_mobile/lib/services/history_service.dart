@@ -1,17 +1,33 @@
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/document_history.dart';
 
 class HistoryService {
   static const String _historyKey = 'document_history';
   static const String _activeDocumentKey = 'active_document';
+
+  static String get _currentUserScope {
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId != null && userId.trim().isNotEmpty) {
+        return userId.trim();
+      }
+    } catch (_) {}
+
+    return 'anonymous';
+  }
+
+  static String get _scopedHistoryKey => '${_historyKey}_$_currentUserScope';
+  static String get _scopedActiveDocumentKey =>
+      '${_activeDocumentKey}_$_currentUserScope';
   static const int _maxItems = 20;
 
   static Future<List<DocumentHistory>> getHistory() async {
     final prefs = await SharedPreferences.getInstance();
-    final rawData = prefs.getStringList(_historyKey) ?? [];
+    final rawData = prefs.getStringList(_scopedHistoryKey) ?? [];
 
     return rawData
         .map(_decodeDocument)
@@ -43,7 +59,7 @@ class HistoryService {
     final prefs = await SharedPreferences.getInstance();
 
     await prefs.setString(
-      _activeDocumentKey,
+      _scopedActiveDocumentKey,
       jsonEncode(document.toJson()),
     );
   }
@@ -88,14 +104,14 @@ class HistoryService {
   static Future<void> clearHistory() async {
     final prefs = await SharedPreferences.getInstance();
 
-    await prefs.remove(_historyKey);
-    await prefs.remove(_activeDocumentKey);
+    await prefs.remove(_scopedHistoryKey);
+    await prefs.remove(_scopedActiveDocumentKey);
   }
 
   static Future<void> clearActiveDocument() async {
     final prefs = await SharedPreferences.getInstance();
 
-    await prefs.remove(_activeDocumentKey);
+    await prefs.remove(_scopedActiveDocumentKey);
   }
 
   static Future<bool> hasDocuments() async {
@@ -117,7 +133,7 @@ class HistoryService {
         .map((item) => jsonEncode(item.toJson()))
         .toList();
 
-    await prefs.setStringList(_historyKey, limitedHistory);
+    await prefs.setStringList(_scopedHistoryKey, limitedHistory);
   }
 
   static DocumentHistory? _decodeDocument(String rawData) {
