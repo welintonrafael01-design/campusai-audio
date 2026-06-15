@@ -47,3 +47,7 @@ backend/logs/
 # Local backups/temp
 *.bak_*
 *~
+
+# Temporary backend uploads
+backend/app/uploads/
+backend/uploads/
