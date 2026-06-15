@@ -1202,8 +1202,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     required bool effectiveHasActiveDocument,
     required String effectiveFileName,
   }) {
+    final isMobile = ResponsiveLayout.isMobile(context);
+
     return ListView(
-      padding: const EdgeInsets.all(22),
+      padding: EdgeInsets.all(isMobile ? 16 : 22),
       children: [
         AnimatedFadeSlide(
           child: DashboardHero(
@@ -1219,7 +1221,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             hasActiveDocument: effectiveHasActiveDocument,
           ),
         ),
-        const SizedBox(height: 28),
+        SizedBox(height: isMobile ? 22 : 28),
         AnimatedFadeSlide(
           delay: const Duration(milliseconds: 160),
           child: DashboardTools(
@@ -1337,10 +1339,57 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.background,
+      drawer: const Drawer(
+        backgroundColor: AppTheme.surface,
+        child: Sidebar(currentRoute: '/dashboard'),
+      ),
       body: SafeArea(
         child: ResponsiveLayout(
-          mobile: dashboardContent,
-          tablet: dashboardContent,
+          mobile: Builder(
+            builder: (context) {
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          tooltip: 'Menú',
+                          onPressed: () {
+                            Scaffold.of(context).openDrawer();
+                          },
+                          icon: const Icon(
+                            Icons.menu_rounded,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Expanded(
+                          child: Text(
+                            'StudyBook AI',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: AppTheme.textPrimary,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(child: dashboardContent),
+                ],
+              );
+            },
+          ),
+          tablet: Row(
+            children: [
+              const Sidebar(currentRoute: '/dashboard'),
+              Expanded(child: dashboardContent),
+            ],
+          ),
           desktop: Row(
             children: [
               const Sidebar(currentRoute: '/dashboard'),

@@ -1472,11 +1472,58 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.background,
+      drawer: const Drawer(
+        backgroundColor: AppTheme.surface,
+        child: Sidebar(currentRoute: '/library'),
+      ),
       bottomNavigationBar: const MiniPlayer(),
       body: SafeArea(
         child: ResponsiveLayout(
-          mobile: content,
-          tablet: content,
+          mobile: Builder(
+            builder: (context) {
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          tooltip: 'Menú',
+                          onPressed: () {
+                            Scaffold.of(context).openDrawer();
+                          },
+                          icon: const Icon(
+                            Icons.menu_rounded,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Expanded(
+                          child: Text(
+                            'Biblioteca',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: AppTheme.textPrimary,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(child: content),
+                ],
+              );
+            },
+          ),
+          tablet: Row(
+            children: [
+              const Sidebar(currentRoute: '/library'),
+              Expanded(child: content),
+            ],
+          ),
           desktop: Row(
             children: [
               const Sidebar(currentRoute: '/library'),

@@ -324,6 +324,41 @@ def search_similar_chunks(
     return "\n\n".join(formatted_chunks)
 
 
+
+def get_document_display_name(document_id: str) -> str:
+    clean_document_id = document_id.strip()
+
+    if not clean_document_id:
+        return "Documento sin nombre"
+
+    try:
+        client = get_supabase_admin_client()
+
+        result = (
+            client
+            .table("documents")
+            .select("document_name,filename")
+            .eq("document_id", clean_document_id)
+            .not_.is_("filename", "null")
+            .limit(1)
+            .execute()
+        )
+
+        if result.data:
+            item = result.data[0]
+            name = (
+                item.get("document_name")
+                or item.get("filename")
+                or clean_document_id
+            )
+            return str(name).strip() or clean_document_id
+
+    except Exception:
+        pass
+
+    return clean_document_id
+
+
 def search_similar_chunks_multi(
     document_ids: list[str],
     question: str,
@@ -358,13 +393,15 @@ def search_similar_chunks_multi(
             )
 
             if context.strip():
+                document_name = get_document_display_name(document_id)
                 contexts.append(
-                    f"[Documento {document_id}]\n{context}"
+                    f"[Documento: {document_name}]\n{context}"
                 )
 
         except Exception as error:
+            document_name = get_document_display_name(document_id)
             contexts.append(
-                f"[Documento {document_id}]\nNo se pudo recuperar contexto: {error}"
+                f"[Documento: {document_name}]\nNo se pudo recuperar contexto: {error}"
             )
 
     valid_contexts = [

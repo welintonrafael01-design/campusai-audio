@@ -29,7 +29,9 @@ class DashboardTools extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    int crossAxisCount = 1;
+    final isMobile = ResponsiveLayout.isMobile(context);
+
+    int crossAxisCount = isMobile ? 2 : 1;
 
     if (ResponsiveLayout.isTablet(context)) {
       crossAxisCount = 2;
@@ -44,9 +46,9 @@ class DashboardTools extends StatelessWidget {
       children: [
         Text(
           l10n.aiTools,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppTheme.textPrimary,
-            fontSize: 28,
+            fontSize: isMobile ? 24 : 28,
             fontWeight: FontWeight.w900,
           ),
         ),
@@ -65,7 +67,11 @@ class DashboardTools extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
-          childAspectRatio: ResponsiveLayout.isDesktop(context) ? 0.74 : 0.90,
+          childAspectRatio: ResponsiveLayout.isDesktop(context)
+              ? 0.74
+              : isMobile
+                  ? 1.05
+                  : 0.90,
           children: [
             _ToolCard(
               title: l10n.uploadPdf,
@@ -148,7 +154,7 @@ class _ToolCard extends StatelessWidget {
               child: Icon(
                 icon,
                 color: color,
-                size: 28,
+                size: ResponsiveLayout.isMobile(context) ? 22 : 28,
               ),
             ),
             const SizedBox(height: 12),
@@ -156,16 +162,16 @@ class _ToolCard extends StatelessWidget {
               title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppTheme.textPrimary,
-                fontSize: 18,
+                fontSize: ResponsiveLayout.isMobile(context) ? 15 : 18,
                 fontWeight: FontWeight.w900,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               subtitle,
-              maxLines: 2,
+              maxLines: ResponsiveLayout.isMobile(context) ? 3 : 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: AppTheme.textMuted,

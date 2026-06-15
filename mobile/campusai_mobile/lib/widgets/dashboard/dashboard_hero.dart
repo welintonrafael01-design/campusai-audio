@@ -34,47 +34,56 @@ class DashboardHero extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.school_rounded,
-                      color: Colors.white,
-                      size: 36,
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Estudia 10 veces más rápido con IA',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.w900,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isMobile = constraints.maxWidth < 500;
+
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.school_rounded,
                           color: Colors.white,
-                          height: 1.08,
+                          size: isMobile ? 28 : 36,
                         ),
-                      ),
+                        SizedBox(width: isMobile ? 8 : 12),
+                        Expanded(
+                          child: Text(
+                            'Estudia 10 veces más rápido con IA',
+                            maxLines: isMobile ? 3 : 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: isMobile ? 22 : 30,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              height: 1.08,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              IconButton(
-                tooltip: 'Mi Cuenta',
-                onPressed: () {
-                  context.pushNamed('settings');
-                },
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.white.withValues(alpha: 0.16),
-                ),
-                icon: const Icon(
-                  Icons.account_circle_rounded,
-                  color: Colors.white,
-                ),
-              ),
-            ],
+                  ),
+                  SizedBox(width: isMobile ? 6 : 12),
+                  IconButton(
+                    tooltip: 'Mi Cuenta',
+                    onPressed: () {
+                      context.pushNamed('settings');
+                    },
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.white.withValues(alpha: 0.16),
+                    ),
+                    icon: const Icon(
+                      Icons.account_circle_rounded,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 16),
           const Text(
@@ -148,7 +157,7 @@ class _HeroPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: 13,
+        horizontal: 10,
         vertical: 10,
       ),
       decoration: BoxDecoration(
@@ -166,13 +175,13 @@ class _HeroPill extends StatelessWidget {
             color: Colors.white,
             size: 17,
           ),
-          const SizedBox(width: 7),
+          const SizedBox(width: 5),
           Text(
             text,
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w800,
-              fontSize: 13,
+              fontSize: 12,
             ),
           ),
         ],
@@ -221,7 +230,7 @@ class _HeroMetric extends StatelessWidget {
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w800,
-                fontSize: 13,
+                fontSize: 12,
               ),
             ),
           ),
