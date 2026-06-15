@@ -58,7 +58,7 @@ class AuthService {
     return _client.auth.signUp(
       email: email.trim(),
       password: password,
-      emailRedirectTo: Uri.base.origin,
+      emailRedirectTo: '${Uri.base.origin}/#/auth',
     );
   }
 
@@ -77,7 +77,7 @@ class AuthService {
   }) {
     return _client.auth.resetPasswordForEmail(
       email.trim(),
-      redirectTo: Uri.base.origin,
+      redirectTo: '${Uri.base.origin}/#/reset-password',
     );
   }
 

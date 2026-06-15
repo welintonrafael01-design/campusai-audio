@@ -10,6 +10,7 @@ import '../screens/settings_screen.dart';
 import '../screens/admin_analytics_screen.dart';
 import '../screens/plans_screen.dart';
 import '../screens/library_screen.dart';
+import '../screens/reset_password_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/auth',
@@ -21,6 +22,17 @@ final appRouter = GoRouter(
         return _buildPage(
           state: state,
           child: const AuthScreen(),
+        );
+      },
+    ),
+
+    GoRoute(
+      path: '/reset-password',
+      name: 'reset-password',
+      pageBuilder: (context, state) {
+        return _buildPage(
+          state: state,
+          child: const ResetPasswordScreen(),
         );
       },
     ),
