@@ -203,7 +203,7 @@ class _AuthScreenState extends State<AuthScreen> {
               borderRadius: BorderRadius.circular(28),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(28),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -225,7 +225,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       color: AppTheme.textMuted,
                     ),
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 18),
                   TextField(
                     controller: emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -233,7 +233,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       labelText: l10n.emailLabel,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   TextField(
                     controller: passwordController,
                     obscureText: true,
@@ -263,7 +263,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                     ),
                   ],
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: isLoading ? null : submit,
                     child: isLoading
@@ -293,7 +293,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       label: const Text('Reenviar correo de confirmación'),
                     ),
                   ],
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   TextButton(
                     onPressed: isLoading
                         ? null

@@ -35,3 +35,15 @@ backend/app/database/document_registry.json
 .env
 backend/.env
 mobile/campusai_mobile/.env
+
+# Local Python environment
+backend/.venv/
+.venv/
+
+# Local logs
+backend/logs/
+*.log
+
+# Local backups/temp
+*.bak_*
+*~
