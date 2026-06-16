@@ -11,10 +11,12 @@ import '../models/study_result.dart';
 import '../models/workspace_model.dart';
 import '../providers/document_provider.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart';
 import '../services/cloud_api_service.dart';
 import '../services/audio_player_service.dart';
 import '../services/history_service.dart';
 import '../services/onboarding_service.dart';
+import '../services/plan_guard_service.dart';
 import '../services/recent_documents_service.dart';
 import '../services/subscription_service.dart';
 import '../services/study_result_service.dart';
@@ -23,6 +25,7 @@ import '../theme/app_theme.dart';
 import '../widgets/animated_fade_slide.dart';
 import '../widgets/dashboard/dashboard_hero.dart';
 import '../widgets/dashboard/dashboard_stats.dart';
+import '../widgets/dashboard/dashboard_academic_activity.dart';
 import '../widgets/dashboard/dashboard_tools.dart';
 import '../widgets/dashboard/history_list.dart';
 import '../widgets/dashboard/recent_documents_panel.dart';
@@ -69,6 +72,45 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   bool get hasActiveDocument => documentId.trim().isNotEmpty;
 
   AppLocalizations get l10n => AppLocalizations.of(context);
+
+  String _dashboardUserName() {
+    final metadata = AuthService.currentUser?.userMetadata ?? {};
+    final fullName = (metadata['full_name'] ??
+            metadata['name'] ??
+            metadata['display_name'])
+        ?.toString()
+        .trim();
+
+    if (fullName != null && fullName.isNotEmpty) {
+      return fullName.split(' ').first;
+    }
+
+    final email = AuthService.currentUser?.email?.trim() ?? '';
+
+    if (email.toLowerCase().startsWith('welintonrafael01')) {
+      return 'Welinton';
+    }
+
+    if (email.toLowerCase().startsWith('cruzgeraldoc24')) {
+      return 'Cruz';
+    }
+
+    final rawName = email.split('@').first.replaceAll('.', ' ').trim();
+
+    if (rawName.isEmpty) {
+      return 'Estudiante';
+    }
+
+    return rawName
+        .split(RegExp(r'\s+'))
+        .where((part) => part.trim().isNotEmpty)
+        .map((part) {
+          final clean = part.trim();
+          return clean[0].toUpperCase() + clean.substring(1).toLowerCase();
+        })
+        .join(' ');
+  }
+
 
   @override
   void initState() {
@@ -1211,6 +1253,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           child: DashboardHero(
             documentCount: history.length,
             hasActiveDocument: effectiveHasActiveDocument,
+            userName: _dashboardUserName(),
+            planName: const PlanGuardService().currentPlanName,
+            activeFileName: effectiveFileName,
+            onContinueStudy: openChatScreen,
+            onUploadPdf: uploadPdf,
           ),
         ),
         const SizedBox(height: 18),
@@ -1219,6 +1266,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           child: DashboardStats(
             documentCount: history.length,
             hasActiveDocument: effectiveHasActiveDocument,
+          ),
+        ),
+        SizedBox(height: isMobile ? 22 : 28),
+        AnimatedFadeSlide(
+          delay: const Duration(milliseconds: 120),
+          child: DashboardAcademicActivity(
+            workspaceCount: workspaces.length,
+            workspaceDocumentCount: workspaces.fold<int>(
+              0,
+              (total, workspace) => total + workspace.documents.length,
+            ),
           ),
         ),
         SizedBox(height: isMobile ? 22 : 28),
