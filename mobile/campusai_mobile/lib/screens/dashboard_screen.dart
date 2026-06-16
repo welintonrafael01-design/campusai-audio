@@ -27,6 +27,7 @@ import '../widgets/dashboard/dashboard_hero.dart';
 import '../widgets/dashboard/dashboard_stats.dart';
 import '../widgets/dashboard/dashboard_academic_activity.dart';
 import '../widgets/dashboard/dashboard_tools.dart';
+import '../widgets/dashboard/dashboard_educator_center.dart';
 import '../widgets/dashboard/history_list.dart';
 import '../widgets/dashboard/recent_documents_panel.dart';
 import '../widgets/dashboard/workspaces_panel.dart';
@@ -1281,7 +1282,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ),
         SizedBox(height: isMobile ? 22 : 28),
         AnimatedFadeSlide(
-          delay: const Duration(milliseconds: 160),
+          delay: const Duration(milliseconds: 150),
+          child: DashboardEducatorCenter(
+            hasActiveDocument: effectiveHasActiveDocument,
+            openExam: openExamScreen,
+            openFlashcards: openFlashcardsScreen,
+          ),
+        ),
+        SizedBox(height: isMobile ? 22 : 28),
+        AnimatedFadeSlide(
+          delay: const Duration(milliseconds: 190),
           child: DashboardTools(
             isLoading: isLoading,
             hasActiveDocument: effectiveHasActiveDocument,
