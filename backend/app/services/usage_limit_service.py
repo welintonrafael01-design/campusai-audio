@@ -68,6 +68,26 @@ def count_usage_today(
     return response.count or 0
 
 
+
+def count_usage_total(
+    *,
+    user_id: str,
+    event_type: str,
+) -> int:
+    client = get_supabase_admin_client()
+
+    response = (
+        client
+        .table("user_usage_events")
+        .select("id", count="exact")
+        .eq("user_id", user_id)
+        .eq("event_type", event_type)
+        .execute()
+    )
+
+    return response.count or 0
+
+
 def register_usage_event(
     *,
     user_id: str,
@@ -272,9 +292,47 @@ def get_usage_summary_for_user(
         event_type="export_generated",
     )
 
+    pdf_total = count_usage_total(
+        user_id=user_id,
+        event_type="pdf_upload",
+    )
+
+    chat_total = count_usage_total(
+        user_id=user_id,
+        event_type="chat_message",
+    )
+
+    flashcards_total = count_usage_total(
+        user_id=user_id,
+        event_type="flashcards_generated",
+    )
+
+    exams_total = count_usage_total(
+        user_id=user_id,
+        event_type="exam_generated",
+    )
+
+    exports_total = count_usage_total(
+        user_id=user_id,
+        event_type="export_generated",
+    )
+
+    audiobooks_total = count_usage_total(
+        user_id=user_id,
+        event_type="audiobook_generated",
+    )
+
     return {
         "user_id": user_id,
         "plan": plan,
+        "totals": {
+            "pdf_uploads": pdf_total,
+            "chat_messages": chat_total,
+            "flashcards_generated": flashcards_total,
+            "exams_generated": exams_total,
+            "exports_generated": exports_total,
+            "audiobooks_generated": audiobooks_total,
+        },
         "usage": {
             "pdf_uploads": {
                 "used_today": pdf_used,

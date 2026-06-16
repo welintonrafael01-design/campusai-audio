@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import '../l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
+import '../config/app_plans.dart';
+import '../services/plan_guard_service.dart';
 
 class Sidebar extends StatelessWidget {
   final String currentRoute;
@@ -88,42 +90,69 @@ class Sidebar extends StatelessWidget {
             },
           ),
           const Spacer(),
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              gradient: AppTheme.mainGradient,
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(
-                  Icons.workspace_premium,
-                  color: Colors.white,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  l10n.premiumAi,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
+          Builder(
+            builder: (context) {
+              final plan = const PlanGuardService().currentPlan;
+
+              final title = switch (plan) {
+                CampusPlan.educator => 'Cuenta Educator',
+                CampusPlan.pro => 'Cuenta Pro',
+                CampusPlan.free => l10n.premiumAi,
+              };
+
+              final description = switch (plan) {
+                CampusPlan.educator =>
+                  'Plan activo: 200 PDFs diarios, 2,000 chats, exportaciones y Workspace Multi-PDF.',
+                CampusPlan.pro =>
+                  'Plan activo: audiolibros, voz, DOCX, PPTX y mayor capacidad.',
+                CampusPlan.free =>
                   'Desbloquea audiolibros, voz, exportaciones y mayor capacidad.',
-                  maxLines: 4,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    height: 1.4,
-                  ),
+              };
+
+              final icon = switch (plan) {
+                CampusPlan.educator => Icons.school_rounded,
+                CampusPlan.pro => Icons.workspace_premium_rounded,
+                CampusPlan.free => Icons.workspace_premium,
+              };
+
+              return Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  gradient: AppTheme.mainGradient,
+                  borderRadius: BorderRadius.circular(24),
                 ),
-              ],
-            ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      icon,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      description,
+                      maxLines: 5,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         ],
       ),
