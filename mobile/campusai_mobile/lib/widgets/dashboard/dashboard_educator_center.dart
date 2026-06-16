@@ -10,12 +10,16 @@ class DashboardEducatorCenter extends StatelessWidget {
   final bool hasActiveDocument;
   final VoidCallback openExam;
   final VoidCallback openFlashcards;
+  final VoidCallback openQuestionBank;
+  final VoidCallback openRubric;
 
   const DashboardEducatorCenter({
     super.key,
     required this.hasActiveDocument,
     required this.openExam,
     required this.openFlashcards,
+    required this.openQuestionBank,
+    required this.openRubric,
   });
 
   @override
@@ -35,7 +39,7 @@ class DashboardEducatorCenter extends StatelessWidget {
         icon: Icons.inventory_2_rounded,
         color: AppTheme.primary,
         enabled: hasActiveDocument,
-        onTap: openExam,
+        onTap: openQuestionBank,
       ),
       _EducatorAction(
         title: 'Examen masivo',
@@ -55,11 +59,11 @@ class DashboardEducatorCenter extends StatelessWidget {
       ),
       _EducatorAction(
         title: 'Rúbrica académica',
-        subtitle: 'Próximamente: evaluación por criterios.',
+        subtitle: 'Genera criterios de evaluación y niveles de desempeño.',
         icon: Icons.fact_check_rounded,
         color: AppTheme.accent,
-        enabled: false,
-        onTap: null,
+        enabled: hasActiveDocument,
+        onTap: openRubric,
       ),
       _EducatorAction(
         title: 'Planificación docente',

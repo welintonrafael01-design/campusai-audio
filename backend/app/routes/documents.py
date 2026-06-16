@@ -25,6 +25,7 @@ from app.services.ai_service import (
     generate_exam_questions_from_context,
     generate_flashcards,
     generate_flashcards_from_context,
+    generate_academic_rubric_from_context,
     index_document_for_rag,
     index_document_pages_for_rag,
     stream_chat_with_document_id,
@@ -483,6 +484,125 @@ async def chat_document_by_id(
             detail=str(error),
         )
 
+
+
+
+@router.post("/rubric/{document_id}")
+async def rubric_document_by_id(
+    document_id: str,
+    language: str = Query(default="es"),
+    total_points: int = Query(default=100, ge=10, le=100),
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        validate_document_owner(
+            document_id=document_id,
+            current_user=current_user,
+        )
+
+        context = build_document_context(
+            document_id=document_id,
+            question=(
+                "criterios de evaluación objetivos competencias resultados "
+                "aprendizaje metodología contenido académico"
+            ),
+            top_k=12,
+        )
+
+        rubric = generate_academic_rubric_from_context(
+            context=context,
+            language=language,
+            total_points=total_points,
+        )
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="rubric_generated",
+            plan="educator",
+            metadata={
+                "document_id": document_id,
+                "total_points": total_points,
+            },
+        )
+
+        return {
+            "document_id": document_id,
+            "rubric": json.loads(rubric),
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
+@router.post("/question-bank/{document_id}")
+async def question_bank_document_by_id(
+    document_id: str,
+    number_of_questions: int = Query(
+        default=50,
+        ge=5,
+        le=100,
+    ),
+    language: str = Query(default="es"),
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        validate_document_owner(
+            document_id=document_id,
+            current_user=current_user,
+        )
+
+        plan = enforce_exam_limit(
+            user_id=current_user.user_id,
+            requested_amount=number_of_questions,
+        )
+
+        context = build_document_context(
+            document_id=document_id,
+            question=(
+                "banco de preguntas conceptos clave evaluación "
+                "comprensión aplicación análisis académico"
+            ),
+            top_k=14,
+        )
+
+        questions = generate_exam_questions_from_context(
+            context=context,
+            number_of_questions=number_of_questions,
+            language=language,
+        )
+
+        parsed_questions = parse_ai_json_list(questions, "questions")
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="question_bank_generated",
+            plan=plan,
+            metadata={
+                "document_id": document_id,
+                "number_of_questions": number_of_questions,
+                "mode": "single_document_question_bank",
+            },
+        )
+
+        return {
+            "document_id": document_id,
+            "number_of_questions": number_of_questions,
+            "questions": parsed_questions,
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
 
 @router.post("/exam/{document_id}")
 async def exam_document_by_id(
@@ -1146,6 +1266,74 @@ async def workspace_flashcards(
             detail=str(error),
         )
 
+
+
+@router.post("/workspace-question-bank")
+async def workspace_question_bank(
+    document_ids: list[str] = Body(...),
+    number: int = Query(default=50, ge=5, le=100),
+    language: str = Query(default="es"),
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        validate_documents_owner(
+            document_ids=document_ids,
+            current_user=current_user,
+        )
+
+        plan = enforce_exam_limit(
+            user_id=current_user.user_id,
+            requested_amount=number,
+        )
+
+        context = search_similar_chunks_multi(
+            document_ids=document_ids,
+            question=(
+                "banco de preguntas conceptos clave evaluación comprensión "
+                "aplicación análisis académico preguntas objetivas"
+            ),
+            top_k_per_document=8,
+        )
+
+        if not context.strip():
+            raise HTTPException(
+                status_code=404,
+                detail="No se encontró contexto suficiente para crear el banco de preguntas.",
+            )
+
+        questions = generate_exam_questions_from_context(
+            context=context,
+            number_of_questions=number,
+            language=language,
+        )
+
+        parsed_questions = parse_ai_json_list(questions, "questions")
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="question_bank_generated",
+            plan=plan,
+            metadata={
+                "document_count": len(document_ids),
+                "mode": "workspace_question_bank",
+                "requested_number": number,
+            },
+        )
+
+        return {
+            "questions": parsed_questions,
+            "document_count": len(document_ids),
+            "number_of_questions": number,
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
 
 @router.post("/workspace-exam")
 async def workspace_exam(

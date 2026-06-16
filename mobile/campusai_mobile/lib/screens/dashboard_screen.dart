@@ -54,6 +54,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   bool isLoading = false;
   bool isPlaying = false;
   bool isGeneratingAudio = false;
+  bool isGeneratingQuestionBank = false;
 
   String documentId = '';
   String summary = '';
@@ -863,6 +864,31 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       totalDuration = Duration.zero;
     });
 
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return const AlertDialog(
+          title: Text('Procesando documento'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              LinearProgressIndicator(),
+              SizedBox(height: 18),
+              Text(
+                'StudyBook AI está subiendo el PDF, extrayendo texto, creando el resumen y preparando el chat con IA.',
+              ),
+              SizedBox(height: 10),
+              Text(
+                'Esto puede tardar entre 10 y 60 segundos según el tamaño del archivo.',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
     try {
       final data = await ApiService.uploadPdf();
       debugPrint('UPLOAD RESPONSE: $data');
@@ -908,12 +934,121 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       });
     } finally {
       if (mounted) {
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+
         setState(() {
           isLoading = false;
         });
       }
     }
   }
+
+  Future<void> generateRubric() async {
+    if (isGeneratingQuestionBank) return;
+
+    if (!hasActiveDocument) {
+      showNoActiveDocumentMessage();
+      return;
+    }
+
+    setState(() => isGeneratingQuestionBank = true);
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return const AlertDialog(
+          title: Text('Generando rúbrica académica'),
+          content: Row(
+            children: [
+              SizedBox(
+                width: 28,
+                height: 28,
+                child: CircularProgressIndicator(strokeWidth: 3),
+              ),
+              SizedBox(width: 18),
+              Expanded(
+                child: Text(
+                  'StudyBook AI está analizando el documento y creando criterios de evaluación...',
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    try {
+      final data = await ApiService.generateRubricByDocumentId(
+        documentId: documentId,
+        totalPoints: 100,
+      );
+
+      final rawRubric = data['rubric'];
+      final rubric = rawRubric is Map
+          ? Map<String, dynamic>.from(rawRubric)
+          : <String, dynamic>{};
+
+      if (rubric.isEmpty) {
+        throw Exception('La IA no devolvió una rúbrica válida.');
+      }
+
+      final rubricId = '${documentId}_rubric';
+      final content = jsonEncode(rubric);
+
+      await StudyResultService.saveResult(
+        StudyResult(
+          documentId: rubricId,
+          type: 'rubric',
+          content: content,
+          createdAt: DateTime.now().toIso8601String(),
+        ),
+      );
+
+      try {
+        await CloudApiService.saveStudyResult(
+          documentId: rubricId,
+          type: 'rubric',
+          content: content,
+        );
+      } catch (cloudError) {
+        debugPrint('No se pudo guardar rúbrica cloud: $cloudError');
+      }
+
+      if (!mounted) return;
+
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+
+      context.goNamed(
+        'rubric',
+        pathParameters: {
+          'documentId': rubricId,
+        },
+        extra: rubric,
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se pudo generar la rúbrica: $error'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+        setState(() => isGeneratingQuestionBank = false);
+      }
+    }
+  }
+
 
   Future<void> generateAudio() async {
     if (summary.trim().isEmpty || isGeneratingAudio) return;
@@ -1223,6 +1358,110 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
+  Future<void> generateQuestionBank() async {
+    if (isGeneratingQuestionBank) return;
+
+    if (!hasActiveDocument) {
+      showNoActiveDocumentMessage();
+      return;
+    }
+
+    setState(() => isGeneratingQuestionBank = true);
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return const AlertDialog(
+          title: Text('Generando banco de preguntas'),
+          content: Row(
+            children: [
+              SizedBox(
+                width: 28,
+                height: 28,
+                child: CircularProgressIndicator(strokeWidth: 3),
+              ),
+              SizedBox(width: 18),
+              Expanded(
+                child: Text(
+                  'StudyBook AI está analizando el documento y creando preguntas reutilizables...',
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    try {
+      final data = await ApiService.generateQuestionBankByDocumentId(
+        documentId: documentId,
+        numberOfQuestions: 50,
+      );
+
+      final parsed = parseWorkspaceGeneratedList(
+        data['questions'] ?? data['question_bank'] ?? data,
+        'questions',
+      );
+
+      if (parsed.isEmpty) {
+        throw Exception('La IA generó una respuesta vacía o no válida.');
+      }
+
+      final questionBankId = '${documentId}_question_bank';
+      final content = jsonEncode(parsed);
+
+      await StudyResultService.saveResult(
+        StudyResult(
+          documentId: questionBankId,
+          type: 'question_bank',
+          content: content,
+          createdAt: DateTime.now().toIso8601String(),
+        ),
+      );
+
+      try {
+        await CloudApiService.saveStudyResult(
+          documentId: questionBankId,
+          type: 'question_bank',
+          content: content,
+        );
+      } catch (cloudError) {
+        debugPrint('No se pudo guardar banco de preguntas cloud: $cloudError');
+      }
+
+      if (!mounted) return;
+
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+
+      context.goNamed(
+        'question-bank',
+        pathParameters: {
+          'documentId': questionBankId,
+        },
+        extra: parsed,
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se pudo generar el banco de preguntas: $error'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+        setState(() => isGeneratingQuestionBank = false);
+      }
+    }
+  }
+
   String formatDuration(Duration duration) {
     final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
     final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
@@ -1287,6 +1526,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             hasActiveDocument: effectiveHasActiveDocument,
             openExam: openExamScreen,
             openFlashcards: openFlashcardsScreen,
+            openQuestionBank: generateQuestionBank,
+            openRubric: generateRubric,
           ),
         ),
         SizedBox(height: isMobile ? 22 : 28),

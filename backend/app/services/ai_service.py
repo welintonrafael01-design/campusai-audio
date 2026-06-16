@@ -704,3 +704,80 @@ async def stream_chat_with_workspace(
 
         if delta:
             yield delta
+
+
+def generate_academic_rubric_from_context(
+    context: str,
+    language: str = "es",
+    total_points: int = 100,
+) -> str:
+    document_text = truncate_text(context)
+    language_instruction = build_language_instruction(language)
+
+    if not document_text:
+        raise ValueError("No hay contexto válido para generar la rúbrica.")
+
+    safe_points = max(10, min(total_points, 100))
+
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Eres StudyBook AI, especialista universitario en evaluación académica. "
+                    "Genera rúbricas claras, medibles y profesionales. "
+                    f"{language_instruction}"
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Contexto del documento:\n\n{document_text}\n\n"
+                    f"Genera una rúbrica académica con total de {safe_points} puntos.\n\n"
+                    "IMPORTANTE: conserva las claves JSON en inglés exactamente como se indican, "
+                    "pero redacta los valores visibles en el idioma solicitado. "
+                    "Devuelve EXCLUSIVAMENTE JSON válido.\n\n"
+                    "{\n"
+                    '  "title": "...",\n'
+                    '  "total_points": 100,\n'
+                    '  "criteria": [\n'
+                    "    {\n"
+                    '      "criterion": "...",\n'
+                    '      "description": "...",\n'
+                    '      "points": 20,\n'
+                    '      "levels": {\n'
+                    '        "excellent": "...",\n'
+                    '        "good": "...",\n'
+                    '        "basic": "...",\n'
+                    '        "insufficient": "..."\n'
+                    "      }\n"
+                    "    }\n"
+                    "  ],\n"
+                    '  "recommendations": ["...", "..."]\n'
+                    "}\n\n"
+                    "La suma de points debe ser igual al total_points."
+                ),
+            },
+        ],
+        temperature=0.25,
+    )
+
+    content = response.choices[0].message.content.strip()
+
+    try:
+        json.loads(content)
+    except json.JSONDecodeError:
+        return json.dumps(
+            {
+                "title": "Rúbrica académica",
+                "total_points": safe_points,
+                "criteria": [],
+                "recommendations": [],
+                "error": "La IA no devolvió JSON válido.",
+                "raw_response": content,
+            },
+            ensure_ascii=False,
+        )
+
+    return content

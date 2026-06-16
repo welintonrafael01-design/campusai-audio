@@ -385,6 +385,75 @@ class ApiService {
     return decodeResponse(response);
   }
 
+
+  static Future<Map<String, dynamic>> generateQuestionBankByDocumentId({
+    required String documentId,
+    int numberOfQuestions = 50,
+  }) async {
+    final cleanDocumentId = requireValue(
+      documentId,
+      'No hay documento activo.',
+    );
+
+    final language = await getCurrentLanguageCode();
+
+    final uri = Uri.parse(
+      '$baseUrl/documents/question-bank/$cleanDocumentId',
+    ).replace(
+      queryParameters: {
+        'number_of_questions': numberOfQuestions.toString(),
+        'language': language,
+      },
+    );
+
+    final response = await http
+        .post(
+          uri,
+          headers: AuthService.authHeaders,
+        )
+        .timeout(timeoutDuration);
+
+    return decodeResponse(response);
+  }
+
+  static Future<Map<String, dynamic>> generateWorkspaceQuestionBank({
+    required List<String> documentIds,
+    int numberOfQuestions = 50,
+  }) async {
+    final cleanDocumentIds = documentIds
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList();
+
+    if (cleanDocumentIds.isEmpty) {
+      throw Exception('El workspace no tiene documentos válidos.');
+    }
+
+    final language = await getCurrentLanguageCode();
+
+    final uri = Uri.parse(
+      '$baseUrl/documents/workspace-question-bank',
+    ).replace(
+      queryParameters: {
+        'number': numberOfQuestions.toString(),
+        'language': language,
+      },
+    );
+
+    final response = await http
+        .post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+            ...AuthService.authHeaders,
+          },
+          body: jsonEncode(cleanDocumentIds),
+        )
+        .timeout(timeoutDuration);
+
+    return decodeResponse(response);
+  }
+
   static Future<Map<String, dynamic>> generateWorkspaceExam({
     required List<String> documentIds,
     int numberOfQuestions = 20,
@@ -417,6 +486,37 @@ class ApiService {
             ...AuthService.authHeaders,
           },
           body: jsonEncode(cleanDocumentIds),
+        )
+        .timeout(timeoutDuration);
+
+    return decodeResponse(response);
+  }
+
+
+  static Future<Map<String, dynamic>> generateRubricByDocumentId({
+    required String documentId,
+    int totalPoints = 100,
+  }) async {
+    final cleanDocumentId = requireValue(
+      documentId,
+      'No hay documento activo.',
+    );
+
+    final language = await getCurrentLanguageCode();
+
+    final uri = Uri.parse(
+      '$baseUrl/documents/rubric/$cleanDocumentId',
+    ).replace(
+      queryParameters: {
+        'total_points': totalPoints.toString(),
+        'language': language,
+      },
+    );
+
+    final response = await http
+        .post(
+          uri,
+          headers: AuthService.authHeaders,
         )
         .timeout(timeoutDuration);
 

@@ -10,6 +10,8 @@ import '../screens/settings_screen.dart';
 import '../screens/admin_analytics_screen.dart';
 import '../screens/plans_screen.dart';
 import '../screens/library_screen.dart';
+import '../screens/question_bank_screen.dart';
+import '../screens/rubric_screen.dart';
 import '../screens/reset_password_screen.dart';
 
 final appRouter = GoRouter(
@@ -118,6 +120,47 @@ final appRouter = GoRouter(
           child: FlashcardsScreen(
             documentId: documentId,
             initialFlashcards: initialFlashcards,
+          ),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/rubric/:documentId',
+      name: 'rubric',
+      pageBuilder: (context, state) {
+        final documentId = state.pathParameters['documentId'] ?? '';
+
+        final initialRubric = state.extra is Map
+            ? Map<String, dynamic>.from(state.extra as Map)
+            : <String, dynamic>{};
+
+        return _buildPage(
+          state: state,
+          child: RubricScreen(
+            documentId: documentId,
+            initialRubric: initialRubric,
+          ),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/question-bank/:documentId',
+      name: 'question-bank',
+      pageBuilder: (context, state) {
+        final documentId = state.pathParameters['documentId'] ?? '';
+
+        final initialQuestions = state.extra is List
+            ? (state.extra as List)
+                .whereType<Map>()
+                .map((item) => Map<String, dynamic>.from(item))
+                .toList()
+            : <Map<String, dynamic>>[];
+
+        return _buildPage(
+          state: state,
+          child: QuestionBankScreen(
+            documentId: documentId,
+            initialQuestions: initialQuestions,
           ),
         );
       },
