@@ -128,6 +128,47 @@ class ExportService {
     html.Url.revokeObjectUrl(url);
   }
 
+
+  static Future<void> exportRowsToXlsx({
+    required String title,
+    required List<Map<String, dynamic>> rows,
+  }) async {
+    final response = await http.post(
+      Uri.parse('${ApiService.baseUrl}/export/xlsx'),
+      headers: {
+        'Content-Type': 'application/json',
+        ...AuthService.authHeaders,
+      },
+      body: jsonEncode({
+        'title': title,
+        'rows': rows,
+      }),
+    ).timeout(ApiService.timeoutDuration);
+
+    if (response.statusCode < 200 ||
+        response.statusCode >= 300) {
+      throw Exception(
+        'No se pudo exportar Excel: ${response.body}',
+      );
+    }
+
+    final blob = html.Blob(
+      [response.bodyBytes],
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+
+    final url = html.Url.createObjectUrlFromBlob(blob);
+
+    html.AnchorElement(href: url)
+      ..setAttribute(
+        'download',
+        '${_safeFileName(title)}.xlsx',
+      )
+      ..click();
+
+    html.Url.revokeObjectUrl(url);
+  }
+
   static String _safeFileName(String title) {
     final clean = title
         .trim()

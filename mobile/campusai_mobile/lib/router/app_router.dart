@@ -12,6 +12,12 @@ import '../screens/plans_screen.dart';
 import '../screens/library_screen.dart';
 import '../screens/question_bank_screen.dart';
 import '../screens/rubric_screen.dart';
+import '../screens/gradebook_screen.dart';
+import '../screens/attendance_screen.dart';
+import '../screens/final_report_screen.dart';
+import '../screens/academic_dashboard_screen.dart';
+import '../screens/student_profile_screen.dart';
+import '../screens/teaching_plan_screen.dart';
 import '../screens/reset_password_screen.dart';
 
 final appRouter = GoRouter(
@@ -162,6 +168,84 @@ final appRouter = GoRouter(
             documentId: documentId,
             initialQuestions: initialQuestions,
           ),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/teaching-plan/:documentId',
+      name: 'teaching-plan',
+      pageBuilder: (context, state) {
+        final documentId = state.pathParameters['documentId'] ?? '';
+
+        final initialPlan = state.extra is Map
+            ? Map<String, dynamic>.from(state.extra as Map)
+            : <String, dynamic>{};
+
+        return _buildPage(
+          state: state,
+          child: TeachingPlanScreen(
+            documentId: documentId,
+            initialPlan: initialPlan,
+          ),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/student-profile',
+      name: 'student-profile',
+      pageBuilder: (context, state) {
+        final params = state.extra is Map
+            ? Map<String, dynamic>.from(state.extra as Map)
+            : <String, dynamic>{};
+
+        return _buildPage(
+          state: state,
+          child: StudentProfileScreen(
+            studentCode: params['studentCode']?.toString() ?? '',
+            studentName: params['studentName']?.toString() ?? '',
+            courseId: params['courseId']?.toString() ?? '',
+            courseName: params['courseName']?.toString() ?? '',
+          ),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/academic-dashboard',
+      name: 'academic-dashboard',
+      pageBuilder: (context, state) {
+        return _buildPage(
+          state: state,
+          child: const AcademicDashboardScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/final-report',
+      name: 'final-report',
+      pageBuilder: (context, state) {
+        return _buildPage(
+          state: state,
+          child: const FinalReportScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/attendance',
+      name: 'attendance',
+      pageBuilder: (context, state) {
+        return _buildPage(
+          state: state,
+          child: const AttendanceScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/gradebook',
+      name: 'gradebook',
+      pageBuilder: (context, state) {
+        return _buildPage(
+          state: state,
+          child: const GradebookScreen(),
         );
       },
     ),

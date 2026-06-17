@@ -2,18 +2,23 @@ import 'dart:convert';
 import 'dart:html' as html;
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'course_service.dart';
 
 class StudentRecord {
   final String id;
   final String name;
   final String course;
+  final String courseId;
   final String email;
+  final String studentCode;
 
   const StudentRecord({
     required this.id,
     required this.name,
     this.course = '',
+    this.courseId = '',
     this.email = '',
+    this.studentCode = '',
   });
 
   bool get isValid => name.trim().isNotEmpty;
@@ -22,7 +27,9 @@ class StudentRecord {
         'id': id,
         'name': name,
         'course': course,
+        'courseId': courseId,
         'email': email,
+        'studentCode': studentCode,
       };
 
   factory StudentRecord.fromJson(Map<String, dynamic> json) {
@@ -30,7 +37,14 @@ class StudentRecord {
       id: json['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
       name: json['name']?.toString() ?? '',
       course: json['course']?.toString() ?? '',
+      courseId: json['courseId']?.toString() ??
+          json['course_id']?.toString() ??
+          '',
       email: json['email']?.toString() ?? '',
+      studentCode: json['studentCode']?.toString() ??
+          json['student_code']?.toString() ??
+          json['code']?.toString() ??
+          '',
     );
   }
 }
@@ -96,11 +110,11 @@ class StudentRosterService {
     final students = await getStudents();
 
     final buffer = StringBuffer();
-    buffer.writeln('name,course,email');
+    buffer.writeln('student_code,name,course,email');
 
     for (final student in students) {
       buffer.writeln(
-        '${_csv(student.name)},${_csv(student.course)},${_csv(student.email)}',
+        '${_csv(student.studentCode)},${_csv(student.name)},${_csv(student.course)},${_csv(student.email)}',
       );
     }
 
@@ -152,18 +166,30 @@ class StudentRosterService {
 
       final cols = _parseCsvLine(row);
 
-      final name = cols.isNotEmpty ? cols[0].trim() : '';
-      final course = cols.length > 1 ? cols[1].trim() : '';
-      final email = cols.length > 2 ? cols[2].trim() : '';
+      final hasCodeColumn = cols.length >= 4;
+      final studentCode = hasCodeColumn ? cols[0].trim() : '';
+      final name = hasCodeColumn
+          ? cols[1].trim()
+          : (cols.isNotEmpty ? cols[0].trim() : '');
+      final course = hasCodeColumn
+          ? cols[2].trim()
+          : (cols.length > 1 ? cols[1].trim() : '');
+      final email = hasCodeColumn
+          ? cols[3].trim()
+          : (cols.length > 2 ? cols[2].trim() : '');
 
       if (name.isEmpty) continue;
 
       imported.add(
         StudentRecord(
-          id: '${DateTime.now().microsecondsSinceEpoch}_$i',
+          id: studentCode.isNotEmpty
+              ? studentCode
+              : '${DateTime.now().microsecondsSinceEpoch}_$i',
           name: name,
           course: course,
+          courseId: CourseService.buildCourseFromName(course).id,
           email: email,
+          studentCode: studentCode,
         ),
       );
     }

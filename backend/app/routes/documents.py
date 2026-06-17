@@ -1,6 +1,7 @@
 import time
 import json
 import asyncio
+import openpyxl
 from pathlib import Path
 from uuid import uuid4
 
@@ -26,6 +27,8 @@ from app.services.ai_service import (
     generate_flashcards,
     generate_flashcards_from_context,
     generate_academic_rubric_from_context,
+    generate_teaching_plan_from_context,
+    parse_students_from_text,
     index_document_for_rag,
     index_document_pages_for_rag,
     stream_chat_with_document_id,
@@ -77,6 +80,16 @@ from app.security.user_auth import (
     AuthenticatedUser,
     require_current_user,
 )
+
+
+def secure_filename(filename: str) -> str:
+    clean = "".join(
+        char if char.isalnum() or char in "._-" else "_"
+        for char in filename
+    ).strip("._")
+
+    return clean or "document.pdf"
+
 
 router = APIRouter(
     prefix="/documents",
@@ -258,6 +271,261 @@ def build_document_context(
 
     return context
 
+
+
+
+
+@router.post("/import-grades-excel")
+async def import_grades_excel(
+    file: UploadFile = File(...),
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        filename = file.filename or "grades.xlsx"
+
+        if not filename.lower().endswith((".xlsx", ".xlsm")):
+            raise HTTPException(
+                status_code=400,
+                detail="El archivo debe ser Excel .xlsx o .xlsm.",
+            )
+
+        content = await file.read()
+
+        uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
+        uploads_dir.mkdir(parents=True, exist_ok=True)
+
+        safe_filename = secure_filename(filename)
+        file_path = uploads_dir / f"grades_import_{uuid4()}_{safe_filename}"
+        file_path.write_bytes(content)
+
+        workbook = openpyxl.load_workbook(file_path, data_only=True)
+        sheet = workbook.active
+        rows = list(sheet.iter_rows(values_only=True))
+
+        if not rows:
+            return {"grades": []}
+
+        headers = [str(value or "").strip() for value in rows[0]]
+        clean_headers = [
+            header.lower().replace(" ", "_").replace("-", "_")
+            for header in headers
+        ]
+
+        def find_col(*names):
+            for name in names:
+                for index, header in enumerate(clean_headers):
+                    if header == name or name in header:
+                        return index
+            return -1
+
+        code_col = find_col(
+            "student_code",
+            "codigo",
+            "código",
+            "matricula",
+            "matrícula",
+            "id",
+        )
+        name_col = find_col(
+            "student_name",
+            "nombre",
+            "estudiante",
+            "name",
+            "alumno",
+        )
+
+        max_col = find_col(
+            "max_score",
+            "valor",
+            "puntuacion",
+            "puntuación",
+            "sobre",
+        )
+
+        ignored_cols = {index for index in [code_col, name_col, max_col] if index >= 0}
+
+        explicit_score_col = find_col(
+            "score",
+            "nota",
+            "calificacion",
+            "calificación",
+        )
+
+        explicit_assessment_col = find_col(
+            "assessment",
+            "actividad",
+            "evaluacion",
+            "evaluación",
+        )
+
+        if explicit_score_col >= 0:
+            ignored_cols.add(explicit_score_col)
+        if explicit_assessment_col >= 0:
+            ignored_cols.add(explicit_assessment_col)
+
+        grade_cols = []
+
+        if explicit_score_col >= 0:
+            grade_cols.append(
+                (
+                    explicit_score_col,
+                    headers[explicit_assessment_col]
+                    if explicit_assessment_col >= 0
+                    else "Evaluación importada",
+                )
+            )
+        else:
+            for index, header in enumerate(headers):
+                if index in ignored_cols:
+                    continue
+
+                if not header.strip():
+                    continue
+
+                normalized = header.strip()
+
+                # Cualquier columna restante con valores numéricos se considera evaluación.
+                has_numeric_value = False
+                for row in rows[1:8]:
+                    if index < len(row):
+                        try:
+                            float(row[index])
+                            has_numeric_value = True
+                            break
+                        except Exception:
+                            pass
+
+                if has_numeric_value:
+                    grade_cols.append((index, normalized))
+
+        grades = []
+
+        for row in rows[1:]:
+            student_code = (
+                str(row[code_col] or "").strip()
+                if code_col >= 0 and code_col < len(row)
+                else ""
+            )
+            student_name = (
+                str(row[name_col] or "").strip()
+                if name_col >= 0 and name_col < len(row)
+                else ""
+            )
+
+            if not student_code and not student_name:
+                continue
+
+            raw_max = (
+                row[max_col]
+                if max_col >= 0 and max_col < len(row)
+                else 100
+            )
+
+            try:
+                default_max_score = float(raw_max or 100)
+            except Exception:
+                default_max_score = 100
+
+            for col_index, assessment in grade_cols:
+                if col_index >= len(row):
+                    continue
+
+                raw_score = row[col_index]
+
+                if raw_score in (None, ""):
+                    continue
+
+                try:
+                    score = float(raw_score)
+                except Exception:
+                    continue
+
+                grades.append(
+                    {
+                        "student_code": student_code,
+                        "student_name": student_name,
+                        "score": score,
+                        "max_score": default_max_score,
+                        "assessment": assessment or "Evaluación importada",
+                    }
+                )
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="grades_excel_imported",
+            plan="educator",
+            metadata={
+                "filename": safe_filename,
+                "grades_count": len(grades),
+            },
+        )
+
+        return {
+            "grades": grades,
+            "detected_columns": headers,
+            "grade_columns": [item[1] for item in grade_cols],
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
+@router.post("/import-students-pdf")
+async def import_students_pdf(
+    file: UploadFile = File(...),
+    language: str = Query(default="es"),
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        validate_pdf_file(file)
+
+        content = await file.read()
+        validate_pdf_signature(content)
+
+        uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
+        uploads_dir.mkdir(parents=True, exist_ok=True)
+
+        safe_filename = secure_filename(
+            file.filename or "students.pdf"
+        )
+
+        file_path = uploads_dir / f"students_import_{uuid4()}_{safe_filename}"
+        file_path.write_bytes(content)
+
+        text = extract_text_from_pdf(str(file_path))
+
+        parsed = parse_students_from_text(
+            text=text,
+            language=language,
+        )
+
+        students_data = json.loads(parsed)
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="students_pdf_imported",
+            plan="educator",
+            metadata={
+                "filename": safe_filename,
+                "students_count": len(students_data.get("students", [])),
+            },
+        )
+
+        return students_data
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
 
 @router.post("/upload")
 async def upload_document(
@@ -486,6 +754,59 @@ async def chat_document_by_id(
 
 
 
+
+
+@router.post("/teaching-plan/{document_id}")
+async def teaching_plan_document_by_id(
+    document_id: str,
+    language: str = Query(default="es"),
+    weeks: int = Query(default=4, ge=1, le=16),
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        validate_document_owner(
+            document_id=document_id,
+            current_user=current_user,
+        )
+
+        context = build_document_context(
+            document_id=document_id,
+            question=(
+                "planificación docente unidad didáctica objetivos competencias "
+                "contenidos actividades evaluación recursos cronograma"
+            ),
+            top_k=14,
+        )
+
+        teaching_plan = generate_teaching_plan_from_context(
+            context=context,
+            language=language,
+            weeks=weeks,
+        )
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="teaching_plan_generated",
+            plan="educator",
+            metadata={
+                "document_id": document_id,
+                "weeks": weeks,
+            },
+        )
+
+        return {
+            "document_id": document_id,
+            "teaching_plan": json.loads(teaching_plan),
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
 
 @router.post("/rubric/{document_id}")
 async def rubric_document_by_id(

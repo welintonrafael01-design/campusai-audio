@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../config/app_plans.dart';
 import '../../layout/responsive_layout.dart';
@@ -12,6 +13,7 @@ class DashboardEducatorCenter extends StatelessWidget {
   final VoidCallback openFlashcards;
   final VoidCallback openQuestionBank;
   final VoidCallback openRubric;
+  final VoidCallback openTeachingPlan;
 
   const DashboardEducatorCenter({
     super.key,
@@ -20,6 +22,7 @@ class DashboardEducatorCenter extends StatelessWidget {
     required this.openFlashcards,
     required this.openQuestionBank,
     required this.openRubric,
+    required this.openTeachingPlan,
   });
 
   @override
@@ -67,11 +70,43 @@ class DashboardEducatorCenter extends StatelessWidget {
       ),
       _EducatorAction(
         title: 'Planificación docente',
-        subtitle: 'Próximamente: clases, competencias y evaluación.',
+        subtitle: 'Genera unidades, actividades y cronograma académico.',
         icon: Icons.calendar_month_rounded,
         color: AppTheme.primary,
-        enabled: false,
-        onTap: null,
+        enabled: hasActiveDocument,
+        onTap: openTeachingPlan,
+      ),
+      _EducatorAction(
+        title: 'Asistencia',
+        subtitle: 'Registra presencia, ausencias, tardanzas y excusas.',
+        icon: Icons.fact_check_rounded,
+        color: AppTheme.success,
+        enabled: true,
+        onTap: () => context.goNamed('attendance'),
+      ),
+      _EducatorAction(
+        title: 'Dashboard académico',
+        subtitle: 'Rendimiento, ranking y riesgo por curso.',
+        icon: Icons.dashboard_customize_rounded,
+        color: AppTheme.secondary,
+        enabled: true,
+        onTap: () => context.goNamed('academic-dashboard'),
+      ),
+      _EducatorAction(
+        title: 'Acta final',
+        subtitle: 'Promedios, asistencia y estado académico.',
+        icon: Icons.summarize_rounded,
+        color: AppTheme.accent,
+        enabled: true,
+        onTap: () => context.goNamed('final-report'),
+      ),
+      _EducatorAction(
+        title: 'Libro de calificaciones',
+        subtitle: 'Consulta y exporta evaluaciones guardadas.',
+        icon: Icons.table_chart_rounded,
+        color: AppTheme.primary,
+        enabled: true,
+        onTap: () => context.goNamed('gradebook'),
       ),
     ];
 

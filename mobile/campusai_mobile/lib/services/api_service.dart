@@ -493,6 +493,94 @@ class ApiService {
   }
 
 
+
+
+
+  static Future<Map<String, dynamic>> importGradesExcel() async {
+    final file = await pickExcelFile();
+    final bytes = file.bytes;
+
+    if (bytes == null || bytes.isEmpty) {
+      throw Exception('No se pudo leer el archivo Excel seleccionado.');
+    }
+
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('$baseUrl/documents/import-grades-excel'),
+    );
+
+    request.headers.addAll(AuthService.authHeaders);
+
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'file',
+        bytes,
+        filename: file.name,
+      ),
+    );
+
+    return sendMultipartRequest(request);
+  }
+
+  static Future<Map<String, dynamic>> importStudentsPdf() async {
+    final file = await pickPdfFile();
+    final bytes = file.bytes;
+
+    if (bytes == null || bytes.isEmpty) {
+      throw Exception('No se pudo leer el archivo PDF seleccionado.');
+    }
+
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('$baseUrl/documents/import-students-pdf'),
+    );
+
+    request.headers.addAll(AuthService.authHeaders);
+
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'file',
+        bytes,
+        filename: file.name,
+      ),
+    );
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    return decodeResponse(response);
+  }
+
+  static Future<Map<String, dynamic>> generateTeachingPlanByDocumentId({
+    required String documentId,
+    int weeks = 4,
+  }) async {
+    final cleanDocumentId = requireValue(
+      documentId,
+      'No hay documento activo.',
+    );
+
+    final language = await getCurrentLanguageCode();
+
+    final uri = Uri.parse(
+      '$baseUrl/documents/teaching-plan/$cleanDocumentId',
+    ).replace(
+      queryParameters: {
+        'weeks': weeks.toString(),
+        'language': language,
+      },
+    );
+
+    final response = await http
+        .post(
+          uri,
+          headers: AuthService.authHeaders,
+        )
+        .timeout(timeoutDuration);
+
+    return decodeResponse(response);
+  }
+
   static Future<Map<String, dynamic>> generateRubricByDocumentId({
     required String documentId,
     int totalPoints = 100,
@@ -656,6 +744,33 @@ class ApiService {
   // =========================
   // PICK PDF
   // =========================
+
+
+  static Future<PlatformFile> pickExcelFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['xlsx', 'xlsm'],
+      withData: true,
+    );
+
+    if (result == null) {
+      throw Exception('No se seleccionó archivo.');
+    }
+
+    final file = result.files.first;
+
+    if (file.bytes == null || file.bytes!.isEmpty) {
+      throw Exception('No se pudo leer el archivo.');
+    }
+
+    final lowerName = file.name.toLowerCase();
+
+    if (!lowerName.endsWith('.xlsx') && !lowerName.endsWith('.xlsm')) {
+      throw Exception('Solo se permiten archivos Excel .xlsx o .xlsm.');
+    }
+
+    return file;
+  }
 
   static Future<PlatformFile> pickPdfFile() async {
     final result = await FilePicker.platform.pickFiles(
