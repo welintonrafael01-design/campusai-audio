@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../services/export_service.dart';
+import '../services/gradebook_service.dart';
 import '../services/student_roster_service.dart';
 import '../services/study_result_service.dart';
 import '../theme/app_theme.dart';
@@ -206,6 +207,7 @@ class _RubricScreenState extends State<RubricScreen> {
 
     buffer.writeln(title.toUpperCase());
     buffer.writeln('');
+    buffer.writeln('Código: ${selectedStudent?.studentCode ?? 'No especificado'}');
     buffer.writeln('Estudiante: ${selectedStudent?.name ?? 'No especificado'}');
     buffer.writeln('Curso/sección: ${selectedStudent?.course ?? 'No especificado'}');
     buffer.writeln('Correo: ${selectedStudent?.email ?? 'No especificado'}');
@@ -262,6 +264,42 @@ class _RubricScreenState extends State<RubricScreen> {
     await ExportService.exportTextToDocx(
       title: 'Rúbrica Evaluada',
       content: exportableContent(),
+    );
+  }
+
+  Future<void> saveEvaluationToGradebook() async {
+    if (selectedStudent == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Selecciona un estudiante antes de guardar.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    await GradebookService.saveEntry(
+      GradebookEntry(
+        id: '${widget.documentId}_${selectedStudent!.id}_${DateTime.now().millisecondsSinceEpoch}',
+        studentId: selectedStudent!.id,
+        studentName: selectedStudent!.name,
+        studentCode: selectedStudent!.studentCode,
+        course: selectedStudent!.course,
+        rubricTitle: title,
+        score: assignedTotal,
+        maxScore: totalPoints.toDouble(),
+        createdAt: DateTime.now().toIso8601String(),
+        notes: exportableContent(),
+      ),
+    );
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Evaluación guardada en el Libro de Calificaciones.'),
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
@@ -326,7 +364,7 @@ class _RubricScreenState extends State<RubricScreen> {
                     SizedBox(
                       width: 320,
                       child: DropdownButtonFormField<String>(
-                        value: selectedStudent?.id,
+                        initialValue: selectedStudent?.id,
                         decoration: const InputDecoration(
                           labelText: 'Estudiante evaluado',
                           border: OutlineInputBorder(),
@@ -335,7 +373,11 @@ class _RubricScreenState extends State<RubricScreen> {
                             .map(
                               (student) => DropdownMenuItem(
                                 value: student.id,
-                                child: Text(student.name),
+                                child: Text(
+                                  student.studentCode.isNotEmpty
+                                      ? '${student.studentCode} - ${student.name}'
+                                      : student.name,
+                                ),
                               ),
                             )
                             .toList(),
@@ -350,6 +392,11 @@ class _RubricScreenState extends State<RubricScreen> {
                       ),
                     ),
                     FilledButton.icon(
+                      onPressed: saveEvaluationToGradebook,
+                      icon: const Icon(Icons.save_rounded),
+                      label: const Text('Guardar evaluación'),
+                    ),
+                    FilledButton.tonalIcon(
                       onPressed: addStudentDialog,
                       icon: const Icon(Icons.person_add_rounded),
                       label: const Text('Agregar estudiante'),

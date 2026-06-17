@@ -781,3 +781,153 @@ def generate_academic_rubric_from_context(
         )
 
     return content
+
+
+def generate_teaching_plan_from_context(
+    context: str,
+    language: str = "es",
+    weeks: int = 4,
+) -> str:
+    document_text = truncate_text(context)
+    language_instruction = build_language_instruction(language)
+
+    if not document_text:
+        raise ValueError("No hay contexto válido para generar la planificación docente.")
+
+    safe_weeks = max(1, min(weeks, 16))
+
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Eres StudyBook AI, experto en planificación docente, diseño curricular "
+                    "y evaluación educativa. Genera planificaciones claras, aplicables y profesionales. "
+                    f"{language_instruction}"
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Contexto del documento:\n\n{document_text}\n\n"
+                    f"Genera una planificación docente de {safe_weeks} semanas.\n\n"
+                    "IMPORTANTE: conserva las claves JSON en inglés exactamente como se indican, "
+                    "pero redacta los valores visibles en el idioma solicitado. "
+                    "Devuelve EXCLUSIVAMENTE JSON válido.\n\n"
+                    "{\n"
+                    '  "title": "...",\n'
+                    '  "subject": "...",\n'
+                    '  "general_objective": "...",\n'
+                    '  "competencies": ["...", "..."],\n'
+                    '  "methodology": "...",\n'
+                    '  "resources": ["...", "..."],\n'
+                    '  "evaluation_strategy": "...",\n'
+                    '  "weeks": [\n'
+                    "    {\n"
+                    '      "week": 1,\n'
+                    '      "topic": "...",\n'
+                    '      "objectives": ["...", "..."],\n'
+                    '      "contents": ["...", "..."],\n'
+                    '      "activities": ["...", "..."],\n'
+                    '      "assessment": "...",\n'
+                    '      "resources": ["...", "..."]\n'
+                    "    }\n"
+                    "  ],\n"
+                    '  "recommendations": ["...", "..."]\n'
+                    "}\n"
+                ),
+            },
+        ],
+        temperature=0.25,
+    )
+
+    content = response.choices[0].message.content.strip()
+
+    try:
+        json.loads(content)
+    except json.JSONDecodeError:
+        return json.dumps(
+            {
+                "title": "Planificación docente",
+                "subject": "",
+                "general_objective": "",
+                "competencies": [],
+                "methodology": "",
+                "resources": [],
+                "evaluation_strategy": "",
+                "weeks": [],
+                "recommendations": [],
+                "error": "La IA no devolvió JSON válido.",
+                "raw_response": content,
+            },
+            ensure_ascii=False,
+        )
+
+    return content
+
+
+def parse_students_from_text(
+    text: str,
+    language: str = "es",
+) -> str:
+    document_text = truncate_text(text)
+    language_instruction = build_language_instruction(language)
+
+    if not document_text:
+        raise ValueError("No hay texto válido para importar estudiantes.")
+
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Eres StudyBook AI, experto en extraer listados académicos. "
+                    "Debes identificar estudiantes en textos provenientes de PDF, tablas, listas o reportes. "
+                    f"{language_instruction}"
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Texto extraído del documento:\n\n{document_text}\n\n"
+                    "Extrae únicamente los estudiantes encontrados. "
+                    "Devuelve EXCLUSIVAMENTE JSON válido con esta estructura exacta:\n\n"
+                    "{\n"
+                    '  "students": [\n'
+                    "    {\n"
+                    '      "name": "...",\n'
+                    '      "course": "...",\n'
+                    '      "email": "",\n'
+                    '      "student_code": ""\n'
+                    "    }\n"
+                    "  ]\n"
+                    "}\n\n"
+                    "Reglas:\n"
+                    "- Si no hay correo, usa cadena vacía.\n"
+                    "- Si no hay curso, intenta inferirlo del encabezado; si no, cadena vacía.\n"
+                    "- No inventes estudiantes.\n"
+                    "- No incluyas docentes, autoridades ni encabezados.\n"
+                    "- Normaliza nombres con mayúsculas y minúsculas correctas."
+                ),
+            },
+        ],
+        temperature=0.1,
+    )
+
+    content = response.choices[0].message.content.strip()
+
+    try:
+        json.loads(content)
+    except json.JSONDecodeError:
+        return json.dumps(
+            {
+                "students": [],
+                "error": "La IA no devolvió JSON válido.",
+                "raw_response": content,
+            },
+            ensure_ascii=False,
+        )
+
+    return content

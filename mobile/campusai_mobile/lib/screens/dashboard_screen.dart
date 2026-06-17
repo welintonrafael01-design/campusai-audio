@@ -945,6 +945,111 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
   }
 
+  Future<void> generateTeachingPlan() async {
+    if (isGeneratingQuestionBank) return;
+
+    if (!hasActiveDocument) {
+      showNoActiveDocumentMessage();
+      return;
+    }
+
+    setState(() => isGeneratingQuestionBank = true);
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return const AlertDialog(
+          title: Text('Generando planificación docente'),
+          content: Row(
+            children: [
+              SizedBox(
+                width: 28,
+                height: 28,
+                child: CircularProgressIndicator(strokeWidth: 3),
+              ),
+              SizedBox(width: 18),
+              Expanded(
+                child: Text(
+                  'StudyBook AI está creando objetivos, actividades, evaluación y cronograma académico...',
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    try {
+      final data = await ApiService.generateTeachingPlanByDocumentId(
+        documentId: documentId,
+        weeks: 4,
+      );
+
+      final rawPlan = data['teaching_plan'];
+      final plan = rawPlan is Map
+          ? Map<String, dynamic>.from(rawPlan)
+          : <String, dynamic>{};
+
+      if (plan.isEmpty) {
+        throw Exception('La IA no devolvió una planificación válida.');
+      }
+
+      final planId = '${documentId}_teaching_plan';
+      final content = jsonEncode(plan);
+
+      await StudyResultService.saveResult(
+        StudyResult(
+          documentId: planId,
+          type: 'teaching_plan',
+          content: content,
+          createdAt: DateTime.now().toIso8601String(),
+        ),
+      );
+
+      try {
+        await CloudApiService.saveStudyResult(
+          documentId: planId,
+          type: 'teaching_plan',
+          content: content,
+        );
+      } catch (cloudError) {
+        debugPrint('No se pudo guardar planificación cloud: $cloudError');
+      }
+
+      if (!mounted) return;
+
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+
+      context.goNamed(
+        'teaching-plan',
+        pathParameters: {
+          'documentId': planId,
+        },
+        extra: plan,
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se pudo generar la planificación: $error'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+        setState(() => isGeneratingQuestionBank = false);
+      }
+    }
+  }
+
+
   Future<void> generateRubric() async {
     if (isGeneratingQuestionBank) return;
 
@@ -1528,6 +1633,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             openFlashcards: openFlashcardsScreen,
             openQuestionBank: generateQuestionBank,
             openRubric: generateRubric,
+            openTeachingPlan: generateTeachingPlan,
           ),
         ),
         SizedBox(height: isMobile ? 22 : 28),
