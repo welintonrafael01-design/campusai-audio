@@ -78,65 +78,98 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
   String exportableContent() {
     final buffer = StringBuffer();
 
-    buffer.writeln(title.toUpperCase());
-    buffer.writeln('');
-    if (subject.isNotEmpty) buffer.writeln('Asignatura: $subject');
-    if (generalObjective.isNotEmpty) {
-      buffer.writeln('Objetivo general: $generalObjective');
+    void sectionTitle(String text) {
+      buffer.writeln('');
+      buffer.writeln('────────────────────────────────────────');
+      buffer.writeln(text.toUpperCase());
+      buffer.writeln('────────────────────────────────────────');
     }
-    buffer.writeln('');
 
-    for (final section in [
-      ['Competencias', 'competencies'],
-      ['Recursos', 'resources'],
-      ['Recomendaciones', 'recommendations'],
-    ]) {
-      final items = listFrom(section[1]);
-      if (items.isNotEmpty) {
-        buffer.writeln('${section[0]}:');
-        for (final item in items) {
-          buffer.writeln('- $item');
-        }
-        buffer.writeln('');
+    void writeList(String label, List<String> items) {
+      if (items.isEmpty) return;
+      buffer.writeln('');
+      buffer.writeln(label.toUpperCase());
+      for (final item in items) {
+        buffer.writeln('• $item');
       }
     }
 
-    if (methodology.isNotEmpty) {
-      buffer.writeln('Metodología:');
-      buffer.writeln(methodology);
+    void writeText(String label, String text) {
+      if (text.trim().isEmpty) return;
       buffer.writeln('');
+      buffer.writeln(label.toUpperCase());
+      buffer.writeln(text.trim());
     }
 
-    if (evaluationStrategy.isNotEmpty) {
-      buffer.writeln('Estrategia de evaluación:');
-      buffer.writeln(evaluationStrategy);
-      buffer.writeln('');
+    final weeksCount = weeks.length;
+
+    buffer.writeln('STUDYBOOK AI');
+    buffer.writeln('PLANIFICACIÓN DOCENTE');
+    buffer.writeln('');
+    buffer.writeln('Título: $title');
+    if (subject.isNotEmpty) buffer.writeln('Asignatura: $subject');
+    if (weeksCount > 0) buffer.writeln('Duración: $weeksCount semanas');
+    buffer.writeln('Fecha de emisión: ${DateTime.now().toIso8601String().substring(0, 10)}');
+
+    writeText('Objetivo general', generalObjective);
+    writeList('Competencias', listFrom('competencies'));
+    writeText('Metodología', methodology);
+    writeList('Recursos', listFrom('resources'));
+    writeText('Estrategia de evaluación', evaluationStrategy);
+
+    if (weeks.isNotEmpty) {
+      sectionTitle('Cronograma semanal');
     }
 
     for (final week in weeks) {
-      buffer.writeln('Semana ${week['week'] ?? ''}: ${week['topic'] ?? ''}');
-      for (final key in ['objectives', 'contents', 'activities', 'resources']) {
+      final weekNumber = week['week']?.toString() ?? '';
+      final topic = week['topic']?.toString() ?? '';
+
+      buffer.writeln('');
+      buffer.writeln('SEMANA $weekNumber');
+      if (topic.isNotEmpty) buffer.writeln('Tema: $topic');
+      buffer.writeln('');
+
+      final sections = [
+        ['Objetivos', 'objectives'],
+        ['Contenidos', 'contents'],
+        ['Actividades', 'activities'],
+        ['Recursos', 'resources'],
+      ];
+
+      for (final section in sections) {
+        final label = section[0];
+        final key = section[1];
         final raw = week[key];
+
         if (raw is List && raw.isNotEmpty) {
-          buffer.writeln('$key:');
+          buffer.writeln(label.toUpperCase());
           for (final item in raw) {
-            buffer.writeln('- $item');
+            buffer.writeln('• $item');
           }
+          buffer.writeln('');
         }
       }
+
       final assessment = week['assessment']?.toString() ?? '';
-      if (assessment.isNotEmpty) buffer.writeln('Evaluación: $assessment');
-      buffer.writeln('----------------------------------------');
-      buffer.writeln('');
+      if (assessment.isNotEmpty) {
+        buffer.writeln('EVALUACIÓN');
+        buffer.writeln('• $assessment');
+        buffer.writeln('');
+      }
+
+      buffer.writeln('────────────────────────────────────────');
     }
+
+    writeList('Recomendaciones', listFrom('recommendations'));
 
     return buffer.toString();
   }
 
   Future<void> exportPdf() async {
-    await ExportService.exportTextToPdf(
+    await ExportService.exportTeachingPlanToPdf(
       title: title,
-      content: exportableContent(),
+      plan: plan,
     );
   }
 

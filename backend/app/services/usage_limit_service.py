@@ -225,11 +225,13 @@ PLAN_EXPORT_PERMISSIONS = {
         "pdf": True,
         "docx": True,
         "pptx": True,
+        "xlsx": True,
     },
     "educator": {
         "pdf": True,
         "docx": True,
         "pptx": True,
+        "xlsx": True,
     },
 }
 

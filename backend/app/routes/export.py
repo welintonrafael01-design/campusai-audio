@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel
 
-from app.services.export_service import build_text_pdf
+from app.services.export_service import build_text_pdf, build_final_report_pdf
 from app.services.docx_export_service import build_text_docx
 from app.security.user_auth import AuthenticatedUser, require_current_user
 from app.services.usage_limit_service import (
@@ -23,6 +23,14 @@ router = APIRouter(
 
 
 
+
+
+class FinalReportPdfPayload(BaseModel):
+    title: str = "Acta Final StudyBook AI"
+    course_name: str
+    rows: list[dict[str, Any]]
+    stats: dict[str, Any]
+
 class ExportXlsxPayload(BaseModel):
     title: str = "StudyBook AI Export"
     rows: list[dict[str, Any]]
@@ -31,6 +39,55 @@ class ExportPdfPayload(BaseModel):
     title: str = "StudyBook AI Export"
     content: str
 
+
+
+
+@router.post("/final-report-pdf")
+async def export_final_report_pdf(
+    payload: FinalReportPdfPayload,
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        plan = enforce_export_permission(
+            user_id=current_user.user_id,
+            export_type="pdf",
+        )
+
+        pdf_bytes = build_final_report_pdf(
+            title=payload.title,
+            course_name=payload.course_name,
+            rows=payload.rows,
+            stats=payload.stats,
+        )
+
+        safe_filename = "studybook_acta_final"
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="export_generated",
+            plan=plan,
+            metadata={
+                "export_type": "final_report_pdf",
+                "title": payload.title,
+                "rows": len(payload.rows),
+            },
+        )
+
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": (
+                    f'attachment; filename="{safe_filename}.pdf"'
+                ),
+            },
+        )
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
 
 
 @router.post("/xlsx")

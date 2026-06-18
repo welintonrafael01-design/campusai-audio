@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../services/attendance_service.dart';
+import '../services/assessment_weight_service.dart';
 import '../services/gradebook_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
@@ -27,6 +28,7 @@ class StudentProfileScreen extends StatefulWidget {
 class _StudentProfileScreenState extends State<StudentProfileScreen> {
   List<GradebookEntry> grades = [];
   List<AttendanceEntry> attendance = [];
+  List<AssessmentWeight> weights = [];
 
   @override
   void initState() {
@@ -37,6 +39,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
   Future<void> loadProfile() async {
     final allGrades = await GradebookService.getEntries();
     final allAttendance = await AttendanceService.getEntries();
+    final courseWeights =
+        await AssessmentWeightService.getWeights(widget.courseId);
 
     final filteredGrades = allGrades.where((entry) {
       final sameCourse = entry.courseId.isNotEmpty
@@ -75,18 +79,21 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
     setState(() {
       grades = filteredGrades;
       attendance = filteredAttendance;
+      weights = courseWeights;
     });
   }
 
   double get average {
-    final values = grades
-        .where((entry) => entry.maxScore > 0)
-        .map((entry) => (entry.score / entry.maxScore) * 100)
-        .toList();
+    final validGrades = grades.where((entry) => entry.maxScore > 0).toList();
 
-    if (values.isEmpty) return 0;
+    if (validGrades.isEmpty) return 0;
 
-    return values.reduce((a, b) => a + b) / values.length;
+    return AssessmentWeightService.weightedAverage(
+      grades: validGrades,
+      weights: weights,
+      percentageBuilder: (entry) => (entry.score / entry.maxScore) * 100,
+      assessmentNameBuilder: (entry) => entry.rubricTitle,
+    );
   }
 
   double get attendanceRate {
@@ -160,7 +167,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                   runSpacing: 10,
                   children: [
                     _MetricChip(
-                      label: 'Promedio',
+                      label: weights.isEmpty ? 'Promedio' : 'Promedio ponderado',
                       value: '${average.toStringAsFixed(1)}%',
                     ),
                     _MetricChip(

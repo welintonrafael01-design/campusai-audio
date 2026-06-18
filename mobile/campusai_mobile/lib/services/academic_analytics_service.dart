@@ -1,4 +1,5 @@
 import 'attendance_service.dart';
+import 'assessment_weight_service.dart';
 import 'gradebook_service.dart';
 import 'student_roster_service.dart';
 
@@ -13,6 +14,9 @@ class StudentAcademicSummary {
   final int attendedClasses;
   final int totalClasses;
   final bool approved;
+  final bool hasGrades;
+  final bool hasAttendance;
+  final Map<String, double> assessmentScores;
 
   const StudentAcademicSummary({
     required this.studentCode,
@@ -25,22 +29,101 @@ class StudentAcademicSummary {
     required this.attendedClasses,
     required this.totalClasses,
     required this.approved,
+    required this.hasGrades,
+    required this.hasAttendance,
+    this.assessmentScores = const {},
   });
 
-  Map<String, dynamic> toRow() => {
-        'student_code': studentCode,
-        'student_name': studentName,
-        'course': courseName,
-        'average': average.toStringAsFixed(1),
-        'attendance_rate': attendanceRate.toStringAsFixed(1),
-        'evaluations': evaluations,
-        'attended_classes': attendedClasses,
-        'total_classes': totalClasses,
-        'status': approved ? 'Aprobado' : 'Reprobado',
-      };
+  Map<String, dynamic> toRow() {
+    final row = <String, dynamic>{
+      'student_code': studentCode,
+      'student_name': studentName,
+      'course': courseName,
+    };
+
+    for (final entry in assessmentScores.entries) {
+      row[entry.key] = entry.value.toStringAsFixed(1);
+    }
+
+    row.addAll({
+      'average': hasGrades ? average.toStringAsFixed(1) : 'Sin evaluar',
+      'attendance_rate':
+          hasAttendance ? attendanceRate.toStringAsFixed(1) : 'Sin registro',
+      'evaluations': evaluations,
+      'attended_classes': attendedClasses,
+      'total_classes': totalClasses,
+      'status': !hasGrades
+          ? 'Sin evaluar'
+          : (approved ? 'Aprobado' : 'Reprobado'),
+    });
+
+    return row;
+  }
 }
 
 class AcademicAnalyticsService {
+
+  static String _normalizeText(String value) {
+    return value
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9áéíóúñü ]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
+  static bool _sameCourse({
+    required String targetCourseId,
+    required String targetCourseName,
+    required String entryCourseId,
+    required String entryCourseName,
+  }) {
+    final cleanTargetId = targetCourseId.trim();
+    final cleanEntryId = entryCourseId.trim();
+
+    if (cleanTargetId.isNotEmpty &&
+        cleanEntryId.isNotEmpty &&
+        cleanTargetId == cleanEntryId) {
+      return true;
+    }
+
+    final targetName = _normalizeText(targetCourseName);
+    final entryName = _normalizeText(entryCourseName);
+
+    if (targetName.isEmpty || entryName.isEmpty) return false;
+
+    return targetName == entryName ||
+        targetName.contains(entryName) ||
+        entryName.contains(targetName);
+  }
+
+  static bool _sameStudent({
+    required String studentId,
+    required String studentCode,
+    required String studentName,
+    required String entryStudentId,
+    required String entryStudentCode,
+    required String entryStudentName,
+  }) {
+    final cleanStudentId = studentId.toLowerCase().trim();
+    final cleanStudentCode = studentCode.toLowerCase().trim();
+    final cleanEntryStudentId = entryStudentId.toLowerCase().trim();
+    final cleanEntryStudentCode = entryStudentCode.toLowerCase().trim();
+
+    if (cleanStudentCode.isNotEmpty &&
+        cleanEntryStudentCode.isNotEmpty &&
+        cleanStudentCode == cleanEntryStudentCode) {
+      return true;
+    }
+
+    if (cleanStudentId.isNotEmpty &&
+        cleanEntryStudentId.isNotEmpty &&
+        cleanStudentId == cleanEntryStudentId) {
+      return true;
+    }
+
+    return _normalizeText(studentName) == _normalizeText(entryStudentName);
+  }
+
   static Future<List<StudentAcademicSummary>> buildFinalReport({
     required String courseId,
     required String courseName,
@@ -49,14 +132,15 @@ class AcademicAnalyticsService {
     final students = await StudentRosterService.getStudents();
     final grades = await GradebookService.getEntries();
     final attendance = await AttendanceService.getEntries();
+    final weights = await AssessmentWeightService.getWeights(courseId);
 
     final courseStudents = students.where((student) {
-      if (student.courseId.isNotEmpty) {
-        return student.courseId == courseId;
-      }
-
-      return student.course.toLowerCase().trim() ==
-          courseName.toLowerCase().trim();
+      return _sameCourse(
+        targetCourseId: courseId,
+        targetCourseName: courseName,
+        entryCourseId: student.courseId,
+        entryCourseName: student.course,
+      );
     }).toList();
 
     final summaries = <StudentAcademicSummary>[];
@@ -67,19 +151,23 @@ class AcademicAnalyticsService {
           : student.id;
 
       final studentGrades = grades.where((entry) {
-        final sameCourse = entry.courseId.isNotEmpty
-            ? entry.courseId == courseId
-            : entry.course.toLowerCase().trim() ==
-                courseName.toLowerCase().trim();
+        final sameCourse = _sameCourse(
+          targetCourseId: courseId,
+          targetCourseName: courseName,
+          entryCourseId: entry.courseId,
+          entryCourseName: entry.course,
+        );
 
-        final sameStudentByCode = studentCode.isNotEmpty &&
-            entry.studentCode.toLowerCase().trim() ==
-                studentCode.toLowerCase().trim();
+        final sameStudent = _sameStudent(
+          studentId: student.id,
+          studentCode: studentCode,
+          studentName: student.name,
+          entryStudentId: entry.studentId,
+          entryStudentCode: entry.studentCode,
+          entryStudentName: entry.studentName,
+        );
 
-        final sameStudentByName = entry.studentName.toLowerCase().trim() ==
-            student.name.toLowerCase().trim();
-
-        return sameCourse && (sameStudentByCode || sameStudentByName);
+        return sameCourse && sameStudent;
       }).toList();
 
       final percentages = studentGrades
@@ -87,23 +175,36 @@ class AcademicAnalyticsService {
           .map((entry) => (entry.score / entry.maxScore) * 100)
           .toList();
 
-      final average = percentages.isEmpty
-          ? 0.0
-          : percentages.reduce((a, b) => a + b) / percentages.length;
+      final hasGrades = percentages.isNotEmpty;
+
+      final average = hasGrades
+          ? AssessmentWeightService.weightedAverage(
+              grades: studentGrades,
+              weights: weights,
+              percentageBuilder: (entry) =>
+                  (entry.score / entry.maxScore) * 100,
+              assessmentNameBuilder: (entry) => entry.rubricTitle,
+            )
+          : 0.0;
 
       final studentAttendance = attendance.where((entry) {
-        final sameCourse = entry.courseId.isNotEmpty
-            ? entry.courseId == courseId
-            : entry.course.toLowerCase().trim() ==
-                courseName.toLowerCase().trim();
+        final sameCourse = _sameCourse(
+          targetCourseId: courseId,
+          targetCourseName: courseName,
+          entryCourseId: entry.courseId,
+          entryCourseName: entry.course,
+        );
 
-        final sameStudentById = entry.studentId.toLowerCase().trim() ==
-            student.id.toLowerCase().trim();
+        final sameStudent = _sameStudent(
+          studentId: student.id,
+          studentCode: studentCode,
+          studentName: student.name,
+          entryStudentId: entry.studentId,
+          entryStudentCode: '',
+          entryStudentName: entry.studentName,
+        );
 
-        final sameStudentByName = entry.studentName.toLowerCase().trim() ==
-            student.name.toLowerCase().trim();
-
-        return sameCourse && (sameStudentById || sameStudentByName);
+        return sameCourse && sameStudent;
       }).toList();
 
       final totalClasses = studentAttendance.length;
@@ -115,9 +216,24 @@ class AcademicAnalyticsService {
             status == 'excusa';
       }).length;
 
-      final attendanceRate = totalClasses == 0
-          ? 0.0
-          : (attendedClasses / totalClasses) * 100;
+      final hasAttendance = totalClasses > 0;
+
+      final attendanceRate = hasAttendance
+          ? (attendedClasses / totalClasses) * 100
+          : 0.0;
+
+      final assessmentScores = <String, double>{};
+
+      for (final grade in studentGrades) {
+        if (grade.maxScore <= 0) continue;
+
+        final assessmentName = grade.rubricTitle.trim().isEmpty
+            ? 'Evaluación'
+            : grade.rubricTitle.trim();
+
+        assessmentScores[assessmentName] =
+            (grade.score / grade.maxScore) * 100;
+      }
 
       summaries.add(
         StudentAcademicSummary(
@@ -130,7 +246,10 @@ class AcademicAnalyticsService {
           evaluations: studentGrades.length,
           attendedClasses: attendedClasses,
           totalClasses: totalClasses,
-          approved: average >= passingScore,
+          approved: hasGrades && average >= passingScore,
+          hasGrades: hasGrades,
+          hasAttendance: hasAttendance,
+          assessmentScores: assessmentScores,
         ),
       );
     }

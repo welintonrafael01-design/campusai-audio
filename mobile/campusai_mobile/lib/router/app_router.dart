@@ -17,6 +17,9 @@ import '../screens/attendance_screen.dart';
 import '../screens/final_report_screen.dart';
 import '../screens/academic_dashboard_screen.dart';
 import '../screens/student_profile_screen.dart';
+import '../screens/assessment_weights_screen.dart';
+import '../screens/courses_screen.dart';
+import '../screens/students_screen.dart';
 import '../screens/teaching_plan_screen.dart';
 import '../screens/reset_password_screen.dart';
 
@@ -187,6 +190,36 @@ final appRouter = GoRouter(
             documentId: documentId,
             initialPlan: initialPlan,
           ),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/students',
+      name: 'students',
+      pageBuilder: (context, state) {
+        return _buildPage(
+          state: state,
+          child: const StudentsScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/courses',
+      name: 'courses',
+      pageBuilder: (context, state) {
+        return _buildPage(
+          state: state,
+          child: const CoursesScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/assessment-weights',
+      name: 'assessment-weights',
+      pageBuilder: (context, state) {
+        return _buildPage(
+          state: state,
+          child: const AssessmentWeightsScreen(),
         );
       },
     ),

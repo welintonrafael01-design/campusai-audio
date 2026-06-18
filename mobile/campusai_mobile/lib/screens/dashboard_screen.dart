@@ -945,6 +945,86 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
   }
 
+
+  Future<int?> pickTeachingPlanWeeks() async {
+    int selectedWeeks = 4;
+    final customController = TextEditingController();
+
+    final result = await showDialog<int>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Duración de la planificación'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Selecciona la cantidad de semanas que deseas generar.',
+                    ),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [2, 4, 8, 12, 16, 18].map((weeks) {
+                        return ChoiceChip(
+                          label: Text('$weeks semanas'),
+                          selected: selectedWeeks == weeks,
+                          onSelected: (_) {
+                            setDialogState(() {
+                              selectedWeeks = weeks;
+                              customController.clear();
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: customController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Personalizado',
+                        hintText: 'Ej.: 10',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (value) {
+                        final custom = int.tryParse(value.trim());
+                        if (custom != null && custom > 0) {
+                          setDialogState(() {
+                            selectedWeeks = custom;
+                          });
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    final safeWeeks = selectedWeeks.clamp(1, 52);
+                    Navigator.of(dialogContext).pop(safeWeeks);
+                  },
+                  child: const Text('Generar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    customController.dispose();
+    return result;
+  }
+
   Future<void> generateTeachingPlan() async {
     if (isGeneratingQuestionBank) return;
 
@@ -952,6 +1032,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       showNoActiveDocumentMessage();
       return;
     }
+
+    final weeks = await pickTeachingPlanWeeks();
+
+    if (weeks == null) return;
 
     setState(() => isGeneratingQuestionBank = true);
 
@@ -983,7 +1067,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     try {
       final data = await ApiService.generateTeachingPlanByDocumentId(
         documentId: documentId,
-        weeks: 4,
+        weeks: weeks,
       );
 
       final rawPlan = data['teaching_plan'];

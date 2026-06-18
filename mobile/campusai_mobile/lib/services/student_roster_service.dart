@@ -132,6 +132,34 @@ class StudentRosterService {
     html.Url.revokeObjectUrl(url);
   }
 
+
+  static Future<void> exportCsvForStudents({
+    required List<StudentRecord> students,
+    String filename = 'studybook_estudiantes_curso.csv',
+  }) async {
+    final buffer = StringBuffer();
+    buffer.writeln('student_code,name,course,email');
+
+    for (final student in students) {
+      buffer.writeln(
+        '${_csv(student.studentCode)},${_csv(student.name)},${_csv(student.course)},${_csv(student.email)}',
+      );
+    }
+
+    final blob = html.Blob(
+      [utf8.encode(buffer.toString())],
+      'text/csv;charset=utf-8',
+    );
+
+    final url = html.Url.createObjectUrlFromBlob(blob);
+
+    html.AnchorElement(href: url)
+      ..setAttribute('download', filename)
+      ..click();
+
+    html.Url.revokeObjectUrl(url);
+  }
+
   static Future<List<StudentRecord>> importCsvFromUser() async {
     final upload = html.FileUploadInputElement()
       ..accept = '.csv,text/csv'

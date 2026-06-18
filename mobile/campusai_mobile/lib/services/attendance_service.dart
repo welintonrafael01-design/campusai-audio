@@ -4,7 +4,6 @@ import 'dart:html' as html;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'student_roster_service.dart';
-import 'course_service.dart';
 
 class AttendanceEntry {
   final String id;
@@ -93,7 +92,16 @@ class AttendanceService {
   }) async {
     final current = await getEntries();
 
-    current.removeWhere((item) => item.date == date);
+    final entryKeys = entries
+        .map((item) => '${item.courseId}::${item.studentId}')
+        .toSet();
+
+    current.removeWhere(
+      (item) =>
+          item.date == date &&
+          entryKeys.contains('${item.courseId}::${item.studentId}'),
+    );
+
     current.addAll(entries.where((item) => item.isValid));
 
     final prefs = await SharedPreferences.getInstance();
@@ -243,10 +251,6 @@ class AttendanceService {
 
     mergedStudents.sort((a, b) => a.name.compareTo(b.name));
     await StudentRosterService.saveStudents(mergedStudents);
-
-    for (final student in importedStudents) {
-      await CourseService.ensureCourseFromName(student.course);
-    }
 
     final currentEntries = await getEntries();
     final mergedEntries = [...currentEntries];

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../services/gradebook_service.dart';
 import '../services/api_service.dart';
 import '../services/course_service.dart';
+import '../services/assessment_weight_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
 
@@ -17,6 +18,7 @@ class GradebookScreen extends StatefulWidget {
 class _GradebookScreenState extends State<GradebookScreen> {
   List<GradebookEntry> entries = [];
   List<CourseRecord> courses = [];
+  List<AssessmentWeight> weights = [];
   String activeCourseId = '';
 
   @override
@@ -27,10 +29,6 @@ class _GradebookScreenState extends State<GradebookScreen> {
 
   Future<void> loadEntries() async {
     final data = await GradebookService.getEntries();
-
-    await CourseService.ensureCoursesFromNames(
-      data.map((item) => item.course).toList(),
-    );
 
     final loadedCourses = await CourseService.getCourses();
     final storedActiveCourseId = await CourseService.getActiveCourseId();
@@ -43,6 +41,10 @@ class _GradebookScreenState extends State<GradebookScreen> {
         .where((item) => item.id == resolvedActiveCourseId)
         .cast<CourseRecord?>()
         .firstOrNull;
+
+    final loadedWeights = activeCourse == null
+        ? <AssessmentWeight>[]
+        : await AssessmentWeightService.getWeights(activeCourse.id);
 
     final filteredEntries = activeCourse == null
         ? data
@@ -59,6 +61,7 @@ class _GradebookScreenState extends State<GradebookScreen> {
     setState(() {
       courses = loadedCourses;
       activeCourseId = resolvedActiveCourseId;
+      weights = loadedWeights;
       entries = filteredEntries;
     });
   }
@@ -85,6 +88,120 @@ class _GradebookScreenState extends State<GradebookScreen> {
     if (values.isEmpty) return 0;
 
     return values.reduce((a, b) => a + b) / values.length;
+  }
+
+  Future<void> importGradesPdf() async {
+    final activeCourse = courses
+        .where((item) => item.id == activeCourseId)
+        .cast<CourseRecord?>()
+        .firstOrNull;
+
+    if (activeCourse == null) return;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) {
+        return const AlertDialog(
+          title: Text('Importando notas desde PDF'),
+          content: Row(
+            children: [
+              SizedBox(
+                width: 28,
+                height: 28,
+                child: CircularProgressIndicator(strokeWidth: 3),
+              ),
+              SizedBox(width: 18),
+              Expanded(
+                child: Text(
+                  'StudyBook AI está leyendo el PDF y detectando calificaciones...',
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    try {
+      final data = await ApiService.importGradesPdf();
+      final rawGrades = data['grades'];
+
+      var count = 0;
+
+      if (rawGrades is List) {
+        final currentEntries = await GradebookService.getEntries();
+
+        for (var i = 0; i < rawGrades.length; i++) {
+          final raw = rawGrades[i];
+          if (raw is! Map) continue;
+
+          final item = Map<String, dynamic>.from(raw);
+
+          final studentCode = item['student_code']?.toString().trim() ?? '';
+          final studentName = item['student_name']?.toString().trim() ?? '';
+          final assessment = item['assessment']?.toString().trim() ??
+              'Evaluación importada';
+
+          final score = double.tryParse(item['score']?.toString() ?? '') ?? 0;
+          final maxScore =
+              double.tryParse(item['max_score']?.toString() ?? '') ?? 100;
+
+          if (studentCode.isEmpty && studentName.isEmpty) continue;
+
+          currentEntries.insert(
+            0,
+            GradebookEntry(
+              id: '${activeCourse.id}_${studentCode}_${assessment}_${DateTime.now().millisecondsSinceEpoch}_$i',
+              studentId: studentCode,
+              studentCode: studentCode,
+              studentName: studentName.isEmpty ? studentCode : studentName,
+              course: activeCourse.name,
+              courseId: activeCourse.id,
+              rubricTitle: assessment,
+              score: score,
+              maxScore: maxScore,
+              createdAt: DateTime.now().toIso8601String(),
+              notes: 'Importado desde PDF',
+            ),
+          );
+
+          count++;
+        }
+
+        for (final entry in currentEntries) {
+          await GradebookService.saveEntry(entry);
+        }
+      }
+
+      await loadEntries();
+
+      if (!mounted) return;
+
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Notas PDF importadas: $count'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se pudo importar PDF: $error'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Future<void> importGradesExcel() async {
@@ -242,6 +359,11 @@ class _GradebookScreenState extends State<GradebookScreen> {
         title: const Text('Libro de Calificaciones'),
         actions: [
           IconButton(
+            tooltip: 'Importar notas PDF',
+            onPressed: courses.isEmpty ? null : importGradesPdf,
+            icon: const Icon(Icons.picture_as_pdf_rounded),
+          ),
+          IconButton(
             tooltip: 'Importar notas Excel',
             onPressed: courses.isEmpty ? null : importGradesExcel,
             icon: const Icon(Icons.table_chart_rounded),
@@ -286,6 +408,7 @@ class _GradebookScreenState extends State<GradebookScreen> {
                   SizedBox(
                     width: 360,
                     child: DropdownButtonFormField<String>(
+                      isExpanded: true,
                       initialValue: activeCourseId.isEmpty ? null : activeCourseId,
                       decoration: const InputDecoration(
                         labelText: 'Curso / Sección',
@@ -295,7 +418,11 @@ class _GradebookScreenState extends State<GradebookScreen> {
                           .map(
                             (course) => DropdownMenuItem(
                               value: course.id,
-                              child: Text(course.displayName),
+                              child: Text(
+                                course.displayName,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
                             ),
                           )
                           .toList(),
@@ -314,11 +441,18 @@ class _GradebookScreenState extends State<GradebookScreen> {
                       icon: Icons.assignment_turned_in_rounded,
                     ),
                     _MetricChip(
-                      label: 'Promedio',
-                      value: '${average.toStringAsFixed(1)}%',
+                      label: weights.isEmpty ? 'Promedio' : 'Ponderaciones',
+                      value: weights.isEmpty
+                          ? '${average.toStringAsFixed(1)}%'
+                          : '${weights.fold<double>(0, (total, item) => total + item.weight).toStringAsFixed(1)}%',
                       icon: Icons.analytics_rounded,
                     ),
                     FilledButton.icon(
+                      onPressed: courses.isEmpty ? null : importGradesPdf,
+                      icon: const Icon(Icons.picture_as_pdf_rounded),
+                      label: const Text('Importar notas PDF'),
+                    ),
+                    OutlinedButton.icon(
                       onPressed: courses.isEmpty ? null : importGradesExcel,
                       icon: const Icon(Icons.table_chart_rounded),
                       label: const Text('Importar notas Excel'),

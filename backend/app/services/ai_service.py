@@ -931,3 +931,72 @@ def parse_students_from_text(
         )
 
     return content
+
+
+def parse_grades_from_text(
+    text: str,
+    language: str = "es",
+) -> str:
+    document_text = truncate_text(text)
+    language_instruction = build_language_instruction(language)
+
+    if not document_text:
+        raise ValueError("No hay texto válido para importar calificaciones.")
+
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Eres StudyBook AI, experto en extraer calificaciones académicas "
+                    "desde actas, reportes institucionales, tablas y listados PDF. "
+                    f"{language_instruction}"
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Texto extraído del PDF:\n\n{document_text}\n\n"
+                    "Extrae las calificaciones encontradas. "
+                    "Devuelve EXCLUSIVAMENTE JSON válido con esta estructura exacta:\n\n"
+                    "{\n"
+                    '  "grades": [\n'
+                    "    {\n"
+                    '      "student_code": "...",\n'
+                    '      "student_name": "...",\n'
+                    '      "score": 0,\n'
+                    '      "max_score": 100,\n'
+                    '      "assessment": "..."\n'
+                    "    }\n"
+                    "  ]\n"
+                    "}\n\n"
+                    "Reglas:\n"
+                    "- Si hay varias columnas de notas, crea una entrada por estudiante y por columna.\n"
+                    "- Ejemplo: Parcial 1, Parcial 2, Final, Promedio deben salir como evaluaciones separadas.\n"
+                    "- Si no hay max_score, usa 100.\n"
+                    "- No inventes notas.\n"
+                    "- No incluyas docentes, encabezados ni totales.\n"
+                    "- Mantén student_code si aparece matrícula/código.\n"
+                    "- Si no hay student_code, usa cadena vacía."
+                ),
+            },
+        ],
+        temperature=0.1,
+    )
+
+    content = response.choices[0].message.content.strip()
+
+    try:
+        json.loads(content)
+    except json.JSONDecodeError:
+        return json.dumps(
+            {
+                "grades": [],
+                "error": "La IA no devolvió JSON válido.",
+                "raw_response": content,
+            },
+            ensure_ascii=False,
+        )
+
+    return content

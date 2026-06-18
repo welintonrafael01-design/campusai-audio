@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:html' as html;
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -120,6 +121,38 @@ class CourseService {
   }
 
 
+
+  static Future<void> exportCsv() async {
+    final courses = await getCourses();
+
+    final buffer = StringBuffer();
+    buffer.writeln('code,name,section,period');
+
+    for (final course in courses) {
+      buffer.writeln(
+        '${_csv(course.code)},${_csv(course.name)},${_csv(course.section)},${_csv(course.period)}',
+      );
+    }
+
+    final blob = html.Blob(
+      [utf8.encode(buffer.toString())],
+      'text/csv;charset=utf-8',
+    );
+
+    final url = html.Url.createObjectUrlFromBlob(blob);
+
+    html.AnchorElement(href: url)
+      ..setAttribute('download', 'studybook_cursos.csv')
+      ..click();
+
+    html.Url.revokeObjectUrl(url);
+  }
+
+  static String _csv(String value) {
+    final clean = value.replaceAll('"', '""');
+    return '"$clean"';
+  }
+
   static String inferCourseCode(String courseName) {
     final text = courseName.trim();
 
@@ -183,41 +216,16 @@ class CourseService {
   }
 
 
+
   static Future<void> ensureCoursesFromNames(List<String> courseNames) async {
-    final courses = await getCourses();
-    final existingIds = courses.map((item) => item.id).toSet();
-
-    for (final courseName in courseNames) {
-      final clean = courseName.trim();
-      if (clean.isEmpty) continue;
-
-      final course = buildCourseFromName(clean);
-      final id = course.id;
-      if (existingIds.contains(id)) continue;
-
-      courses.add(course);
-      existingIds.add(id);
-    }
-
-    await saveCourses(courses);
-
-    final active = await getActiveCourseId();
-    if (active.isEmpty && courses.isNotEmpty) {
-      await setActiveCourse(courses.first.id);
-    }
+    // Desactivado por arquitectura:
+    // los cursos solo deben crearse desde Mis Cursos.
+    return;
   }
 
   static Future<void> ensureCourseFromName(String courseName) async {
-    final clean = courseName.trim();
-    if (clean.isEmpty) return;
-
-    final course = buildCourseFromName(clean);
-    final id = course.id;
-
-    final courses = await getCourses();
-    if (courses.any((item) => item.id == id)) return;
-
-    courses.add(course);
-    await saveCourses(courses);
+    // Desactivado por arquitectura:
+    // los cursos solo deben crearse desde Mis Cursos.
+    return;
   }
 }

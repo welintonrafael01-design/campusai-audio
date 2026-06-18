@@ -48,10 +48,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   Future<void> loadData() async {
     final roster = await StudentRosterService.getStudents();
 
-    await CourseService.ensureCoursesFromNames(
-      roster.map((item) => item.course).toList(),
-    );
-
     final entries = await AttendanceService.getEntries();
     final loadedCourses = await CourseService.getCourses();
     final storedActiveCourseId = await CourseService.getActiveCourseId();
@@ -70,8 +66,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         : roster
             .where(
               (student) =>
+                  student.courseId == activeCourse.id ||
                   student.course.toLowerCase().trim() ==
-                  activeCourse.name.toLowerCase().trim(),
+                      activeCourse.name.toLowerCase().trim(),
             )
             .toList();
 
@@ -86,14 +83,18 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           : entries
               .where(
                 (entry) =>
+                    entry.courseId == activeCourse.id ||
                     entry.course.toLowerCase().trim() ==
-                    activeCourse.name.toLowerCase().trim(),
+                        activeCourse.name.toLowerCase().trim(),
               )
               .toList();
 
       for (final student in roster) {
         final existing = entries.where(
-          (item) => item.date == dateKey && item.studentId == student.id,
+          (item) =>
+              item.date == dateKey &&
+              item.studentId == student.id &&
+              item.courseId == activeCourseId,
         );
 
         statuses[student.id] =
@@ -149,10 +150,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   Future<void> saveAttendance() async {
     final entries = students.map((student) {
       return AttendanceEntry(
-        id: '${student.id}_$dateKey',
+        id: '${student.id}_${activeCourseId}_$dateKey',
         studentId: student.id,
         studentName: student.name,
         course: student.course,
+        courseId: activeCourseId,
         date: dateKey,
         status: statuses[student.id] ?? 'Presente',
         note: noteControllers[student.id]?.text.trim() ?? '',
@@ -273,10 +275,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       merged.sort((a, b) => a.name.compareTo(b.name));
       await StudentRosterService.saveStudents(merged);
 
-      for (final student in imported) {
-        await CourseService.ensureCourseFromName(student.course);
-      }
-
       await loadData();
 
       if (!mounted) return;
@@ -308,14 +306,17 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   int countStatus(String status) {
-    return statuses.values.where((item) => item == status).length;
+    return students
+        .where((student) => (statuses[student.id] ?? 'Presente') == status)
+        .length;
   }
 
   double get attendancePercentage {
     if (students.isEmpty) return 0;
 
     final present = countStatus('Presente') + countStatus('Tardanza');
-    return (present / students.length) * 100;
+    final percentage = (present / students.length) * 100;
+    return percentage.clamp(0, 100).toDouble();
   }
 
   @override
@@ -374,6 +375,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   SizedBox(
                     width: 360,
                     child: DropdownButtonFormField<String>(
+                      isExpanded: true,
                       initialValue: activeCourseId.isEmpty ? null : activeCourseId,
                       decoration: const InputDecoration(
                         labelText: 'Curso / Sección',
@@ -383,7 +385,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           .map(
                             (course) => DropdownMenuItem(
                               value: course.id,
-                              child: Text(course.displayName),
+                              child: Text(
+                                course.displayName,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
                             ),
                           )
                           .toList(),

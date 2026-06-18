@@ -364,6 +364,7 @@ class _RubricScreenState extends State<RubricScreen> {
                     SizedBox(
                       width: 320,
                       child: DropdownButtonFormField<String>(
+                      isExpanded: true,
                         initialValue: selectedStudent?.id,
                         decoration: const InputDecoration(
                           labelText: 'Estudiante evaluado',

@@ -76,6 +76,32 @@ class _FinalReportScreenState extends State<FinalReportScreen> {
 
   int get approvedCount => summaries.where((item) => item.approved).length;
 
+  CourseRecord? get activeCourse {
+    return courses
+        .where((item) => item.id == activeCourseId)
+        .cast<CourseRecord?>()
+        .firstOrNull;
+  }
+
+  Future<void> exportPdf() async {
+    final course = activeCourse;
+    if (course == null) return;
+
+    final failed = summaries.length - approvedCount;
+
+    await ExportService.exportFinalReportToPdf(
+      title: 'studybook_acta_final',
+      courseName: course.displayName,
+      rows: summaries.map((item) => item.toRow()).toList(),
+      stats: {
+        'students': summaries.length,
+        'average': '${average.toStringAsFixed(1)}%',
+        'approved': approvedCount,
+        'failed': failed,
+      },
+    );
+  }
+
   Future<void> exportExcel() async {
     await ExportService.exportRowsToXlsx(
       title: 'studybook_acta_final',
@@ -89,6 +115,11 @@ class _FinalReportScreenState extends State<FinalReportScreen> {
       appBar: AppBar(
         title: const Text('Acta Final Automática'),
         actions: [
+          IconButton(
+            tooltip: 'Exportar PDF Oficial',
+            onPressed: summaries.isEmpty ? null : exportPdf,
+            icon: const Icon(Icons.picture_as_pdf_rounded),
+          ),
           IconButton(
             tooltip: 'Exportar Excel',
             onPressed: summaries.isEmpty ? null : exportExcel,
@@ -124,6 +155,7 @@ class _FinalReportScreenState extends State<FinalReportScreen> {
                   SizedBox(
                     width: 380,
                     child: DropdownButtonFormField<String>(
+                      isExpanded: true,
                       initialValue:
                           activeCourseId.isEmpty ? null : activeCourseId,
                       decoration: const InputDecoration(
@@ -134,7 +166,11 @@ class _FinalReportScreenState extends State<FinalReportScreen> {
                           .map(
                             (course) => DropdownMenuItem(
                               value: course.id,
-                              child: Text(course.displayName),
+                              child: Text(
+                                course.displayName,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
                             ),
                           )
                           .toList(),
@@ -175,6 +211,11 @@ class _FinalReportScreenState extends State<FinalReportScreen> {
                   runSpacing: 10,
                   children: [
                     FilledButton.icon(
+                      onPressed: summaries.isEmpty ? null : exportPdf,
+                      icon: const Icon(Icons.picture_as_pdf_rounded),
+                      label: const Text('Exportar PDF Oficial'),
+                    ),
+                    OutlinedButton.icon(
                       onPressed: summaries.isEmpty ? null : exportExcel,
                       icon: const Icon(Icons.grid_on_rounded),
                       label: const Text('Exportar Excel'),

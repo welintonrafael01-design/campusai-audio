@@ -61,20 +61,90 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
   }
 
   double get average {
-    if (summaries.isEmpty) return 0;
-    return summaries.map((item) => item.average).reduce((a, b) => a + b) /
-        summaries.length;
+    final evaluated = summaries.where((item) => item.hasGrades).toList();
+    if (evaluated.isEmpty) return 0;
+    return evaluated.map((item) => item.average).reduce((a, b) => a + b) /
+        evaluated.length;
   }
 
   double get attendanceAverage {
-    if (summaries.isEmpty) return 0;
-    return summaries
+    final withAttendance =
+        summaries.where((item) => item.hasAttendance).toList();
+    if (withAttendance.isEmpty) return 0;
+    return withAttendance
             .map((item) => item.attendanceRate)
             .reduce((a, b) => a + b) /
-        summaries.length;
+        withAttendance.length;
   }
 
-  int get approvedCount => summaries.where((item) => item.approved).length;
+  int get approvedCount =>
+      summaries.where((item) => item.hasGrades && item.approved).length;
+
+  int get evaluatedCount => summaries.where((item) => item.hasGrades).length;
+
+  int get notEvaluatedCount =>
+      summaries.where((item) => !item.hasGrades).length;
+
+
+  Map<String, int> get gradeDistribution {
+    final evaluated = summaries.where((item) => item.hasGrades).toList();
+
+    return {
+      'Excelente 90-100': evaluated
+          .where((item) => item.average >= 90)
+          .length,
+      'Muy bueno 80-89': evaluated
+          .where((item) => item.average >= 80 && item.average < 90)
+          .length,
+      'Aprobado 70-79': evaluated
+          .where((item) => item.average >= 70 && item.average < 80)
+          .length,
+      'Riesgo 60-69': evaluated
+          .where((item) => item.average >= 60 && item.average < 70)
+          .length,
+      'Crítico 0-59': evaluated
+          .where((item) => item.average < 60)
+          .length,
+    };
+  }
+
+  Map<String, int> get attendanceDistribution {
+    final data = summaries.where((item) => item.hasAttendance).toList();
+
+    return {
+      'Alta 90-100': data
+          .where((item) => item.attendanceRate >= 90)
+          .length,
+      'Media 80-89': data
+          .where(
+            (item) =>
+                item.attendanceRate >= 80 &&
+                item.attendanceRate < 90,
+          )
+          .length,
+      'Baja 70-79': data
+          .where(
+            (item) =>
+                item.attendanceRate >= 70 &&
+                item.attendanceRate < 80,
+          )
+          .length,
+      'Crítica <70': data
+          .where((item) => item.attendanceRate < 70)
+          .length,
+    };
+  }
+
+  Map<String, int> get academicStatusDistribution {
+    final failed =
+        summaries.where((item) => item.hasGrades && !item.approved).length;
+
+    return {
+      'Aprobados': approvedCount,
+      'En riesgo': failed,
+      'Sin evaluar': notEvaluatedCount,
+    };
+  }
 
   List<StudentAcademicSummary> get topStudents {
     final data = [...summaries];
@@ -84,7 +154,11 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
 
   List<StudentAcademicSummary> get riskStudents {
     final data = summaries
-        .where((item) => item.average < 70 || item.attendanceRate < 75)
+        .where(
+          (item) =>
+              (item.hasGrades && item.average < 70) ||
+              (item.hasAttendance && item.attendanceRate < 75),
+        )
         .toList();
     data.sort((a, b) => a.average.compareTo(b.average));
     return data.take(5).toList();
@@ -92,7 +166,8 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final reprobados = summaries.length - approvedCount;
+    final reprobados =
+        summaries.where((item) => item.hasGrades && !item.approved).length;
 
     return Scaffold(
       appBar: AppBar(
@@ -126,6 +201,7 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
                   SizedBox(
                     width: 380,
                     child: DropdownButtonFormField<String>(
+                      isExpanded: true,
                       initialValue:
                           activeCourseId.isEmpty ? null : activeCourseId,
                       decoration: const InputDecoration(
@@ -136,7 +212,11 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
                           .map(
                             (course) => DropdownMenuItem(
                               value: course.id,
-                              child: Text(course.displayName),
+                              child: Text(
+                                course.displayName,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
                             ),
                           )
                           .toList(),
@@ -161,8 +241,20 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
                     ),
                     _MetricCard(
                       label: 'Asistencia',
-                      value: '${attendanceAverage.toStringAsFixed(1)}%',
+                      value: summaries.any((item) => item.hasAttendance)
+                          ? '${attendanceAverage.toStringAsFixed(1)}%'
+                          : 'Sin registro',
                       icon: Icons.event_available_rounded,
+                    ),
+                    _MetricCard(
+                      label: 'Evaluados',
+                      value: evaluatedCount.toString(),
+                      icon: Icons.assignment_turned_in_rounded,
+                    ),
+                    _MetricCard(
+                      label: 'Sin evaluar',
+                      value: notEvaluatedCount.toString(),
+                      icon: Icons.pending_actions_rounded,
                     ),
                     _MetricCard(
                       label: 'Aprobados',
@@ -186,6 +278,13 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
             ),
           ),
           const SizedBox(height: 20),
+          _DashboardChartsSection(
+            gradeDistribution: gradeDistribution,
+            attendanceDistribution: attendanceDistribution,
+            statusDistribution: academicStatusDistribution,
+            topStudents: topStudents,
+          ),
+          const SizedBox(height: 20),
           _RankingSection(
             title: 'Top estudiantes',
             emptyText: 'No hay datos suficientes para ranking.',
@@ -198,11 +297,256 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
             students: riskStudents,
             riskMode: true,
           ),
+          const SizedBox(height: 14),
+          _RankingSection(
+            title: 'Todos los estudiantes',
+            emptyText: 'No hay estudiantes registrados.',
+            students: summaries,
+          ),
+
         ],
       ),
     );
   }
 }
+
+
+class _DashboardChartsSection extends StatelessWidget {
+  final Map<String, int> gradeDistribution;
+  final Map<String, int> attendanceDistribution;
+  final Map<String, int> statusDistribution;
+  final List<StudentAcademicSummary> topStudents;
+
+  const _DashboardChartsSection({
+    required this.gradeDistribution,
+    required this.attendanceDistribution,
+    required this.statusDistribution,
+    required this.topStudents,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 14,
+      runSpacing: 14,
+      children: [
+        SizedBox(
+          width: 360,
+          child: _BarChartCard(
+            title: 'Distribución de notas',
+            subtitle: 'Rangos de rendimiento académico',
+            values: gradeDistribution,
+          ),
+        ),
+        SizedBox(
+          width: 360,
+          child: _BarChartCard(
+            title: 'Asistencia',
+            subtitle: 'Rangos de participación',
+            values: attendanceDistribution,
+          ),
+        ),
+        SizedBox(
+          width: 360,
+          child: _BarChartCard(
+            title: 'Estado académico',
+            subtitle: 'Aprobados, riesgo y pendientes',
+            values: statusDistribution,
+          ),
+        ),
+        SizedBox(
+          width: 360,
+          child: _TopVisualCard(
+            students: topStudents,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _BarChartCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final Map<String, int> values;
+
+  const _BarChartCard({
+    required this.title,
+    required this.subtitle,
+    required this.values,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final maxValue = values.values.isEmpty
+        ? 0
+        : values.values.reduce((a, b) => a > b ? a : b);
+
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 19,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: const TextStyle(color: AppTheme.textMuted),
+          ),
+          const SizedBox(height: 16),
+          if (maxValue == 0)
+            const Text(
+              'Sin datos suficientes.',
+              style: TextStyle(color: AppTheme.textMuted),
+            )
+          else
+            ...values.entries.map(
+              (entry) {
+                final ratio = maxValue == 0
+                    ? 0.0
+                    : entry.value / maxValue;
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _BarRow(
+                    label: entry.key,
+                    value: entry.value.toString(),
+                    ratio: ratio,
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TopVisualCard extends StatelessWidget {
+  final List<StudentAcademicSummary> students;
+
+  const _TopVisualCard({
+    required this.students,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final data = students
+        .where((item) => item.hasGrades)
+        .take(5)
+        .toList();
+
+    final maxValue = data.isEmpty
+        ? 0.0
+        : data
+            .map((item) => item.average)
+            .reduce((a, b) => a > b ? a : b);
+
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Top visual',
+            style: TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 19,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Mejores promedios del curso',
+            style: TextStyle(color: AppTheme.textMuted),
+          ),
+          const SizedBox(height: 16),
+          if (data.isEmpty)
+            const Text(
+              'Sin datos suficientes.',
+              style: TextStyle(color: AppTheme.textMuted),
+            )
+          else
+            ...data.map(
+              (student) {
+                final ratio =
+                    maxValue <= 0 ? 0.0 : student.average / maxValue;
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _BarRow(
+                    label: student.studentName,
+                    value: '${student.average.toStringAsFixed(1)}%',
+                    ratio: ratio,
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BarRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final double ratio;
+
+  const _BarRow({
+    required this.label,
+    required this.value,
+    required this.ratio,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final safeRatio = ratio.clamp(0.0, 1.0);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                style: const TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              value,
+              style: const TextStyle(
+                color: AppTheme.textMuted,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: LinearProgressIndicator(
+            value: safeRatio,
+            minHeight: 9,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 
 class _MetricCard extends StatelessWidget {
   final String label;
@@ -327,7 +671,7 @@ class _StudentRankTile extends StatelessWidget {
       ),
       title: Text(summary.studentName),
       subtitle: Text(
-        '${summary.studentCode} · Promedio ${summary.average.toStringAsFixed(1)}% · Asistencia ${summary.attendanceRate.toStringAsFixed(1)}%',
+        '${summary.studentCode} · ${summary.hasGrades ? 'Promedio ${summary.average.toStringAsFixed(1)}%' : 'Sin evaluar'} · ${summary.hasAttendance ? 'Asistencia ${summary.attendanceRate.toStringAsFixed(1)}%' : 'Sin registro de asistencia'}',
       ),
       trailing: Icon(
         riskMode ? Icons.warning_rounded : Icons.star_rounded,

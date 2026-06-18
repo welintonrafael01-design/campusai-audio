@@ -522,6 +522,39 @@ class ApiService {
     return sendMultipartRequest(request);
   }
 
+
+  static Future<Map<String, dynamic>> importGradesPdf() async {
+    final file = await pickPdfFile();
+    final bytes = file.bytes;
+
+    if (bytes == null || bytes.isEmpty) {
+      throw Exception('No se pudo leer el archivo PDF seleccionado.');
+    }
+
+    final language = await getCurrentLanguageCode();
+
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('$baseUrl/documents/import-grades-pdf').replace(
+        queryParameters: {
+          'language': language,
+        },
+      ),
+    );
+
+    request.headers.addAll(AuthService.authHeaders);
+
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'file',
+        bytes,
+        filename: file.name,
+      ),
+    );
+
+    return sendMultipartRequest(request);
+  }
+
   static Future<Map<String, dynamic>> importStudentsPdf() async {
     final file = await pickPdfFile();
     final bytes = file.bytes;

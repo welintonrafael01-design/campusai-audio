@@ -169,6 +169,92 @@ class ExportService {
     html.Url.revokeObjectUrl(url);
   }
 
+
+  static Future<void> exportFinalReportToPdf({
+    required String title,
+    required String courseName,
+    required List<Map<String, dynamic>> rows,
+    required Map<String, dynamic> stats,
+  }) async {
+    final response = await http.post(
+      Uri.parse('${ApiService.baseUrl}/export/final-report-pdf'),
+      headers: {
+        'Content-Type': 'application/json',
+        ...AuthService.authHeaders,
+      },
+      body: jsonEncode({
+        'title': title,
+        'course_name': courseName,
+        'rows': rows,
+        'stats': stats,
+      }),
+    ).timeout(ApiService.timeoutDuration);
+
+    if (response.statusCode < 200 ||
+        response.statusCode >= 300) {
+      throw Exception(
+        'No se pudo exportar Acta PDF: ${response.body}',
+      );
+    }
+
+    final blob = html.Blob(
+      [response.bodyBytes],
+      'application/pdf',
+    );
+
+    final url = html.Url.createObjectUrlFromBlob(blob);
+
+    html.AnchorElement(href: url)
+      ..setAttribute(
+        'download',
+        '${_safeFileName(title)}.pdf',
+      )
+      ..click();
+
+    html.Url.revokeObjectUrl(url);
+  }
+
+
+  static Future<void> exportTeachingPlanToPdf({
+    required String title,
+    required Map<String, dynamic> plan,
+  }) async {
+    final response = await http.post(
+      Uri.parse('${ApiService.baseUrl}/export/teaching-plan-pdf'),
+      headers: {
+        'Content-Type': 'application/json',
+        ...AuthService.authHeaders,
+      },
+      body: jsonEncode({
+        'title': title,
+        'plan': plan,
+      }),
+    ).timeout(ApiService.timeoutDuration);
+
+    if (response.statusCode < 200 ||
+        response.statusCode >= 300) {
+      throw Exception(
+        'No se pudo exportar planificación PDF: ${response.body}',
+      );
+    }
+
+    final blob = html.Blob(
+      [response.bodyBytes],
+      'application/pdf',
+    );
+
+    final url = html.Url.createObjectUrlFromBlob(blob);
+
+    html.AnchorElement(href: url)
+      ..setAttribute(
+        'download',
+        '${_safeFileName(title)}.pdf',
+      )
+      ..click();
+
+    html.Url.revokeObjectUrl(url);
+  }
+
   static String _safeFileName(String title) {
     final clean = title
         .trim()

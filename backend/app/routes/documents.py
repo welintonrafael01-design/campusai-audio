@@ -29,6 +29,7 @@ from app.services.ai_service import (
     generate_academic_rubric_from_context,
     generate_teaching_plan_from_context,
     parse_students_from_text,
+    parse_grades_from_text,
     index_document_for_rag,
     index_document_pages_for_rag,
     stream_chat_with_document_id,
@@ -465,6 +466,59 @@ async def import_grades_excel(
             "detected_columns": headers,
             "grade_columns": [item[1] for item in grade_cols],
         }
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
+
+@router.post("/import-grades-pdf")
+async def import_grades_pdf(
+    file: UploadFile = File(...),
+    language: str = Query(default="es"),
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        validate_pdf_file(file)
+
+        content = await file.read()
+        validate_pdf_signature(content)
+
+        uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
+        uploads_dir.mkdir(parents=True, exist_ok=True)
+
+        safe_filename = secure_filename(
+            file.filename or "grades.pdf"
+        )
+
+        file_path = uploads_dir / f"grades_import_{uuid4()}_{safe_filename}"
+        file_path.write_bytes(content)
+
+        text = extract_text_from_pdf(str(file_path))
+
+        parsed = parse_grades_from_text(
+            text=text,
+            language=language,
+        )
+
+        grades_data = json.loads(parsed)
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="grades_pdf_imported",
+            plan="educator",
+            metadata={
+                "filename": safe_filename,
+                "grades_count": len(grades_data.get("grades", [])),
+            },
+        )
+
+        return grades_data
 
     except HTTPException:
         raise
