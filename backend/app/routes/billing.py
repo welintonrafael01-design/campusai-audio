@@ -559,4 +559,3 @@ def get_financial_dashboard(
         estimated_gross_margin_rate=estimated_gross_margin_rate,
         plans=plans,
     )
-
