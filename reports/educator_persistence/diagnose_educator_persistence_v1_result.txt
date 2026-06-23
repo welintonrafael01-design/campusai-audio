@@ -1,0 +1,580 @@
+===== EDUCATOR PERSISTENCE DIAGNOSTIC =====
+
+--- Flutter localStorage refs ---
+lib/services/course_service.dart:60:  static const String _key = 'studybook_courses';
+lib/services/course_service.dart:61:  static const String _activeKey = 'studybook_active_course';
+lib/services/course_document_service.dart:36:  static const String _key = 'studybook_course_documents';
+lib/services/plan_guard_service.dart:14:    final storedPlan = html.window.localStorage[_planStorageKey];
+lib/services/plan_guard_service.dart:19:    return html.window.localStorage[_planSourceStorageKey] ?? 'local';
+lib/services/plan_guard_service.dart:23:    return html.window.localStorage[_subscriptionStatusStorageKey] ?? 'free';
+lib/services/plan_guard_service.dart:52:    html.window.localStorage[_planStorageKey] = planCodeFromCampusPlan(plan);
+lib/services/plan_guard_service.dart:53:    html.window.localStorage[_planSourceStorageKey] = source;
+lib/services/plan_guard_service.dart:54:    html.window.localStorage[_subscriptionStatusStorageKey] =
+lib/services/plan_guard_service.dart:59:    html.window.localStorage[_planStorageKey] =
+lib/services/plan_guard_service.dart:61:    html.window.localStorage[_planSourceStorageKey] = 'local';
+lib/services/plan_guard_service.dart:62:    html.window.localStorage[_subscriptionStatusStorageKey] = 'free';
+lib/services/usage_limit_service.dart:21:    final storedDate = html.window.localStorage[_pdfUploadDateKey];
+lib/services/usage_limit_service.dart:27:    final rawCount = html.window.localStorage[_pdfUploadCountKey];
+lib/services/usage_limit_service.dart:42:    final storedDate = html.window.localStorage[_pdfUploadDateKey];
+lib/services/usage_limit_service.dart:45:      html.window.localStorage[_pdfUploadDateKey] = today;
+lib/services/usage_limit_service.dart:46:      html.window.localStorage[_pdfUploadCountKey] = '1';
+lib/services/usage_limit_service.dart:51:    html.window.localStorage[_pdfUploadCountKey] = '${currentCount + 1}';
+lib/services/usage_limit_service.dart:59:    html.window.localStorage.remove(_pdfUploadDateKey);
+lib/services/usage_limit_service.dart:60:    html.window.localStorage.remove(_pdfUploadCountKey);
+
+--- Educator services ---
+lib/services/academic_analytics_service.dart
+lib/services/academic_analytics_service.dart.bak_global_ranking_20260622_182724
+lib/services/academic_analytics_service.dart.bak_ranking_fase2a_20260622_181029
+lib/services/academic_analytics_service.dart.bak_ranking_v1_20260622_180654
+lib/services/academic_period_lock_service.dart
+lib/services/analytics_service.dart
+lib/services/api_service.dart
+lib/services/api_service.dart.bak_question_bank_20260616_102826
+lib/services/assessment_weight_service.dart
+lib/services/attendance_service.dart
+lib/services/audio_player_service.dart
+lib/services/audiobook_library_service.dart
+lib/services/audiobook_service.dart
+lib/services/auth_service.dart
+lib/services/auth_service.dart.bak_reset_password_20260615_125556
+lib/services/billing_service.dart
+lib/services/chat_history_service.dart
+lib/services/cloud_api_service.dart
+lib/services/course_document_service.dart
+lib/services/course_service.dart
+lib/services/document_service.dart
+lib/services/export_service.dart
+lib/services/export_service.dart.bak_excelencia_cert_20260622_183152
+lib/services/export_service.dart.bak_fix_transcript_pdf_20260622_174814
+lib/services/export_service.dart.bak_ranking_pdf_20260622_181828
+lib/services/export_service.dart.bak_transcript_gpa_pdf_20260622_174612
+lib/services/export_service.dart.bak_transcript_pdf_full_20260622_175144
+lib/services/gradebook_service.dart
+lib/services/history_service.dart
+lib/services/history_service.dart.bak_user_scoped_20260615_162758
+lib/services/library_favorites_service.dart
+lib/services/onboarding_service.dart
+lib/services/plan_guard_service.dart
+lib/services/recent_documents_service.dart
+lib/services/semantic_search_service.dart
+lib/services/source_service.dart
+lib/services/student_roster_service.dart
+lib/services/student_transcript_service.dart
+lib/services/student_transcript_service.dart.bak_ranking_pdf_20260622_181828
+lib/services/study_result_service.dart
+lib/services/subscription_service.dart
+lib/services/usage_limit_service.dart
+lib/services/voice_service.dart
+lib/services/workspace_service.dart
+
+lib/services/student_roster_service.dart:52:class StudentRosterService {
+lib/services/export_service.dart.bak_excelencia_cert_20260622_183152:9:class ExportService {
+lib/services/attendance_service.dart:61:class AttendanceService {
+lib/services/semantic_search_service.dart:7:class SemanticSearchService {
+lib/services/auth_service.dart.bak_reset_password_20260615_125556:6:class AuthService {
+lib/services/academic_analytics_service.dart.bak_global_ranking_20260622_182724:87:class AcademicAnalyticsService {
+lib/services/export_service.dart.bak_fix_transcript_pdf_20260622_174814:9:class ExportService {
+lib/services/history_service.dart:8:class HistoryService {
+lib/services/analytics_service.dart:5:class AnalyticsService {
+lib/services/course_service.dart:59:class CourseService {
+lib/services/billing_service.dart:11:class BillingService {
+lib/services/voice_service.dart:4:class VoiceService {
+lib/services/workspace_service.dart:7:class WorkspaceService {
+lib/services/academic_analytics_service.dart.bak_ranking_v1_20260622_180654:64:class AcademicAnalyticsService {
+lib/services/course_document_service.dart:35:class CourseDocumentService {
+lib/services/student_transcript_service.dart:121:class StudentTranscriptService {
+lib/services/export_service.dart.bak_transcript_pdf_full_20260622_175144:9:class ExportService {
+lib/services/export_service.dart.bak_ranking_pdf_20260622_181828:9:class ExportService {
+lib/services/plan_guard_service.dart:5:class PlanGuardService {
+lib/services/plan_guard_service.dart:14:    final storedPlan = html.window.localStorage[_planStorageKey];
+lib/services/plan_guard_service.dart:19:    return html.window.localStorage[_planSourceStorageKey] ?? 'local';
+lib/services/plan_guard_service.dart:23:    return html.window.localStorage[_subscriptionStatusStorageKey] ?? 'free';
+lib/services/plan_guard_service.dart:52:    html.window.localStorage[_planStorageKey] = planCodeFromCampusPlan(plan);
+lib/services/plan_guard_service.dart:53:    html.window.localStorage[_planSourceStorageKey] = source;
+lib/services/plan_guard_service.dart:54:    html.window.localStorage[_subscriptionStatusStorageKey] =
+lib/services/plan_guard_service.dart:59:    html.window.localStorage[_planStorageKey] =
+lib/services/plan_guard_service.dart:61:    html.window.localStorage[_planSourceStorageKey] = 'local';
+lib/services/plan_guard_service.dart:62:    html.window.localStorage[_subscriptionStatusStorageKey] = 'free';
+lib/services/source_service.dart:6:class SourceService {
+lib/services/assessment_weight_service.dart:32:class AssessmentWeightService {
+lib/services/auth_service.dart:6:class AuthService {
+lib/services/gradebook_service.dart:75:class GradebookService {
+lib/services/study_result_service.dart:7:class StudyResultService {
+lib/services/academic_analytics_service.dart.bak_ranking_fase2a_20260622_181029:87:class AcademicAnalyticsService {
+lib/services/api_service.dart.bak_question_bank_20260616_102826:10:class ApiService {
+lib/services/history_service.dart.bak_user_scoped_20260615_162758:7:class HistoryService {
+lib/services/cloud_api_service.dart:8:class CloudApiService {
+lib/services/audiobook_service.dart:6:class AudiobookService {
+lib/services/academic_period_lock_service.dart:3:class AcademicPeriodLockService {
+lib/services/student_transcript_service.dart.bak_ranking_pdf_20260622_181828:117:class StudentTranscriptService {
+lib/services/usage_limit_service.dart:5:class UsageLimitService {
+lib/services/usage_limit_service.dart:21:    final storedDate = html.window.localStorage[_pdfUploadDateKey];
+lib/services/usage_limit_service.dart:27:    final rawCount = html.window.localStorage[_pdfUploadCountKey];
+lib/services/usage_limit_service.dart:42:    final storedDate = html.window.localStorage[_pdfUploadDateKey];
+lib/services/usage_limit_service.dart:45:      html.window.localStorage[_pdfUploadDateKey] = today;
+lib/services/usage_limit_service.dart:46:      html.window.localStorage[_pdfUploadCountKey] = '1';
+lib/services/usage_limit_service.dart:51:    html.window.localStorage[_pdfUploadCountKey] = '${currentCount + 1}';
+lib/services/usage_limit_service.dart:59:    html.window.localStorage.remove(_pdfUploadDateKey);
+lib/services/usage_limit_service.dart:60:    html.window.localStorage.remove(_pdfUploadCountKey);
+lib/services/export_service.dart.bak_transcript_gpa_pdf_20260622_174612:9:class ExportService {
+lib/services/api_service.dart:10:class ApiService {
+lib/services/document_service.dart:6:class DocumentService {
+lib/services/library_favorites_service.dart:3:class LibraryFavoritesService {
+lib/services/subscription_service.dart:6:class SubscriptionService {
+lib/services/audiobook_library_service.dart:7:class AudiobookLibraryService {
+lib/services/audio_player_service.dart:5:class AudioPlayerService {
+lib/services/academic_analytics_service.dart:88:class AcademicAnalyticsService {
+lib/services/recent_documents_service.dart:7:class RecentDocumentsService {
+lib/services/export_service.dart:9:class ExportService {
+lib/services/onboarding_service.dart:3:class OnboardingService {
+lib/services/chat_history_service.dart:7:class ChatHistoryService {
+
+--- Educator screens refs ---
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:29:    final loadedCourses = await CourseService.getCourses();
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:30:    final storedActiveCourseId = await CourseService.getActiveCourseId();
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:59:    await CourseService.setActiveCourse(courseId);
+lib/screens/dashboard_screen.dart:57:  bool isGeneratingQuestionBank = false;
+lib/screens/dashboard_screen.dart:1057:    if (isGeneratingQuestionBank) return;
+lib/screens/dashboard_screen.dart:1101:    setState(() => isGeneratingQuestionBank = true);
+lib/screens/dashboard_screen.dart:1191:        setState(() => isGeneratingQuestionBank = false);
+lib/screens/dashboard_screen.dart:1199:  Future<bool> confirmRegenerateRubric() async {
+lib/screens/dashboard_screen.dart:1226:  Future<Map<String, dynamic>?> pickRubricOptions() async {
+lib/screens/dashboard_screen.dart:1399:  Future<void> generateRubric() async {
+lib/screens/dashboard_screen.dart:1400:    if (isGeneratingQuestionBank) return;
+lib/screens/dashboard_screen.dart:1409:    final existingRubric = await StudyResultService.getResult(
+lib/screens/dashboard_screen.dart:1414:    if (existingRubric != null) {
+lib/screens/dashboard_screen.dart:1416:        final decoded = jsonDecode(existingRubric.content);
+lib/screens/dashboard_screen.dart:1422:          final shouldRegenerate = await confirmRegenerateRubric();
+lib/screens/dashboard_screen.dart:1440:    final rubricOptions = await pickRubricOptions();
+lib/screens/dashboard_screen.dart:1444:    setState(() => isGeneratingQuestionBank = true);
+lib/screens/dashboard_screen.dart:1472:      final data = await ApiService.generateRubricByDocumentId(
+lib/screens/dashboard_screen.dart:1480:      final rawRubric = data['rubric'];
+lib/screens/dashboard_screen.dart:1481:      final rubric = rawRubric is Map
+lib/screens/dashboard_screen.dart:1482:          ? Map<String, dynamic>.from(rawRubric)
+lib/screens/dashboard_screen.dart:1537:        setState(() => isGeneratingQuestionBank = false);
+lib/screens/dashboard_screen.dart:1851:  Future<void> generateQuestionBank() async {
+lib/screens/dashboard_screen.dart:1852:    if (isGeneratingQuestionBank) return;
+lib/screens/dashboard_screen.dart:1859:    setState(() => isGeneratingQuestionBank = true);
+lib/screens/dashboard_screen.dart:1887:      final data = await ApiService.generateQuestionBankByDocumentId(
+lib/screens/dashboard_screen.dart:1950:        setState(() => isGeneratingQuestionBank = false);
+lib/screens/dashboard_screen.dart:2019:            openQuestionBank: generateQuestionBank,
+lib/screens/dashboard_screen.dart:2020:            openRubric: generateRubric,
+lib/screens/student_profile_screen.dart:42:    final allGrades = await GradebookService.getEntries();
+lib/screens/student_profile_screen.dart:43:    final allAttendance = await AttendanceService.getEntries();
+lib/screens/final_report_screen.dart.bak_excelencia_cert_20260622_183152:31:    final loadedCourses = await CourseService.getCourses();
+lib/screens/final_report_screen.dart.bak_excelencia_cert_20260622_183152:32:    final storedActiveCourseId = await CourseService.getActiveCourseId();
+lib/screens/final_report_screen.dart.bak_excelencia_cert_20260622_183152:65:    await CourseService.setActiveCourse(courseId);
+lib/screens/gradebook_screen.dart:57:    final data = await GradebookService.getEntries();
+lib/screens/gradebook_screen.dart:59:    var loadedCourses = await CourseService.getCourses();
+lib/screens/gradebook_screen.dart:62:      final students = await StudentRosterService.getStudents();
+lib/screens/gradebook_screen.dart:71:            : CourseService.buildId(courseName);
+lib/screens/gradebook_screen.dart:89:            : CourseService.buildId(courseName);
+lib/screens/gradebook_screen.dart:102:        await CourseService.saveCourses(recovered);
+lib/screens/gradebook_screen.dart:103:        await CourseService.setActiveCourse(recovered.first.id);
+lib/screens/gradebook_screen.dart:108:    final storedActiveCourseId = await CourseService.getActiveCourseId();
+lib/screens/gradebook_screen.dart:146:    await CourseService.setActiveCourse(courseId);
+lib/screens/gradebook_screen.dart:207:        final currentEntries = await GradebookService.getEntries();
+lib/screens/gradebook_screen.dart:248:          await GradebookService.saveEntry(entry);
+lib/screens/gradebook_screen.dart:322:        final entries = await GradebookService.getEntries();
+lib/screens/gradebook_screen.dart:363:          await GradebookService.saveEntry(entry);
+lib/screens/gradebook_screen.dart:407:    final count = await GradebookService.importGradesCsvFromUser(
+lib/screens/gradebook_screen.dart:425:    await GradebookService.exportCsv();
+lib/screens/gradebook_screen.dart:431:    await GradebookService.deleteEntry(entry.id);
+lib/screens/final_report_screen.dart.bak_ranking_fase2a_20260622_181029:31:    final loadedCourses = await CourseService.getCourses();
+lib/screens/final_report_screen.dart.bak_ranking_fase2a_20260622_181029:32:    final storedActiveCourseId = await CourseService.getActiveCourseId();
+lib/screens/final_report_screen.dart.bak_ranking_fase2a_20260622_181029:64:    await CourseService.setActiveCourse(courseId);
+lib/screens/student_profile_screen.dart.bak_ranking_v1_20260622_180654:40:    final allGrades = await GradebookService.getEntries();
+lib/screens/student_profile_screen.dart.bak_ranking_v1_20260622_180654:41:    final allAttendance = await AttendanceService.getEntries();
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:29:    final loadedCourses = await CourseService.getCourses();
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:30:    final storedActiveCourseId = await CourseService.getActiveCourseId();
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:59:    await CourseService.setActiveCourse(courseId);
+lib/screens/students_screen.dart:74:    final loadedStudents = await StudentRosterService.getStudents();
+lib/screens/students_screen.dart:75:    final loadedCourses = await CourseService.getCourses();
+lib/screens/students_screen.dart:76:    final storedCourseId = await CourseService.getActiveCourseId();
+lib/screens/students_screen.dart:91:    await CourseService.setActiveCourse(courseId);
+lib/screens/students_screen.dart:164:    await StudentRosterService.saveStudents(updated);
+lib/screens/students_screen.dart:181:    await StudentRosterService.saveStudents(updated);
+lib/screens/students_screen.dart:231:    final imported = await StudentRosterService.importCsvFromUser();
+lib/screens/students_screen.dart:232:    final current = await StudentRosterService.getStudents();
+lib/screens/students_screen.dart:253:    await StudentRosterService.saveStudents(updated);
+lib/screens/students_screen.dart:336:      final current = await StudentRosterService.getStudents();
+lib/screens/students_screen.dart:350:      await StudentRosterService.saveStudents(merged);
+lib/screens/students_screen.dart:421:    await StudentRosterService.exportCsvForStudents(
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:30:    final loadedCourses = await CourseService.getCourses();
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:31:    final storedActiveCourseId = await CourseService.getActiveCourseId();
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:63:    await CourseService.setActiveCourse(courseId);
+lib/screens/attendance_screen.dart:74:    final roster = await StudentRosterService.getStudents();
+lib/screens/attendance_screen.dart:76:    final entries = await AttendanceService.getEntries();
+lib/screens/attendance_screen.dart:77:    final loadedCourses = await CourseService.getCourses();
+lib/screens/attendance_screen.dart:78:    final storedActiveCourseId = await CourseService.getActiveCourseId();
+lib/screens/attendance_screen.dart:141:    await CourseService.setActiveCourse(courseId);
+lib/screens/attendance_screen.dart:191:    await AttendanceService.saveEntriesForDate(
+lib/screens/attendance_screen.dart:209:    await AttendanceService.exportCsv();
+lib/screens/attendance_screen.dart:215:    final count = await AttendanceService.importAttendanceCsvFromUser();
+lib/screens/attendance_screen.dart:290:      final current = await StudentRosterService.getStudents();
+lib/screens/attendance_screen.dart:305:      await StudentRosterService.saveStudents(merged);
+lib/screens/rubric_screen.dart:14:class RubricScreen extends StatefulWidget {
+lib/screens/rubric_screen.dart:16:  final Map<String, dynamic> initialRubric;
+lib/screens/rubric_screen.dart:18:  const RubricScreen({
+lib/screens/rubric_screen.dart:21:    this.initialRubric = const {},
+lib/screens/rubric_screen.dart:25:  State<RubricScreen> createState() => _RubricScreenState();
+lib/screens/rubric_screen.dart:28:class _RubricScreenState extends State<RubricScreen> {
+lib/screens/rubric_screen.dart:39:    rubric = Map<String, dynamic>.from(widget.initialRubric);
+lib/screens/rubric_screen.dart:40:    if (rubric.isEmpty) loadSavedRubric();
+lib/screens/rubric_screen.dart:53:    final data = await StudentRosterService.getStudents();
+lib/screens/rubric_screen.dart:58:  Future<void> loadSavedRubric() async {
+lib/screens/rubric_screen.dart:181:    await StudentRosterService.addStudent(student);
+lib/screens/rubric_screen.dart:189:    final imported = await StudentRosterService.importCsvFromUser();
+lib/screens/rubric_screen.dart:203:    await StudentRosterService.exportCsv();
+lib/screens/rubric_screen.dart:264:    await ExportService.exportRubricToPdf(
+lib/screens/rubric_screen.dart:319:    await GradebookService.saveEntry(
+lib/screens/academic_dashboard_screen.dart:30:    final loadedCourses = await CourseService.getCourses();
+lib/screens/academic_dashboard_screen.dart:31:    final storedActiveCourseId = await CourseService.getActiveCourseId();
+lib/screens/academic_dashboard_screen.dart:63:    await CourseService.setActiveCourse(courseId);
+lib/screens/exam_screen.dart:74:    final courseId = await CourseService.getActiveCourseId();
+lib/screens/exam_screen.dart:75:    final courses = await CourseService.getCourses();
+lib/screens/exam_screen.dart:76:    final loadedStudents = await StudentRosterService.getStudents();
+lib/screens/exam_screen.dart:165:    await GradebookService.saveEntry(
+lib/screens/exam_screen.dart:632:  Future<void> generateRubricFromExam() async {
+lib/screens/exam_screen.dart:1034:                  onPressed: questions.isEmpty ? null : generateRubricFromExam,
+lib/screens/assessment_weights_screen.dart:51:    final loadedCourses = await CourseService.getCourses();
+lib/screens/assessment_weights_screen.dart:52:    final storedActiveCourseId = await CourseService.getActiveCourseId();
+lib/screens/assessment_weights_screen.dart:74:    await CourseService.setActiveCourse(courseId);
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:29:    final loadedCourses = await CourseService.getCourses();
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:30:    final storedActiveCourseId = await CourseService.getActiveCourseId();
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:59:    await CourseService.setActiveCourse(courseId);
+lib/screens/question_bank_screen.dart:14:class QuestionBankScreen extends StatefulWidget {
+lib/screens/question_bank_screen.dart:18:  const QuestionBankScreen({
+lib/screens/question_bank_screen.dart:25:  State<QuestionBankScreen> createState() => _QuestionBankScreenState();
+lib/screens/question_bank_screen.dart:28:class _QuestionBankScreenState extends State<QuestionBankScreen> {
+lib/screens/question_bank_screen.dart:37:      loadSavedQuestionBank();
+lib/screens/question_bank_screen.dart:41:  Future<void> loadSavedQuestionBank() async {
+lib/screens/question_bank_screen.dart:544:  Future<void> exportQuestionBankToPdf() async {
+lib/screens/question_bank_screen.dart:551:  Future<void> exportQuestionBankToDocx() async {
+lib/screens/question_bank_screen.dart:558:  Future<void> exportQuestionBankToPptx() async {
+lib/screens/question_bank_screen.dart:575:            onPressed: questions.isEmpty ? null : exportQuestionBankToPdf,
+lib/screens/question_bank_screen.dart:580:            onPressed: questions.isEmpty ? null : exportQuestionBankToDocx,
+lib/screens/question_bank_screen.dart:585:            onPressed: questions.isEmpty ? null : exportQuestionBankToPptx,
+lib/screens/rubric_screen.dart.bak_student_eval_20260616_160117:11:class RubricScreen extends StatefulWidget {
+lib/screens/rubric_screen.dart.bak_student_eval_20260616_160117:13:  final Map<String, dynamic> initialRubric;
+lib/screens/rubric_screen.dart.bak_student_eval_20260616_160117:15:  const RubricScreen({
+lib/screens/rubric_screen.dart.bak_student_eval_20260616_160117:18:    this.initialRubric = const {},
+lib/screens/rubric_screen.dart.bak_student_eval_20260616_160117:22:  State<RubricScreen> createState() => _RubricScreenState();
+lib/screens/rubric_screen.dart.bak_student_eval_20260616_160117:25:class _RubricScreenState extends State<RubricScreen> {
+lib/screens/rubric_screen.dart.bak_student_eval_20260616_160117:31:    rubric = Map<String, dynamic>.from(widget.initialRubric);
+lib/screens/rubric_screen.dart.bak_student_eval_20260616_160117:33:      loadSavedRubric();
+lib/screens/rubric_screen.dart.bak_student_eval_20260616_160117:37:  Future<void> loadSavedRubric() async {
+lib/screens/courses_screen.dart:48:    final loadedCourses = await CourseService.getCourses();
+lib/screens/courses_screen.dart:50:    final active = await CourseService.getActiveCourseId();
+lib/screens/courses_screen.dart:81:          CourseService.buildId(
+lib/screens/courses_screen.dart:87:      code: code.isEmpty ? CourseService.inferCourseCode(name) : code,
+lib/screens/courses_screen.dart:97:    await CourseService.saveCourses(updated);
+lib/screens/courses_screen.dart:98:    await CourseService.setActiveCourse(course.id);
+lib/screens/courses_screen.dart:123:    await CourseService.setActiveCourse(course.id);
+lib/screens/courses_screen.dart:313:  Future<Map<String, dynamic>?> pickRubricOptions() async {
+lib/screens/courses_screen.dart:490:    await CourseService.setActiveCourse(course.id);
+lib/screens/courses_screen.dart:615:  Future<void> generateCourseRubric(
+lib/screens/courses_screen.dart:619:    await CourseService.setActiveCourse(course.id);
+lib/screens/courses_screen.dart:653:    final rubricOptions = await pickRubricOptions();
+lib/screens/courses_screen.dart:693:      final data = await ApiService.generateRubricByDocumentId(
+lib/screens/courses_screen.dart:703:      final rawRubric = data['rubric'];
+lib/screens/courses_screen.dart:704:      final rubric = rawRubric is Map
+lib/screens/courses_screen.dart:705:          ? Map<String, dynamic>.from(rawRubric)
+lib/screens/courses_screen.dart:958:    await CourseService.setActiveCourse(course.id);
+lib/screens/courses_screen.dart:1124:  Future<int?> pickQuestionBankCount() async {
+lib/screens/courses_screen.dart:1181:  Future<void> generateCourseQuestionBank(
+lib/screens/courses_screen.dart:1185:    await CourseService.setActiveCourse(course.id);
+lib/screens/courses_screen.dart:1223:    final count = await pickQuestionBankCount();
+lib/screens/courses_screen.dart:1263:      final data = await ApiService.generateQuestionBankByDocumentId(
+lib/screens/courses_screen.dart:1326:    await CourseService.setActiveCourse(course.id);
+lib/screens/courses_screen.dart:1335:    await CourseService.setActiveCourse(course.id);
+lib/screens/courses_screen.dart:1342:    await CourseService.saveCourses(updated);
+lib/screens/courses_screen.dart:1345:      await CourseService.setActiveCourse(updated.first.id);
+lib/screens/courses_screen.dart:1349:      await CourseService.setActiveCourse('');
+lib/screens/courses_screen.dart:1414:    await CourseService.exportCsv();
+lib/screens/courses_screen.dart:1687:                                : () => generateCourseRubric(course, program),
+lib/screens/courses_screen.dart:1701:                                : () => generateCourseQuestionBank(course, program),
+lib/screens/final_report_screen.dart:31:    final loadedCourses = await CourseService.getCourses();
+lib/screens/final_report_screen.dart:32:    final storedActiveCourseId = await CourseService.getActiveCourseId();
+lib/screens/final_report_screen.dart:65:    await CourseService.setActiveCourse(courseId);
+lib/widgets/dashboard/dashboard_educator_center.dart:14:  final VoidCallback openQuestionBank;
+lib/widgets/dashboard/dashboard_educator_center.dart:15:  final VoidCallback openRubric;
+lib/widgets/dashboard/dashboard_educator_center.dart:23:    required this.openQuestionBank,
+lib/widgets/dashboard/dashboard_educator_center.dart:24:    required this.openRubric,
+lib/widgets/dashboard/dashboard_educator_center.dart:45:        onTap: openQuestionBank,
+lib/widgets/dashboard/dashboard_educator_center.dart:69:        onTap: openRubric,
+
+--- Backend tables/services refs ---
+app/routes/documents.py.bak_rubric_20260616_122739:489:async def question_bank_document_by_id(
+app/routes/documents.py.bak_rubric_20260616_122739:529:            event_type="question_bank_generated",
+app/routes/documents.py.bak_rubric_20260616_122739:534:                "mode": "single_document_question_bank",
+app/routes/documents.py.bak_rubric_20260616_122739:1218:async def workspace_question_bank(
+app/routes/documents.py.bak_rubric_20260616_122739:1260:            event_type="question_bank_generated",
+app/routes/documents.py.bak_rubric_20260616_122739:1264:                "mode": "workspace_question_bank",
+app/routes/export.py.bak_excellence_badge_20260622_184536:70:    attendance_average: str = ""
+app/routes/export.py.bak_excellence_badge_20260622_184536:77:    courses: list[dict[str, Any]]
+app/routes/export.py.bak_excellence_badge_20260622_184536:119:            attendance_average=payload.attendance_average,
+app/routes/export.py.bak_excellence_badge_20260622_184536:126:            courses=payload.courses,
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:69:    attendance_average: str = ""
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:70:    courses: list[dict[str, Any]]
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:112:            attendance_average=payload.attendance_average,
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:113:            courses=payload.courses,
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:31:    parse_students_from_text,
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:440:@router.post("/import-students-pdf")
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:441:async def import_students_pdf(
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:456:            file.filename or "students.pdf"
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:459:        file_path = uploads_dir / f"students_import_{uuid4()}_{safe_filename}"
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:464:        parsed = parse_students_from_text(
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:469:        students_data = json.loads(parsed)
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:473:            event_type="students_pdf_imported",
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:477:                "students_count": len(students_data.get("students", [])),
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:481:        return students_data
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:826:async def question_bank_document_by_id(
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:866:            event_type="question_bank_generated",
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:871:                "mode": "single_document_question_bank",
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:1555:async def workspace_question_bank(
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:1597:            event_type="question_bank_generated",
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:1601:                "mode": "workspace_question_bank",
+app/routes/documents.py:31:    parse_students_from_text,
+app/routes/documents.py:532:@router.post("/import-students-pdf")
+app/routes/documents.py:533:async def import_students_pdf(
+app/routes/documents.py:548:            file.filename or "students.pdf"
+app/routes/documents.py:551:        file_path = uploads_dir / f"students_import_{uuid4()}_{safe_filename}"
+app/routes/documents.py:556:        parsed = parse_students_from_text(
+app/routes/documents.py:561:        students_data = json.loads(parsed)
+app/routes/documents.py:565:            event_type="students_pdf_imported",
+app/routes/documents.py:569:                "students_count": len(students_data.get("students", [])),
+app/routes/documents.py:573:        return students_data
+app/routes/documents.py:927:async def question_bank_document_by_id(
+app/routes/documents.py:967:            event_type="question_bank_generated",
+app/routes/documents.py:972:                "mode": "single_document_question_bank",
+app/routes/documents.py:1669:async def workspace_question_bank(
+app/routes/documents.py:1711:            event_type="question_bank_generated",
+app/routes/documents.py:1715:                "mode": "workspace_question_bank",
+app/routes/export.py.bak_excelencia_cert_20260622_183152:69:    attendance_average: str = ""
+app/routes/export.py.bak_excelencia_cert_20260622_183152:76:    courses: list[dict[str, Any]]
+app/routes/export.py.bak_excelencia_cert_20260622_183152:118:            attendance_average=payload.attendance_average,
+app/routes/export.py.bak_excelencia_cert_20260622_183152:125:            courses=payload.courses,
+Binary file app/routes/__pycache__/documents.cpython-311.pyc matches
+Binary file app/routes/__pycache__/export.cpython-311.pyc matches
+app/routes/export.py:70:    attendance_average: str = ""
+app/routes/export.py:77:    courses: list[dict[str, Any]]
+app/routes/export.py:119:            attendance_average=payload.attendance_average,
+app/routes/export.py:126:            courses=payload.courses,
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:31:    parse_students_from_text,
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:478:@router.post("/import-students-pdf")
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:479:async def import_students_pdf(
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:494:            file.filename or "students.pdf"
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:497:        file_path = uploads_dir / f"students_import_{uuid4()}_{safe_filename}"
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:502:        parsed = parse_students_from_text(
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:507:        students_data = json.loads(parsed)
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:511:            event_type="students_pdf_imported",
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:515:                "students_count": len(students_data.get("students", [])),
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:519:        return students_data
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:864:async def question_bank_document_by_id(
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:904:            event_type="question_bank_generated",
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:909:                "mode": "single_document_question_bank",
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:1593:async def workspace_question_bank(
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:1635:            event_type="question_bank_generated",
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:1639:                "mode": "workspace_question_bank",
+app/routes/documents.py.bak_teaching_plan_20260616_180216:543:async def question_bank_document_by_id(
+app/routes/documents.py.bak_teaching_plan_20260616_180216:583:            event_type="question_bank_generated",
+app/routes/documents.py.bak_teaching_plan_20260616_180216:588:                "mode": "single_document_question_bank",
+app/routes/documents.py.bak_teaching_plan_20260616_180216:1272:async def workspace_question_bank(
+app/routes/documents.py.bak_teaching_plan_20260616_180216:1314:            event_type="question_bank_generated",
+app/routes/documents.py.bak_teaching_plan_20260616_180216:1318:                "mode": "workspace_question_bank",
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:30:    parse_students_from_text,
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:275:@router.post("/import-students-pdf")
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:276:async def import_students_pdf(
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:291:            file.filename or "students.pdf"
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:294:        file_path = uploads_dir / f"students_import_{uuid4()}_{safe_filename}"
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:299:        parsed = parse_students_from_text(
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:304:        students_data = json.loads(parsed)
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:308:            event_type="students_pdf_imported",
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:312:                "students_count": len(students_data.get("students", [])),
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:316:        return students_data
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:661:async def question_bank_document_by_id(
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:701:            event_type="question_bank_generated",
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:706:                "mode": "single_document_question_bank",
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:1390:async def workspace_question_bank(
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:1432:            event_type="question_bank_generated",
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:1436:                "mode": "workspace_question_bank",
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:69:    attendance_average: str = ""
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:70:    courses: list[dict[str, Any]]
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:112:            attendance_average=payload.attendance_average,
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:113:            courses=payload.courses,
+app/routes/documents.py.bak_import_students_20260616_200918:597:async def question_bank_document_by_id(
+app/routes/documents.py.bak_import_students_20260616_200918:637:            event_type="question_bank_generated",
+app/routes/documents.py.bak_import_students_20260616_200918:642:                "mode": "single_document_question_bank",
+app/routes/documents.py.bak_import_students_20260616_200918:1326:async def workspace_question_bank(
+app/routes/documents.py.bak_import_students_20260616_200918:1368:            event_type="question_bank_generated",
+app/routes/documents.py.bak_import_students_20260616_200918:1372:                "mode": "workspace_question_bank",
+app/routes/export.py.bak_recognition_engine_20260622_225656:70:    attendance_average: str = ""
+app/routes/export.py.bak_recognition_engine_20260622_225656:77:    courses: list[dict[str, Any]]
+app/routes/export.py.bak_recognition_engine_20260622_225656:119:            attendance_average=payload.attendance_average,
+app/routes/export.py.bak_recognition_engine_20260622_225656:126:            courses=payload.courses,
+app/routes/export.py.bak_ranking_pdf_20260622_181828:69:    attendance_average: str = ""
+app/routes/export.py.bak_ranking_pdf_20260622_181828:73:    courses: list[dict[str, Any]]
+app/routes/export.py.bak_ranking_pdf_20260622_181828:115:            attendance_average=payload.attendance_average,
+app/routes/export.py.bak_ranking_pdf_20260622_181828:119:            courses=payload.courses,
+app/services/ai_service.py:993:def parse_students_from_text(
+app/services/ai_service.py:1021:                    '  "students": [\n'
+app/services/ai_service.py:1049:                "students": [],
+app/services/ai_service.py.bak_import_grades_pdf_20260617_114659:870:def parse_students_from_text(
+app/services/ai_service.py.bak_import_grades_pdf_20260617_114659:898:                    '  "students": [\n'
+app/services/ai_service.py.bak_import_grades_pdf_20260617_114659:926:                "students": [],
+app/services/export_service.py.bak_excellence_badge_20260622_184536:131:    pdf.drawString(margin_x, y, f"Total: {stats.get('students', 0)}")
+app/services/export_service.py.bak_excellence_badge_20260622_184536:142:        "attendance_rate",
+app/services/export_service.py.bak_excellence_badge_20260622_184536:1206:    courses: list[dict],
+app/services/export_service.py.bak_excellence_badge_20260622_184536:1208:    attendance_average: str = "",
+app/services/export_service.py.bak_excellence_badge_20260622_184536:1242:    pdf.drawString(margin + 220, y, f"Asistencia promedio: {attendance_average}")
+app/services/export_service.py.bak_excellence_badge_20260622_184536:1284:    for item in courses:
+app/services/export_service.py.bak_excellence_badge_20260622_184536:1292:        attendance = str(item.get("attendance", ""))
+app/services/export_service.py.bak_excellence_badge_20260622_184536:1297:        pdf.drawString(margin + 365, y, attendance)
+app/services/export_service.py.bak_transcript_pdf_v2_20260622_180016:131:    pdf.drawString(margin_x, y, f"Total: {stats.get('students', 0)}")
+app/services/export_service.py.bak_transcript_pdf_v2_20260622_180016:142:        "attendance_rate",
+app/services/export_service.py.bak_transcript_pdf_v2_20260622_180016:1197:    courses: list[dict],
+app/services/export_service.py.bak_transcript_pdf_v2_20260622_180016:1199:    attendance_average: str = "",
+app/services/export_service.py.bak_transcript_pdf_v2_20260622_180016:1227:    pdf.drawString(margin + 220, y, f"Asistencia promedio: {attendance_average}")
+app/services/export_service.py.bak_transcript_pdf_v2_20260622_180016:1244:    for item in courses:
+app/services/export_service.py.bak_transcript_pdf_v2_20260622_180016:1252:        attendance = str(item.get("attendance", ""))
+app/services/export_service.py.bak_transcript_pdf_v2_20260622_180016:1257:        pdf.drawString(margin + 365, y, attendance)
+app/services/export_service.py.bak_badge_premium_final_20260623_004437:172:    pdf.drawString(margin_x, y, f"Total: {stats.get('students', 0)}")
+app/services/export_service.py.bak_badge_premium_final_20260623_004437:183:        "attendance_rate",
+app/services/export_service.py.bak_badge_premium_final_20260623_004437:1275:    courses: list[dict],
+app/services/export_service.py.bak_badge_premium_final_20260623_004437:1277:    attendance_average: str = "",
+app/services/export_service.py.bak_badge_premium_final_20260623_004437:1465:    for item in courses:
+app/services/export_service.py.bak_badge_premium_final_20260623_004437:1473:        attendance = str(item.get("attendance", ""))
+app/services/export_service.py.bak_badge_premium_final_20260623_004437:1478:        pdf.drawString(margin + 395, y, attendance)
+app/services/export_service.py.bak_badge_visual_tuning_20260623_004913:172:    pdf.drawString(margin_x, y, f"Total: {stats.get('students', 0)}")
+app/services/export_service.py.bak_badge_visual_tuning_20260623_004913:183:        "attendance_rate",
+app/services/export_service.py.bak_badge_visual_tuning_20260623_004913:1332:    courses: list[dict],
+app/services/export_service.py.bak_badge_visual_tuning_20260623_004913:1334:    attendance_average: str = "",
+app/services/export_service.py.bak_badge_visual_tuning_20260623_004913:1522:    for item in courses:
+app/services/export_service.py.bak_badge_visual_tuning_20260623_004913:1530:        attendance = str(item.get("attendance", ""))
+app/services/export_service.py.bak_badge_visual_tuning_20260623_004913:1535:        pdf.drawString(margin + 395, y, attendance)
+Binary file app/services/__pycache__/export_service.cpython-311.pyc matches
+Binary file app/services/__pycache__/ai_service.cpython-311.pyc matches
+app/services/export_service.py.bak_transcript_premium_final_20260623_003422:172:    pdf.drawString(margin_x, y, f"Total: {stats.get('students', 0)}")
+app/services/export_service.py.bak_transcript_premium_final_20260623_003422:183:        "attendance_rate",
+app/services/export_service.py.bak_transcript_premium_final_20260623_003422:1275:    courses: list[dict],
+app/services/export_service.py.bak_transcript_premium_final_20260623_003422:1277:    attendance_average: str = "",
+app/services/export_service.py.bak_transcript_premium_final_20260623_003422:1311:    pdf.drawString(margin + 220, y, f"Asistencia promedio: {attendance_average}")
+app/services/export_service.py.bak_transcript_premium_final_20260623_003422:1353:    for item in courses:
+app/services/export_service.py.bak_transcript_premium_final_20260623_003422:1361:        attendance = str(item.get("attendance", ""))
+app/services/export_service.py.bak_transcript_premium_final_20260623_003422:1366:        pdf.drawString(margin + 365, y, attendance)
+app/services/export_service.py.bak_badge_qr_spacing_fix_20260623_010046:172:    pdf.drawString(margin_x, y, f"Total: {stats.get('students', 0)}")
+app/services/export_service.py.bak_badge_qr_spacing_fix_20260623_010046:183:        "attendance_rate",
+app/services/export_service.py.bak_badge_qr_spacing_fix_20260623_010046:1342:    courses: list[dict],
+app/services/export_service.py.bak_badge_qr_spacing_fix_20260623_010046:1344:    attendance_average: str = "",
+app/services/export_service.py.bak_badge_qr_spacing_fix_20260623_010046:1532:    for item in courses:
+app/services/export_service.py.bak_badge_qr_spacing_fix_20260623_010046:1540:        attendance = str(item.get("attendance", ""))
+app/services/export_service.py.bak_badge_qr_spacing_fix_20260623_010046:1545:        pdf.drawString(margin + 395, y, attendance)
+app/services/export_service.py:172:    pdf.drawString(margin_x, y, f"Total: {stats.get('students', 0)}")
+app/services/export_service.py:183:        "attendance_rate",
+app/services/export_service.py:1342:    courses: list[dict],
+app/services/export_service.py:1344:    attendance_average: str = "",
+app/services/export_service.py:1532:    for item in courses:
+app/services/export_service.py:1540:        attendance = str(item.get("attendance", ""))
+app/services/export_service.py:1545:        pdf.drawString(margin + 395, y, attendance)
+app/services/export_service.py.bak_qr_transcript_premium_20260623_000323:172:    pdf.drawString(margin_x, y, f"Total: {stats.get('students', 0)}")
+app/services/export_service.py.bak_qr_transcript_premium_20260623_000323:183:        "attendance_rate",
+app/services/export_service.py.bak_qr_transcript_premium_20260623_000323:1275:    courses: list[dict],
+app/services/export_service.py.bak_qr_transcript_premium_20260623_000323:1277:    attendance_average: str = "",
+app/services/export_service.py.bak_qr_transcript_premium_20260623_000323:1311:    pdf.drawString(margin + 220, y, f"Asistencia promedio: {attendance_average}")
+app/services/export_service.py.bak_qr_transcript_premium_20260623_000323:1353:    for item in courses:
+app/services/export_service.py.bak_qr_transcript_premium_20260623_000323:1361:        attendance = str(item.get("attendance", ""))
+app/services/export_service.py.bak_qr_transcript_premium_20260623_000323:1366:        pdf.drawString(margin + 365, y, attendance)
+app/services/export_service.py.bak_ranking_pdf_20260622_181828:131:    pdf.drawString(margin_x, y, f"Total: {stats.get('students', 0)}")
+app/services/export_service.py.bak_ranking_pdf_20260622_181828:142:        "attendance_rate",
+app/services/export_service.py.bak_ranking_pdf_20260622_181828:1197:    courses: list[dict],
+app/services/export_service.py.bak_ranking_pdf_20260622_181828:1199:    attendance_average: str = "",
+app/services/export_service.py.bak_ranking_pdf_20260622_181828:1230:    pdf.drawString(margin + 220, y, f"Asistencia promedio: {attendance_average}")
+app/services/export_service.py.bak_ranking_pdf_20260622_181828:1262:    for item in courses:
+app/services/export_service.py.bak_ranking_pdf_20260622_181828:1270:        attendance = str(item.get("attendance", ""))
+app/services/export_service.py.bak_ranking_pdf_20260622_181828:1275:        pdf.drawString(margin + 365, y, attendance)
+app/services/export_service.py.bak_badge_10_10_20260623_005712:172:    pdf.drawString(margin_x, y, f"Total: {stats.get('students', 0)}")
+app/services/export_service.py.bak_badge_10_10_20260623_005712:183:        "attendance_rate",
+app/services/export_service.py.bak_badge_10_10_20260623_005712:1327:    courses: list[dict],
+app/services/export_service.py.bak_badge_10_10_20260623_005712:1329:    attendance_average: str = "",
+app/services/export_service.py.bak_badge_10_10_20260623_005712:1517:    for item in courses:
+app/services/export_service.py.bak_badge_10_10_20260623_005712:1525:        attendance = str(item.get("attendance", ""))
+app/services/export_service.py.bak_badge_10_10_20260623_005712:1530:        pdf.drawString(margin + 395, y, attendance)
+app/services/export_service.py.bak_transcript_pdf_full_20260622_175144:131:    pdf.drawString(margin_x, y, f"Total: {stats.get('students', 0)}")
+app/services/export_service.py.bak_transcript_pdf_full_20260622_175144:142:        "attendance_rate",
+app/services/export_service.py.bak_transcript_pdf_full_20260622_175144:1197:    courses: list[dict],
+app/services/export_service.py.bak_transcript_pdf_full_20260622_175144:1199:    attendance_average: str = "",
+app/services/export_service.py.bak_transcript_pdf_full_20260622_175144:1227:    pdf.drawString(margin + 220, y, f"Asistencia promedio: {attendance_average}")
+app/services/export_service.py.bak_transcript_pdf_full_20260622_175144:1244:    for item in courses:
+app/services/export_service.py.bak_transcript_pdf_full_20260622_175144:1252:        attendance = str(item.get("attendance", ""))
+app/services/export_service.py.bak_transcript_pdf_full_20260622_175144:1257:        pdf.drawString(margin + 365, y, attendance)
+app/services/export_service.py.bak_excelencia_cert_20260622_183152:131:    pdf.drawString(margin_x, y, f"Total: {stats.get('students', 0)}")
+app/services/export_service.py.bak_excelencia_cert_20260622_183152:142:        "attendance_rate",
+app/services/export_service.py.bak_excelencia_cert_20260622_183152:1197:    courses: list[dict],
+app/services/export_service.py.bak_excelencia_cert_20260622_183152:1199:    attendance_average: str = "",
+app/services/export_service.py.bak_excelencia_cert_20260622_183152:1233:    pdf.drawString(margin + 220, y, f"Asistencia promedio: {attendance_average}")
+app/services/export_service.py.bak_excelencia_cert_20260622_183152:1275:    for item in courses:
+app/services/export_service.py.bak_excelencia_cert_20260622_183152:1283:        attendance = str(item.get("attendance", ""))
+app/services/export_service.py.bak_excelencia_cert_20260622_183152:1288:        pdf.drawString(margin + 365, y, attendance)
+app/services/export_service.py.bak_pretty_text_pdf_20260622_230422:131:    pdf.drawString(margin_x, y, f"Total: {stats.get('students', 0)}")
+app/services/export_service.py.bak_pretty_text_pdf_20260622_230422:142:        "attendance_rate",
+app/services/export_service.py.bak_pretty_text_pdf_20260622_230422:1225:    courses: list[dict],
+app/services/export_service.py.bak_pretty_text_pdf_20260622_230422:1227:    attendance_average: str = "",
+app/services/export_service.py.bak_pretty_text_pdf_20260622_230422:1261:    pdf.drawString(margin + 220, y, f"Asistencia promedio: {attendance_average}")
+app/services/export_service.py.bak_pretty_text_pdf_20260622_230422:1303:    for item in courses:
+app/services/export_service.py.bak_pretty_text_pdf_20260622_230422:1311:        attendance = str(item.get("attendance", ""))
+app/services/export_service.py.bak_pretty_text_pdf_20260622_230422:1316:        pdf.drawString(margin + 365, y, attendance)
+app/services/export_service.py.bak_premium_certificate_20260622_233550:172:    pdf.drawString(margin_x, y, f"Total: {stats.get('students', 0)}")
+app/services/export_service.py.bak_premium_certificate_20260622_233550:183:        "attendance_rate",
+app/services/export_service.py.bak_premium_certificate_20260622_233550:1266:    courses: list[dict],
+app/services/export_service.py.bak_premium_certificate_20260622_233550:1268:    attendance_average: str = "",
+app/services/export_service.py.bak_premium_certificate_20260622_233550:1302:    pdf.drawString(margin + 220, y, f"Asistencia promedio: {attendance_average}")
+app/services/export_service.py.bak_premium_certificate_20260622_233550:1344:    for item in courses:
+app/services/export_service.py.bak_premium_certificate_20260622_233550:1352:        attendance = str(item.get("attendance", ""))
+app/services/export_service.py.bak_premium_certificate_20260622_233550:1357:        pdf.drawString(margin + 365, y, attendance)
+app/services/export_service.py.bak_fix_badge_qr_20260623_003659:172:    pdf.drawString(margin_x, y, f"Total: {stats.get('students', 0)}")
+app/services/export_service.py.bak_fix_badge_qr_20260623_003659:183:        "attendance_rate",
+app/services/export_service.py.bak_fix_badge_qr_20260623_003659:1275:    courses: list[dict],
+app/services/export_service.py.bak_fix_badge_qr_20260623_003659:1277:    attendance_average: str = "",
+app/services/export_service.py.bak_fix_badge_qr_20260623_003659:1465:    for item in courses:
+app/services/export_service.py.bak_fix_badge_qr_20260623_003659:1473:        attendance = str(item.get("attendance", ""))
+app/services/export_service.py.bak_fix_badge_qr_20260623_003659:1478:        pdf.drawString(margin + 395, y, attendance)
+
+--- Validation ---
+Analyzing campusai_mobile...                                    
+
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:531:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:659:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:1008:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:1229:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:868:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:1104:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:1447:7 • use_build_context_synchronously
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/screens/library_screen.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/screens/library_screen.dart:1:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/attendance_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/attendance_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/billing_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/billing_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/course_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/course_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/export_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/export_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/gradebook_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/gradebook_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/plan_guard_service.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/plan_guard_service.dart:1:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/student_roster_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/student_roster_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/usage_limit_service.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/usage_limit_service.dart:1:1 • avoid_web_libraries_in_flutter
+
+
+===== GIT STATUS =====
+?? backup_supabase_tables_v1.sh
+?? backup_supabase_tables_v2.sh
+?? diagnose_educator_persistence_v1.sh
+?? diagnose_educator_persistence_v1_result.txt
+
+===== DONE =====

@@ -1,0 +1,10 @@
+USER_ID: ac5d8d96-4604-4e29-842f-09d724146aa9
+courses: 1
+students: 35
+attendance: 35
+gradebook: 2
+OK educator_courses: 1 filas
+OK educator_students: 35 filas
+OK educator_attendance: 35 filas
+OK educator_gradebook: 2 filas
+MIGRATION_DONE

@@ -1,0 +1,99 @@
+RPC_FAILED
+{'message': 'Could not find the function public.exec_sql(query) in the schema cache', 'code': 'PGRST202', 'hint': None, 'details': 'Searched for the function public.exec_sql with parameter query or with a single unnamed json/jsonb parameter, but no matches were found in the schema cache.'}
+
+Si aparece este error, crea las tablas pegando el SQL manualmente en Supabase SQL Editor.
+
+SQL_START
+
+create table if not exists public.educator_courses (
+  id text primary key,
+  user_id uuid not null,
+  name text not null,
+  code text,
+  section text,
+  period text,
+  is_active boolean default false,
+  program_document_id text,
+  payload jsonb default '{}'::jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create table if not exists public.educator_students (
+  id text primary key,
+  user_id uuid not null,
+  course_id text not null,
+  name text not null,
+  student_id text,
+  email text,
+  phone text,
+  payload jsonb default '{}'::jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create table if not exists public.educator_attendance (
+  id text primary key,
+  user_id uuid not null,
+  course_id text not null,
+  student_id text not null,
+  attendance_date date not null,
+  status text not null,
+  payload jsonb default '{}'::jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create table if not exists public.educator_gradebook (
+  id text primary key,
+  user_id uuid not null,
+  course_id text not null,
+  student_id text not null,
+  assessment_name text,
+  score numeric,
+  max_score numeric,
+  weight numeric,
+  payload jsonb default '{}'::jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create table if not exists public.educator_rubrics (
+  id text primary key,
+  user_id uuid not null,
+  course_id text not null,
+  title text,
+  payload jsonb default '{}'::jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create table if not exists public.educator_question_banks (
+  id text primary key,
+  user_id uuid not null,
+  course_id text not null,
+  title text,
+  payload jsonb default '{}'::jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create index if not exists idx_educator_courses_user_id
+on public.educator_courses(user_id);
+
+create index if not exists idx_educator_students_user_course
+on public.educator_students(user_id, course_id);
+
+create index if not exists idx_educator_attendance_user_course
+on public.educator_attendance(user_id, course_id);
+
+create index if not exists idx_educator_gradebook_user_course
+on public.educator_gradebook(user_id, course_id);
+
+create index if not exists idx_educator_rubrics_user_course
+on public.educator_rubrics(user_id, course_id);
+
+create index if not exists idx_educator_question_banks_user_course
+on public.educator_question_banks(user_id, course_id);
+
+SQL_END
