@@ -161,10 +161,7 @@ class _PlansScreenState extends State<PlansScreen> {
           'Exportación PDF básica',
         ],
         lockedBenefits: [
-          'Exportar DOCX y PPTX',
-          'Modo voz completo',
-          'Herramientas docentes',
-          'Certificados e insignias',
+          'Funciones premium disponibles al actualizar',
         ],
       ),
       const _PlanUiData(
@@ -173,7 +170,7 @@ class _PlansScreenState extends State<PlansScreen> {
         audience: 'Para estudiantes intensivos',
         price: 'US\$4.99',
         period: '/mes',
-        badge: 'ESTUDIANTES',
+        badge: 'MÁS POPULAR',
         icon: Icons.workspace_premium_rounded,
         isHighlighted: true,
         benefits: [
@@ -243,22 +240,20 @@ class _PlansScreenState extends State<PlansScreen> {
           'Exportar PDF, DOCX y PPTX',
         ],
         lockedBenefits: [
-          'Límites ilimitados',
-          'Procesamiento prioritario',
-          'Funciones beta premium',
+          'Procesamiento prioritario Ultra',
         ],
       ),
       const _PlanUiData(
         plan: CampusPlan.ultra,
         name: 'Ultra Premium',
-        audience: 'Para máximo rendimiento',
+        audience: 'Para usuarios intensivos e instituciones',
         price: 'US\$24.99',
         period: '/mes',
-        badge: 'TODO INCLUIDO',
+        badge: 'MÁXIMO NIVEL',
         icon: Icons.auto_awesome_rounded,
-        isHighlighted: false,
+        isHighlighted: true,
         benefits: [
-          'PDFs, chats, flashcards y preguntas sin límites prácticos',
+          'Límites ampliados premium',
           'Audio mensual ampliado',
           'Todos los módulos Student',
           'Todos los módulos Accessibility',
@@ -268,8 +263,8 @@ class _PlansScreenState extends State<PlansScreen> {
           'Certificados premium',
           'Insignias académicas premium',
           'Reconocimiento automático',
-          'Funciones beta y capacidades premium',
-          'Ideal para usuarios intensivos e instituciones pequeñas',
+          'Acceso anticipado a funciones premium',
+          'Ideal para usuarios intensivos',
         ],
         lockedBenefits: [],
       ),
@@ -286,7 +281,7 @@ class _PlansScreenState extends State<PlansScreen> {
         title: const Text('Planes StudyBook AI'),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(22),
+        padding: const EdgeInsets.fromLTRB(22, 34, 22, 22),
         children: [
           if (checkoutMessage != null) ...[
             Card(
@@ -313,55 +308,50 @@ class _PlansScreenState extends State<PlansScreen> {
             const SizedBox(height: 18),
           ],
           const _PlansHero(),
-          const SizedBox(height: 22),
+          const SizedBox(height: 14),
           LayoutBuilder(
             builder: (context, constraints) {
-              final isWide = constraints.maxWidth >= 980;
+              final maxWidth = constraints.maxWidth;
+
+              final columns = maxWidth >= 1200
+                  ? 3
+                  : maxWidth >= 720
+                      ? 2
+                      : 1;
+
+              const spacing = 16.0;
+              final cardWidth =
+                  (maxWidth - (spacing * (columns - 1))) / columns;
+
               final cards = _plans(context)
                   .map(
-                    (planData) => _PlanCard(
-                      data: planData,
-                      isCurrent: current == planData.plan,
-                      onSelect: () {
-                        if (planData.plan == CampusPlan.free) {
-                          return;
-                        }
+                    (planData) => SizedBox(
+                      width: cardWidth,
+                      child: _PlanCard(
+                        data: planData,
+                        isCurrent: current == planData.plan,
+                        onSelect: () {
+                          if (planData.plan == CampusPlan.free) {
+                            return;
+                          }
 
-                        _startCheckout(context, planData.plan);
-                      },
+                          _startCheckout(context, planData.plan);
+                        },
+                      ),
                     ),
                   )
                   .toList();
 
-              if (!isWide) {
-                return Column(
-                  children: cards
-                      .map(
-                        (card) => Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: card,
-                        ),
-                      )
-                      .toList(),
-                );
-              }
-
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: cards
-                    .map(
-                      (card) => Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: card,
-                        ),
-                      ),
-                    )
-                    .toList(),
+              return Wrap(
+                spacing: spacing,
+                runSpacing: 16,
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.start,
+                children: cards,
               );
             },
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 16),
           const _PlansFooterNote(),
         ],
       ),
@@ -661,7 +651,7 @@ class _PlansFooterNote extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Text(
-      'Puedes cambiar o cancelar tu plan desde la configuración de tu cuenta. Los precios pueden variar según promociones de lanzamiento.',
+      'Puedes cambiar, mejorar o cancelar tu plan desde tu cuenta. Precios especiales de lanzamiento para StudyBook AI.',
       textAlign: TextAlign.center,
       style: TextStyle(
         color: AppTheme.textMuted,
