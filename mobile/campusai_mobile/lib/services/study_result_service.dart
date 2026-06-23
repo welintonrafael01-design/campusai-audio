@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/study_result.dart';
+import 'educator_sync_service.dart';
 
 class StudyResultService {
   static const String _key = 'study_results';
@@ -20,6 +21,30 @@ class StudyResultService {
       _buildKey(result.documentId, result.type),
       jsonEncode(result.toJson()),
     );
+
+    if (result.type == 'question_bank') {
+      final current = prefs.getStringList(EducatorSyncService.questionBanksKey) ?? [];
+      final asJson = result.toJson();
+      asJson['id'] = result.documentId;
+      asJson['documentId'] = result.documentId;
+
+      final updated = current
+          .map((item) {
+            try {
+              final decoded = jsonDecode(item);
+              if (decoded is Map && decoded['documentId']?.toString() == result.documentId) {
+                return null;
+              }
+            } catch (_) {}
+            return item;
+          })
+          .whereType<String>()
+          .toList();
+
+      updated.insert(0, jsonEncode(asJson));
+      await prefs.setStringList(EducatorSyncService.questionBanksKey, updated);
+      await EducatorSyncService.syncAfterLocalWrite();
+    }
   }
 
   static Future<StudyResult?> getResult({

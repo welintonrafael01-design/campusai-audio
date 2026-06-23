@@ -20,6 +20,7 @@ class EducatorSyncPayload(BaseModel):
     students: list[dict[str, Any]] = Field(default_factory=list)
     attendance: list[dict[str, Any]] = Field(default_factory=list)
     gradebook: list[dict[str, Any]] = Field(default_factory=list)
+    question_banks: list[dict[str, Any]] = Field(default_factory=list)
 
 
 def _safe_text(value: Any) -> str:
@@ -112,6 +113,10 @@ def get_educator_snapshot(
             table="educator_gradebook",
             user_ids=user_ids,
         )
+        question_banks = _select_for_user_candidates(
+            table="educator_question_banks",
+            user_ids=user_ids,
+        )
     except Exception as exc:
         raise HTTPException(
             status_code=500,
@@ -123,6 +128,7 @@ def get_educator_snapshot(
         "students": [row.get("payload") or row for row in students],
         "attendance": [row.get("payload") or row for row in attendance],
         "gradebook": [row.get("payload") or row for row in gradebook],
+        "question_banks": [row.get("payload") or row for row in question_banks],
         "source": "supabase",
     }
 
@@ -226,6 +232,22 @@ def sync_educator_snapshot(
             }
         )
 
+    question_bank_rows = []
+    for item in payload.question_banks:
+        record_id = _safe_text(item.get("id") or item.get("documentId")).strip()
+        if not record_id:
+            continue
+
+        question_bank_rows.append(
+            {
+                "id": record_id,
+                "user_id": user_id,
+                "course_id": _safe_text(item.get("courseId") or item.get("course_id")),
+                "title": _safe_text(item.get("title") or item.get("documentTitle") or "Banco de preguntas"),
+                "payload": item,
+            }
+        )
+
     try:
         return {
             "source": "supabase",
@@ -233,6 +255,7 @@ def sync_educator_snapshot(
             "students": _upsert("educator_students", student_rows),
             "attendance": _upsert("educator_attendance", attendance_rows),
             "gradebook": _upsert("educator_gradebook", gradebook_rows),
+            "question_banks": _upsert("educator_question_banks", question_bank_rows),
         }
     except Exception as exc:
         raise HTTPException(

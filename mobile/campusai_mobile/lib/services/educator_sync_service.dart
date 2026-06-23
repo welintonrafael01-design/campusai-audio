@@ -13,6 +13,7 @@ class EducatorSyncService {
   static const String studentsKey = 'studybook_students_roster';
   static const String attendanceKey = 'studybook_attendance_entries';
   static const String gradebookKey = 'studybook_gradebook_entries';
+  static const String questionBanksKey = 'studybook_question_banks';
 
   static Future<Map<String, dynamic>> getSnapshot() async {
     if (!AuthService.isLoggedIn) {
@@ -59,6 +60,9 @@ class EducatorSyncService {
       'gradebook': _decodeStringList(
         prefs.getStringList(gradebookKey) ?? const [],
       ),
+      'question_banks': _decodeStringList(
+        prefs.getStringList(questionBanksKey) ?? const [],
+      ),
     };
 
     await http
@@ -97,6 +101,11 @@ class EducatorSyncService {
         prefs: prefs,
         key: gradebookKey,
         value: snapshot['gradebook'],
+      );
+      await _saveListIfNotEmpty(
+        prefs: prefs,
+        key: questionBanksKey,
+        value: snapshot['question_banks'],
       );
     } catch (_) {
       // Modo seguro: si falla Supabase, se conserva SharedPreferences.

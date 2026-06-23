@@ -1,0 +1,47 @@
+Analyzing campusai_mobile...                                    
+
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:531:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:659:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:1008:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:1229:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:868:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:1104:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:1447:7 • use_build_context_synchronously
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/screens/library_screen.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/screens/library_screen.dart:1:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/attendance_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/attendance_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/billing_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/billing_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/course_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/course_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/export_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/export_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/gradebook_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/gradebook_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/plan_guard_service.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/plan_guard_service.dart:1:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/student_roster_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/student_roster_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/usage_limit_service.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/usage_limit_service.dart:1:1 • avoid_web_libraries_in_flutter
+
+backend/app/routes/educator.py:23:    question_banks: list[dict[str, Any]] = Field(default_factory=list)
+backend/app/routes/educator.py:116:        question_banks = _select_for_user_candidates(
+backend/app/routes/educator.py:117:            table="educator_question_banks",
+backend/app/routes/educator.py:131:        "question_banks": [row.get("payload") or row for row in question_banks],
+backend/app/routes/educator.py:236:    for item in payload.question_banks:
+backend/app/routes/educator.py:258:            "question_banks": _upsert("educator_question_banks", question_bank_rows),
+mobile/campusai_mobile/lib/services/educator_sync_service.dart:16:  static const String questionBanksKey = 'studybook_question_banks';
+mobile/campusai_mobile/lib/services/educator_sync_service.dart:63:      'question_banks': _decodeStringList(
+mobile/campusai_mobile/lib/services/educator_sync_service.dart:64:        prefs.getStringList(questionBanksKey) ?? const [],
+mobile/campusai_mobile/lib/services/educator_sync_service.dart:107:        key: questionBanksKey,
+mobile/campusai_mobile/lib/services/educator_sync_service.dart:108:        value: snapshot['question_banks'],
+mobile/campusai_mobile/lib/services/study_result_service.dart:26:      final current = prefs.getStringList(EducatorSyncService.questionBanksKey) ?? [];
+mobile/campusai_mobile/lib/services/study_result_service.dart:45:      await prefs.setStringList(EducatorSyncService.questionBanksKey, updated);
+ M backend/app/routes/educator.py
+ M mobile/campusai_mobile/lib/services/educator_sync_service.dart
+ M mobile/campusai_mobile/lib/services/study_result_service.dart
+?? add_question_bank_sync_v1.sh
+?? add_question_bank_sync_v1_result.txt
+?? backend/fix_stripe_price_ids_real_v1.sh
