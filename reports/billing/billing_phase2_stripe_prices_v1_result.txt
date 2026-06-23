@@ -1,0 +1,39 @@
+===== BILLING PHASE 2 STRIPE PRICES V1 =====
+
+===== BACKEND COMPILE =====
+
+===== BILLING REFS CHECK =====
+22:        description="Plan solicitado: student, teacher, accessibility o ultra.",
+35:def _normalize_plan(plan: str | None) -> str:
+51:def _stripe_price_map() -> dict[str, str]:
+54:            os.getenv("STRIPE_STUDENT_PRICE_ID", "")
+55:            or os.getenv("STRIPE_PRICE_STUDENT", "")
+56:            or os.getenv("STRIPE_PRICE_PRO", "")
+59:            os.getenv("STRIPE_TEACHER_PRICE_ID", "")
+60:            or os.getenv("STRIPE_PRICE_TEACHER", "")
+61:            or os.getenv("STRIPE_PRICE_EDUCATOR", "")
+64:            os.getenv("STRIPE_ACCESSIBILITY_PRICE_ID", "")
+65:            or os.getenv("STRIPE_PRICE_ACCESSIBILITY", "")
+68:            os.getenv("STRIPE_ULTRA_PRICE_ID", "")
+69:            or os.getenv("STRIPE_PRICE_ULTRA", "")
+109:                "Configura STRIPE_STUDENT_PRICE_ID, STRIPE_TEACHER_PRICE_ID, "
+110:                "STRIPE_ACCESSIBILITY_PRICE_ID o STRIPE_ULTRA_PRICE_ID."
+130:            detail="Plan inválido. Usa student, teacher, accessibility o ultra.",
+
+===== ENV PRICE KEYS CHECK =====
+2:STRIPE_PRICE_PRO=price_1Tf4ExDwbFlJozTIplghWsA0
+3:STRIPE_PRICE_EDUCATOR=price_1Tf4XHDwbFlJozTIIAOQR2du
+18:STRIPE_STUDENT_PRICE_ID=
+19:STRIPE_TEACHER_PRICE_ID=
+20:STRIPE_ACCESSIBILITY_PRICE_ID=
+21:STRIPE_ULTRA_PRICE_ID=
+
+===== GIT STATUS =====
+ M backend/app/routes/billing.py
+?? billing_phase2_diagnostic.txt
+?? billing_phase2_stripe_prices_v1.sh
+?? billing_phase2_stripe_prices_v1_result.txt
+?? diagnose_billing_phase2.sh
+
+===== DONE =====
+Backups en: /Users/welintonmejia/Desktop/campusai-audio/backups/billing_phase2_20260623_095418

@@ -19,7 +19,7 @@ router = APIRouter(
 class CheckoutSessionRequest(BaseModel):
     plan: str = Field(
         ...,
-        description="Plan solicitado: pro o educator.",
+        description="Plan solicitado: student, teacher, accessibility o ultra.",
     )
 
 
@@ -32,15 +32,58 @@ class CustomerPortalResponse(BaseModel):
 
 
 
+def _normalize_plan(plan: str | None) -> str:
+    value = (plan or "free").strip().lower()
+
+    legacy_map = {
+        "pro": "student",
+        "educator": "teacher",
+    }
+
+    value = legacy_map.get(value, value)
+
+    if value in {"free", "student", "teacher", "accessibility", "ultra"}:
+        return value
+
+    return "free"
+
+
+def _stripe_price_map() -> dict[str, str]:
+    return {
+        "student": (
+            os.getenv("STRIPE_STUDENT_PRICE_ID", "")
+            or os.getenv("STRIPE_PRICE_STUDENT", "")
+            or os.getenv("STRIPE_PRICE_PRO", "")
+        ),
+        "teacher": (
+            os.getenv("STRIPE_TEACHER_PRICE_ID", "")
+            or os.getenv("STRIPE_PRICE_TEACHER", "")
+            or os.getenv("STRIPE_PRICE_EDUCATOR", "")
+        ),
+        "accessibility": (
+            os.getenv("STRIPE_ACCESSIBILITY_PRICE_ID", "")
+            or os.getenv("STRIPE_PRICE_ACCESSIBILITY", "")
+        ),
+        "ultra": (
+            os.getenv("STRIPE_ULTRA_PRICE_ID", "")
+            or os.getenv("STRIPE_PRICE_ULTRA", "")
+        ),
+    }
+
+
 def _resolve_plan_from_stripe_object(data_object: dict, fallback: str = "free") -> str:
     metadata = data_object.get("metadata", {}) or {}
 
-    plan = str(metadata.get("plan") or "").strip().lower()
-    if plan in {"student", "teacher", "accessibility", "ultra"}:
+    plan = _normalize_plan(str(metadata.get("plan") or ""))
+    if plan != "free":
         return plan
 
-    price_pro = os.getenv("STRIPE_PRICE_PRO", "")
-    price_educator = os.getenv("STRIPE_PRICE_EDUCATOR", "")
+    price_map = _stripe_price_map()
+    reverse_price_map = {
+        price_id: plan_code
+        for plan_code, price_id in price_map.items()
+        if price_id
+    }
 
     items = data_object.get("items", {}).get("data", []) or []
 
@@ -48,29 +91,23 @@ def _resolve_plan_from_stripe_object(data_object: dict, fallback: str = "free") 
         price = item.get("price", {}) or {}
         price_id = price.get("id") or item.get("plan", {}).get("id")
 
-        if price_id == price_educator:
-            return "teacher"
+        if price_id in reverse_price_map:
+            return reverse_price_map[price_id]
 
-        if price_id == price_pro:
-            return "student"
-
-    return fallback.strip().lower() or "free"
+    return _normalize_plan(fallback)
 
 
 def _get_price_id(plan: str) -> str:
-    price_map = {
-        "student": os.getenv("STRIPE_PRICE_PRO", ""),
-        "teacher": os.getenv("STRIPE_PRICE_EDUCATOR", ""),
-    }
-
+    price_map = _stripe_price_map()
     price_id = price_map.get(plan)
 
     if not price_id:
         raise HTTPException(
             status_code=400,
             detail=(
-                "Plan no configurado para pagos. "
-                "Configura STRIPE_PRICE_PRO o STRIPE_PRICE_EDUCATOR."
+                f"El plan {plan} no tiene Price ID configurado en Stripe. "
+                "Configura STRIPE_STUDENT_PRICE_ID, STRIPE_TEACHER_PRICE_ID, "
+                "STRIPE_ACCESSIBILITY_PRICE_ID o STRIPE_ULTRA_PRICE_ID."
             ),
         )
 
@@ -85,12 +122,12 @@ def create_checkout_session(
     payload: CheckoutSessionRequest,
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
-    plan = payload.plan.strip().lower()
+    plan = _normalize_plan(payload.plan)
 
     if plan not in {"student", "teacher", "accessibility", "ultra"}:
         raise HTTPException(
             status_code=400,
-            detail="Plan inválido. Usa pro o educator.",
+            detail="Plan inválido. Usa student, teacher, accessibility o ultra.",
         )
 
     stripe_secret_key = os.getenv("STRIPE_SECRET_KEY", "")
