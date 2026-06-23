@@ -56,6 +56,42 @@ class BillingService {
     html.window.location.href = checkoutUrl;
   }
 
+  Future<Map<String, dynamic>> refreshSubscriptionFromServer() async {
+    if (!AuthService.isLoggedIn) {
+      throw Exception('Debes iniciar sesión para sincronizar tu suscripción.');
+    }
+
+    final response = await http.get(
+      Uri.parse('${ApiService.baseUrl}/billing/subscription/me'),
+      headers: AuthService.authHeaders,
+    );
+
+    final decoded = jsonDecode(response.body);
+
+    if (response.statusCode != 200) {
+      final detail = decoded is Map<String, dynamic>
+          ? decoded['detail']?.toString()
+          : null;
+
+      throw Exception(detail ?? 'No se pudo sincronizar la suscripción.');
+    }
+
+    if (decoded is! Map<String, dynamic>) {
+      throw Exception('Respuesta inválida del servidor.');
+    }
+
+    final plan = planFromCode(decoded['plan']?.toString());
+    final status = decoded['subscription_status']?.toString() ?? 'unknown';
+
+    const PlanGuardService().saveCurrentPlan(
+      plan,
+      source: decoded['source']?.toString() ?? 'supabase',
+      subscriptionStatus: status,
+    );
+
+    return decoded;
+  }
+
   Future<void> openCustomerPortal() async {
     if (!AuthService.isLoggedIn) {
       throw Exception('Debes iniciar sesión para administrar tu suscripción.');

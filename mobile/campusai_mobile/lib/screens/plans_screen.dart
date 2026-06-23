@@ -19,7 +19,8 @@ class _PlansScreenState extends State<PlansScreen> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _syncCheckoutSuccess();
       _showCheckoutSnackBar();
     });
   }
@@ -77,14 +78,36 @@ class _PlansScreenState extends State<PlansScreen> {
     return planCode;
   }
 
+  Future<void> _syncCheckoutSuccess() async {
+    if (_checkoutStatus() != 'success') {
+      return;
+    }
+
+    final fallbackPlan = planFromCode(_checkoutPlanCode());
+
+    try {
+      await const BillingService().refreshSubscriptionFromServer();
+    } catch (_) {
+      if (fallbackPlan != CampusPlan.free) {
+        const PlanGuardService().saveCurrentPlan(
+          fallbackPlan,
+          source: 'checkout_pending',
+          subscriptionStatus: 'pending',
+        );
+      }
+    }
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   String? _checkoutMessage() {
     final status = _checkoutStatus();
     final plan = planFromCode(_checkoutPlanCode());
     final planName = AppPlans.planNames[plan] ?? 'Premium';
 
     if (status == 'success') {
-      const PlanGuardService().saveCurrentPlan(plan);
-
       return AppLocalizations.of(context).checkoutSuccessMessage(planName);
     }
 
