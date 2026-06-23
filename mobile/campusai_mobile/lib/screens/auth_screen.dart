@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../l10n/app_localizations.dart';
 import '../services/auth_service.dart';
+import '../services/educator_sync_service.dart';
 import '../services/subscription_service.dart';
 import '../theme/app_theme.dart';
 
@@ -48,6 +49,8 @@ class _AuthScreenState extends State<AuthScreen> {
           email: email,
           password: password,
         );
+
+        await EducatorSyncService.pullRemoteIntoLocalIfAvailable();
 
         try {
           await const SubscriptionService().syncCurrentUserPlan();
