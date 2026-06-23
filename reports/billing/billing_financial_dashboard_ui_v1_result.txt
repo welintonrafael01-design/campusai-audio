@@ -1,0 +1,115 @@
+===== BILLING FINANCIAL DASHBOARD UI V1 =====
+
+===== ROUTE DIAGNOSTIC =====
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/l10n/app_localizations_fr.dart:18:  String get settingsTitle => 'Paramètres';
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/l10n/app_localizations_fr.dart:54:  String get settingsSubtitle => 'Personnalisez votre expérience StudyBook AI.';
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/l10n/app_localizations.dart:117:  /// No description provided for @settingsTitle.
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/l10n/app_localizations.dart:121:  String get settingsTitle;
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/l10n/app_localizations.dart:189:  /// No description provided for @settingsSubtitle.
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/l10n/app_localizations.dart:193:  String get settingsSubtitle;
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/l10n/app_pt.arb:5:  "settingsTitle": "Configurações",
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/l10n/app_pt.arb:17:  "settingsSubtitle": "Personalize sua experiência no StudyBook AI.",
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/l10n/app_es.arb:5:  "settingsTitle": "Configuración",
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/l10n/app_es.arb:17:  "settingsSubtitle": "Personaliza tu experiencia StudyBook AI.",
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/l10n/app_localizations_es.dart:18:  String get settingsTitle => 'Configuración';
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/l10n/app_localizations_es.dart:54:  String get settingsSubtitle => 'Personaliza tu experiencia StudyBook AI.';
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/l10n/app_fr.arb:5:  "settingsTitle": "Paramètres",
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/l10n/app_fr.arb:17:  "settingsSubtitle": "Personnalisez votre expérience StudyBook AI.",
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/l10n/app_en.arb:5:  "settingsTitle": "Settings",
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/l10n/app_en.arb:17:  "settingsSubtitle": "Customize your StudyBook AI experience.",
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/l10n/app_localizations_pt.dart:18:  String get settingsTitle => 'Configurações';
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/l10n/app_localizations_pt.dart:54:  String get settingsSubtitle => 'Personalize sua experiência no StudyBook AI.';
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/l10n/app_localizations_en.dart:18:  String get settingsTitle => 'Settings';
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/l10n/app_localizations_en.dart:54:  String get settingsSubtitle => 'Customize your StudyBook AI experience.';
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/utils/upgrade_dialog.dart:115:              context.go('/plans');
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/screens/dashboard_screen.dart:166:      final uri = GoRouterState.of(context).uri;
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/screens/settings_screen.dart:511:                        context.go('/plans');
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/screens/settings_screen.dart:601:                        context.go('/plans');
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/screens/dashboard_screen.dart.bak_premium_20260615_183443:122:      final uri = GoRouterState.of(context).uri;
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/screens/plans_screen.dart:32:          GoRouterState.of(context).uri.queryParameters['checkout'];
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/screens/plans_screen.dart:58:      planCode = GoRouterState.of(context).uri.queryParameters['plan'];
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/widgets/dashboard/dashboard_hero.dart.bak_premium_20260615_183443:74:                      context.pushNamed('settings');
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/widgets/dashboard/dashboard_hero.dart.bak_overflow_pill_20260615_180946:74:                      context.pushNamed('settings');
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/widgets/dashboard/dashboard_hero.dart:162:                        onPressed: () => context.pushNamed('settings'),
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/widgets/sidebar.dart.bak_plan_card_20260616_093716:77:            selected: currentRoute == '/plans',
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/widgets/sidebar.dart.bak_plan_card_20260616_093716:79:              context.go('/plans');
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/widgets/sidebar.dart.bak_plan_card_20260616_093716:85:            selected: currentRoute == '/settings',
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/widgets/sidebar.dart.bak_plan_card_20260616_093716:87:              context.go('/settings');
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/widgets/sidebar.dart:79:            selected: currentRoute == '/plans',
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/widgets/sidebar.dart:81:              context.go('/plans');
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/widgets/sidebar.dart:87:            selected: currentRoute == '/settings',
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/widgets/sidebar.dart:89:              context.go('/settings');
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart.bak_reset_password_20260615_125556:9:import '../screens/settings_screen.dart';
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart.bak_reset_password_20260615_125556:11:import '../screens/plans_screen.dart';
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart.bak_reset_password_20260615_125556:14:final appRouter = GoRouter(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart.bak_reset_password_20260615_125556:17:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart.bak_reset_password_20260615_125556:27:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart.bak_reset_password_20260615_125556:37:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart.bak_reset_password_20260615_125556:69:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart.bak_reset_password_20260615_125556:91:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart.bak_reset_password_20260615_125556:113:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart.bak_reset_password_20260615_125556:123:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart.bak_reset_password_20260615_125556:133:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart.bak_reset_password_20260615_125556:134:      path: '/plans',
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart.bak_reset_password_20260615_125556:143:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart.bak_reset_password_20260615_125556:144:      path: '/settings',
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart.bak_reset_password_20260615_125556:145:      name: 'settings',
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart.bak_reset_password_20260615_125556:157:  required GoRouterState state,
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:10:import '../screens/settings_screen.dart';
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:12:import '../screens/plans_screen.dart';
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:29:final appRouter = GoRouter(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:32:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:44:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:53:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:63:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:73:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:83:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:115:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:137:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:159:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:178:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:200:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:219:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:229:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:239:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:249:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:268:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:278:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:288:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:298:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:308:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:318:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:328:    GoRoute(
+/Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile/lib/router/app_router.dart:338:    GoRoute(
+
+===== BACKEND COMPILE =====
+
+===== FLUTTER ANALYZE =====
+Analyzing campusai_mobile...                                    
+
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:531:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:659:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:1008:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:1229:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:868:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:1104:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:1447:7 • use_build_context_synchronously
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/screens/library_screen.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/screens/library_screen.dart:1:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/attendance_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/attendance_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/billing_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/billing_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/course_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/course_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/export_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/export_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/gradebook_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/gradebook_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/plan_guard_service.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/plan_guard_service.dart:1:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/student_roster_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/student_roster_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/usage_limit_service.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/usage_limit_service.dart:1:1 • avoid_web_libraries_in_flutter
+

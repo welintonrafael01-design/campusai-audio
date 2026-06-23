@@ -10,6 +10,7 @@ import '../screens/flashcards_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/admin_analytics_screen.dart';
 import '../screens/plans_screen.dart';
+import '../screens/admin/financial_dashboard_screen.dart';
 import '../screens/library_screen.dart';
 import '../screens/question_bank_screen.dart';
 import '../screens/rubric_screen.dart';
@@ -344,6 +345,11 @@ final appRouter = GoRouter(
           child: const PlansScreen(),
         );
       },
+    ),
+    GoRoute(
+      path: '/admin/financial-dashboard',
+      name: 'financial-dashboard',
+      builder: (context, state) => const FinancialDashboardScreen(),
     ),
     GoRoute(
       path: '/settings',
