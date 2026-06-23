@@ -39,45 +39,78 @@ def _upsert(table: str, rows: list[dict[str, Any]]) -> int:
     return len(response.data)
 
 
+def _candidate_user_ids(current_user: AuthenticatedUser) -> list[str]:
+    ids: list[str] = []
+
+    primary = _safe_text(current_user.user_id).strip()
+    if primary:
+        ids.append(primary)
+
+    email = _safe_text(getattr(current_user, "email", "")).strip().lower()
+    if email:
+        client = get_supabase_admin_client()
+        try:
+            response = (
+                client.table("user_subscriptions")
+                .select("user_id,email")
+                .eq("email", email)
+                .execute()
+            )
+            for row in response.data or []:
+                candidate = _safe_text(row.get("user_id")).strip()
+                if candidate and candidate not in ids:
+                    ids.append(candidate)
+        except Exception:
+            pass
+
+    return ids
+
+
+def _select_for_user_candidates(
+    *,
+    table: str,
+    user_ids: list[str],
+) -> list[dict[str, Any]]:
+    client = get_supabase_admin_client()
+
+    for user_id in user_ids:
+        rows = (
+            client.table(table)
+            .select("*")
+            .eq("user_id", user_id)
+            .execute()
+            .data
+            or []
+        )
+
+        if rows:
+            return rows
+
+    return []
+
+
 @router.get("/snapshot")
 def get_educator_snapshot(
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
-    client = get_supabase_admin_client()
-    user_id = current_user.user_id
+    user_ids = _candidate_user_ids(current_user)
 
     try:
-        courses = (
-            client.table("educator_courses")
-            .select("*")
-            .eq("user_id", user_id)
-            .execute()
-            .data
-            or []
+        courses = _select_for_user_candidates(
+            table="educator_courses",
+            user_ids=user_ids,
         )
-        students = (
-            client.table("educator_students")
-            .select("*")
-            .eq("user_id", user_id)
-            .execute()
-            .data
-            or []
+        students = _select_for_user_candidates(
+            table="educator_students",
+            user_ids=user_ids,
         )
-        attendance = (
-            client.table("educator_attendance")
-            .select("*")
-            .eq("user_id", user_id)
-            .execute()
-            .data
-            or []
+        attendance = _select_for_user_candidates(
+            table="educator_attendance",
+            user_ids=user_ids,
         )
-        gradebook = (
-            client.table("educator_gradebook")
-            .select("*")
-            .eq("user_id", user_id)
-            .execute()
-            .data
-            or []
+        gradebook = _select_for_user_candidates(
+            table="educator_gradebook",
+            user_ids=user_ids,
         )
     except Exception as exc:
         raise HTTPException(
