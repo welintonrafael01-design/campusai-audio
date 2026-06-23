@@ -51,3 +51,6 @@ backend/logs/
 # Temporary backend uploads
 backend/app/uploads/
 backend/uploads/
+
+# Local migration backups
+backups/
