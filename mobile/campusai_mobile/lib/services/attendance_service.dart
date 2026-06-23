@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:html' as html;
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'educator_sync_service.dart';
 
 import 'student_roster_service.dart';
 
@@ -110,6 +111,8 @@ class AttendanceService {
       _key,
       current.map((item) => jsonEncode(item.toJson())).toList(),
     );
+
+    await EducatorSyncService.syncAfterLocalWrite();
   }
 
   static Future<void> deleteEntry(String id) async {
@@ -122,6 +125,8 @@ class AttendanceService {
       _key,
       entries.map((item) => jsonEncode(item.toJson())).toList(),
     );
+
+    await EducatorSyncService.syncAfterLocalWrite();
   }
 
   static Future<void> exportCsv() async {

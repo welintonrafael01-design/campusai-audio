@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:html' as html;
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'educator_sync_service.dart';
 
 class CourseRecord {
   final String id;
@@ -93,6 +94,8 @@ class CourseService {
           .map((item) => jsonEncode(item.toJson()))
           .toList(),
     );
+
+    await EducatorSyncService.syncAfterLocalWrite();
   }
 
   static Future<void> addCourse(CourseRecord course) async {
