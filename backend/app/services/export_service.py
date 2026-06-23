@@ -1186,81 +1186,148 @@ def build_academic_badge_pdf(
     width, height = letter
     blue = (0.02, 0.18, 0.43)
     accent = (0.38, 0.32, 0.95)
+    gold = (0.95, 0.68, 0.18)
+    light = (0.95, 0.97, 1.00)
     gray = (0.35, 0.35, 0.35)
 
-    pdf.setTitle("Insignia académica")
+    title = badge_title.strip() or "Insignia Académica"
+
+    pdf.setTitle("Insignia académica premium")
 
     pdf.setFillColorRGB(*blue)
     pdf.rect(0, 0, width, height, fill=1, stroke=0)
 
+    pdf.setStrokeColorRGB(1, 1, 1)
+    pdf.setLineWidth(2.2)
+    pdf.roundRect(42, 42, width - 84, height - 84, 18)
+
+    pdf.setStrokeColorRGB(*gold)
+    pdf.setLineWidth(1.3)
+    pdf.roundRect(55, 55, width - 110, height - 110, 14)
+
+    y = height - 78
     pdf.setFillColorRGB(1, 1, 1)
-    pdf.circle(width / 2, height - 230, 120, fill=1, stroke=0)
+    pdf.setFont("Helvetica-Bold", 23)
+    pdf.drawCentredString(width / 2, y, "STUDYBOOK AI")
+    y -= 17
+
+    pdf.setFont("Helvetica", 8.5)
+    pdf.drawCentredString(width / 2, y, "Reconocimiento Oficial Verificable")
+
+    medal_x = width / 2
+    medal_y = height - 205
+
+    pdf.setFillColorRGB(1, 1, 1)
+    pdf.circle(medal_x, medal_y, 80, fill=1, stroke=0)
+
+    pdf.setFillColorRGB(*gold)
+    pdf.circle(medal_x, medal_y, 64, fill=1, stroke=0)
 
     pdf.setFillColorRGB(*accent)
-    pdf.circle(width / 2, height - 230, 92, fill=1, stroke=0)
+    pdf.circle(medal_x, medal_y, 48, fill=1, stroke=0)
 
     pdf.setFillColorRGB(1, 1, 1)
-    pdf.setFont("Helvetica-Bold", 44)
-    pdf.drawCentredString(width / 2, height - 247, "✓")
+    pdf.setFont("Helvetica-Bold", 42)
+    pdf.drawCentredString(medal_x, medal_y - 14, "★")
 
-    y = height - 390
+    y = height - 330
     pdf.setFillColorRGB(1, 1, 1)
-    pdf.setFont("Helvetica-Bold", 28)
-    pdf.drawCentredString(width / 2, y, badge_title.upper())
-    y -= 44
+    pdf.setFont("Helvetica-Bold", 23)
+    pdf.drawCentredString(width / 2, y, f"INSIGNIA DE {title.upper()}"[:62])
+    y -= 17
 
-    pdf.setFont("Helvetica-Bold", 22)
+    pdf.setFont("Helvetica", 8.5)
+    pdf.drawCentredString(width / 2, y, "Credencial académica digital emitida por StudyBook AI")
+    y -= 27
+
+    pdf.setFont("Helvetica-Bold", 17)
     pdf.drawCentredString(width / 2, y, student_name[:70])
-    y -= 28
+    y -= 19
 
     if student_code:
-        pdf.setFont("Helvetica", 11)
+        pdf.setFont("Helvetica", 9)
         pdf.drawCentredString(width / 2, y, f"Código / Matrícula: {student_code}")
-        y -= 28
+        y -= 20
 
-    pdf.setFont("Helvetica", 13)
-    pdf.drawCentredString(width / 2, y, "Insignia otorgada por completar satisfactoriamente:")
-    y -= 30
+    box_y = y - 82
+    pdf.setFillColorRGB(1, 1, 1)
+    pdf.roundRect(88, box_y, width - 176, 92, 12, fill=1, stroke=0)
 
-    pdf.setFont("Helvetica-Bold", 15)
-    pdf.drawCentredString(width / 2, y, course_name[:80])
-    y -= 30
+    pdf.setFillColorRGB(*blue)
+    pdf.setFont("Helvetica", 9)
+    pdf.drawCentredString(
+        width / 2,
+        box_y + 64,
+        "Reconocimiento otorgado por desempeño académico destacado en:",
+    )
+
+    pdf.setFont("Helvetica-Bold", 13)
+    pdf.drawCentredString(width / 2, box_y + 39, course_name[:78])
 
     if average:
-        pdf.setFont("Helvetica-Bold", 13)
-        pdf.drawCentredString(width / 2, y, f"Promedio final: {average}")
-        y -= 26
+        pdf.setFont("Helvetica-Bold", 11)
+        pdf.drawCentredString(width / 2, box_y + 18, f"Promedio final: {average}")
+
+    y = box_y - 25
 
     if certificate_id:
-        verification_url = f"http://127.0.0.1:8000/certificates/verify/{certificate_id}"
+        verification_url = f"http://localhost:3000/#/verify/{certificate_id}"
 
-        pdf.setFont("Helvetica", 10)
-        pdf.drawCentredString(width / 2, y, f"Validación: {certificate_id}")
-        y -= 16
+        pdf.setStrokeColorRGB(*gold)
+        pdf.setLineWidth(1)
+        pdf.line(130, y, width - 130, y)
+        y -= 15
+
+        pdf.setFillColorRGB(1, 1, 1)
+        pdf.setFont("Helvetica-Bold", 10)
+        pdf.drawCentredString(width / 2, y, "VERIFICACIÓN DIGITAL")
+        y -= 17
 
         pdf.setFont("Helvetica", 8)
-        pdf.drawCentredString(width / 2, y, f"Verificación: {verification_url}")
+        pdf.drawCentredString(width / 2, y, "Código de validación")
+        y -= 13
+
+        pdf.setFont("Helvetica-Bold", 10)
+        pdf.drawCentredString(width / 2, y, certificate_id)
+        y -= 10
 
         qr = qrcode.make(verification_url)
         qr_buffer = BytesIO()
         qr.save(qr_buffer, format="PNG")
         qr_buffer.seek(0)
 
+        qr_size = 96
+        qr_box = 108
+        qr_x = width / 2 - qr_box / 2
+        qr_y = y - qr_box + 18
+
+        pdf.setFillColorRGB(1, 1, 1)
+        pdf.roundRect(qr_x, qr_y, qr_box, qr_box, 9, fill=1, stroke=0)
+
         pdf.drawImage(
             ImageReader(qr_buffer),
-            width / 2 - 42,
-            115,
-            width=84,
-            height=84,
+            width / 2 - qr_size / 2,
+            qr_y + 6,
+            width=qr_size,
+            height=qr_size,
             mask="auto",
         )
 
-    pdf.setFont("Helvetica-Bold", 18)
-    pdf.drawCentredString(width / 2, 90, "STUDYBOOK AI")
+        y = qr_y - 10
+        pdf.setFillColorRGB(1, 1, 1)
+        pdf.setFont("Helvetica", 7)
+        pdf.drawCentredString(width / 2, y, "Escanee para verificar autenticidad")
 
-    pdf.setFont("Helvetica-Oblique", 8)
-    pdf.setFillColorRGB(*gray)
-    pdf.drawString(42, 28, footer)
+    pdf.setFillColorRGB(1, 1, 1)
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawCentredString(width / 2, 58, "SELLO DIGITAL STUDYBOOK AI")
+
+    pdf.setFont("Helvetica", 7)
+    pdf.drawCentredString(width / 2, 45, "Credencial académica verificable")
+
+    pdf.setFont("Helvetica-Oblique", 7.5)
+    pdf.setFillColorRGB(0.78, 0.82, 0.90)
+    pdf.drawString(56, 30, footer)
 
     pdf.save()
     buffer.seek(0)
@@ -1288,105 +1355,222 @@ def build_student_transcript_pdf(
 
     width, height = letter
     margin = 42
-    y = height - 58
     blue = (0.02, 0.18, 0.43)
+    accent = (0.38, 0.32, 0.95)
+    light = (0.95, 0.97, 1.00)
     gray = (0.35, 0.35, 0.35)
 
-    pdf.setTitle("Expediente académico")
+    pdf.setTitle("Expediente académico premium")
 
+    def clean_percent(value: str) -> float:
+        try:
+            return float(str(value).replace("%", "").strip())
+        except Exception:
+            return 0.0
+
+    avg_value = clean_percent(general_average)
+
+    if avg_value >= 90:
+        classification = "EXCELENCIA ACADÉMICA"
+        observation = (
+            "El estudiante mantiene un desempeño sobresaliente, ubicándose "
+            "dentro de los niveles más altos de rendimiento académico institucional."
+        )
+    elif avg_value >= 85:
+        classification = "HONOR ACADÉMICO"
+        observation = (
+            "El estudiante presenta un rendimiento académico destacado y consistente, "
+            "con indicadores superiores al promedio esperado."
+        )
+    elif avg_value >= 70:
+        classification = "BUEN RENDIMIENTO"
+        observation = (
+            "El estudiante cumple satisfactoriamente con los indicadores académicos "
+            "establecidos para el período evaluado."
+        )
+    else:
+        classification = "RIESGO ACADÉMICO"
+        observation = (
+            "Se recomienda acompañamiento académico, seguimiento del progreso "
+            "estudiantil y acciones de mejora oportunas."
+        )
+
+    # Fondo y marco institucional
+    pdf.setFillColorRGB(1, 1, 1)
+    pdf.rect(0, 0, width, height, fill=1, stroke=0)
+
+    pdf.setStrokeColorRGB(*blue)
+    pdf.setLineWidth(2.5)
+    pdf.roundRect(30, 30, width - 60, height - 60, 14)
+
+    pdf.setStrokeColorRGB(*accent)
+    pdf.setLineWidth(0.8)
+    pdf.roundRect(40, 40, width - 80, height - 80, 10)
+
+    # Encabezado
+    y = height - 72
     pdf.setFillColorRGB(*blue)
-    pdf.setFont("Helvetica-Bold", 18)
-    pdf.drawString(margin, y, "EXPEDIENTE ACADÉMICO")
-    y -= 26
+    pdf.setFont("Helvetica-Bold", 24)
+    pdf.drawString(margin + 18, y, "STUDYBOOK AI")
+
+    pdf.setFont("Helvetica-Bold", 15)
+    pdf.drawRightString(width - margin - 18, y, "EXPEDIENTE ACADÉMICO")
+    y -= 18
+
+    pdf.setFillColorRGB(*gray)
+    pdf.setFont("Helvetica", 8.5)
+    pdf.drawString(margin + 18, y, "Sistema de inteligencia académica, certificación y trazabilidad educativa")
+    y -= 34
+
+    # Datos del estudiante
+    pdf.setFillColorRGB(*blue)
+    pdf.setFont("Helvetica-Bold", 16)
+    pdf.drawString(margin + 18, y, student_name[:70])
+    y -= 16
 
     pdf.setFillColorRGB(0, 0, 0)
-    pdf.setFont("Helvetica-Bold", 13)
-    pdf.drawString(margin, y, student_name)
-    y -= 16
-
     pdf.setFont("Helvetica", 9)
-    pdf.drawString(margin, y, f"Código / Matrícula: {student_code}")
-    y -= 14
-    pdf.drawString(margin, y, f"Promedio general: {general_average}")
-    pdf.drawString(margin + 220, y, f"Asistencia promedio: {attendance_average}")
-    y -= 16
+    pdf.drawString(margin + 18, y, f"Código / Matrícula: {student_code}")
+    pdf.drawRightString(width - margin - 18, y, f"Fecha de emisión: {datetime.now().strftime('%d/%m/%Y')}")
+    y -= 26
 
-    pdf.drawString(margin, y, f"GPA 4.0: {gpa4 or 'N/D'}")
-    pdf.drawString(margin + 220, y, f"Estado académico: {academic_standing or 'N/D'}")
-    y -= 22
-
-    distinctions = distinctions or []
-    if distinctions:
-        pdf.setFont("Helvetica-Bold", 9)
-        pdf.drawString(margin, y, "Distinciones automáticas")
-        y -= 13
-        pdf.setFont("Helvetica", 8)
-        for item in distinctions:
-            pdf.drawString(margin + 10, y, f"- {str(item)}")
-            y -= 11
-        y -= 8
-
-    if ranking_total and ranking_total > 0:
-        pdf.setFont("Helvetica-Bold", 9)
-        pdf.drawString(margin, y, "Ranking académico")
-        y -= 13
-        pdf.setFont("Helvetica", 8)
-        pdf.drawString(margin + 10, y, f"Posición: #{ranking_position}")
-        pdf.drawString(margin + 150, y, f"Total estudiantes: {ranking_total}")
-        pdf.drawString(margin + 320, y, f"Percentil: {ranking_percentile:.1f}%")
-        y -= 20
+    # Resumen ejecutivo
+    pdf.setFillColorRGB(*light)
+    pdf.roundRect(margin + 8, y - 98, width - (margin + 8) * 2, 98, 10, fill=1, stroke=0)
 
     pdf.setFillColorRGB(*blue)
-    pdf.setFont("Helvetica-Bold", 9)
-    pdf.drawString(margin, y, "Curso")
-    pdf.drawString(margin + 285, y, "Promedio")
-    pdf.drawString(margin + 365, y, "Asistencia")
-    pdf.drawString(margin + 455, y, "Estado")
-    y -= 10
+    pdf.setFont("Helvetica-Bold", 11)
+    pdf.drawString(margin + 22, y - 18, "RESUMEN EJECUTIVO ACADÉMICO")
 
-    pdf.line(margin, y, width - margin, y)
-    y -= 16
+    def metric_card(x: float, title: str, value: str):
+        pdf.setFillColorRGB(1, 1, 1)
+        pdf.roundRect(x, y - 82, 118, 44, 8, fill=1, stroke=0)
+        pdf.setFillColorRGB(*gray)
+        pdf.setFont("Helvetica", 7)
+        pdf.drawCentredString(x + 59, y - 52, title)
+        pdf.setFillColorRGB(*blue)
+        pdf.setFont("Helvetica-Bold", 11)
+        pdf.drawCentredString(x + 59, y - 70, value[:18])
+
+    metric_y = y
+    x0 = margin + 22
+    metric_card(x0, "PROMEDIO", general_average or "N/D")
+    metric_card(x0 + 128, "GPA 4.0", gpa4 or "N/D")
+    metric_card(
+        x0 + 256,
+        "RANKING",
+        f"#{ranking_position}" if ranking_total else "N/D",
+    )
+    metric_card(
+        x0 + 384,
+        "PERCENTIL",
+        f"{ranking_percentile:.1f}%" if ranking_total else "N/D",
+    )
+
+    y -= 120
+
+    # Estado y observación
+    pdf.setFillColorRGB(*blue)
+    pdf.setFont("Helvetica-Bold", 10)
+    pdf.drawString(margin + 18, y, f"Clasificación académica: {classification}")
+    y -= 14
+
+    pdf.setFillColorRGB(0, 0, 0)
+    pdf.setFont("Helvetica", 8.5)
+    for line in textwrap.wrap(observation, width=92):
+        pdf.drawString(margin + 18, y, line)
+        y -= 11
+
+    y -= 8
+
+    # Distinciones
+    distinctions = distinctions or []
+    if distinctions:
+        pdf.setFillColorRGB(*blue)
+        pdf.setFont("Helvetica-Bold", 10)
+        pdf.drawString(margin + 18, y, "Distinciones automáticas")
+        y -= 14
+
+        pdf.setFillColorRGB(0, 0, 0)
+        pdf.setFont("Helvetica", 8.5)
+        for item in distinctions:
+            pdf.drawString(margin + 28, y, f"- {str(item)}")
+            y -= 11
+
+        y -= 8
+
+    # Ranking
+    if ranking_total and ranking_total > 0:
+        pdf.setFillColorRGB(*blue)
+        pdf.setFont("Helvetica-Bold", 10)
+        pdf.drawString(margin + 18, y, "Ranking académico")
+        y -= 14
+
+        pdf.setFillColorRGB(0, 0, 0)
+        pdf.setFont("Helvetica", 8.5)
+        pdf.drawString(margin + 28, y, f"Posición: #{ranking_position}")
+        pdf.drawString(margin + 160, y, f"Total estudiantes: {ranking_total}")
+        pdf.drawString(margin + 330, y, f"Percentil: {ranking_percentile:.1f}%")
+        y -= 22
+
+    # Tabla
+    pdf.setFillColorRGB(*blue)
+    pdf.setFont("Helvetica-Bold", 9)
+    pdf.drawString(margin + 18, y, "Curso")
+    pdf.drawString(margin + 315, y, "Promedio")
+    pdf.drawString(margin + 395, y, "Asistencia")
+    pdf.drawString(margin + 485, y, "Estado")
+    y -= 8
+
+    pdf.setStrokeColorRGB(*blue)
+    pdf.line(margin + 18, y, width - margin - 18, y)
+    y -= 15
 
     pdf.setFillColorRGB(0, 0, 0)
     pdf.setFont("Helvetica", 8)
 
     for item in courses:
-        if y < 70:
+        if y < 150:
             pdf.showPage()
-            y = height - 58
+            y = height - 70
             pdf.setFont("Helvetica", 8)
 
-        course = str(item.get("course_name", ""))[:48]
+        course = str(item.get("course_name", ""))[:52]
         average = str(item.get("average", ""))
         attendance = str(item.get("attendance", ""))
         status = str(item.get("status", ""))
 
-        pdf.drawString(margin, y, course)
-        pdf.drawString(margin + 285, y, average)
-        pdf.drawString(margin + 365, y, attendance)
-        pdf.drawString(margin + 455, y, status)
-        y -= 16
+        pdf.drawString(margin + 18, y, course)
+        pdf.drawString(margin + 315, y, average)
+        pdf.drawString(margin + 395, y, attendance)
+        pdf.drawString(margin + 485, y, status)
+        y -= 15
 
-    y -= 18
-    pdf.line(margin, y, width - margin, y)
-    y -= 24
-
-    transcript_id_raw = f"TRANSCRIPT|{student_code}|{student_name}|{general_average}|{datetime.now().strftime('%Y')}"
+    # Código verificable y QR
     import hashlib
+    transcript_id_raw = (
+        f"TRANSCRIPT|{student_code}|{student_name}|{general_average}|"
+        f"{datetime.now().strftime('%Y')}"
+    )
     transcript_digest = hashlib.sha256(transcript_id_raw.encode("utf-8")).hexdigest()[:8].upper()
     transcript_id = f"EXP-{datetime.now().strftime('%Y')}-{transcript_digest}"
     verification_url = f"http://localhost:3000/#/verify/{transcript_id}"
 
+    y = 148
+    pdf.setStrokeColorRGB(*blue)
+    pdf.line(margin + 18, y, width - margin - 18, y)
+    y -= 20
+
     pdf.setFillColorRGB(*blue)
-    pdf.setFont("Helvetica-Bold", 10)
-    pdf.drawString(margin, y, f"Código verificable del expediente: {transcript_id}")
-    y -= 16
+    pdf.setFont("Helvetica-Bold", 9)
+    pdf.drawString(margin + 18, y, f"Código verificable del expediente: {transcript_id}")
+    y -= 14
 
     pdf.setFillColorRGB(0, 0, 0)
-    pdf.setFont("Helvetica", 9)
-    pdf.drawString(margin, y, f"Fecha de emisión: {datetime.now().strftime('%d/%m/%Y')}")
-    y -= 16
-    pdf.drawString(margin, y, "Firma / Validación académica: ________________________________")
+    pdf.setFont("Helvetica", 8.5)
+    pdf.drawString(margin + 18, y, "Firma / Validación académica: ________________________________")
+    y -= 14
+    pdf.drawString(margin + 18, y, "Sello digital StudyBook AI")
 
     qr = qrcode.make(verification_url)
     qr_buffer = BytesIO()
@@ -1395,25 +1579,21 @@ def build_student_transcript_pdf(
 
     pdf.drawImage(
         ImageReader(qr_buffer),
-        width - margin - 86,
-        72,
-        width=74,
-        height=74,
+        width - margin - 92,
+        62,
+        width=76,
+        height=76,
         mask="auto",
     )
 
     pdf.setFont("Helvetica", 7)
     pdf.setFillColorRGB(*gray)
-    pdf.drawRightString(width - margin, 60, "Escanee para verificación digital")
-    pdf.drawRightString(width - margin, 49, verification_url[:82])
-
-    pdf.setFont("Helvetica-Bold", 8)
-    pdf.setFillColorRGB(*blue)
-    pdf.drawString(margin, 42, "Sello digital StudyBook AI")
+    pdf.drawRightString(width - margin - 16, 50, "Escanee para verificación digital")
+    pdf.drawRightString(width - margin - 16, 40, verification_url[:80])
 
     pdf.setFont("Helvetica-Oblique", 8)
     pdf.setFillColorRGB(*gray)
-    pdf.drawString(margin, 24, footer)
+    pdf.drawString(margin + 18, 24, footer)
 
     pdf.save()
     buffer.seek(0)
