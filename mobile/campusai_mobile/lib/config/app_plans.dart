@@ -61,9 +61,9 @@ class AppPlans {
 
   static const Map<CampusPlan, String> planPrices = {
     CampusPlan.free: r'US$0',
-    CampusPlan.student: r'US$6.99',
+    CampusPlan.student: r'US$4.99',
     CampusPlan.accessibility: r'US$3.99',
-    CampusPlan.teacher: r'US$13.99',
+    CampusPlan.teacher: r'US$9.99',
     CampusPlan.ultra: r'US$24.99',
   };
 
