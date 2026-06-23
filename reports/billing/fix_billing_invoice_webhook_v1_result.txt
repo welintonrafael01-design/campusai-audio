@@ -1,0 +1,11 @@
+434:        "invoice.paid",
+435:        "invoice.payment_succeeded",
+438:        subscription_id = data_object.get("id")
+440:        if event_type in {"invoice.paid", "invoice.payment_succeeded"}:
+441:            subscription_id = data_object.get("subscription")
+ M backend/app/routes/billing.py
+?? backend/fix_stripe_price_ids_real_v1.sh
+?? fix_billing_invoice_webhook_v1.sh
+?? fix_billing_invoice_webhook_v1_result.txt
+?? fix_webhook_subscription_metadata_v1.sh
+?? fix_webhook_subscription_metadata_v1_result.txt

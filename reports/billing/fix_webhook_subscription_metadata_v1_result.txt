@@ -1,0 +1,11 @@
+123:def _metadata_from_checkout_session(subscription_id: str | None) -> dict:
+436:        checkout_metadata = _metadata_from_checkout_session(data_object.get("id"))
+438:        merged_metadata = {
+439:            **checkout_metadata,
+443:        user_id = merged_metadata.get("user_id", "")
+444:        email = merged_metadata.get("email")
+447:            merged_metadata.get("plan", "free"),
+ M backend/app/routes/billing.py
+?? backend/fix_stripe_price_ids_real_v1.sh
+?? fix_webhook_subscription_metadata_v1.sh
+?? fix_webhook_subscription_metadata_v1_result.txt

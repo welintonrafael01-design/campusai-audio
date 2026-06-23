@@ -120,6 +120,30 @@ def _stripe_price_map() -> dict[str, str]:
     }
 
 
+def _metadata_from_checkout_session(subscription_id: str | None) -> dict:
+    if not subscription_id:
+        return {}
+
+    try:
+        sessions = stripe.checkout.Session.list(
+            subscription=subscription_id,
+            limit=1,
+        )
+    except Exception:
+        return {}
+
+    if not sessions.data:
+        return {}
+
+    session = sessions.data[0]
+    metadata = dict(session.metadata or {})
+
+    if session.customer_email and not metadata.get("email"):
+        metadata["email"] = session.customer_email
+
+    return metadata
+
+
 def _resolve_plan_from_stripe_object(data_object: dict, fallback: str = "free") -> str:
     metadata = data_object.get("metadata", {}) or {}
 
@@ -407,14 +431,28 @@ async def stripe_webhook(request: Request):
         "customer.subscription.created",
         "customer.subscription.updated",
         "customer.subscription.deleted",
+        "invoice.paid",
+        "invoice.payment_succeeded",
+        "invoice_payment.paid",
     }:
         metadata = data_object.get("metadata", {}) or {}
+        subscription_id = data_object.get("id")
 
-        user_id = metadata.get("user_id", "")
-        email = metadata.get("email")
+        if event_type in {"invoice.paid", "invoice.payment_succeeded", "invoice_payment.paid"}:
+            subscription_id = data_object.get("subscription")
+
+        checkout_metadata = _metadata_from_checkout_session(subscription_id)
+
+        merged_metadata = {
+            **checkout_metadata,
+            **metadata,
+        }
+
+        user_id = merged_metadata.get("user_id", "")
+        email = merged_metadata.get("email")
         plan = _resolve_plan_from_stripe_object(
             data_object,
-            metadata.get("plan", "free"),
+            merged_metadata.get("plan", "free"),
         )
 
         if not user_id:
@@ -435,7 +473,7 @@ async def stripe_webhook(request: Request):
                 user_id=user_id,
                 email=email,
                 stripe_customer_id=data_object.get("customer"),
-                stripe_subscription_id=data_object.get("id"),
+                stripe_subscription_id=subscription_id,
                 subscription_status=status or "canceled",
             )
         else:
@@ -444,7 +482,7 @@ async def stripe_webhook(request: Request):
                 email=email,
                 plan=plan,
                 stripe_customer_id=data_object.get("customer"),
-                stripe_subscription_id=data_object.get("id"),
+                stripe_subscription_id=subscription_id,
                 subscription_status=status,
             )
 
