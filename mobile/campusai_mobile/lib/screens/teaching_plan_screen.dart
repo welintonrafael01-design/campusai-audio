@@ -24,6 +24,8 @@ class TeachingPlanScreen extends StatefulWidget {
 
 class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
   Map<String, dynamic> plan = {};
+  bool isExportingPdf = false;
+  bool isExportingDocx = false;
 
   @override
   void initState() {
@@ -167,17 +169,37 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
   }
 
   Future<void> exportPdf() async {
-    await ExportService.exportTeachingPlanToPdf(
-      title: title,
-      plan: plan,
-    );
+    if (isExportingPdf) return;
+
+    setState(() => isExportingPdf = true);
+
+    try {
+      await ExportService.exportTeachingPlanToPdf(
+        title: title,
+        plan: plan,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => isExportingPdf = false);
+      }
+    }
   }
 
   Future<void> exportDocx() async {
-    await ExportService.exportTextToDocx(
-      title: title,
-      content: exportableContent(),
-    );
+    if (isExportingDocx) return;
+
+    setState(() => isExportingDocx = true);
+
+    try {
+      await ExportService.exportTextToDocx(
+        title: title,
+        content: exportableContent(),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => isExportingDocx = false);
+      }
+    }
   }
 
   @override
@@ -192,13 +214,25 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
         actions: [
           IconButton(
             tooltip: 'Exportar PDF',
-            onPressed: plan.isEmpty ? null : exportPdf,
-            icon: const Icon(Icons.picture_as_pdf_rounded),
+            onPressed: plan.isEmpty || isExportingPdf ? null : exportPdf,
+            icon: isExportingPdf
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.picture_as_pdf_rounded),
           ),
           IconButton(
             tooltip: 'Exportar Word',
-            onPressed: plan.isEmpty ? null : exportDocx,
-            icon: const Icon(Icons.description_rounded),
+            onPressed: plan.isEmpty || isExportingDocx ? null : exportDocx,
+            icon: isExportingDocx
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.description_rounded),
           ),
         ],
       ),
@@ -243,14 +277,26 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
                   runSpacing: 10,
                   children: [
                     FilledButton.icon(
-                      onPressed: plan.isEmpty ? null : exportDocx,
-                      icon: const Icon(Icons.description_rounded),
-                      label: const Text('Exportar Word'),
+                      onPressed: plan.isEmpty || isExportingDocx ? null : exportDocx,
+                      icon: isExportingDocx
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.description_rounded),
+                      label: Text(isExportingDocx ? 'Exportando Word...' : 'Exportar Word'),
                     ),
                     OutlinedButton.icon(
-                      onPressed: plan.isEmpty ? null : exportPdf,
-                      icon: const Icon(Icons.picture_as_pdf_rounded),
-                      label: const Text('Exportar PDF'),
+                      onPressed: plan.isEmpty || isExportingPdf ? null : exportPdf,
+                      icon: isExportingPdf
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.picture_as_pdf_rounded),
+                      label: Text(isExportingPdf ? 'Generando PDF...' : 'Exportar PDF'),
                     ),
                     OutlinedButton.icon(
                       onPressed: () => context.goNamed('dashboard'),

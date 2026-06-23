@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../services/attendance_service.dart';
+import '../services/academic_period_lock_service.dart';
 import '../services/course_service.dart';
 import '../services/api_service.dart';
 import '../services/student_roster_service.dart';
@@ -43,6 +44,30 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     final m = selectedDate.month.toString().padLeft(2, '0');
     final d = selectedDate.day.toString().padLeft(2, '0');
     return '$y-$m-$d';
+  }
+
+
+  Future<bool> ensurePeriodOpen() async {
+    final courseId = activeCourseId.trim();
+
+    if (courseId.isEmpty) return true;
+
+    final closed = await AcademicPeriodLockService.isClosed(courseId);
+
+    if (!closed) return true;
+
+    if (!mounted) return false;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'El período académico está cerrado. No se permiten cambios en asistencia.',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    return false;
   }
 
   Future<void> loadData() async {
@@ -161,6 +186,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       );
     }).toList();
 
+    if (!await ensurePeriodOpen()) return;
+
     await AttendanceService.saveEntriesForDate(
       date: dateKey,
       entries: entries,
@@ -183,6 +210,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   Future<void> importAttendanceCsv() async {
+    if (!await ensurePeriodOpen()) return;
+
     final count = await AttendanceService.importAttendanceCsvFromUser();
 
     await loadData();

@@ -1025,12 +1025,73 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return result;
   }
 
+
+  Future<bool> confirmRegenerateTeachingPlan() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Planificación existente'),
+          content: const Text(
+            'Ya existe una planificación docente guardada para este documento. '
+            'Puedes abrir la existente o generar una nueva.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Abrir existente'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Generar nueva'),
+            ),
+          ],
+        );
+      },
+    );
+
+    return result ?? false;
+  }
+
   Future<void> generateTeachingPlan() async {
     if (isGeneratingQuestionBank) return;
 
     if (!hasActiveDocument) {
       showNoActiveDocumentMessage();
       return;
+    }
+
+    final planId = '${documentId}_teaching_plan';
+
+    final existingPlan = await StudyResultService.getResult(
+      documentId: planId,
+      type: 'teaching_plan',
+    );
+
+    if (existingPlan != null) {
+      try {
+        final decoded = jsonDecode(existingPlan.content);
+        final existingMap = decoded is Map<String, dynamic>
+            ? decoded
+            : (decoded is Map ? Map<String, dynamic>.from(decoded) : null);
+
+        if (existingMap != null && existingMap.isNotEmpty) {
+          final shouldRegenerate = await confirmRegenerateTeachingPlan();
+
+          if (!shouldRegenerate) {
+            if (!mounted) return;
+
+            context.goNamed(
+              'teaching-plan',
+              pathParameters: {
+                'documentId': planId,
+              },
+              extra: existingMap,
+            );
+            return;
+          }
+        }
+      } catch (_) {}
     }
 
     final weeks = await pickTeachingPlanWeeks();
@@ -1079,7 +1140,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         throw Exception('La IA no devolvió una planificación válida.');
       }
 
-      final planId = '${documentId}_teaching_plan';
       final content = jsonEncode(plan);
 
       await StudyResultService.saveResult(
@@ -1134,6 +1194,208 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
 
+
+
+  Future<bool> confirmRegenerateRubric() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Rúbrica existente'),
+          content: const Text(
+            'Ya existe una rúbrica guardada para este documento. '
+            'Puedes abrir la existente o generar una nueva.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Abrir existente'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Generar nueva'),
+            ),
+          ],
+        );
+      },
+    );
+
+    return result ?? false;
+  }
+
+  Future<Map<String, dynamic>?> pickRubricOptions() async {
+    String rubricType = 'Analítica';
+    int totalPoints = 100;
+    int criteriaCount = 5;
+    int performanceLevels = 4;
+
+    final customTypeController = TextEditingController();
+    final customPointsController = TextEditingController();
+
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Configurar rúbrica inteligente'),
+              content: SingleChildScrollView(
+                child: SizedBox(
+                  width: 520,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Tipo de rúbrica',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          'Analítica',
+                          'Holística',
+                          'Lista de cotejo',
+                          'Escala estimativa',
+                          'Proyecto',
+                          'Ensayo',
+                          'Exposición oral',
+                          'Investigación',
+                          'Personalizada',
+                        ].map((item) {
+                          return ChoiceChip(
+                            label: Text(item),
+                            selected: rubricType == item,
+                            onSelected: (_) {
+                              setDialogState(() => rubricType = item);
+                            },
+                          );
+                        }).toList(),
+                      ),
+                      if (rubricType == 'Personalizada') ...[
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: customTypeController,
+                          decoration: const InputDecoration(
+                            labelText: 'Describe el tipo de rúbrica',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Puntaje total',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [25, 50, 75, 100, 150, 200].map((points) {
+                          return ChoiceChip(
+                            label: Text('$points puntos'),
+                            selected: totalPoints == points,
+                            onSelected: (_) {
+                              setDialogState(() {
+                                totalPoints = points;
+                                customPointsController.clear();
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: customPointsController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Puntaje personalizado',
+                          hintText: 'Ej.: 120',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (value) {
+                          final custom = int.tryParse(value.trim());
+                          if (custom != null && custom > 0) {
+                            setDialogState(() => totalPoints = custom);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Cantidad de criterios',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [3, 4, 5, 6, 8, 10].map((count) {
+                          return ChoiceChip(
+                            label: Text('$count criterios'),
+                            selected: criteriaCount == count,
+                            onSelected: (_) {
+                              setDialogState(() => criteriaCount = count);
+                            },
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Niveles de desempeño',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [3, 4, 5, 6].map((levels) {
+                          return ChoiceChip(
+                            label: Text('$levels niveles'),
+                            selected: performanceLevels == levels,
+                            onSelected: (_) {
+                              setDialogState(() => performanceLevels = levels);
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    final cleanType = rubricType == 'Personalizada'
+                        ? customTypeController.text.trim()
+                        : rubricType;
+
+                    Navigator.of(dialogContext).pop({
+                      'rubricType': cleanType.isEmpty ? 'Analítica' : cleanType,
+                      'totalPoints': totalPoints.clamp(10, 200),
+                      'criteriaCount': criteriaCount.clamp(3, 10),
+                      'performanceLevels': performanceLevels.clamp(3, 6),
+                    });
+                  },
+                  child: const Text('Generar rúbrica'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    customTypeController.dispose();
+    customPointsController.dispose();
+
+    return result;
+  }
+
   Future<void> generateRubric() async {
     if (isGeneratingQuestionBank) return;
 
@@ -1141,6 +1403,43 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       showNoActiveDocumentMessage();
       return;
     }
+
+    final rubricId = '${documentId}_rubric';
+
+    final existingRubric = await StudyResultService.getResult(
+      documentId: rubricId,
+      type: 'rubric',
+    );
+
+    if (existingRubric != null) {
+      try {
+        final decoded = jsonDecode(existingRubric.content);
+        final existingMap = decoded is Map<String, dynamic>
+            ? decoded
+            : (decoded is Map ? Map<String, dynamic>.from(decoded) : null);
+
+        if (existingMap != null && existingMap.isNotEmpty) {
+          final shouldRegenerate = await confirmRegenerateRubric();
+
+          if (!shouldRegenerate) {
+            if (!mounted) return;
+
+            context.goNamed(
+              'rubric',
+              pathParameters: {
+                'documentId': rubricId,
+              },
+              extra: existingMap,
+            );
+            return;
+          }
+        }
+      } catch (_) {}
+    }
+
+    final rubricOptions = await pickRubricOptions();
+
+    if (rubricOptions == null) return;
 
     setState(() => isGeneratingQuestionBank = true);
 
@@ -1172,7 +1471,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     try {
       final data = await ApiService.generateRubricByDocumentId(
         documentId: documentId,
-        totalPoints: 100,
+        totalPoints: rubricOptions['totalPoints'] as int,
+        rubricType: rubricOptions['rubricType'] as String,
+        criteriaCount: rubricOptions['criteriaCount'] as int,
+        performanceLevels: rubricOptions['performanceLevels'] as int,
       );
 
       final rawRubric = data['rubric'];
@@ -1184,7 +1486,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         throw Exception('La IA no devolvió una rúbrica válida.');
       }
 
-      final rubricId = '${documentId}_rubric';
       final content = jsonEncode(rubric);
 
       await StudyResultService.saveResult(

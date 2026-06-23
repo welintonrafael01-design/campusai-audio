@@ -1,0 +1,33 @@
+[
+  {
+    "certificate_id": "REC-2026-EC597E28",
+    "student_name": "Andreina Fermin Jimenez",
+    "student_code": "2155164",
+    "course_name": "Derecho Empresarial",
+    "average": "79.7%",
+    "period": "Medalla Oro",
+    "recognition_type": "gold_medal",
+    "issued_at": "2026-06-22T23:48:37.013785",
+    "status": "valid"
+  },
+  {
+    "certificate_id": "CERT-2026-9F8478EB",
+    "student_name": "Andreina Fermin Jimenez",
+    "student_code": "2155164",
+    "course_name": "DER850 - Derecho Empresarial - 016 - 2026-02",
+    "average": "79.7%",
+    "period": "",
+    "issued_at": "2026-06-22T15:14:29.463654",
+    "status": "valid"
+  },
+  {
+    "certificate_id": "CERT-2026-C6BC7DFB",
+    "student_name": "Andreina Fermin Jimenez",
+    "student_code": "2155164",
+    "course_name": "DER850 - Derecho Empresarial - 016 - 202602",
+    "average": "80.0%",
+    "period": "",
+    "issued_at": "2026-06-22T14:53:26.331116",
+    "status": "valid"
+  }
+]

@@ -1,7 +1,32 @@
 import 'attendance_service.dart';
+import 'course_service.dart';
 import 'assessment_weight_service.dart';
 import 'gradebook_service.dart';
 import 'student_roster_service.dart';
+
+class StudentRanking {
+  final int rank;
+  final int totalStudents;
+  final double percentile;
+  final String studentCode;
+  final String studentName;
+  final String courseId;
+  final String courseName;
+  final double average;
+  final double attendanceRate;
+
+  const StudentRanking({
+    required this.rank,
+    required this.totalStudents,
+    required this.percentile,
+    required this.studentCode,
+    required this.studentName,
+    required this.courseId,
+    required this.courseName,
+    required this.average,
+    required this.attendanceRate,
+  });
+}
 
 class StudentAcademicSummary {
   final String studentCode;
@@ -52,9 +77,8 @@ class StudentAcademicSummary {
       'evaluations': evaluations,
       'attended_classes': attendedClasses,
       'total_classes': totalClasses,
-      'status': !hasGrades
-          ? 'Sin evaluar'
-          : (approved ? 'Aprobado' : 'Reprobado'),
+      'status':
+          !hasGrades ? 'Sin evaluar' : (approved ? 'Aprobado' : 'Reprobado'),
     });
 
     return row;
@@ -62,7 +86,6 @@ class StudentAcademicSummary {
 }
 
 class AcademicAnalyticsService {
-
   static String _normalizeText(String value) {
     return value
         .toLowerCase()
@@ -146,9 +169,8 @@ class AcademicAnalyticsService {
     final summaries = <StudentAcademicSummary>[];
 
     for (final student in courseStudents) {
-      final studentCode = student.studentCode.isNotEmpty
-          ? student.studentCode
-          : student.id;
+      final studentCode =
+          student.studentCode.isNotEmpty ? student.studentCode : student.id;
 
       final studentGrades = grades.where((entry) {
         final sameCourse = _sameCourse(
@@ -218,9 +240,8 @@ class AcademicAnalyticsService {
 
       final hasAttendance = totalClasses > 0;
 
-      final attendanceRate = hasAttendance
-          ? (attendedClasses / totalClasses) * 100
-          : 0.0;
+      final attendanceRate =
+          hasAttendance ? (attendedClasses / totalClasses) * 100 : 0.0;
 
       final assessmentScores = <String, double>{};
 
@@ -231,8 +252,7 @@ class AcademicAnalyticsService {
             ? 'Evaluación'
             : grade.rubricTitle.trim();
 
-        assessmentScores[assessmentName] =
-            (grade.score / grade.maxScore) * 100;
+        assessmentScores[assessmentName] = (grade.score / grade.maxScore) * 100;
       }
 
       summaries.add(
@@ -257,5 +277,151 @@ class AcademicAnalyticsService {
     summaries.sort((a, b) => a.studentName.compareTo(b.studentName));
 
     return summaries;
+  }
+
+  static List<StudentRanking> rankSummaries(
+    List<StudentAcademicSummary> summaries,
+  ) {
+    final evaluated = summaries.where((item) => item.hasGrades).toList()
+      ..sort((a, b) {
+        final byAverage = b.average.compareTo(a.average);
+        if (byAverage != 0) return byAverage;
+
+        final byAttendance = b.attendanceRate.compareTo(a.attendanceRate);
+        if (byAttendance != 0) return byAttendance;
+
+        return a.studentName.compareTo(b.studentName);
+      });
+
+    final total = evaluated.length;
+
+    return evaluated.asMap().entries.map((entry) {
+      final rank = entry.key + 1;
+      final summary = entry.value;
+      final percentile =
+          total <= 1 ? 100.0 : ((total - rank) / (total - 1)) * 100;
+
+      return StudentRanking(
+        rank: rank,
+        totalStudents: total,
+        percentile: percentile,
+        studentCode: summary.studentCode,
+        studentName: summary.studentName,
+        courseId: summary.courseId,
+        courseName: summary.courseName,
+        average: summary.average,
+        attendanceRate: summary.attendanceRate,
+      );
+    }).toList();
+  }
+
+  static Future<List<StudentRanking>> buildCourseRanking({
+    required String courseId,
+    required String courseName,
+    double passingScore = 70,
+  }) async {
+    final summaries = await buildFinalReport(
+      courseId: courseId,
+      courseName: courseName,
+      passingScore: passingScore,
+    );
+
+    return rankSummaries(summaries);
+  }
+
+  static Future<StudentRanking?> getStudentRanking({
+    required String courseId,
+    required String courseName,
+    required String studentCode,
+    required String studentName,
+  }) async {
+    final ranking = await buildCourseRanking(
+      courseId: courseId,
+      courseName: courseName,
+    );
+
+    final cleanCode = studentCode.toLowerCase().trim();
+    final cleanName = _normalizeText(studentName);
+
+    for (final item in ranking) {
+      final sameCode = cleanCode.isNotEmpty &&
+          item.studentCode.toLowerCase().trim() == cleanCode;
+      final sameName = _normalizeText(item.studentName) == cleanName;
+
+      if (sameCode || sameName) return item;
+    }
+
+    return null;
+  }
+
+  static Future<List<StudentRanking>> getTopStudents({
+    required String courseId,
+    required String courseName,
+    int limit = 10,
+  }) async {
+    final ranking = await buildCourseRanking(
+      courseId: courseId,
+      courseName: courseName,
+    );
+
+    return ranking.take(limit).toList();
+  }
+
+  static Future<List<StudentRanking>> getBottomStudents({
+    required String courseId,
+    required String courseName,
+    int limit = 10,
+  }) async {
+    final ranking = await buildCourseRanking(
+      courseId: courseId,
+      courseName: courseName,
+    );
+
+    return ranking.reversed.take(limit).toList();
+  }
+
+  static Future<List<StudentRanking>> buildGlobalRanking({
+    double passingScore = 70,
+  }) async {
+    final courses = await CourseService.getCourses();
+    final allSummaries = <StudentAcademicSummary>[];
+
+    for (final course in courses) {
+      final report = await buildFinalReport(
+        courseId: course.id,
+        courseName: course.name,
+        passingScore: passingScore,
+      );
+
+      allSummaries.addAll(report.where((item) => item.hasGrades));
+    }
+
+    return rankSummaries(allSummaries);
+  }
+
+  static Future<List<StudentRanking>> getGlobalTopStudents({
+    int limit = 100,
+  }) async {
+    final ranking = await buildGlobalRanking();
+    return ranking.take(limit).toList();
+  }
+
+  static Future<List<StudentRanking>> getGlobalBottomStudents({
+    int limit = 100,
+  }) async {
+    final ranking = await buildGlobalRanking();
+    return ranking.reversed.take(limit).toList();
+  }
+
+  static Future<List<StudentRanking>> getGlobalHonorBoard({
+    int limit = 10,
+    double minimumAverage = 85,
+  }) async {
+    final ranking = await buildGlobalRanking();
+
+    return ranking
+        .where((item) => item.average >= minimumAverage)
+        .take(limit)
+        .toList();
   }
 }

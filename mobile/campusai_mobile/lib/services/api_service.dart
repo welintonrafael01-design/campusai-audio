@@ -286,6 +286,11 @@ class ApiService {
   static Future<Map<String, dynamic>> generateExamByDocumentId({
     required String documentId,
     int numberOfQuestions = 10,
+    String examType = 'Selección múltiple',
+    String difficulty = 'Intermedio',
+    int totalPoints = 100,
+    String examTopic = '',
+    String examObjective = '',
   }) async {
     final cleanDocumentId = requireValue(
       documentId,
@@ -299,6 +304,11 @@ class ApiService {
     ).replace(
       queryParameters: {
         'number_of_questions': numberOfQuestions.toString(),
+        'exam_type': examType,
+        'difficulty': difficulty,
+        'total_points': totalPoints.toString(),
+        'exam_topic': examTopic,
+        'exam_objective': examObjective,
         'language': language,
       },
     );
@@ -617,6 +627,9 @@ class ApiService {
   static Future<Map<String, dynamic>> generateRubricByDocumentId({
     required String documentId,
     int totalPoints = 100,
+    String rubricType = 'Analítica',
+    int criteriaCount = 5,
+    int performanceLevels = 4,
   }) async {
     final cleanDocumentId = requireValue(
       documentId,
@@ -629,7 +642,9 @@ class ApiService {
       '$baseUrl/documents/rubric/$cleanDocumentId',
     ).replace(
       queryParameters: {
-        'total_points': totalPoints.toString(),
+        'rubric_type': rubricType,
+        'criteria_count': criteriaCount.toString(),
+        'performance_levels': performanceLevels.toString(),
         'language': language,
       },
     );

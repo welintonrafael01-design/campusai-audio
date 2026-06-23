@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../services/gradebook_service.dart';
+import '../services/academic_period_lock_service.dart';
+import '../services/student_roster_service.dart';
 import '../services/api_service.dart';
 import '../services/course_service.dart';
 import '../services/assessment_weight_service.dart';
@@ -27,10 +29,82 @@ class _GradebookScreenState extends State<GradebookScreen> {
     loadEntries();
   }
 
+
+  Future<bool> ensurePeriodOpen() async {
+    final courseId = activeCourseId.trim();
+
+    if (courseId.isEmpty) return true;
+
+    final closed = await AcademicPeriodLockService.isClosed(courseId);
+
+    if (!closed) return true;
+
+    if (!mounted) return false;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'El período académico está cerrado. No se permiten cambios en calificaciones.',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    return false;
+  }
+
   Future<void> loadEntries() async {
     final data = await GradebookService.getEntries();
 
-    final loadedCourses = await CourseService.getCourses();
+    var loadedCourses = await CourseService.getCourses();
+
+    if (loadedCourses.isEmpty) {
+      final students = await StudentRosterService.getStudents();
+      final recovered = <CourseRecord>[];
+
+      for (final student in students) {
+        final courseName = student.course.trim();
+        if (courseName.isEmpty) continue;
+
+        final courseId = student.courseId.trim().isNotEmpty
+            ? student.courseId.trim()
+            : CourseService.buildId(courseName);
+
+        if (recovered.any((item) => item.id == courseId)) continue;
+
+        recovered.add(
+          CourseRecord(
+            id: courseId,
+            name: courseName,
+          ),
+        );
+      }
+
+      for (final entry in data) {
+        final courseName = entry.course.trim();
+        if (courseName.isEmpty) continue;
+
+        final courseId = entry.courseId.trim().isNotEmpty
+            ? entry.courseId.trim()
+            : CourseService.buildId(courseName);
+
+        if (recovered.any((item) => item.id == courseId)) continue;
+
+        recovered.add(
+          CourseRecord(
+            id: courseId,
+            name: courseName,
+          ),
+        );
+      }
+
+      if (recovered.isNotEmpty) {
+        await CourseService.saveCourses(recovered);
+        await CourseService.setActiveCourse(recovered.first.id);
+        loadedCourses = recovered;
+      }
+    }
+
     final storedActiveCourseId = await CourseService.getActiveCourseId();
 
     final resolvedActiveCourseId = storedActiveCourseId.isNotEmpty
@@ -170,6 +244,7 @@ class _GradebookScreenState extends State<GradebookScreen> {
         }
 
         for (final entry in currentEntries) {
+          if (!await ensurePeriodOpen()) return;
           await GradebookService.saveEntry(entry);
         }
       }
@@ -284,6 +359,7 @@ class _GradebookScreenState extends State<GradebookScreen> {
         }
 
         for (final entry in entries) {
+          if (!await ensurePeriodOpen()) return;
           await GradebookService.saveEntry(entry);
         }
       }
@@ -326,6 +402,8 @@ class _GradebookScreenState extends State<GradebookScreen> {
 
     if (activeCourse == null) return;
 
+    if (!await ensurePeriodOpen()) return;
+
     final count = await GradebookService.importGradesCsvFromUser(
       courseId: activeCourse.id,
       courseName: activeCourse.name,
@@ -348,9 +426,75 @@ class _GradebookScreenState extends State<GradebookScreen> {
   }
 
   Future<void> deleteEntry(GradebookEntry entry) async {
+    if (!await ensurePeriodOpen()) return;
+
     await GradebookService.deleteEntry(entry.id);
     await loadEntries();
   }
+
+
+
+
+  List<String> get assessmentColumns {
+    final names = <String>{};
+
+    for (final entry in entries) {
+      final clean = entry.rubricTitle.trim();
+      if (clean.isNotEmpty) {
+        names.add(clean);
+      }
+    }
+
+    final ordered = names.toList()..sort();
+    return ordered;
+  }
+
+  List<_StudentGradeRow> get gradeRows {
+    final grouped = <String, List<GradebookEntry>>{};
+
+    for (final entry in entries) {
+      final key = entry.studentCode.trim().isNotEmpty
+          ? entry.studentCode.trim()
+          : entry.studentName.trim().toLowerCase();
+
+      grouped.putIfAbsent(key, () => []);
+      grouped[key]!.add(entry);
+    }
+
+    final rows = <_StudentGradeRow>[];
+
+    for (final item in grouped.entries) {
+      final data = item.value;
+      if (data.isEmpty) continue;
+
+      final first = data.first;
+      final scores = <String, double>{};
+      final maxScores = <String, double>{};
+
+      for (final entry in data) {
+        final assessment = entry.rubricTitle.trim().isEmpty
+            ? 'Evaluación'
+            : entry.rubricTitle.trim();
+
+        scores[assessment] = entry.score;
+        maxScores[assessment] = entry.maxScore;
+      }
+
+      rows.add(
+        _StudentGradeRow(
+          studentKey: item.key,
+          studentName: first.studentName,
+          studentCode: first.studentCode,
+          scores: scores,
+          maxScores: maxScores,
+        ),
+      );
+    }
+
+    rows.sort((a, b) => a.studentName.compareTo(b.studentName));
+    return rows;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -485,7 +629,21 @@ class _GradebookScreenState extends State<GradebookScreen> {
                 style: TextStyle(color: AppTheme.textMuted),
               ),
             )
-          else
+          else ...[
+            _GradebookTable(
+              rows: gradeRows,
+              assessments: assessmentColumns,
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Detalle de evaluaciones',
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 12),
             ...entries.map(
               (entry) => Padding(
                 padding: const EdgeInsets.only(bottom: 14),
@@ -495,9 +653,45 @@ class _GradebookScreenState extends State<GradebookScreen> {
                 ),
               ),
             ),
+          ],
         ],
       ),
     );
+  }
+}
+
+
+class _StudentGradeRow {
+  final String studentKey;
+  final String studentName;
+  final String studentCode;
+  final Map<String, double> scores;
+  final Map<String, double> maxScores;
+
+  const _StudentGradeRow({
+    required this.studentKey,
+    required this.studentName,
+    required this.studentCode,
+    required this.scores,
+    required this.maxScores,
+  });
+
+  double percentageFor(String assessment) {
+    final score = scores[assessment] ?? 0;
+    final max = maxScores[assessment] ?? 0;
+    if (max <= 0) return 0;
+    return (score / max) * 100;
+  }
+
+  double get average {
+    final values = scores.keys
+        .map(percentageFor)
+        .where((value) => value > 0)
+        .toList();
+
+    if (values.isEmpty) return 0;
+
+    return values.reduce((a, b) => a + b) / values.length;
   }
 }
 
@@ -517,6 +711,114 @@ class _MetricChip extends StatelessWidget {
     return Chip(
       avatar: Icon(icon, size: 18),
       label: Text('$label: $value'),
+    );
+  }
+}
+
+
+class _GradebookTable extends StatelessWidget {
+  final List<_StudentGradeRow> rows;
+  final List<String> assessments;
+
+  const _GradebookTable({
+    required this.rows,
+    required this.assessments,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Vista académica consolidada',
+            style: TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 21,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Calificaciones agrupadas por estudiante y evaluación.',
+            style: TextStyle(color: AppTheme.textMuted),
+          ),
+          const SizedBox(height: 16),
+          if (rows.isEmpty || assessments.isEmpty)
+            const Text(
+              'No hay datos suficientes para construir la tabla.',
+              style: TextStyle(color: AppTheme.textMuted),
+            )
+          else
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                headingRowHeight: 44,
+                dataRowMinHeight: 46,
+                dataRowMaxHeight: 56,
+                columns: [
+                  const DataColumn(label: Text('Matrícula')),
+                  const DataColumn(label: Text('Estudiante')),
+                  ...assessments.map(
+                    (assessment) => DataColumn(
+                      label: SizedBox(
+                        width: 110,
+                        child: Text(
+                          assessment,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const DataColumn(label: Text('Promedio')),
+                  const DataColumn(label: Text('Estado')),
+                ],
+                rows: rows.map((row) {
+                  final average = row.average;
+                  final approved = average >= 70;
+
+                  return DataRow(
+                    cells: [
+                      DataCell(Text(row.studentCode.isEmpty ? '-' : row.studentCode)),
+                      DataCell(
+                        SizedBox(
+                          width: 180,
+                          child: Text(
+                            row.studentName,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                      ...assessments.map(
+                        (assessment) {
+                          final hasScore = row.scores.containsKey(assessment);
+                          final value = hasScore
+                              ? '${row.percentageFor(assessment).toStringAsFixed(1)}%'
+                              : '-';
+
+                          return DataCell(Text(value));
+                        },
+                      ),
+                      DataCell(
+                        Text(
+                          '${average.toStringAsFixed(1)}%',
+                          style: const TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                      ),
+                      DataCell(
+                        Chip(
+                          label: Text(approved ? 'Aprobado' : 'Riesgo'),
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

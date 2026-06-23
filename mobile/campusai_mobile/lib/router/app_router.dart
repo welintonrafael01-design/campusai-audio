@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../screens/chat_screen.dart';
 import '../screens/auth_screen.dart';
 import '../screens/dashboard_screen.dart';
+import '../screens/certificate_verify_screen.dart';
 import '../screens/exam_screen.dart';
 import '../screens/flashcards_screen.dart';
 import '../screens/settings_screen.dart';
@@ -16,7 +17,9 @@ import '../screens/gradebook_screen.dart';
 import '../screens/attendance_screen.dart';
 import '../screens/final_report_screen.dart';
 import '../screens/academic_dashboard_screen.dart';
+import '../screens/academic_recognition_screen.dart';
 import '../screens/student_profile_screen.dart';
+import '../screens/student_transcript_screen.dart';
 import '../screens/assessment_weights_screen.dart';
 import '../screens/courses_screen.dart';
 import '../screens/students_screen.dart';
@@ -27,6 +30,27 @@ final appRouter = GoRouter(
   initialLocation: '/auth',
   routes: [
     GoRoute(
+      path: '/student-transcript',
+      name: 'student-transcript',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>? ?? {};
+
+        return StudentTranscriptScreen(
+          studentCode: extra['studentCode']?.toString() ?? '',
+          studentName: extra['studentName']?.toString() ?? '',
+        );
+      },
+    ),
+    GoRoute(
+      path: '/verify/:certificateId',
+      name: 'certificate-verify',
+      builder: (context, state) {
+        return CertificateVerifyScreen(
+          certificateId: state.pathParameters['certificateId'] ?? '',
+        );
+      },
+    ),
+    GoRoute(
       path: '/auth',
       name: 'auth',
       pageBuilder: (context, state) {
@@ -36,7 +60,6 @@ final appRouter = GoRouter(
         );
       },
     ),
-
     GoRoute(
       path: '/reset-password',
       name: 'reset-password',
@@ -239,6 +262,16 @@ final appRouter = GoRouter(
             courseId: params['courseId']?.toString() ?? '',
             courseName: params['courseName']?.toString() ?? '',
           ),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/academic-recognition',
+      name: 'academic-recognition',
+      pageBuilder: (context, state) {
+        return _buildPage(
+          state: state,
+          child: const AcademicRecognitionScreen(),
         );
       },
     ),

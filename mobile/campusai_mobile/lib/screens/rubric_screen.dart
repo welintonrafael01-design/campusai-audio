@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../services/export_service.dart';
 import '../services/gradebook_service.dart';
+import '../services/academic_period_lock_service.dart';
 import '../services/student_roster_service.dart';
 import '../services/study_result_service.dart';
 import '../theme/app_theme.dart';
@@ -254,9 +255,28 @@ class _RubricScreenState extends State<RubricScreen> {
   }
 
   Future<void> exportPdf() async {
-    await ExportService.exportTextToPdf(
+    final observationMap = <String, dynamic>{};
+
+    for (final entry in observationControllers.entries) {
+      observationMap[entry.key.toString()] = entry.value.text.trim();
+    }
+
+    await ExportService.exportRubricToPdf(
       title: 'Rúbrica Evaluada',
-      content: exportableContent(),
+      rubric: rubric,
+      student: selectedStudent == null
+          ? {}
+          : {
+              'id': selectedStudent!.id,
+              'name': selectedStudent!.name,
+              'studentCode': selectedStudent!.studentCode,
+              'course': selectedStudent!.course,
+              'email': selectedStudent!.email,
+            },
+      scores: scores.map(
+        (key, value) => MapEntry(key.toString(), value),
+      ),
+      observations: observationMap,
     );
   }
 
@@ -272,6 +292,24 @@ class _RubricScreenState extends State<RubricScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Selecciona un estudiante antes de guardar.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final courseId = selectedStudent?.courseId ?? '';
+
+    final closed = await AcademicPeriodLockService.isClosed(courseId);
+
+    if (closed) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'No se puede guardar la evaluación porque el período académico está cerrado.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );

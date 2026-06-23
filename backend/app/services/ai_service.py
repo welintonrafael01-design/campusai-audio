@@ -400,23 +400,98 @@ def generate_flashcards(
     return content
 
 
+
 def generate_exam_questions_from_context(
     context: str,
     number_of_questions: int = 5,
     language: str = "es",
+    exam_type: str = "Selección múltiple",
+    difficulty: str = "Intermedio",
+    total_points: int = 100,
+    exam_topic: str = "",
+    exam_objective: str = "",
 ) -> str:
     document_text = truncate_text(context)
     language_instruction = build_language_instruction(language)
 
     if not document_text:
-        raise ValueError(
-            "No hay contexto válido para generar preguntas."
-        )
+        raise ValueError("No hay contexto válido para generar preguntas.")
 
-    safe_number = max(
-        1,
-        min(number_of_questions, 20),
-    )
+    safe_number = max(1, min(number_of_questions, 20))
+    clean_type = (exam_type or "Selección múltiple").strip().lower()
+
+    if "verdadero" in clean_type or "falso" in clean_type:
+        format_rule = """
+TIPO OBLIGATORIO: Verdadero/Falso.
+Todas las preguntas deben tener:
+- question_type: "Verdadero/Falso"
+- options: {"A": "Verdadero", "B": "Falso"}
+- correct_answer: "A" o "B"
+NO uses opciones C ni D.
+"""
+    elif "mixto" in clean_type:
+        format_rule = """
+TIPO OBLIGATORIO: Mixto real.
+Distribuye las preguntas entre varios tipos:
+- Selección múltiple
+- Verdadero/Falso
+- Completar espacios
+- Pregunta abierta
+- Análisis de caso
+No generes todas del mismo tipo.
+"""
+    elif "abierta" in clean_type:
+        format_rule = """
+TIPO OBLIGATORIO: Preguntas abiertas.
+Todas las preguntas deben tener:
+- question_type: "Pregunta abierta"
+- options: {}
+- correct_answer: respuesta modelo o criterios mínimos.
+NO uses selección múltiple.
+"""
+    elif "caso" in clean_type or "análisis" in clean_type or "analisis" in clean_type:
+        format_rule = """
+TIPO OBLIGATORIO: Análisis de caso.
+Todas las preguntas deben presentar un caso o situación aplicada.
+Deben tener:
+- question_type: "Análisis de caso"
+- options: {}
+- correct_answer: criterios de evaluación o respuesta modelo.
+NO uses selección múltiple.
+"""
+    elif "ensayo" in clean_type:
+        format_rule = """
+TIPO OBLIGATORIO: Ensayo corto.
+Todas las preguntas deben tener:
+- question_type: "Ensayo corto"
+- options: {}
+- correct_answer: criterios de evaluación.
+NO uses selección múltiple.
+"""
+    elif "completar" in clean_type:
+        format_rule = """
+TIPO OBLIGATORIO: Completar espacios.
+Todas las preguntas deben tener:
+- question_type: "Completar espacios"
+- options: {}
+- correct_answer: término o frase correcta.
+"""
+    elif "relacionar" in clean_type:
+        format_rule = """
+TIPO OBLIGATORIO: Relacionar columnas.
+Todas las preguntas deben tener:
+- question_type: "Relacionar columnas"
+- options: objeto con columnas o pares.
+- correct_answer: relaciones correctas.
+"""
+    else:
+        format_rule = """
+TIPO OBLIGATORIO: Selección múltiple.
+Todas las preguntas deben tener:
+- question_type: "Selección múltiple"
+- options: {"A": "...", "B": "...", "C": "...", "D": "..."}
+- correct_answer: "A", "B", "C" o "D"
+"""
 
     response = client.chat.completions.create(
         model=MODEL_NAME,
@@ -424,52 +499,46 @@ def generate_exam_questions_from_context(
             {
                 "role": "system",
                 "content": (
-                    "Eres StudyBook AI, profesor universitario experto. "
-                    "Genera EXCLUSIVAMENTE preguntas de selección múltiple. "
+                    "Eres StudyBook AI, profesor universitario experto en evaluación académica. "
+                    "Diseña exámenes claros, válidos y alineados al programa de clase. "
+                    "Respeta estrictamente el tipo de examen solicitado. "
                     f"{language_instruction}"
                 ),
             },
             {
                 "role": "user",
                 "content": (
-                    f"Contexto:\n\n{document_text}\n\n"
-                    f"Genera {safe_number} preguntas.\n\n"
-
-                    "IMPORTANTE: conserva las claves JSON en inglés exactamente como se indican, pero redacta los valores visibles para estudiantes en el idioma solicitado."
-                    "Devuelve EXCLUSIVAMENTE JSON válido.\n\n"
-
+                    f"Contexto del programa:\n\n{document_text}\n\n"
+                    f"Cantidad de preguntas: {safe_number}\n"
+                    f"Tipo solicitado: {exam_type}\n"
+                    f"Dificultad: {difficulty}\n"
+                    f"Valor total: {total_points} puntos\n"
+                    f"Tema específico: {exam_topic or 'No especificado'}\n"
+                    f"Objetivo de evaluación: {exam_objective or 'No especificado'}\n\n"
+                    f"{format_rule}\n\n"
+                    "Si hay tema u objetivo específico, enfoca el examen exclusivamente en eso, "
+                    "sin salirte del documento base.\n\n"
+                    "Devuelve EXCLUSIVAMENTE JSON válido con esta estructura:\n"
                     "{\n"
                     '  "questions": [\n'
                     "    {\n"
+                    '      "question_type": "...",\n'
                     '      "question": "...",\n'
-                    '      "options": {\n'
-                    '        "A": "...",\n'
-                    '        "B": "...",\n'
-                    '        "C": "...",\n'
-                    '        "D": "..."\n'
-                    "      },\n"
-                    '      "correct_answer": "A",\n'
-                    '      "explanation": "..."\n'
+                    '      "options": {},\n'
+                    '      "correct_answer": "...",\n'
+                    '      "explanation": "...",\n'
+                    '      "topic": "...",\n'
+                    '      "difficulty": "..."\n'
                     "    }\n"
                     "  ]\n"
-                    "}\n\n"
-
-                    "TODAS las preguntas deben tener "
-                    "A, B, C y D."
+                    "}\n"
                 ),
             },
         ],
-        temperature=0.3,
+        temperature=0.25,
     )
 
-    content = (
-        response.choices[0]
-        .message
-        .content
-        .strip()
-    )
-
-    return content
+    return response.choices[0].message.content.strip()
 
 
 def generate_flashcards_from_context(
@@ -710,6 +779,9 @@ def generate_academic_rubric_from_context(
     context: str,
     language: str = "es",
     total_points: int = 100,
+    rubric_type: str = "Analítica",
+    criteria_count: int = 5,
+    performance_levels: int = 4,
 ) -> str:
     document_text = truncate_text(context)
     language_instruction = build_language_instruction(language)
@@ -734,7 +806,7 @@ def generate_academic_rubric_from_context(
                 "role": "user",
                 "content": (
                     f"Contexto del documento:\n\n{document_text}\n\n"
-                    f"Genera una rúbrica académica con total de {safe_points} puntos.\n\n"
+                    f"Genera una rúbrica académica de tipo {rubric_type}, con {criteria_count} criterios, {performance_levels} niveles de desempeño y total de {safe_points} puntos.\n\n"
                     "IMPORTANTE: conserva las claves JSON en inglés exactamente como se indican, "
                     "pero redacta los valores visibles en el idioma solicitado. "
                     "Devuelve EXCLUSIVAMENTE JSON válido.\n\n"
@@ -781,6 +853,57 @@ def generate_academic_rubric_from_context(
         )
 
     return content
+
+
+
+
+def parse_grades_from_text(
+    text: str,
+    language: str = "es",
+) -> str:
+    document_text = truncate_text(text, max_chars=18000)
+    language_instruction = build_language_instruction(language)
+
+    if not document_text:
+        raise ValueError("No hay texto válido para extraer calificaciones.")
+
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Eres StudyBook AI, especialista en análisis académico. "
+                    "Extrae calificaciones de textos, tablas pegadas, reportes o actas. "
+                    "Devuelve exclusivamente JSON válido. "
+                    f"{language_instruction}"
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Texto fuente:\n\n{document_text}\n\n"
+                    "Extrae las calificaciones encontradas y devuelve JSON válido con esta estructura:\n"
+                    "{\n"
+                    '  "grades": [\n'
+                    "    {\n"
+                    '      "student_code": "...",\n'
+                    '      "student_name": "...",\n'
+                    '      "assessment": "...",\n'
+                    '      "score": 0,\n'
+                    '      "max_score": 100,\n'
+                    '      "course": "...",\n'
+                    '      "notes": "..."\n'
+                    "    }\n"
+                    "  ]\n"
+                    "}\n"
+                ),
+            },
+        ],
+        temperature=0.1,
+    )
+
+    return response.choices[0].message.content.strip()
 
 
 def generate_teaching_plan_from_context(
@@ -924,75 +1047,6 @@ def parse_students_from_text(
         return json.dumps(
             {
                 "students": [],
-                "error": "La IA no devolvió JSON válido.",
-                "raw_response": content,
-            },
-            ensure_ascii=False,
-        )
-
-    return content
-
-
-def parse_grades_from_text(
-    text: str,
-    language: str = "es",
-) -> str:
-    document_text = truncate_text(text)
-    language_instruction = build_language_instruction(language)
-
-    if not document_text:
-        raise ValueError("No hay texto válido para importar calificaciones.")
-
-    response = client.chat.completions.create(
-        model=MODEL_NAME,
-        messages=[
-            {
-                "role": "system",
-                "content": (
-                    "Eres StudyBook AI, experto en extraer calificaciones académicas "
-                    "desde actas, reportes institucionales, tablas y listados PDF. "
-                    f"{language_instruction}"
-                ),
-            },
-            {
-                "role": "user",
-                "content": (
-                    f"Texto extraído del PDF:\n\n{document_text}\n\n"
-                    "Extrae las calificaciones encontradas. "
-                    "Devuelve EXCLUSIVAMENTE JSON válido con esta estructura exacta:\n\n"
-                    "{\n"
-                    '  "grades": [\n'
-                    "    {\n"
-                    '      "student_code": "...",\n'
-                    '      "student_name": "...",\n'
-                    '      "score": 0,\n'
-                    '      "max_score": 100,\n'
-                    '      "assessment": "..."\n'
-                    "    }\n"
-                    "  ]\n"
-                    "}\n\n"
-                    "Reglas:\n"
-                    "- Si hay varias columnas de notas, crea una entrada por estudiante y por columna.\n"
-                    "- Ejemplo: Parcial 1, Parcial 2, Final, Promedio deben salir como evaluaciones separadas.\n"
-                    "- Si no hay max_score, usa 100.\n"
-                    "- No inventes notas.\n"
-                    "- No incluyas docentes, encabezados ni totales.\n"
-                    "- Mantén student_code si aparece matrícula/código.\n"
-                    "- Si no hay student_code, usa cadena vacía."
-                ),
-            },
-        ],
-        temperature=0.1,
-    )
-
-    content = response.choices[0].message.content.strip()
-
-    try:
-        json.loads(content)
-    except json.JSONDecodeError:
-        return json.dumps(
-            {
-                "grades": [],
                 "error": "La IA no devolvió JSON válido.",
                 "raw_response": content,
             },

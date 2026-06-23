@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../services/attendance_service.dart';
 import '../services/assessment_weight_service.dart';
+import '../services/academic_analytics_service.dart';
 import '../services/gradebook_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
@@ -29,6 +30,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
   List<GradebookEntry> grades = [];
   List<AttendanceEntry> attendance = [];
   List<AssessmentWeight> weights = [];
+  StudentRanking? ranking;
 
   @override
   void initState() {
@@ -41,6 +43,12 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
     final allAttendance = await AttendanceService.getEntries();
     final courseWeights =
         await AssessmentWeightService.getWeights(widget.courseId);
+    final studentRanking = await AcademicAnalyticsService.getStudentRanking(
+      courseId: widget.courseId,
+      courseName: widget.courseName,
+      studentCode: widget.studentCode,
+      studentName: widget.studentName,
+    );
 
     final filteredGrades = allGrades.where((entry) {
       final sameCourse = entry.courseId.isNotEmpty
@@ -80,6 +88,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
       grades = filteredGrades;
       attendance = filteredAttendance;
       weights = courseWeights;
+      ranking = studentRanking;
     });
   }
 
@@ -101,9 +110,7 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
 
     final attended = attendance.where((entry) {
       final status = entry.status.toLowerCase().trim();
-      return status == 'presente' ||
-          status == 'tardanza' ||
-          status == 'excusa';
+      return status == 'presente' || status == 'tardanza' || status == 'excusa';
     }).length;
 
     return (attended / attendance.length) * 100;
@@ -167,7 +174,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                   runSpacing: 10,
                   children: [
                     _MetricChip(
-                      label: weights.isEmpty ? 'Promedio' : 'Promedio ponderado',
+                      label:
+                          weights.isEmpty ? 'Promedio' : 'Promedio ponderado',
                       value: '${average.toStringAsFixed(1)}%',
                     ),
                     _MetricChip(
@@ -185,11 +193,75 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                   ],
                 ),
                 const SizedBox(height: 18),
-                OutlinedButton.icon(
-                  onPressed: () => context.goNamed('academic-dashboard'),
-                  icon: const Icon(Icons.arrow_back_rounded),
-                  label: const Text('Volver al Dashboard Académico'),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        context.pushNamed(
+                          'student-transcript',
+                          extra: {
+                            'studentCode': widget.studentCode,
+                            'studentName': widget.studentName,
+                          },
+                        );
+                      },
+                      icon: const Icon(Icons.menu_book_rounded),
+                      label: const Text('Expediente Académico'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () => context.goNamed('academic-dashboard'),
+                      icon: const Icon(Icons.arrow_back_rounded),
+                      label: const Text('Volver al Dashboard Académico'),
+                    ),
+                  ],
                 ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          SectionCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Ranking académico',
+                  style: TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 21,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (ranking == null)
+                  const Text(
+                    'No hay datos suficientes para calcular el ranking.',
+                    style: TextStyle(color: AppTheme.textMuted),
+                  )
+                else
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      _MetricChip(
+                        label: 'Posición',
+                        value: '#${ranking!.rank}',
+                      ),
+                      _MetricChip(
+                        label: 'Total estudiantes',
+                        value: ranking!.totalStudents.toString(),
+                      ),
+                      _MetricChip(
+                        label: 'Percentil',
+                        value: '${ranking!.percentile.toStringAsFixed(1)}%',
+                      ),
+                      _MetricChip(
+                        label: 'Promedio ranking',
+                        value: '${ranking!.average.toStringAsFixed(1)}%',
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -292,7 +364,8 @@ class _StudentProfileScreenState extends State<StudentProfileScreen> {
                     (entry) => ListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(entry.date),
-                      subtitle: Text(entry.note.isEmpty ? 'Sin nota' : entry.note),
+                      subtitle:
+                          Text(entry.note.isEmpty ? 'Sin nota' : entry.note),
                       trailing: Chip(label: Text(entry.status)),
                     ),
                   ),

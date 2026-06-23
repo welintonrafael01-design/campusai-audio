@@ -1,10 +1,13 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../models/study_result.dart';
 import '../services/study_result_service.dart';
 import '../services/export_service.dart';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
 
@@ -57,6 +60,19 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
     } catch (_) {}
   }
 
+
+  String get sourceDocumentId {
+    if (questions.isNotEmpty) {
+      final raw = questions.first['source_document_id'];
+      final clean = raw?.toString().trim() ?? '';
+      if (clean.isNotEmpty) return clean;
+    }
+
+    return widget.documentId
+        .replaceAll(RegExp(r'_question_bank$'), '')
+        .replaceAll(RegExp(r'_bank_exam$'), '');
+  }
+
   List<Map<String, dynamic>> get filteredQuestions {
     final cleanSearch = search.trim().toLowerCase();
 
@@ -105,13 +121,384 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
         '';
   }
 
-  void openAsExam() {
+
+  int maxQuestionsForExamType(String type) {
+    final clean = type.toLowerCase();
+
+    if (clean.contains('caso') ||
+        clean.contains('análisis') ||
+        clean.contains('analisis') ||
+        clean.contains('ensayo')) {
+      return 10;
+    }
+
+    if (clean.contains('abierta')) {
+      return 15;
+    }
+
+    if (clean.contains('relacionar')) {
+      return 30;
+    }
+
+    if (clean.contains('completar')) {
+      return 50;
+    }
+
+    return 100;
+  }
+
+  Future<Map<String, dynamic>?> pickExamFromBankOptions() async {
+    int selectedCount = questions.length >= 10 ? 10 : questions.length;
+    int totalPoints = 100;
+    String difficulty = 'Intermedio';
+    String examType = 'Mixto';
+    String bloomLevel = 'Aplicar';
+    String examVersion = 'Estudiante';
+    String examTopic = '';
+    String examObjective = '';
+
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final maxAllowed = maxQuestionsForExamType(examType);
+
+            if (selectedCount > maxAllowed) {
+              selectedCount = maxAllowed;
+            }
+
+            final pointsPerQuestion = selectedCount <= 0
+                ? 0
+                : totalPoints / selectedCount;
+
+            return AlertDialog(
+              title: const Text('Crear examen desde banco'),
+              content: SingleChildScrollView(
+                child: SizedBox(
+                  width: 520,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Tipo de examen',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          'Selección múltiple',
+                          'Verdadero/Falso',
+                          'Mixto',
+                          'Mixto personalizable',
+                          'Preguntas abiertas',
+                          'Estudio de caso',
+                          'Análisis práctico',
+                          'Ensayo corto',
+                          'Completar espacios',
+                          'Relacionar columnas',
+                        ].map((item) {
+                          return ChoiceChip(
+                            label: Text(item),
+                            selected: examType == item,
+                            onSelected: (_) {
+                              setDialogState(() => examType = item);
+                            },
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Cantidad de preguntas',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [5, 10, 15, 20, 25, 30].map((count) {
+                          final available = questions.length;
+                          final maxAllowed = maxQuestionsForExamType(examType);
+                          final disabled = count > available || count > maxAllowed;
+
+                          return ChoiceChip(
+                            label: Text('$count preguntas'),
+                            selected: selectedCount == count,
+                            onSelected: disabled
+                                ? null
+                                : (_) {
+                                    setDialogState(() => selectedCount = count);
+                                  },
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Máximo recomendado para este tipo: ${maxQuestionsForExamType(examType)} preguntas',
+                        style: const TextStyle(
+                          color: AppTheme.textMuted,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Valor total',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [25, 50, 75, 100, 150, 200].map((points) {
+                          return ChoiceChip(
+                            label: Text('$points puntos'),
+                            selected: totalPoints == points,
+                            onSelected: (_) {
+                              setDialogState(() => totalPoints = points);
+                            },
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Nivel',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: ['Básico', 'Intermedio', 'Avanzado'].map((item) {
+                          return ChoiceChip(
+                            label: Text(item),
+                            selected: difficulty == item,
+                            onSelected: (_) {
+                              setDialogState(() => difficulty = item);
+                            },
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Nivel cognitivo Bloom',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          'Recordar',
+                          'Comprender',
+                          'Aplicar',
+                          'Analizar',
+                          'Evaluar',
+                          'Crear',
+                        ].map((item) {
+                          return ChoiceChip(
+                            label: Text(item),
+                            selected: bloomLevel == item,
+                            onSelected: (_) {
+                              setDialogState(() => bloomLevel = item);
+                            },
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Versión del examen',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          'Estudiante',
+                          'Docente',
+                        ].map((item) {
+                          return ChoiceChip(
+                            label: Text(item),
+                            selected: examVersion == item,
+                            onSelected: (_) {
+                              setDialogState(() => examVersion = item);
+                            },
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 18),
+                      Chip(
+                        avatar: const Icon(Icons.calculate_rounded, size: 18),
+                        label: Text(
+                          'Valor por pregunta: ${pointsPerQuestion.toStringAsFixed(2)} puntos',
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      TextField(
+                        decoration: const InputDecoration(
+                          labelText: 'Tema específico del examen',
+                          hintText: 'Ej.: Contratos comerciales',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (value) => examTopic = value.trim(),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        minLines: 2,
+                        maxLines: 4,
+                        decoration: const InputDecoration(
+                          labelText: 'Objetivo de evaluación',
+                          hintText: 'Ej.: Evaluar la aplicación práctica de los conceptos principales.',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (value) => examObjective = value.trim(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop({
+                      'count': selectedCount,
+                      'totalPoints': totalPoints,
+                      'difficulty': difficulty,
+                      'examType': examType,
+                      'bloomLevel': bloomLevel,
+                      'examVersion': examVersion,
+                      'examTopic': examTopic,
+                      'examObjective': examObjective,
+                    });
+                  },
+                  child: const Text('Crear examen'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    return result;
+  }
+
+  bool matchesExamType(Map<String, dynamic> item, String examType) {
+    if (examType == 'Mixto') return true;
+
+    final type = (item['question_type'] ??
+            item['tipo'] ??
+            item['type'] ??
+            '')
+        .toString()
+        .toLowerCase();
+
+    final requested = examType.toLowerCase();
+
+    if (type.isEmpty) return true;
+
+    return type.contains(requested.split('/').first.trim()) ||
+        requested.contains(type);
+  }
+
+  Future<void> openAsExam() async {
+    final options = await pickExamFromBankOptions();
+
+    if (options == null) return;
+
+    final count = options['count'] as int;
+    final totalPoints = options['totalPoints'] as int;
+    final difficulty = options['difficulty'] as String;
+    final examType = options['examType'] as String;
+    final bloomLevel = options['bloomLevel'] as String;
+    final examVersion = options['examVersion'] as String;
+    final examTopic = options['examTopic'] as String;
+    final examObjective = options['examObjective'] as String;
+
+    final pool = questions
+        .where((item) => matchesExamType(item, examType))
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+
+    List<Map<String, dynamic>> selected;
+
+    if (pool.isEmpty) {
+      final generated = await ApiService.generateExamByDocumentId(
+        documentId: sourceDocumentId,
+        numberOfQuestions: count,
+        examType: examType,
+        difficulty: difficulty,
+        totalPoints: totalPoints,
+        examTopic: examTopic,
+        examObjective: examObjective,
+      );
+
+      final raw = generated['questions'];
+      selected = raw is List
+          ? raw
+              .whereType<Map>()
+              .map((item) => Map<String, dynamic>.from(item))
+              .toList()
+          : <Map<String, dynamic>>[];
+
+      if (selected.isEmpty) {
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No se pudo generar preguntas compatibles con el tipo seleccionado.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+    } else {
+      pool.shuffle(Random());
+      selected = pool.take(min(count, pool.length)).toList();
+    }
+    final pointsPerQuestion = selected.isEmpty ? 0 : totalPoints / selected.length;
+
+    final enriched = selected.map((item) {
+      return {
+        ...item,
+        'exam_total_points': totalPoints,
+        'exam_points_per_question': pointsPerQuestion,
+        'exam_difficulty': difficulty,
+        'exam_type': examType,
+        'exam_topic': examTopic,
+        'exam_objective': examObjective,
+        'bloom_level': bloomLevel,
+        'exam_version': examVersion,
+        'exam_source': 'Banco de Preguntas',
+      };
+    }).toList();
+
+    final examId = '${widget.documentId}_bank_exam';
+    final content = jsonEncode(enriched);
+
+    await StudyResultService.saveResult(
+      StudyResult(
+        documentId: examId,
+        type: 'exam',
+        content: content,
+        createdAt: DateTime.now().toIso8601String(),
+      ),
+    );
+
+    if (!mounted) return;
+
     context.pushNamed(
       'exam',
       pathParameters: {
-        'documentId': widget.documentId,
+        'documentId': examId,
       },
-      extra: questions,
+      extra: enriched,
     );
   }
 

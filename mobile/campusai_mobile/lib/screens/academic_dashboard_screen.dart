@@ -18,6 +18,7 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
   List<CourseRecord> courses = [];
   String activeCourseId = '';
   List<StudentAcademicSummary> summaries = [];
+  List<StudentRanking> globalRanking = [];
 
   @override
   void initState() {
@@ -45,12 +46,15 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
             courseName: activeCourse.name,
           );
 
+    final globalData = await AcademicAnalyticsService.buildGlobalRanking();
+
     if (!mounted) return;
 
     setState(() {
       courses = loadedCourses;
       activeCourseId = resolvedActiveCourseId;
       summaries = data;
+      globalRanking = globalData;
     });
   }
 
@@ -85,14 +89,23 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
   int get notEvaluatedCount =>
       summaries.where((item) => !item.hasGrades).length;
 
+  int get failedCount =>
+      summaries.where((item) => item.hasGrades && !item.approved).length;
+
+  double get approvalRate =>
+      evaluatedCount == 0 ? 0 : (approvedCount / evaluatedCount) * 100;
+
+  double get failureRate =>
+      evaluatedCount == 0 ? 0 : (failedCount / evaluatedCount) * 100;
+
+  double get evaluatedRate =>
+      summaries.isEmpty ? 0 : (evaluatedCount / summaries.length) * 100;
 
   Map<String, int> get gradeDistribution {
     final evaluated = summaries.where((item) => item.hasGrades).toList();
 
     return {
-      'Excelente 90-100': evaluated
-          .where((item) => item.average >= 90)
-          .length,
+      'Excelente 90-100': evaluated.where((item) => item.average >= 90).length,
       'Muy bueno 80-89': evaluated
           .where((item) => item.average >= 80 && item.average < 90)
           .length,
@@ -102,9 +115,7 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
       'Riesgo 60-69': evaluated
           .where((item) => item.average >= 60 && item.average < 70)
           .length,
-      'Crítico 0-59': evaluated
-          .where((item) => item.average < 60)
-          .length,
+      'Crítico 0-59': evaluated.where((item) => item.average < 60).length,
     };
   }
 
@@ -112,26 +123,18 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
     final data = summaries.where((item) => item.hasAttendance).toList();
 
     return {
-      'Alta 90-100': data
-          .where((item) => item.attendanceRate >= 90)
-          .length,
+      'Alta 90-100': data.where((item) => item.attendanceRate >= 90).length,
       'Media 80-89': data
           .where(
-            (item) =>
-                item.attendanceRate >= 80 &&
-                item.attendanceRate < 90,
+            (item) => item.attendanceRate >= 80 && item.attendanceRate < 90,
           )
           .length,
       'Baja 70-79': data
           .where(
-            (item) =>
-                item.attendanceRate >= 70 &&
-                item.attendanceRate < 80,
+            (item) => item.attendanceRate >= 70 && item.attendanceRate < 80,
           )
           .length,
-      'Crítica <70': data
-          .where((item) => item.attendanceRate < 70)
-          .length,
+      'Crítica <70': data.where((item) => item.attendanceRate < 70).length,
     };
   }
 
@@ -147,9 +150,35 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
   }
 
   List<StudentAcademicSummary> get topStudents {
-    final data = [...summaries];
-    data.sort((a, b) => b.average.compareTo(a.average));
-    return data.take(5).toList();
+    final data = summaries.where((item) => item.hasGrades).toList();
+
+    data.sort((a, b) {
+      final byAverage = b.average.compareTo(a.average);
+      if (byAverage != 0) return byAverage;
+
+      final byAttendance = b.attendanceRate.compareTo(a.attendanceRate);
+      if (byAttendance != 0) return byAttendance;
+
+      return a.studentName.compareTo(b.studentName);
+    });
+
+    return data.take(10).toList();
+  }
+
+  List<StudentAcademicSummary> get bottomStudents {
+    final data = summaries.where((item) => item.hasGrades).toList();
+
+    data.sort((a, b) {
+      final byAverage = a.average.compareTo(b.average);
+      if (byAverage != 0) return byAverage;
+
+      final byAttendance = a.attendanceRate.compareTo(b.attendanceRate);
+      if (byAttendance != 0) return byAttendance;
+
+      return a.studentName.compareTo(b.studentName);
+    });
+
+    return data.take(10).toList();
   }
 
   List<StudentAcademicSummary> get riskStudents {
@@ -262,6 +291,21 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
                       icon: Icons.verified_rounded,
                     ),
                     _MetricCard(
+                      label: '% Aprobación',
+                      value: '${approvalRate.toStringAsFixed(1)}%',
+                      icon: Icons.trending_up_rounded,
+                    ),
+                    _MetricCard(
+                      label: '% Reprobación',
+                      value: '${failureRate.toStringAsFixed(1)}%',
+                      icon: Icons.trending_down_rounded,
+                    ),
+                    _MetricCard(
+                      label: '% Evaluados',
+                      value: '${evaluatedRate.toStringAsFixed(1)}%',
+                      icon: Icons.insights_rounded,
+                    ),
+                    _MetricCard(
                       label: 'En riesgo',
                       value: reprobados.toString(),
                       icon: Icons.warning_rounded,
@@ -269,10 +313,21 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
                   ],
                 ),
                 const SizedBox(height: 18),
-                OutlinedButton.icon(
-                  onPressed: () => context.goNamed('dashboard'),
-                  icon: const Icon(Icons.arrow_back_rounded),
-                  label: const Text('Volver al Dashboard'),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () => context.goNamed('academic-recognition'),
+                      icon: const Icon(Icons.emoji_events_rounded),
+                      label: const Text('Reconocimientos Académicos'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () => context.goNamed('dashboard'),
+                      icon: const Icon(Icons.arrow_back_rounded),
+                      label: const Text('Volver al Dashboard'),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -285,10 +340,157 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
             topStudents: topStudents,
           ),
           const SizedBox(height: 20),
+          SectionCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Ranking Global Institucional',
+                  style: TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Consolidado de todos los cursos registrados en StudyBook AI.',
+                  style: TextStyle(
+                    color: AppTheme.textMuted,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    _MetricCard(
+                      label: 'Evaluados globales',
+                      value: globalRanking.length.toString(),
+                      icon: Icons.public_rounded,
+                    ),
+                    _MetricCard(
+                      label: 'Mejor promedio',
+                      value: globalRanking.isEmpty
+                          ? 'Sin datos'
+                          : '${globalRanking.first.average.toStringAsFixed(1)}%',
+                      icon: Icons.emoji_events_rounded,
+                    ),
+                    _MetricCard(
+                      label: 'Mejor estudiante',
+                      value: globalRanking.isEmpty
+                          ? 'Sin datos'
+                          : globalRanking.first.studentName,
+                      icon: Icons.workspace_premium_rounded,
+                    ),
+                    _MetricCard(
+                      label: 'Top institucional',
+                      value: globalRanking.isEmpty
+                          ? '0'
+                          : globalRanking.take(10).length.toString(),
+                      icon: Icons.military_tech_rounded,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                if (globalRanking.isEmpty)
+                  const Text(
+                    'No hay datos suficientes para ranking global.',
+                    style: TextStyle(color: AppTheme.textMuted),
+                  )
+                else
+                  ...globalRanking.take(10).toList().asMap().entries.map(
+                    (entry) {
+                      final item = entry.value;
+                      return ListTile(
+                        leading: CircleAvatar(
+                          child: Text('#${entry.key + 1}'),
+                        ),
+                        title: Text(item.studentName),
+                        subtitle: Text(
+                          '${item.courseName} · Promedio ${item.average.toStringAsFixed(1)}% · Percentil ${item.percentile.toStringAsFixed(1)}%',
+                        ),
+                        trailing: const Icon(
+                          Icons.emoji_events_rounded,
+                          color: AppTheme.accent,
+                        ),
+                      );
+                    },
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          SectionCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '🏆 Cuadro de Honor',
+                  style: TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (topStudents.isEmpty)
+                  const Text(
+                    'No hay estudiantes evaluados.',
+                    style: TextStyle(
+                      color: AppTheme.textMuted,
+                    ),
+                  )
+                else
+                  Column(
+                    children: [
+                      ListTile(
+                        leading: const CircleAvatar(
+                          child: Text('🥇'),
+                        ),
+                        title: Text(topStudents[0].studentName),
+                        subtitle: Text(
+                          'Promedio ${topStudents[0].average.toStringAsFixed(1)}%',
+                        ),
+                      ),
+                      if (topStudents.length > 1)
+                        ListTile(
+                          leading: const CircleAvatar(
+                            child: Text('🥈'),
+                          ),
+                          title: Text(topStudents[1].studentName),
+                          subtitle: Text(
+                            'Promedio ${topStudents[1].average.toStringAsFixed(1)}%',
+                          ),
+                        ),
+                      if (topStudents.length > 2)
+                        ListTile(
+                          leading: const CircleAvatar(
+                            child: Text('🥉'),
+                          ),
+                          title: Text(topStudents[2].studentName),
+                          subtitle: Text(
+                            'Promedio ${topStudents[2].average.toStringAsFixed(1)}%',
+                          ),
+                        ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
           _RankingSection(
-            title: 'Top estudiantes',
+            title: 'Top 10 Oficial',
             emptyText: 'No hay datos suficientes para ranking.',
             students: topStudents,
+          ),
+          const SizedBox(height: 14),
+          _RankingSection(
+            title: 'Bottom 10 Oficial',
+            emptyText: 'No hay datos suficientes para ranking inferior.',
+            students: bottomStudents,
+            riskMode: true,
           ),
           const SizedBox(height: 14),
           _RankingSection(
@@ -303,13 +505,11 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
             emptyText: 'No hay estudiantes registrados.',
             students: summaries,
           ),
-
         ],
       ),
     );
   }
 }
-
 
 class _DashboardChartsSection extends StatelessWidget {
   final Map<String, int> gradeDistribution;
@@ -408,9 +608,7 @@ class _BarChartCard extends StatelessWidget {
           else
             ...values.entries.map(
               (entry) {
-                final ratio = maxValue == 0
-                    ? 0.0
-                    : entry.value / maxValue;
+                final ratio = maxValue == 0 ? 0.0 : entry.value / maxValue;
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
@@ -437,16 +635,11 @@ class _TopVisualCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final data = students
-        .where((item) => item.hasGrades)
-        .take(5)
-        .toList();
+    final data = students.where((item) => item.hasGrades).take(5).toList();
 
     final maxValue = data.isEmpty
         ? 0.0
-        : data
-            .map((item) => item.average)
-            .reduce((a, b) => a > b ? a : b);
+        : data.map((item) => item.average).reduce((a, b) => a > b ? a : b);
 
     return SectionCard(
       child: Column(
@@ -474,8 +667,7 @@ class _TopVisualCard extends StatelessWidget {
           else
             ...data.map(
               (student) {
-                final ratio =
-                    maxValue <= 0 ? 0.0 : student.average / maxValue;
+                final ratio = maxValue <= 0 ? 0.0 : student.average / maxValue;
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
@@ -546,7 +738,6 @@ class _BarRow extends StatelessWidget {
     );
   }
 }
-
 
 class _MetricCard extends StatelessWidget {
   final String label;

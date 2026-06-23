@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../services/academic_analytics_service.dart';
 import '../services/course_service.dart';
 import '../services/export_service.dart';
+import '../services/academic_period_lock_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
 
@@ -18,6 +19,7 @@ class _FinalReportScreenState extends State<FinalReportScreen> {
   List<CourseRecord> courses = [];
   String activeCourseId = '';
   List<StudentAcademicSummary> summaries = [];
+  bool periodClosed = false;
 
   @override
   void initState() {
@@ -45,12 +47,16 @@ class _FinalReportScreenState extends State<FinalReportScreen> {
             courseName: activeCourse.name,
           );
 
+    final closed =
+        await AcademicPeriodLockService.isClosed(resolvedActiveCourseId);
+
     if (!mounted) return;
 
     setState(() {
       courses = loadedCourses;
       activeCourseId = resolvedActiveCourseId;
       summaries = report;
+      periodClosed = closed;
     });
   }
 
@@ -58,6 +64,22 @@ class _FinalReportScreenState extends State<FinalReportScreen> {
     if (courseId == null) return;
     await CourseService.setActiveCourse(courseId);
     await loadReport();
+  }
+
+  List<StudentAcademicSummary> get evaluatedSummaries {
+    return summaries.where((item) => item.evaluations > 0).toList();
+  }
+
+  int get pendingEvaluationCount {
+    return summaries.length - evaluatedSummaries.length;
+  }
+
+  double get evaluatedAverage {
+    if (evaluatedSummaries.isEmpty) return 0;
+    return evaluatedSummaries
+            .map((item) => item.average)
+            .reduce((a, b) => a + b) /
+        evaluatedSummaries.length;
   }
 
   double get average {
@@ -74,7 +96,12 @@ class _FinalReportScreenState extends State<FinalReportScreen> {
         summaries.length;
   }
 
-  int get approvedCount => summaries.where((item) => item.approved).length;
+  int get approvedCount =>
+      evaluatedSummaries.where((item) => item.approved).length;
+
+  int get failedEvaluatedCount {
+    return evaluatedSummaries.where((item) => !item.approved).length;
+  }
 
   CourseRecord? get activeCourse {
     return courses
@@ -83,11 +110,37 @@ class _FinalReportScreenState extends State<FinalReportScreen> {
         .firstOrNull;
   }
 
+  Future<void> togglePeriodClosed() async {
+    if (activeCourseId.trim().isEmpty) return;
+
+    final next = !periodClosed;
+
+    await AcademicPeriodLockService.setClosed(
+      courseId: activeCourseId,
+      closed: next,
+    );
+
+    await loadReport();
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          next
+              ? 'Período académico cerrado. Las calificaciones quedan bloqueadas.'
+              : 'Período académico reabierto.',
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   Future<void> exportPdf() async {
     final course = activeCourse;
     if (course == null) return;
 
-    final failed = summaries.length - approvedCount;
+    final failed = failedEvaluatedCount;
 
     await ExportService.exportFinalReportToPdf(
       title: 'studybook_acta_final',
@@ -95,9 +148,11 @@ class _FinalReportScreenState extends State<FinalReportScreen> {
       rows: summaries.map((item) => item.toRow()).toList(),
       stats: {
         'students': summaries.length,
-        'average': '${average.toStringAsFixed(1)}%',
+        'average': '${evaluatedAverage.toStringAsFixed(1)}%',
+        'pending': pendingEvaluationCount,
         'approved': approvedCount,
         'failed': failed,
+        'evaluated': evaluatedSummaries.length,
       },
     );
   }
@@ -179,6 +234,17 @@ class _FinalReportScreenState extends State<FinalReportScreen> {
                   ),
                 ],
                 const SizedBox(height: 18),
+                Chip(
+                  avatar: Icon(
+                    periodClosed ? Icons.lock_rounded : Icons.lock_open_rounded,
+                  ),
+                  label: Text(
+                    periodClosed
+                        ? 'Estado del período: CERRADO'
+                        : 'Estado del período: ABIERTO',
+                  ),
+                ),
+                const SizedBox(height: 18),
                 Wrap(
                   spacing: 10,
                   runSpacing: 10,
@@ -188,8 +254,12 @@ class _FinalReportScreenState extends State<FinalReportScreen> {
                       value: summaries.length.toString(),
                     ),
                     _MetricChip(
-                      label: 'Promedio',
-                      value: '${average.toStringAsFixed(1)}%',
+                      label: 'Promedio evaluados',
+                      value: '${evaluatedAverage.toStringAsFixed(1)}%',
+                    ),
+                    _MetricChip(
+                      label: 'Sin evaluar',
+                      value: pendingEvaluationCount.toString(),
                     ),
                     _MetricChip(
                       label: 'Asistencia',
@@ -200,10 +270,21 @@ class _FinalReportScreenState extends State<FinalReportScreen> {
                       value: approvedCount.toString(),
                     ),
                     _MetricChip(
-                      label: 'Reprobados',
-                      value: (summaries.length - approvedCount).toString(),
+                      label: 'Reprobados evaluados',
+                      value: failedEvaluatedCount.toString(),
                     ),
                   ],
+                ),
+                const SizedBox(height: 18),
+                Chip(
+                  avatar: Icon(
+                    periodClosed ? Icons.lock_rounded : Icons.lock_open_rounded,
+                  ),
+                  label: Text(
+                    periodClosed
+                        ? 'Estado del período: CERRADO'
+                        : 'Estado del período: ABIERTO',
+                  ),
                 ),
                 const SizedBox(height: 18),
                 Wrap(
@@ -219,6 +300,17 @@ class _FinalReportScreenState extends State<FinalReportScreen> {
                       onPressed: summaries.isEmpty ? null : exportExcel,
                       icon: const Icon(Icons.grid_on_rounded),
                       label: const Text('Exportar Excel'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: togglePeriodClosed,
+                      icon: Icon(
+                        periodClosed
+                            ? Icons.lock_open_rounded
+                            : Icons.lock_rounded,
+                      ),
+                      label: Text(
+                        periodClosed ? 'Reabrir período' : 'Cerrar período',
+                      ),
                     ),
                     OutlinedButton.icon(
                       onPressed: () => context.goNamed('dashboard'),
@@ -242,7 +334,10 @@ class _FinalReportScreenState extends State<FinalReportScreen> {
             ...summaries.map(
               (item) => Padding(
                 padding: const EdgeInsets.only(bottom: 14),
-                child: _SummaryCard(summary: item),
+                child: _SummaryCard(
+                  summary: item,
+                  courseName: activeCourse?.displayName ?? item.courseName,
+                ),
               ),
             ),
         ],
@@ -268,9 +363,11 @@ class _MetricChip extends StatelessWidget {
 
 class _SummaryCard extends StatelessWidget {
   final StudentAcademicSummary summary;
+  final String courseName;
 
   const _SummaryCard({
     required this.summary,
+    required this.courseName,
   });
 
   @override
@@ -316,6 +413,54 @@ class _SummaryCard extends StatelessWidget {
               fontWeight: FontWeight.w900,
             ),
           ),
+          if (summary.hasGrades && summary.approved) ...[
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () {
+                    ExportService.exportCertificateToPdf(
+                      studentName: summary.studentName,
+                      studentCode: summary.studentCode,
+                      courseName: courseName,
+                      average: '${summary.average.toStringAsFixed(1)}%',
+                    );
+                  },
+                  icon: const Icon(Icons.card_membership_rounded),
+                  label: const Text('Generar certificado'),
+                ),
+                if (summary.average >= 90)
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      ExportService.exportCertificateToPdf(
+                        studentName: summary.studentName,
+                        studentCode: summary.studentCode,
+                        courseName: courseName,
+                        average: '${summary.average.toStringAsFixed(1)}%',
+                        certificateTitle: 'CERTIFICADO DE EXCELENCIA ACADÉMICA',
+                      );
+                    },
+                    icon: const Icon(Icons.workspace_premium_rounded),
+                    label: const Text('Certificado de excelencia'),
+                  ),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    ExportService.exportAcademicBadgeToPdf(
+                      studentName: summary.studentName,
+                      studentCode: summary.studentCode,
+                      courseName: courseName,
+                      average: '${summary.average.toStringAsFixed(1)}%',
+                      badgeTitle: 'Curso Aprobado',
+                    );
+                  },
+                  icon: const Icon(Icons.military_tech_rounded),
+                  label: const Text('Generar insignia'),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

@@ -866,7 +866,10 @@ async def teaching_plan_document_by_id(
 async def rubric_document_by_id(
     document_id: str,
     language: str = Query(default="es"),
-    total_points: int = Query(default=100, ge=10, le=100),
+    total_points: int = Query(default=100, ge=10, le=200),
+    rubric_type: str = Query(default="Analítica"),
+    criteria_count: int = Query(default=5, ge=3, le=10),
+    performance_levels: int = Query(default=4, ge=3, le=6),
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
@@ -888,6 +891,9 @@ async def rubric_document_by_id(
             context=context,
             language=language,
             total_points=total_points,
+            rubric_type=rubric_type,
+            criteria_count=criteria_count,
+            performance_levels=performance_levels,
         )
 
         register_usage_event(
@@ -897,6 +903,9 @@ async def rubric_document_by_id(
             metadata={
                 "document_id": document_id,
                 "total_points": total_points,
+                "rubric_type": rubric_type,
+                "criteria_count": criteria_count,
+                "performance_levels": performance_levels,
             },
         )
 
@@ -987,6 +996,11 @@ async def exam_document_by_id(
         ge=1,
         le=20,
     ),
+    exam_type: str = Query(default="Selección múltiple"),
+    difficulty: str = Query(default="Intermedio"),
+    total_points: int = Query(default=100),
+    exam_topic: str = Query(default=""),
+    exam_objective: str = Query(default=""),
     language: str = Query(default="es"),
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
@@ -1010,12 +1024,20 @@ async def exam_document_by_id(
             top_k=10,
         )
 
-        questions = (
-            generate_exam_questions_from_context(
-                context,
-                number_of_questions,
-                language=language,
-            )
+        questions = generate_exam_questions_from_context(
+            context=context,
+            number_of_questions=number_of_questions,
+            language=language,
+            exam_type=exam_type,
+            difficulty=difficulty,
+            total_points=total_points,
+            exam_topic=exam_topic,
+            exam_objective=exam_objective,
+        )
+
+        parsed_questions = parse_ai_json_list(
+            questions,
+            "questions",
         )
 
         register_usage_event(
@@ -1032,7 +1054,7 @@ async def exam_document_by_id(
             "document_id": document_id,
             "number_of_questions":
                 number_of_questions,
-            "questions": questions,
+            "questions": parsed_questions,
         }
 
     except HTTPException:
