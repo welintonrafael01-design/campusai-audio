@@ -18,6 +18,7 @@ from app.routes.export import router as export_router
 from app.routes.certificates import router as certificates_router
 from app.routes.analytics import router as analytics_router
 from app.routes.billing import router as billing_router
+from app.routes.educator import router as educator_router
 
 
 APP_DIR = Path(__file__).resolve().parent
@@ -80,6 +81,7 @@ app.include_router(export_router)
 app.include_router(certificates_router)
 app.include_router(analytics_router)
 app.include_router(billing_router)
+app.include_router(educator_router)
 
 
 app.mount(
