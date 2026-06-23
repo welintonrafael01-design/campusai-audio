@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from app.database.supabase_client import get_supabase_admin_client
 
 
-VALID_PLANS = {"free", "pro", "educator"}
+VALID_PLANS = {"free", "student", "teacher", "accessibility", "ultra"}
 
 
 def default_free_subscription(user_id: str) -> dict:

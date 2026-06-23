@@ -1,79 +1,167 @@
 enum CampusPlan {
   free,
-  pro,
-  educator,
+  student,
+  teacher,
+  accessibility,
+  ultra,
 }
 
 class PlanLimits {
-  final int maxPdfUploadsPerDay;
-  final int maxChatMessagesPerDay;
-  final int maxFlashcardsPerPdf;
-  final int maxExamQuestionsPerPdf;
-  final bool canExportPdf;
-  final bool canExportDocx;
-  final bool canExportPptx;
-  final bool canUseAdvancedAnalytics;
-  final bool canUseEducatorTools;
-  final bool canUseVoiceOnboarding;
-
   const PlanLimits({
     required this.maxPdfUploadsPerDay,
-    required this.maxChatMessagesPerDay,
+    required this.maxChatsPerDay,
     required this.maxFlashcardsPerPdf,
     required this.maxExamQuestionsPerPdf,
+    required this.maxAudioMinutesPerMonth,
     required this.canExportPdf,
     required this.canExportDocx,
     required this.canExportPptx,
     required this.canUseAdvancedAnalytics,
     required this.canUseEducatorTools,
     required this.canUseVoiceOnboarding,
+    required this.canUseQuestionBank,
+    required this.canUseTeachingPlan,
+    required this.canUseGradebook,
+    required this.canUseCertificates,
+    required this.canUseAcademicBadges,
+    required this.canUseTranscriptPremium,
   });
+
+  final int maxPdfUploadsPerDay;
+  final int maxChatsPerDay;
+  int get maxChatMessagesPerDay => maxChatsPerDay;
+  final int maxFlashcardsPerPdf;
+  final int maxExamQuestionsPerPdf;
+  final int maxAudioMinutesPerMonth;
+
+  final bool canExportPdf;
+  final bool canExportDocx;
+  final bool canExportPptx;
+  final bool canUseAdvancedAnalytics;
+  final bool canUseEducatorTools;
+  final bool canUseVoiceOnboarding;
+  final bool canUseQuestionBank;
+  final bool canUseTeachingPlan;
+  final bool canUseGradebook;
+  final bool canUseCertificates;
+  final bool canUseAcademicBadges;
+  final bool canUseTranscriptPremium;
 }
 
 class AppPlans {
+  const AppPlans._();
+
   static const Map<CampusPlan, String> planNames = {
     CampusPlan.free: 'Free',
-    CampusPlan.pro: 'Pro',
-    CampusPlan.educator: 'Educator',
+    CampusPlan.student: 'Student',
+    CampusPlan.teacher: 'Teacher',
+    CampusPlan.accessibility: 'Accessibility',
+    CampusPlan.ultra: 'Ultra Premium',
+  };
+
+  static const Map<CampusPlan, String> planPrices = {
+    CampusPlan.free: r'US$0',
+    CampusPlan.student: r'US$6.99',
+    CampusPlan.accessibility: r'US$3.99',
+    CampusPlan.teacher: r'US$13.99',
+    CampusPlan.ultra: r'US$24.99',
   };
 
   static const Map<CampusPlan, PlanLimits> limits = {
     CampusPlan.free: PlanLimits(
       maxPdfUploadsPerDay: 3,
-      maxChatMessagesPerDay: 25,
-      maxFlashcardsPerPdf: 10,
+      maxChatsPerDay: 30,
+      maxFlashcardsPerPdf: 20,
       maxExamQuestionsPerPdf: 10,
+      maxAudioMinutesPerMonth: 5,
       canExportPdf: true,
       canExportDocx: false,
       canExportPptx: false,
       canUseAdvancedAnalytics: false,
       canUseEducatorTools: false,
       canUseVoiceOnboarding: false,
+      canUseQuestionBank: false,
+      canUseTeachingPlan: false,
+      canUseGradebook: false,
+      canUseCertificates: false,
+      canUseAcademicBadges: false,
+      canUseTranscriptPremium: false,
     ),
-    CampusPlan.pro: PlanLimits(
-      maxPdfUploadsPerDay: 50,
-      maxChatMessagesPerDay: 500,
-      maxFlashcardsPerPdf: 50,
-      maxExamQuestionsPerPdf: 50,
+    CampusPlan.student: PlanLimits(
+      maxPdfUploadsPerDay: 25,
+      maxChatsPerDay: 300,
+      maxFlashcardsPerPdf: 200,
+      maxExamQuestionsPerPdf: 100,
+      maxAudioMinutesPerMonth: 60,
       canExportPdf: true,
       canExportDocx: true,
-      canExportPptx: true,
+      canExportPptx: false,
       canUseAdvancedAnalytics: false,
       canUseEducatorTools: false,
       canUseVoiceOnboarding: true,
+      canUseQuestionBank: true,
+      canUseTeachingPlan: false,
+      canUseGradebook: false,
+      canUseCertificates: false,
+      canUseAcademicBadges: false,
+      canUseTranscriptPremium: false,
     ),
-    CampusPlan.educator: PlanLimits(
-      maxPdfUploadsPerDay: 200,
-      maxChatMessagesPerDay: 2000,
+    CampusPlan.accessibility: PlanLimits(
+      maxPdfUploadsPerDay: 15,
+      maxChatsPerDay: 200,
       maxFlashcardsPerPdf: 100,
-      maxExamQuestionsPerPdf: 100,
+      maxExamQuestionsPerPdf: 80,
+      maxAudioMinutesPerMonth: 120,
+      canExportPdf: true,
+      canExportDocx: true,
+      canExportPptx: false,
+      canUseAdvancedAnalytics: false,
+      canUseEducatorTools: false,
+      canUseVoiceOnboarding: true,
+      canUseQuestionBank: true,
+      canUseTeachingPlan: false,
+      canUseGradebook: false,
+      canUseCertificates: true,
+      canUseAcademicBadges: true,
+      canUseTranscriptPremium: false,
+    ),
+    CampusPlan.teacher: PlanLimits(
+      maxPdfUploadsPerDay: 100,
+      maxChatsPerDay: 1000,
+      maxFlashcardsPerPdf: 1000,
+      maxExamQuestionsPerPdf: 300,
+      maxAudioMinutesPerMonth: 300,
       canExportPdf: true,
       canExportDocx: true,
       canExportPptx: true,
       canUseAdvancedAnalytics: true,
       canUseEducatorTools: true,
       canUseVoiceOnboarding: true,
+      canUseQuestionBank: true,
+      canUseTeachingPlan: true,
+      canUseGradebook: true,
+      canUseCertificates: true,
+      canUseAcademicBadges: true,
+      canUseTranscriptPremium: true,
+    ),
+    CampusPlan.ultra: PlanLimits(
+      maxPdfUploadsPerDay: 999999,
+      maxChatsPerDay: 999999,
+      maxFlashcardsPerPdf: 999999,
+      maxExamQuestionsPerPdf: 999999,
+      maxAudioMinutesPerMonth: 999999,
+      canExportPdf: true,
+      canExportDocx: true,
+      canExportPptx: true,
+      canUseAdvancedAnalytics: true,
+      canUseEducatorTools: true,
+      canUseVoiceOnboarding: true,
+      canUseQuestionBank: true,
+      canUseTeachingPlan: true,
+      canUseGradebook: true,
+      canUseCertificates: true,
+      canUseAcademicBadges: true,
+      canUseTranscriptPremium: true,
     ),
   };
-
 }

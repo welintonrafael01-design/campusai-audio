@@ -29,7 +29,7 @@ class DashboardEducatorCenter extends StatelessWidget {
   Widget build(BuildContext context) {
     final isMobile = ResponsiveLayout.isMobile(context);
     final plan = const PlanGuardService().currentPlan;
-    final isEducator = plan == CampusPlan.educator;
+    final isEducator = plan == CampusPlan.teacher;
 
     if (!isEducator) {
       return const SizedBox.shrink();

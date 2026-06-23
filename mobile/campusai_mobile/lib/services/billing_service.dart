@@ -6,23 +6,20 @@ import 'package:http/http.dart' as http;
 import '../config/app_plans.dart';
 import 'api_service.dart';
 import 'auth_service.dart';
+import 'plan_guard_service.dart';
 
 class BillingService {
   const BillingService();
 
   Future<void> startCheckout(CampusPlan plan) async {
-    final planCode = switch (plan) {
-      CampusPlan.pro => 'pro',
-      CampusPlan.educator => 'educator',
-      CampusPlan.free => throw Exception(
-          'El plan Free no requiere checkout.',
-        ),
-    };
+    final planCode = planCodeFromCampusPlan(plan);
+
+    if (plan == CampusPlan.free) {
+      throw Exception('El plan Free no requiere checkout.');
+    }
 
     if (!AuthService.isLoggedIn) {
-      throw Exception(
-        'Debes iniciar sesión para actualizar tu plan.',
-      );
+      throw Exception('Debes iniciar sesión para actualizar tu plan.');
     }
 
     final response = await http.post(
@@ -43,9 +40,7 @@ class BillingService {
           ? decoded['detail']?.toString()
           : null;
 
-      throw Exception(
-        detail ?? 'No se pudo iniciar el checkout.',
-      );
+      throw Exception(detail ?? 'No se pudo iniciar el checkout.');
     }
 
     if (decoded is! Map<String, dynamic>) {
@@ -60,17 +55,14 @@ class BillingService {
 
     html.window.location.href = checkoutUrl;
   }
+
   Future<void> openCustomerPortal() async {
     if (!AuthService.isLoggedIn) {
-      throw Exception(
-        'Debes iniciar sesión para administrar tu suscripción.',
-      );
+      throw Exception('Debes iniciar sesión para administrar tu suscripción.');
     }
 
     final response = await http.post(
-      Uri.parse(
-        '${ApiService.baseUrl}/billing/create-customer-portal-session',
-      ),
+      Uri.parse('${ApiService.baseUrl}/billing/create-customer-portal-session'),
       headers: {
         'Content-Type': 'application/json',
         ...AuthService.authHeaders,
@@ -84,9 +76,7 @@ class BillingService {
           ? decoded['detail']?.toString()
           : null;
 
-      throw Exception(
-        detail ?? 'No se pudo abrir el portal de cliente.',
-      );
+      throw Exception(detail ?? 'No se pudo abrir el portal de cliente.');
     }
 
     if (decoded is! Map<String, dynamic>) {
@@ -101,5 +91,4 @@ class BillingService {
 
     html.window.location.href = portalUrl;
   }
-
 }

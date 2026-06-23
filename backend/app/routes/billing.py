@@ -36,7 +36,7 @@ def _resolve_plan_from_stripe_object(data_object: dict, fallback: str = "free") 
     metadata = data_object.get("metadata", {}) or {}
 
     plan = str(metadata.get("plan") or "").strip().lower()
-    if plan in {"pro", "educator"}:
+    if plan in {"student", "teacher", "accessibility", "ultra"}:
         return plan
 
     price_pro = os.getenv("STRIPE_PRICE_PRO", "")
@@ -49,18 +49,18 @@ def _resolve_plan_from_stripe_object(data_object: dict, fallback: str = "free") 
         price_id = price.get("id") or item.get("plan", {}).get("id")
 
         if price_id == price_educator:
-            return "educator"
+            return "teacher"
 
         if price_id == price_pro:
-            return "pro"
+            return "student"
 
     return fallback.strip().lower() or "free"
 
 
 def _get_price_id(plan: str) -> str:
     price_map = {
-        "pro": os.getenv("STRIPE_PRICE_PRO", ""),
-        "educator": os.getenv("STRIPE_PRICE_EDUCATOR", ""),
+        "student": os.getenv("STRIPE_PRICE_PRO", ""),
+        "teacher": os.getenv("STRIPE_PRICE_EDUCATOR", ""),
     }
 
     price_id = price_map.get(plan)
@@ -87,7 +87,7 @@ def create_checkout_session(
 ):
     plan = payload.plan.strip().lower()
 
-    if plan not in {"pro", "educator"}:
+    if plan not in {"student", "teacher", "accessibility", "ultra"}:
         raise HTTPException(
             status_code=400,
             detail="Plan inválido. Usa pro o educator.",

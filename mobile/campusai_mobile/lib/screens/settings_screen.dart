@@ -346,8 +346,10 @@ class SettingsScreen extends ConsumerWidget {
 
     final friendlyPlanName = switch (currentPlan) {
       CampusPlan.free => 'Free',
-      CampusPlan.pro => 'Pro',
-      CampusPlan.educator => 'Educator',
+      CampusPlan.student => 'Student',
+      CampusPlan.accessibility => 'Accessibility',
+      CampusPlan.teacher => 'Teacher',
+      CampusPlan.ultra => 'Ultra Premium',
     };
 
     final friendlyStatus =
@@ -546,14 +548,14 @@ class SettingsScreen extends ConsumerWidget {
                       FilledButton(
                         onPressed: () => changeTestPlan(
                           context,
-                          CampusPlan.pro,
+                          CampusPlan.student,
                         ),
                         child: Text(l10n.usePro),
                       ),
                       FilledButton(
                         onPressed: () => changeTestPlan(
                           context,
-                          CampusPlan.educator,
+                          CampusPlan.teacher,
                         ),
                         child: Text(l10n.useEducator),
                       ),

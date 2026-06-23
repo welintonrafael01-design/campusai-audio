@@ -1,0 +1,2721 @@
+===== GIT STATUS =====
+On branch development
+Your branch is up to date with 'origin/development'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   backend/data/certificates.json
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	billing_monetization_diagnostic.txt
+	diagnose_billing_monetization.sh
+
+no changes added to commit (use "git add" and/or "git commit -a")
+development
+b676e8b fix: polish academic badge QR spacing and premium layout
+b9a7652 feat: complete academic recognition verification and educator intelligence
+69b8d75 feat: complete educator core modules and professional teaching plan export
+697a429 feat: add teaching plan and rubric integration updates
+0f89a39 feat: add academic dashboard final report and student profile
+
+===== BACKEND BILLING DIAGNOSTIC =====
+--- stripe refs ---
+app/routes/billing.py:3:import stripe
+app/routes/billing.py:35:def _resolve_plan_from_stripe_object(data_object: dict, fallback: str = "free") -> str:
+app/routes/billing.py:96:    stripe_secret_key = os.getenv("STRIPE_SECRET_KEY", "")
+app/routes/billing.py:98:    if not stripe_secret_key:
+app/routes/billing.py:107:    stripe.api_key = stripe_secret_key
+app/routes/billing.py:127:        session = stripe.checkout.Session.create(
+app/routes/billing.py:177:    stripe_secret_key = os.getenv("STRIPE_SECRET_KEY", "")
+app/routes/billing.py:179:    if not stripe_secret_key:
+app/routes/billing.py:185:    stripe.api_key = stripe_secret_key
+app/routes/billing.py:191:    stripe_customer_id = subscription.get("stripe_customer_id")
+app/routes/billing.py:193:    if not stripe_customer_id:
+app/routes/billing.py:211:        session = stripe.billing_portal.Session.create(
+app/routes/billing.py:212:            customer=stripe_customer_id,
+app/routes/billing.py:263:async def stripe_webhook(request: Request):
+app/routes/billing.py:265:    signature = request.headers.get("stripe-signature", "")
+app/routes/billing.py:275:        event = stripe.Webhook.construct_event(
+app/routes/billing.py:285:    except stripe.SignatureVerificationError as exc:
+app/routes/billing.py:299:        plan = _resolve_plan_from_stripe_object(
+app/routes/billing.py:315:            stripe_customer_id=data_object.get("customer"),
+app/routes/billing.py:316:            stripe_subscription_id=data_object.get("subscription"),
+app/routes/billing.py:329:        plan = _resolve_plan_from_stripe_object(
+app/routes/billing.py:351:                stripe_customer_id=data_object.get("customer"),
+app/routes/billing.py:352:                stripe_subscription_id=data_object.get("id"),
+app/routes/billing.py:360:                stripe_customer_id=data_object.get("customer"),
+app/routes/billing.py:361:                stripe_subscription_id=data_object.get("id"),
+Binary file app/routes/__pycache__/billing.cpython-311.pyc matches
+app/services/subscription_service.py:17:        "stripe_customer_id": None,
+app/services/subscription_service.py:18:        "stripe_subscription_id": None,
+app/services/subscription_service.py:28:    stripe_customer_id: str | None = None,
+app/services/subscription_service.py:29:    stripe_subscription_id: str | None = None,
+app/services/subscription_service.py:46:        "stripe_customer_id": stripe_customer_id,
+app/services/subscription_service.py:47:        "stripe_subscription_id": stripe_subscription_id,
+app/services/subscription_service.py:72:    stripe_customer_id: str | None = None,
+app/services/subscription_service.py:73:    stripe_subscription_id: str | None = None,
+app/services/subscription_service.py:80:        stripe_customer_id=stripe_customer_id,
+app/services/subscription_service.py:81:        stripe_subscription_id=stripe_subscription_id,
+app/services/subscription_service.py:126:        "stripe_customer_id": data.get("stripe_customer_id"),
+app/services/subscription_service.py:127:        "stripe_subscription_id": data.get("stripe_subscription_id"),
+Binary file app/services/__pycache__/subscription_service.cpython-311.pyc matches
+--- plan refs ---
+app/routes/documents.py.bak_rubric_20260616_122739:270:        plan = enforce_pdf_upload_limit(
+app/routes/documents.py.bak_rubric_20260616_122739:322:            plan=plan,
+app/routes/documents.py.bak_rubric_20260616_122739:429:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_rubric_20260616_122739:453:            plan=plan,
+app/routes/documents.py.bak_rubric_20260616_122739:505:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_rubric_20260616_122739:530:            plan=plan,
+app/routes/documents.py.bak_rubric_20260616_122739:570:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_rubric_20260616_122739:595:            plan=plan,
+app/routes/documents.py.bak_rubric_20260616_122739:636:        plan = enforce_flashcard_limit(
+app/routes/documents.py.bak_rubric_20260616_122739:661:            plan=plan,
+app/routes/documents.py.bak_rubric_20260616_122739:697:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_rubric_20260616_122739:704:            plan=plan,
+app/routes/documents.py.bak_rubric_20260616_122739:987:            plan="unknown",
+app/routes/documents.py.bak_rubric_20260616_122739:1059:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_rubric_20260616_122739:1073:            plan=plan,
+app/routes/documents.py.bak_rubric_20260616_122739:1108:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_rubric_20260616_122739:1115:            plan=plan,
+app/routes/documents.py.bak_rubric_20260616_122739:1164:        plan = enforce_flashcard_limit(
+app/routes/documents.py.bak_rubric_20260616_122739:1193:            plan=plan,
+app/routes/documents.py.bak_rubric_20260616_122739:1230:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_rubric_20260616_122739:1261:            plan=plan,
+app/routes/documents.py.bak_rubric_20260616_122739:1297:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_rubric_20260616_122739:1326:            plan=plan,
+app/routes/export.py.bak_excellence_badge_20260622_184536:12:from app.services.export_service import build_text_pdf, build_final_report_pdf, build_teaching_plan_pdf, build_rubric_pdf, build_exam_pdf, build_certificate_pdf, build_academic_badge_pdf, build_student_transcript_pdf
+app/routes/export.py.bak_excellence_badge_20260622_184536:42:    plan: dict[str, Any]
+app/routes/export.py.bak_excellence_badge_20260622_184536:110:        plan = enforce_export_permission(
+app/routes/export.py.bak_excellence_badge_20260622_184536:132:            plan=plan,
+app/routes/export.py.bak_excellence_badge_20260622_184536:156:        plan = enforce_export_permission(
+app/routes/export.py.bak_excellence_badge_20260622_184536:173:            plan=plan,
+app/routes/export.py.bak_excellence_badge_20260622_184536:202:        plan = enforce_export_permission(
+app/routes/export.py.bak_excellence_badge_20260622_184536:238:            plan=plan,
+app/routes/export.py.bak_excellence_badge_20260622_184536:266:        plan = enforce_export_permission(
+app/routes/export.py.bak_excellence_badge_20260622_184536:280:            plan=plan,
+app/routes/export.py.bak_excellence_badge_20260622_184536:311:        plan = enforce_export_permission(
+app/routes/export.py.bak_excellence_badge_20260622_184536:327:            plan=plan,
+app/routes/export.py.bak_excellence_badge_20260622_184536:350:@router.post("/teaching-plan-pdf")
+app/routes/export.py.bak_excellence_badge_20260622_184536:351:async def export_teaching_plan_pdf(
+app/routes/export.py.bak_excellence_badge_20260622_184536:356:        plan = enforce_export_permission(
+app/routes/export.py.bak_excellence_badge_20260622_184536:361:        pdf_bytes = build_teaching_plan_pdf(
+app/routes/export.py.bak_excellence_badge_20260622_184536:363:            plan=payload.plan,
+app/routes/export.py.bak_excellence_badge_20260622_184536:369:            plan=plan,
+app/routes/export.py.bak_excellence_badge_20260622_184536:371:                "export_type": "teaching_plan_pdf",
+app/routes/export.py.bak_excellence_badge_20260622_184536:381:                    'attachment; filename="studybook_planificacion_docente.pdf"'
+app/routes/export.py.bak_excellence_badge_20260622_184536:398:        plan = enforce_export_permission(
+app/routes/export.py.bak_excellence_badge_20260622_184536:415:            plan=plan,
+app/routes/export.py.bak_excellence_badge_20260622_184536:446:        plan = enforce_export_permission(
+app/routes/export.py.bak_excellence_badge_20260622_184536:500:            plan=plan,
+app/routes/export.py.bak_excellence_badge_20260622_184536:533:        plan = enforce_export_permission(
+app/routes/export.py.bak_excellence_badge_20260622_184536:558:            plan=plan,
+app/routes/export.py.bak_excellence_badge_20260622_184536:589:        plan = enforce_export_permission(
+app/routes/export.py.bak_excellence_badge_20260622_184536:614:            plan=plan,
+app/routes/billing.py:20:    plan: str = Field(
+app/routes/billing.py:35:def _resolve_plan_from_stripe_object(data_object: dict, fallback: str = "free") -> str:
+app/routes/billing.py:38:    plan = str(metadata.get("plan") or "").strip().lower()
+app/routes/billing.py:39:    if plan in {"pro", "educator"}:
+app/routes/billing.py:40:        return plan
+app/routes/billing.py:49:        price_id = price.get("id") or item.get("plan", {}).get("id")
+app/routes/billing.py:60:def _get_price_id(plan: str) -> str:
+app/routes/billing.py:66:    price_id = price_map.get(plan)
+app/routes/billing.py:88:    plan = payload.plan.strip().lower()
+app/routes/billing.py:90:    if plan not in {"pro", "educator"}:
+app/routes/billing.py:109:    price_id = _get_price_id(plan)
+app/routes/billing.py:113:        "http://localhost:5000/#/plans?checkout=success",
+app/routes/billing.py:117:        "http://localhost:5000/#/plans?checkout=cancel",
+app/routes/billing.py:123:    success_url = f"{success_url_base}{separator_success}plan={plan}"
+app/routes/billing.py:124:    cancel_url = f"{cancel_url_base}{separator_cancel}plan={plan}"
+app/routes/billing.py:139:                "plan": plan,
+app/routes/billing.py:146:                    "plan": plan,
+app/routes/billing.py:299:        plan = _resolve_plan_from_stripe_object(
+app/routes/billing.py:301:            metadata.get("plan", "free"),
+app/routes/billing.py:314:            plan=plan,
+app/routes/billing.py:329:        plan = _resolve_plan_from_stripe_object(
+app/routes/billing.py:331:            metadata.get("plan", "free"),
+app/routes/billing.py:359:                plan=plan,
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:12:from app.services.export_service import build_text_pdf, build_final_report_pdf, build_teaching_plan_pdf, build_rubric_pdf, build_exam_pdf, build_certificate_pdf, build_academic_badge_pdf, build_student_transcript_pdf
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:42:    plan: dict[str, Any]
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:103:        plan = enforce_export_permission(
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:119:            plan=plan,
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:143:        plan = enforce_export_permission(
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:160:            plan=plan,
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:189:        plan = enforce_export_permission(
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:224:            plan=plan,
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:252:        plan = enforce_export_permission(
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:266:            plan=plan,
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:297:        plan = enforce_export_permission(
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:313:            plan=plan,
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:336:@router.post("/teaching-plan-pdf")
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:337:async def export_teaching_plan_pdf(
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:342:        plan = enforce_export_permission(
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:347:        pdf_bytes = build_teaching_plan_pdf(
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:349:            plan=payload.plan,
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:355:            plan=plan,
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:357:                "export_type": "teaching_plan_pdf",
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:367:                    'attachment; filename="studybook_planificacion_docente.pdf"'
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:384:        plan = enforce_export_permission(
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:401:            plan=plan,
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:432:        plan = enforce_export_permission(
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:486:            plan=plan,
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:519:        plan = enforce_export_permission(
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:544:            plan=plan,
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:575:        plan = enforce_export_permission(
+app/routes/export.py.bak_transcript_pdf_v2_20260622_180016:600:            plan=plan,
+app/routes/export.py.bak_xlsx_20260617_103039:31:        plan = enforce_export_permission(
+app/routes/export.py.bak_xlsx_20260617_103039:56:            plan=plan,
+app/routes/export.py.bak_xlsx_20260617_103039:87:        plan = enforce_export_permission(
+app/routes/export.py.bak_xlsx_20260617_103039:112:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:30:    generate_teaching_plan_from_context,
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:420:            plan="educator",
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:474:            plan="educator",
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:501:        plan = enforce_pdf_upload_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:553:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:660:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:684:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:721:@router.post("/teaching-plan/{document_id}")
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:722:async def teaching_plan_document_by_id(
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:737:                "planificación docente unidad didáctica objetivos competencias "
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:743:        teaching_plan = generate_teaching_plan_from_context(
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:751:            event_type="teaching_plan_generated",
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:752:            plan="educator",
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:761:            "teaching_plan": json.loads(teaching_plan),
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:804:            plan="educator",
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:842:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:867:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:907:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:932:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:973:        plan = enforce_flashcard_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:998:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:1034:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:1041:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:1324:            plan="unknown",
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:1396:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:1410:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:1445:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:1452:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:1501:        plan = enforce_flashcard_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:1530:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:1567:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:1598:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:1634:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_093518:1663:            plan=plan,
+app/routes/documents.py.bak_question_bank_20260616_101940:270:        plan = enforce_pdf_upload_limit(
+app/routes/documents.py.bak_question_bank_20260616_101940:322:            plan=plan,
+app/routes/documents.py.bak_question_bank_20260616_101940:429:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_question_bank_20260616_101940:453:            plan=plan,
+app/routes/documents.py.bak_question_bank_20260616_101940:504:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_question_bank_20260616_101940:529:            plan=plan,
+app/routes/documents.py.bak_question_bank_20260616_101940:570:        plan = enforce_flashcard_limit(
+app/routes/documents.py.bak_question_bank_20260616_101940:595:            plan=plan,
+app/routes/documents.py.bak_question_bank_20260616_101940:631:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_question_bank_20260616_101940:638:            plan=plan,
+app/routes/documents.py.bak_question_bank_20260616_101940:921:            plan="unknown",
+app/routes/documents.py.bak_question_bank_20260616_101940:993:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_question_bank_20260616_101940:1007:            plan=plan,
+app/routes/documents.py.bak_question_bank_20260616_101940:1042:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_question_bank_20260616_101940:1049:            plan=plan,
+app/routes/documents.py.bak_question_bank_20260616_101940:1098:        plan = enforce_flashcard_limit(
+app/routes/documents.py.bak_question_bank_20260616_101940:1127:            plan=plan,
+app/routes/documents.py.bak_question_bank_20260616_101940:1163:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_question_bank_20260616_101940:1192:            plan=plan,
+app/routes/documents.py:30:    generate_teaching_plan_from_context,
+app/routes/documents.py:457:            plan="educator",
+app/routes/documents.py:514:            plan="educator",
+app/routes/documents.py:566:            plan="educator",
+app/routes/documents.py:593:        plan = enforce_pdf_upload_limit(
+app/routes/documents.py:645:            plan=plan,
+app/routes/documents.py:752:        plan = enforce_chat_limit(
+app/routes/documents.py:776:            plan=plan,
+app/routes/documents.py:813:@router.post("/teaching-plan/{document_id}")
+app/routes/documents.py:814:async def teaching_plan_document_by_id(
+app/routes/documents.py:829:                "planificación docente unidad didáctica objetivos competencias "
+app/routes/documents.py:835:        teaching_plan = generate_teaching_plan_from_context(
+app/routes/documents.py:843:            event_type="teaching_plan_generated",
+app/routes/documents.py:844:            plan="educator",
+app/routes/documents.py:853:            "teaching_plan": json.loads(teaching_plan),
+app/routes/documents.py:902:            plan="educator",
+app/routes/documents.py:943:        plan = enforce_exam_limit(
+app/routes/documents.py:968:            plan=plan,
+app/routes/documents.py:1013:        plan = enforce_exam_limit(
+app/routes/documents.py:1046:            plan=plan,
+app/routes/documents.py:1087:        plan = enforce_flashcard_limit(
+app/routes/documents.py:1112:            plan=plan,
+app/routes/documents.py:1148:        plan = enforce_chat_limit(
+app/routes/documents.py:1155:            plan=plan,
+app/routes/documents.py:1438:            plan="unknown",
+app/routes/documents.py:1510:        plan = enforce_chat_limit(
+app/routes/documents.py:1524:            plan=plan,
+app/routes/documents.py:1559:        plan = enforce_chat_limit(
+app/routes/documents.py:1566:            plan=plan,
+app/routes/documents.py:1615:        plan = enforce_flashcard_limit(
+app/routes/documents.py:1644:            plan=plan,
+app/routes/documents.py:1681:        plan = enforce_exam_limit(
+app/routes/documents.py:1712:            plan=plan,
+app/routes/documents.py:1748:        plan = enforce_exam_limit(
+app/routes/documents.py:1777:            plan=plan,
+app/routes/export.py.bak_excelencia_cert_20260622_183152:12:from app.services.export_service import build_text_pdf, build_final_report_pdf, build_teaching_plan_pdf, build_rubric_pdf, build_exam_pdf, build_certificate_pdf, build_academic_badge_pdf, build_student_transcript_pdf
+app/routes/export.py.bak_excelencia_cert_20260622_183152:42:    plan: dict[str, Any]
+app/routes/export.py.bak_excelencia_cert_20260622_183152:109:        plan = enforce_export_permission(
+app/routes/export.py.bak_excelencia_cert_20260622_183152:131:            plan=plan,
+app/routes/export.py.bak_excelencia_cert_20260622_183152:155:        plan = enforce_export_permission(
+app/routes/export.py.bak_excelencia_cert_20260622_183152:172:            plan=plan,
+app/routes/export.py.bak_excelencia_cert_20260622_183152:201:        plan = enforce_export_permission(
+app/routes/export.py.bak_excelencia_cert_20260622_183152:236:            plan=plan,
+app/routes/export.py.bak_excelencia_cert_20260622_183152:264:        plan = enforce_export_permission(
+app/routes/export.py.bak_excelencia_cert_20260622_183152:278:            plan=plan,
+app/routes/export.py.bak_excelencia_cert_20260622_183152:309:        plan = enforce_export_permission(
+app/routes/export.py.bak_excelencia_cert_20260622_183152:325:            plan=plan,
+app/routes/export.py.bak_excelencia_cert_20260622_183152:348:@router.post("/teaching-plan-pdf")
+app/routes/export.py.bak_excelencia_cert_20260622_183152:349:async def export_teaching_plan_pdf(
+app/routes/export.py.bak_excelencia_cert_20260622_183152:354:        plan = enforce_export_permission(
+app/routes/export.py.bak_excelencia_cert_20260622_183152:359:        pdf_bytes = build_teaching_plan_pdf(
+app/routes/export.py.bak_excelencia_cert_20260622_183152:361:            plan=payload.plan,
+app/routes/export.py.bak_excelencia_cert_20260622_183152:367:            plan=plan,
+app/routes/export.py.bak_excelencia_cert_20260622_183152:369:                "export_type": "teaching_plan_pdf",
+app/routes/export.py.bak_excelencia_cert_20260622_183152:379:                    'attachment; filename="studybook_planificacion_docente.pdf"'
+app/routes/export.py.bak_excelencia_cert_20260622_183152:396:        plan = enforce_export_permission(
+app/routes/export.py.bak_excelencia_cert_20260622_183152:413:            plan=plan,
+app/routes/export.py.bak_excelencia_cert_20260622_183152:444:        plan = enforce_export_permission(
+app/routes/export.py.bak_excelencia_cert_20260622_183152:498:            plan=plan,
+app/routes/export.py.bak_excelencia_cert_20260622_183152:531:        plan = enforce_export_permission(
+app/routes/export.py.bak_excelencia_cert_20260622_183152:556:            plan=plan,
+app/routes/export.py.bak_excelencia_cert_20260622_183152:587:        plan = enforce_export_permission(
+app/routes/export.py.bak_excelencia_cert_20260622_183152:612:            plan=plan,
+app/routes/pptx_export.py:31:    plan = enforce_export_permission(
+app/routes/pptx_export.py:44:        plan=plan,
+Binary file app/routes/__pycache__/documents.cpython-311.pyc matches
+Binary file app/routes/__pycache__/student_analytics.cpython-311.pyc matches
+Binary file app/routes/__pycache__/pptx_export.cpython-311.pyc matches
+Binary file app/routes/__pycache__/export.cpython-311.pyc matches
+Binary file app/routes/__pycache__/billing.cpython-311.pyc matches
+app/routes/export.py:12:from app.services.export_service import build_text_pdf, build_final_report_pdf, build_teaching_plan_pdf, build_rubric_pdf, build_exam_pdf, build_certificate_pdf, build_academic_badge_pdf, build_student_transcript_pdf
+app/routes/export.py:42:    plan: dict[str, Any]
+app/routes/export.py:110:        plan = enforce_export_permission(
+app/routes/export.py:132:            plan=plan,
+app/routes/export.py:156:        plan = enforce_export_permission(
+app/routes/export.py:198:            plan=plan,
+app/routes/export.py:227:        plan = enforce_export_permission(
+app/routes/export.py:270:            plan=plan,
+app/routes/export.py:298:        plan = enforce_export_permission(
+app/routes/export.py:312:            plan=plan,
+app/routes/export.py:343:        plan = enforce_export_permission(
+app/routes/export.py:359:            plan=plan,
+app/routes/export.py:382:@router.post("/teaching-plan-pdf")
+app/routes/export.py:383:async def export_teaching_plan_pdf(
+app/routes/export.py:388:        plan = enforce_export_permission(
+app/routes/export.py:393:        pdf_bytes = build_teaching_plan_pdf(
+app/routes/export.py:395:            plan=payload.plan,
+app/routes/export.py:401:            plan=plan,
+app/routes/export.py:403:                "export_type": "teaching_plan_pdf",
+app/routes/export.py:413:                    'attachment; filename="studybook_planificacion_docente.pdf"'
+app/routes/export.py:430:        plan = enforce_export_permission(
+app/routes/export.py:447:            plan=plan,
+app/routes/export.py:478:        plan = enforce_export_permission(
+app/routes/export.py:532:            plan=plan,
+app/routes/export.py:565:        plan = enforce_export_permission(
+app/routes/export.py:590:            plan=plan,
+app/routes/export.py:621:        plan = enforce_export_permission(
+app/routes/export.py:646:            plan=plan,
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:30:    generate_teaching_plan_from_context,
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:456:            plan="educator",
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:512:            plan="educator",
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:539:        plan = enforce_pdf_upload_limit(
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:591:            plan=plan,
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:698:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:722:            plan=plan,
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:759:@router.post("/teaching-plan/{document_id}")
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:760:async def teaching_plan_document_by_id(
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:775:                "planificación docente unidad didáctica objetivos competencias "
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:781:        teaching_plan = generate_teaching_plan_from_context(
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:789:            event_type="teaching_plan_generated",
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:790:            plan="educator",
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:799:            "teaching_plan": json.loads(teaching_plan),
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:842:            plan="educator",
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:880:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:905:            plan=plan,
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:945:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:970:            plan=plan,
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:1011:        plan = enforce_flashcard_limit(
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:1036:            plan=plan,
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:1072:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:1079:            plan=plan,
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:1362:            plan="unknown",
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:1434:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:1448:            plan=plan,
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:1483:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:1490:            plan=plan,
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:1539:        plan = enforce_flashcard_limit(
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:1568:            plan=plan,
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:1605:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:1636:            plan=plan,
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:1672:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_import_grades_pdf_20260617_114659:1701:            plan=plan,
+app/routes/documents.py.bak_teaching_plan_20260616_180216:271:        plan = enforce_pdf_upload_limit(
+app/routes/documents.py.bak_teaching_plan_20260616_180216:323:            plan=plan,
+app/routes/documents.py.bak_teaching_plan_20260616_180216:430:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_teaching_plan_20260616_180216:454:            plan=plan,
+app/routes/documents.py.bak_teaching_plan_20260616_180216:521:            plan="educator",
+app/routes/documents.py.bak_teaching_plan_20260616_180216:559:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_teaching_plan_20260616_180216:584:            plan=plan,
+app/routes/documents.py.bak_teaching_plan_20260616_180216:624:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_teaching_plan_20260616_180216:649:            plan=plan,
+app/routes/documents.py.bak_teaching_plan_20260616_180216:690:        plan = enforce_flashcard_limit(
+app/routes/documents.py.bak_teaching_plan_20260616_180216:715:            plan=plan,
+app/routes/documents.py.bak_teaching_plan_20260616_180216:751:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_teaching_plan_20260616_180216:758:            plan=plan,
+app/routes/documents.py.bak_teaching_plan_20260616_180216:1041:            plan="unknown",
+app/routes/documents.py.bak_teaching_plan_20260616_180216:1113:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_teaching_plan_20260616_180216:1127:            plan=plan,
+app/routes/documents.py.bak_teaching_plan_20260616_180216:1162:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_teaching_plan_20260616_180216:1169:            plan=plan,
+app/routes/documents.py.bak_teaching_plan_20260616_180216:1218:        plan = enforce_flashcard_limit(
+app/routes/documents.py.bak_teaching_plan_20260616_180216:1247:            plan=plan,
+app/routes/documents.py.bak_teaching_plan_20260616_180216:1284:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_teaching_plan_20260616_180216:1315:            plan=plan,
+app/routes/documents.py.bak_teaching_plan_20260616_180216:1351:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_teaching_plan_20260616_180216:1380:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:29:    generate_teaching_plan_from_context,
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:309:            plan="educator",
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:336:        plan = enforce_pdf_upload_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:388:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:495:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:519:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:556:@router.post("/teaching-plan/{document_id}")
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:557:async def teaching_plan_document_by_id(
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:572:                "planificación docente unidad didáctica objetivos competencias "
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:578:        teaching_plan = generate_teaching_plan_from_context(
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:586:            event_type="teaching_plan_generated",
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:587:            plan="educator",
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:596:            "teaching_plan": json.loads(teaching_plan),
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:639:            plan="educator",
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:677:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:702:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:742:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:767:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:808:        plan = enforce_flashcard_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:833:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:869:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:876:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:1159:            plan="unknown",
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:1231:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:1245:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:1280:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:1287:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:1336:        plan = enforce_flashcard_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:1365:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:1402:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:1433:            plan=plan,
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:1469:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_import_grades_excel_20260617_092109:1498:            plan=plan,
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:12:from app.services.export_service import build_text_pdf, build_final_report_pdf, build_teaching_plan_pdf, build_rubric_pdf, build_exam_pdf, build_certificate_pdf, build_academic_badge_pdf, build_student_transcript_pdf
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:42:    plan: dict[str, Any]
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:103:        plan = enforce_export_permission(
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:119:            plan=plan,
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:143:        plan = enforce_export_permission(
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:160:            plan=plan,
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:189:        plan = enforce_export_permission(
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:224:            plan=plan,
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:252:        plan = enforce_export_permission(
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:266:            plan=plan,
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:297:        plan = enforce_export_permission(
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:313:            plan=plan,
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:336:@router.post("/teaching-plan-pdf")
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:337:async def export_teaching_plan_pdf(
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:342:        plan = enforce_export_permission(
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:347:        pdf_bytes = build_teaching_plan_pdf(
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:349:            plan=payload.plan,
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:355:            plan=plan,
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:357:                "export_type": "teaching_plan_pdf",
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:367:                    'attachment; filename="studybook_planificacion_docente.pdf"'
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:384:        plan = enforce_export_permission(
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:401:            plan=plan,
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:432:        plan = enforce_export_permission(
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:486:            plan=plan,
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:519:        plan = enforce_export_permission(
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:544:            plan=plan,
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:575:        plan = enforce_export_permission(
+app/routes/export.py.bak_transcript_pdf_full_20260622_175144:600:            plan=plan,
+app/routes/documents.py.bak_import_students_20260616_200918:29:    generate_teaching_plan_from_context,
+app/routes/documents.py.bak_import_students_20260616_200918:272:        plan = enforce_pdf_upload_limit(
+app/routes/documents.py.bak_import_students_20260616_200918:324:            plan=plan,
+app/routes/documents.py.bak_import_students_20260616_200918:431:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_import_students_20260616_200918:455:            plan=plan,
+app/routes/documents.py.bak_import_students_20260616_200918:492:@router.post("/teaching-plan/{document_id}")
+app/routes/documents.py.bak_import_students_20260616_200918:493:async def teaching_plan_document_by_id(
+app/routes/documents.py.bak_import_students_20260616_200918:508:                "planificación docente unidad didáctica objetivos competencias "
+app/routes/documents.py.bak_import_students_20260616_200918:514:        teaching_plan = generate_teaching_plan_from_context(
+app/routes/documents.py.bak_import_students_20260616_200918:522:            event_type="teaching_plan_generated",
+app/routes/documents.py.bak_import_students_20260616_200918:523:            plan="educator",
+app/routes/documents.py.bak_import_students_20260616_200918:532:            "teaching_plan": json.loads(teaching_plan),
+app/routes/documents.py.bak_import_students_20260616_200918:575:            plan="educator",
+app/routes/documents.py.bak_import_students_20260616_200918:613:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_import_students_20260616_200918:638:            plan=plan,
+app/routes/documents.py.bak_import_students_20260616_200918:678:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_import_students_20260616_200918:703:            plan=plan,
+app/routes/documents.py.bak_import_students_20260616_200918:744:        plan = enforce_flashcard_limit(
+app/routes/documents.py.bak_import_students_20260616_200918:769:            plan=plan,
+app/routes/documents.py.bak_import_students_20260616_200918:805:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_import_students_20260616_200918:812:            plan=plan,
+app/routes/documents.py.bak_import_students_20260616_200918:1095:            plan="unknown",
+app/routes/documents.py.bak_import_students_20260616_200918:1167:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_import_students_20260616_200918:1181:            plan=plan,
+app/routes/documents.py.bak_import_students_20260616_200918:1216:        plan = enforce_chat_limit(
+app/routes/documents.py.bak_import_students_20260616_200918:1223:            plan=plan,
+app/routes/documents.py.bak_import_students_20260616_200918:1272:        plan = enforce_flashcard_limit(
+app/routes/documents.py.bak_import_students_20260616_200918:1301:            plan=plan,
+app/routes/documents.py.bak_import_students_20260616_200918:1338:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_import_students_20260616_200918:1369:            plan=plan,
+app/routes/documents.py.bak_import_students_20260616_200918:1405:        plan = enforce_exam_limit(
+app/routes/documents.py.bak_import_students_20260616_200918:1434:            plan=plan,
+app/routes/export.py.bak_recognition_engine_20260622_225656:12:from app.services.export_service import build_text_pdf, build_final_report_pdf, build_teaching_plan_pdf, build_rubric_pdf, build_exam_pdf, build_certificate_pdf, build_academic_badge_pdf, build_student_transcript_pdf
+app/routes/export.py.bak_recognition_engine_20260622_225656:42:    plan: dict[str, Any]
+app/routes/export.py.bak_recognition_engine_20260622_225656:110:        plan = enforce_export_permission(
+app/routes/export.py.bak_recognition_engine_20260622_225656:132:            plan=plan,
+app/routes/export.py.bak_recognition_engine_20260622_225656:156:        plan = enforce_export_permission(
+app/routes/export.py.bak_recognition_engine_20260622_225656:191:            plan=plan,
+app/routes/export.py.bak_recognition_engine_20260622_225656:220:        plan = enforce_export_permission(
+app/routes/export.py.bak_recognition_engine_20260622_225656:256:            plan=plan,
+app/routes/export.py.bak_recognition_engine_20260622_225656:284:        plan = enforce_export_permission(
+app/routes/export.py.bak_recognition_engine_20260622_225656:298:            plan=plan,
+app/routes/export.py.bak_recognition_engine_20260622_225656:329:        plan = enforce_export_permission(
+app/routes/export.py.bak_recognition_engine_20260622_225656:345:            plan=plan,
+app/routes/export.py.bak_recognition_engine_20260622_225656:368:@router.post("/teaching-plan-pdf")
+app/routes/export.py.bak_recognition_engine_20260622_225656:369:async def export_teaching_plan_pdf(
+app/routes/export.py.bak_recognition_engine_20260622_225656:374:        plan = enforce_export_permission(
+app/routes/export.py.bak_recognition_engine_20260622_225656:379:        pdf_bytes = build_teaching_plan_pdf(
+app/routes/export.py.bak_recognition_engine_20260622_225656:381:            plan=payload.plan,
+app/routes/export.py.bak_recognition_engine_20260622_225656:387:            plan=plan,
+app/routes/export.py.bak_recognition_engine_20260622_225656:389:                "export_type": "teaching_plan_pdf",
+app/routes/export.py.bak_recognition_engine_20260622_225656:399:                    'attachment; filename="studybook_planificacion_docente.pdf"'
+app/routes/export.py.bak_recognition_engine_20260622_225656:416:        plan = enforce_export_permission(
+app/routes/export.py.bak_recognition_engine_20260622_225656:433:            plan=plan,
+app/routes/export.py.bak_recognition_engine_20260622_225656:464:        plan = enforce_export_permission(
+app/routes/export.py.bak_recognition_engine_20260622_225656:518:            plan=plan,
+app/routes/export.py.bak_recognition_engine_20260622_225656:551:        plan = enforce_export_permission(
+app/routes/export.py.bak_recognition_engine_20260622_225656:576:            plan=plan,
+app/routes/export.py.bak_recognition_engine_20260622_225656:607:        plan = enforce_export_permission(
+app/routes/export.py.bak_recognition_engine_20260622_225656:632:            plan=plan,
+app/routes/export.py.bak_ranking_pdf_20260622_181828:12:from app.services.export_service import build_text_pdf, build_final_report_pdf, build_teaching_plan_pdf, build_rubric_pdf, build_exam_pdf, build_certificate_pdf, build_academic_badge_pdf, build_student_transcript_pdf
+app/routes/export.py.bak_ranking_pdf_20260622_181828:42:    plan: dict[str, Any]
+app/routes/export.py.bak_ranking_pdf_20260622_181828:106:        plan = enforce_export_permission(
+app/routes/export.py.bak_ranking_pdf_20260622_181828:125:            plan=plan,
+app/routes/export.py.bak_ranking_pdf_20260622_181828:149:        plan = enforce_export_permission(
+app/routes/export.py.bak_ranking_pdf_20260622_181828:166:            plan=plan,
+app/routes/export.py.bak_ranking_pdf_20260622_181828:195:        plan = enforce_export_permission(
+app/routes/export.py.bak_ranking_pdf_20260622_181828:230:            plan=plan,
+app/routes/export.py.bak_ranking_pdf_20260622_181828:258:        plan = enforce_export_permission(
+app/routes/export.py.bak_ranking_pdf_20260622_181828:272:            plan=plan,
+app/routes/export.py.bak_ranking_pdf_20260622_181828:303:        plan = enforce_export_permission(
+app/routes/export.py.bak_ranking_pdf_20260622_181828:319:            plan=plan,
+app/routes/export.py.bak_ranking_pdf_20260622_181828:342:@router.post("/teaching-plan-pdf")
+app/routes/export.py.bak_ranking_pdf_20260622_181828:343:async def export_teaching_plan_pdf(
+app/routes/export.py.bak_ranking_pdf_20260622_181828:348:        plan = enforce_export_permission(
+app/routes/export.py.bak_ranking_pdf_20260622_181828:353:        pdf_bytes = build_teaching_plan_pdf(
+app/routes/export.py.bak_ranking_pdf_20260622_181828:355:            plan=payload.plan,
+app/routes/export.py.bak_ranking_pdf_20260622_181828:361:            plan=plan,
+app/routes/export.py.bak_ranking_pdf_20260622_181828:363:                "export_type": "teaching_plan_pdf",
+app/routes/export.py.bak_ranking_pdf_20260622_181828:373:                    'attachment; filename="studybook_planificacion_docente.pdf"'
+app/routes/export.py.bak_ranking_pdf_20260622_181828:390:        plan = enforce_export_permission(
+app/routes/export.py.bak_ranking_pdf_20260622_181828:407:            plan=plan,
+app/routes/export.py.bak_ranking_pdf_20260622_181828:438:        plan = enforce_export_permission(
+app/routes/export.py.bak_ranking_pdf_20260622_181828:492:            plan=plan,
+app/routes/export.py.bak_ranking_pdf_20260622_181828:525:        plan = enforce_export_permission(
+app/routes/export.py.bak_ranking_pdf_20260622_181828:550:            plan=plan,
+app/routes/export.py.bak_ranking_pdf_20260622_181828:581:        plan = enforce_export_permission(
+app/routes/export.py.bak_ranking_pdf_20260622_181828:606:            plan=plan,
+app/services/ai_service.py:316:                    '      "explanation": "..."\n'
+app/services/ai_service.py:529:                    '      "explanation": "...",\n'
+app/services/ai_service.py:909:def generate_teaching_plan_from_context(
+app/services/ai_service.py:918:        raise ValueError("No hay contexto válido para generar la planificación docente.")
+app/services/ai_service.py:928:                    "Eres StudyBook AI, experto en planificación docente, diseño curricular "
+app/services/ai_service.py:929:                    "y evaluación educativa. Genera planificaciones claras, aplicables y profesionales. "
+app/services/ai_service.py:937:                    f"Genera una planificación docente de {safe_weeks} semanas.\n\n"
+app/services/ai_service.py.bak_import_grades_pdf_20260617_114659:316:                    '      "explanation": "..."\n'
+app/services/ai_service.py.bak_import_grades_pdf_20260617_114659:452:                    '      "explanation": "..."\n'
+app/services/ai_service.py.bak_import_grades_pdf_20260617_114659:786:def generate_teaching_plan_from_context(
+app/services/ai_service.py.bak_import_grades_pdf_20260617_114659:795:        raise ValueError("No hay contexto válido para generar la planificación docente.")
+app/services/ai_service.py.bak_import_grades_pdf_20260617_114659:805:                    "Eres StudyBook AI, experto en planificación docente, diseño curricular "
+app/services/ai_service.py.bak_import_grades_pdf_20260617_114659:806:                    "y evaluación educativa. Genera planificaciones claras, aplicables y profesionales. "
+app/services/ai_service.py.bak_import_grades_pdf_20260617_114659:814:                    f"Genera una planificación docente de {safe_weeks} semanas.\n\n"
+app/services/subscription_service.py:14:        "plan": "free",
+app/services/subscription_service.py:27:    plan: str,
+app/services/subscription_service.py:32:    clean_plan = plan.strip().lower()
+app/services/subscription_service.py:34:    if clean_plan not in VALID_PLANS:
+app/services/subscription_service.py:35:        clean_plan = "free"
+app/services/subscription_service.py:45:        "plan": clean_plan,
+app/services/subscription_service.py:79:        plan="free",
+app/services/subscription_service.py:115:    plan = data.get("plan") or "free"
+app/services/subscription_service.py:119:        plan = "free"
+app/services/subscription_service.py:124:        "plan": plan,
+app/services/export_service.py.bak_excellence_badge_20260622_184536:254:def build_teaching_plan_pdf(
+app/services/export_service.py.bak_excellence_badge_20260622_184536:257:    plan: dict,
+app/services/export_service.py.bak_excellence_badge_20260622_184536:272:        value = plan.get(key, default)
+app/services/export_service.py.bak_excellence_badge_20260622_184536:276:        value = plan.get(key, [])
+app/services/export_service.py.bak_excellence_badge_20260622_184536:352:    weeks = plan.get("weeks", [])
+app/services/export_service.py.bak_excellence_badge_20260622_184536:875:        explanation = get_text(item, "explanation", "explicacion")
+app/services/export_service.py.bak_excellence_badge_20260622_184536:950:            if explanation:
+app/services/export_service.py.bak_excellence_badge_20260622_184536:956:                for line in wrap_lines(explanation, 90)[:3]:
+app/services/export_service.py.bak_transcript_pdf_v2_20260622_180016:254:def build_teaching_plan_pdf(
+app/services/export_service.py.bak_transcript_pdf_v2_20260622_180016:257:    plan: dict,
+app/services/export_service.py.bak_transcript_pdf_v2_20260622_180016:272:        value = plan.get(key, default)
+app/services/export_service.py.bak_transcript_pdf_v2_20260622_180016:276:        value = plan.get(key, [])
+app/services/export_service.py.bak_transcript_pdf_v2_20260622_180016:352:    weeks = plan.get("weeks", [])
+app/services/export_service.py.bak_transcript_pdf_v2_20260622_180016:875:        explanation = get_text(item, "explanation", "explicacion")
+app/services/export_service.py.bak_transcript_pdf_v2_20260622_180016:950:            if explanation:
+app/services/export_service.py.bak_transcript_pdf_v2_20260622_180016:956:                for line in wrap_lines(explanation, 90)[:3]:
+app/services/export_service.py.bak_badge_premium_final_20260623_004437:295:def build_teaching_plan_pdf(
+app/services/export_service.py.bak_badge_premium_final_20260623_004437:298:    plan: dict,
+app/services/export_service.py.bak_badge_premium_final_20260623_004437:313:        value = plan.get(key, default)
+app/services/export_service.py.bak_badge_premium_final_20260623_004437:317:        value = plan.get(key, [])
+app/services/export_service.py.bak_badge_premium_final_20260623_004437:393:    weeks = plan.get("weeks", [])
+app/services/export_service.py.bak_badge_premium_final_20260623_004437:916:        explanation = get_text(item, "explanation", "explicacion")
+app/services/export_service.py.bak_badge_premium_final_20260623_004437:991:            if explanation:
+app/services/export_service.py.bak_badge_premium_final_20260623_004437:997:                for line in wrap_lines(explanation, 90)[:3]:
+app/services/export_service.py.bak_badge_visual_tuning_20260623_004913:295:def build_teaching_plan_pdf(
+app/services/export_service.py.bak_badge_visual_tuning_20260623_004913:298:    plan: dict,
+app/services/export_service.py.bak_badge_visual_tuning_20260623_004913:313:        value = plan.get(key, default)
+app/services/export_service.py.bak_badge_visual_tuning_20260623_004913:317:        value = plan.get(key, [])
+app/services/export_service.py.bak_badge_visual_tuning_20260623_004913:393:    weeks = plan.get("weeks", [])
+app/services/export_service.py.bak_badge_visual_tuning_20260623_004913:916:        explanation = get_text(item, "explanation", "explicacion")
+app/services/export_service.py.bak_badge_visual_tuning_20260623_004913:991:            if explanation:
+app/services/export_service.py.bak_badge_visual_tuning_20260623_004913:997:                for line in wrap_lines(explanation, 90)[:3]:
+Binary file app/services/__pycache__/export_service.cpython-311.pyc matches
+Binary file app/services/__pycache__/admin_dashboard_service.cpython-311.pyc matches
+Binary file app/services/__pycache__/subscription_service.cpython-311.pyc matches
+Binary file app/services/__pycache__/ai_service.cpython-311.pyc matches
+Binary file app/services/__pycache__/usage_limit_service.cpython-311.pyc matches
+app/services/usage_limit_service.py:36:def get_plan_for_user(user_id: str) -> str:
+app/services/usage_limit_service.py:41:    plan = subscription.get("plan", "free")
+app/services/usage_limit_service.py:43:    if plan not in PLAN_UPLOAD_LIMITS:
+app/services/usage_limit_service.py:46:    return plan
+app/services/usage_limit_service.py:95:    plan: str,
+app/services/usage_limit_service.py:103:        "plan": plan,
+app/services/usage_limit_service.py:124:    plan = get_plan_for_user(user_id)
+app/services/usage_limit_service.py:126:    limit = PLAN_UPLOAD_LIMITS.get(plan, PLAN_UPLOAD_LIMITS["free"])
+app/services/usage_limit_service.py:137:                f"Tu plan {plan} permite {limit} PDFs por día. "
+app/services/usage_limit_service.py:142:    return plan
+app/services/usage_limit_service.py:149:    plan = get_plan_for_user(user_id)
+app/services/usage_limit_service.py:151:    limit = PLAN_CHAT_LIMITS.get(plan, PLAN_CHAT_LIMITS["free"])
+app/services/usage_limit_service.py:162:                f"Tu plan {plan} permite {limit} mensajes de chat por día. "
+app/services/usage_limit_service.py:167:    return plan
+app/services/usage_limit_service.py:175:    plan = get_plan_for_user(user_id)
+app/services/usage_limit_service.py:178:        plan,
+app/services/usage_limit_service.py:186:                f"Tu plan {plan} permite hasta {limit} flashcards por PDF. "
+app/services/usage_limit_service.py:191:    return plan
+app/services/usage_limit_service.py:199:    plan = get_plan_for_user(user_id)
+app/services/usage_limit_service.py:202:        plan,
+app/services/usage_limit_service.py:210:                f"Tu plan {plan} permite hasta {limit} preguntas por examen. "
+app/services/usage_limit_service.py:215:    return plan
+app/services/usage_limit_service.py:244:    plan = get_plan_for_user(user_id)
+app/services/usage_limit_service.py:248:        plan,
+app/services/usage_limit_service.py:258:                f"Tu plan {plan} no permite exportar en formato "
+app/services/usage_limit_service.py:263:    return plan
+app/services/usage_limit_service.py:270:    plan = get_plan_for_user(user_id)
+app/services/usage_limit_service.py:329:        "plan": plan,
+app/services/usage_limit_service.py:342:                    plan,
+app/services/usage_limit_service.py:349:                    plan,
+app/services/usage_limit_service.py:356:                    plan,
+app/services/usage_limit_service.py:363:                    plan,
+app/services/usage_limit_service.py:370:                    plan,
+app/services/export_service.py.bak_transcript_premium_final_20260623_003422:295:def build_teaching_plan_pdf(
+app/services/export_service.py.bak_transcript_premium_final_20260623_003422:298:    plan: dict,
+app/services/export_service.py.bak_transcript_premium_final_20260623_003422:313:        value = plan.get(key, default)
+app/services/export_service.py.bak_transcript_premium_final_20260623_003422:317:        value = plan.get(key, [])
+app/services/export_service.py.bak_transcript_premium_final_20260623_003422:393:    weeks = plan.get("weeks", [])
+app/services/export_service.py.bak_transcript_premium_final_20260623_003422:916:        explanation = get_text(item, "explanation", "explicacion")
+app/services/export_service.py.bak_transcript_premium_final_20260623_003422:991:            if explanation:
+app/services/export_service.py.bak_transcript_premium_final_20260623_003422:997:                for line in wrap_lines(explanation, 90)[:3]:
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:36:def get_plan_for_user(user_id: str) -> str:
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:41:    plan = subscription.get("plan", "free")
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:43:    if plan not in PLAN_UPLOAD_LIMITS:
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:46:    return plan
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:75:    plan: str,
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:83:        "plan": plan,
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:104:    plan = get_plan_for_user(user_id)
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:106:    limit = PLAN_UPLOAD_LIMITS.get(plan, PLAN_UPLOAD_LIMITS["free"])
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:117:                f"Tu plan {plan} permite {limit} PDFs por día. "
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:122:    return plan
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:129:    plan = get_plan_for_user(user_id)
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:131:    limit = PLAN_CHAT_LIMITS.get(plan, PLAN_CHAT_LIMITS["free"])
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:142:                f"Tu plan {plan} permite {limit} mensajes de chat por día. "
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:147:    return plan
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:155:    plan = get_plan_for_user(user_id)
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:158:        plan,
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:166:                f"Tu plan {plan} permite hasta {limit} flashcards por PDF. "
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:171:    return plan
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:179:    plan = get_plan_for_user(user_id)
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:182:        plan,
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:190:                f"Tu plan {plan} permite hasta {limit} preguntas por examen. "
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:195:    return plan
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:222:    plan = get_plan_for_user(user_id)
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:226:        plan,
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:236:                f"Tu plan {plan} no permite exportar en formato "
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:241:    return plan
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:248:    plan = get_plan_for_user(user_id)
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:277:        "plan": plan,
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:282:                    plan,
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:289:                    plan,
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:296:                    plan,
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:303:                    plan,
+app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:310:                    plan,
+app/services/export_service.py.bak_badge_qr_spacing_fix_20260623_010046:295:def build_teaching_plan_pdf(
+app/services/export_service.py.bak_badge_qr_spacing_fix_20260623_010046:298:    plan: dict,
+app/services/export_service.py.bak_badge_qr_spacing_fix_20260623_010046:313:        value = plan.get(key, default)
+app/services/export_service.py.bak_badge_qr_spacing_fix_20260623_010046:317:        value = plan.get(key, [])
+app/services/export_service.py.bak_badge_qr_spacing_fix_20260623_010046:393:    weeks = plan.get("weeks", [])
+app/services/export_service.py.bak_badge_qr_spacing_fix_20260623_010046:916:        explanation = get_text(item, "explanation", "explicacion")
+app/services/export_service.py.bak_badge_qr_spacing_fix_20260623_010046:991:            if explanation:
+app/services/export_service.py.bak_badge_qr_spacing_fix_20260623_010046:997:                for line in wrap_lines(explanation, 90)[:3]:
+app/services/export_service.py:295:def build_teaching_plan_pdf(
+app/services/export_service.py:298:    plan: dict,
+app/services/export_service.py:313:        value = plan.get(key, default)
+app/services/export_service.py:317:        value = plan.get(key, [])
+app/services/export_service.py:393:    weeks = plan.get("weeks", [])
+app/services/export_service.py:916:        explanation = get_text(item, "explanation", "explicacion")
+app/services/export_service.py:991:            if explanation:
+app/services/export_service.py:997:                for line in wrap_lines(explanation, 90)[:3]:
+app/services/export_service.py.bak_qr_transcript_premium_20260623_000323:295:def build_teaching_plan_pdf(
+app/services/export_service.py.bak_qr_transcript_premium_20260623_000323:298:    plan: dict,
+app/services/export_service.py.bak_qr_transcript_premium_20260623_000323:313:        value = plan.get(key, default)
+app/services/export_service.py.bak_qr_transcript_premium_20260623_000323:317:        value = plan.get(key, [])
+app/services/export_service.py.bak_qr_transcript_premium_20260623_000323:393:    weeks = plan.get("weeks", [])
+app/services/export_service.py.bak_qr_transcript_premium_20260623_000323:916:        explanation = get_text(item, "explanation", "explicacion")
+app/services/export_service.py.bak_qr_transcript_premium_20260623_000323:991:            if explanation:
+app/services/export_service.py.bak_qr_transcript_premium_20260623_000323:997:                for line in wrap_lines(explanation, 90)[:3]:
+app/services/export_service.py.bak_ranking_pdf_20260622_181828:254:def build_teaching_plan_pdf(
+app/services/export_service.py.bak_ranking_pdf_20260622_181828:257:    plan: dict,
+app/services/export_service.py.bak_ranking_pdf_20260622_181828:272:        value = plan.get(key, default)
+app/services/export_service.py.bak_ranking_pdf_20260622_181828:276:        value = plan.get(key, [])
+app/services/export_service.py.bak_ranking_pdf_20260622_181828:352:    weeks = plan.get("weeks", [])
+app/services/export_service.py.bak_ranking_pdf_20260622_181828:875:        explanation = get_text(item, "explanation", "explicacion")
+app/services/export_service.py.bak_ranking_pdf_20260622_181828:950:            if explanation:
+app/services/export_service.py.bak_ranking_pdf_20260622_181828:956:                for line in wrap_lines(explanation, 90)[:3]:
+app/services/ai_service.py.bak_import_students_20260616_200918:316:                    '      "explanation": "..."\n'
+app/services/ai_service.py.bak_import_students_20260616_200918:452:                    '      "explanation": "..."\n'
+app/services/ai_service.py.bak_import_students_20260616_200918:786:def generate_teaching_plan_from_context(
+app/services/ai_service.py.bak_import_students_20260616_200918:795:        raise ValueError("No hay contexto válido para generar la planificación docente.")
+app/services/ai_service.py.bak_import_students_20260616_200918:805:                    "Eres StudyBook AI, experto en planificación docente, diseño curricular "
+app/services/ai_service.py.bak_import_students_20260616_200918:806:                    "y evaluación educativa. Genera planificaciones claras, aplicables y profesionales. "
+app/services/ai_service.py.bak_import_students_20260616_200918:814:                    f"Genera una planificación docente de {safe_weeks} semanas.\n\n"
+app/services/export_service.py.bak_badge_10_10_20260623_005712:295:def build_teaching_plan_pdf(
+app/services/export_service.py.bak_badge_10_10_20260623_005712:298:    plan: dict,
+app/services/export_service.py.bak_badge_10_10_20260623_005712:313:        value = plan.get(key, default)
+app/services/export_service.py.bak_badge_10_10_20260623_005712:317:        value = plan.get(key, [])
+app/services/export_service.py.bak_badge_10_10_20260623_005712:393:    weeks = plan.get("weeks", [])
+app/services/export_service.py.bak_badge_10_10_20260623_005712:916:        explanation = get_text(item, "explanation", "explicacion")
+app/services/export_service.py.bak_badge_10_10_20260623_005712:991:            if explanation:
+app/services/export_service.py.bak_badge_10_10_20260623_005712:997:                for line in wrap_lines(explanation, 90)[:3]:
+app/services/export_service.py.bak_transcript_pdf_full_20260622_175144:254:def build_teaching_plan_pdf(
+app/services/export_service.py.bak_transcript_pdf_full_20260622_175144:257:    plan: dict,
+app/services/export_service.py.bak_transcript_pdf_full_20260622_175144:272:        value = plan.get(key, default)
+app/services/export_service.py.bak_transcript_pdf_full_20260622_175144:276:        value = plan.get(key, [])
+app/services/export_service.py.bak_transcript_pdf_full_20260622_175144:352:    weeks = plan.get("weeks", [])
+app/services/export_service.py.bak_transcript_pdf_full_20260622_175144:875:        explanation = get_text(item, "explanation", "explicacion")
+app/services/export_service.py.bak_transcript_pdf_full_20260622_175144:950:            if explanation:
+app/services/export_service.py.bak_transcript_pdf_full_20260622_175144:956:                for line in wrap_lines(explanation, 90)[:3]:
+app/services/ai_service.py.bak_rubric_20260616_122738:316:                    '      "explanation": "..."\n'
+app/services/ai_service.py.bak_rubric_20260616_122738:452:                    '      "explanation": "..."\n'
+app/services/export_service.py.bak_excelencia_cert_20260622_183152:254:def build_teaching_plan_pdf(
+app/services/export_service.py.bak_excelencia_cert_20260622_183152:257:    plan: dict,
+app/services/export_service.py.bak_excelencia_cert_20260622_183152:272:        value = plan.get(key, default)
+app/services/export_service.py.bak_excelencia_cert_20260622_183152:276:        value = plan.get(key, [])
+app/services/export_service.py.bak_excelencia_cert_20260622_183152:352:    weeks = plan.get("weeks", [])
+app/services/export_service.py.bak_excelencia_cert_20260622_183152:875:        explanation = get_text(item, "explanation", "explicacion")
+app/services/export_service.py.bak_excelencia_cert_20260622_183152:950:            if explanation:
+app/services/export_service.py.bak_excelencia_cert_20260622_183152:956:                for line in wrap_lines(explanation, 90)[:3]:
+app/services/ai_service.py.bak_teaching_plan_20260616_180216:316:                    '      "explanation": "..."\n'
+app/services/ai_service.py.bak_teaching_plan_20260616_180216:452:                    '      "explanation": "..."\n'
+app/services/export_service.py.bak_pretty_text_pdf_20260622_230422:254:def build_teaching_plan_pdf(
+app/services/export_service.py.bak_pretty_text_pdf_20260622_230422:257:    plan: dict,
+app/services/export_service.py.bak_pretty_text_pdf_20260622_230422:272:        value = plan.get(key, default)
+app/services/export_service.py.bak_pretty_text_pdf_20260622_230422:276:        value = plan.get(key, [])
+app/services/export_service.py.bak_pretty_text_pdf_20260622_230422:352:    weeks = plan.get("weeks", [])
+app/services/export_service.py.bak_pretty_text_pdf_20260622_230422:875:        explanation = get_text(item, "explanation", "explicacion")
+app/services/export_service.py.bak_pretty_text_pdf_20260622_230422:950:            if explanation:
+app/services/export_service.py.bak_pretty_text_pdf_20260622_230422:956:                for line in wrap_lines(explanation, 90)[:3]:
+app/services/export_service.py.bak_premium_certificate_20260622_233550:295:def build_teaching_plan_pdf(
+app/services/export_service.py.bak_premium_certificate_20260622_233550:298:    plan: dict,
+app/services/export_service.py.bak_premium_certificate_20260622_233550:313:        value = plan.get(key, default)
+app/services/export_service.py.bak_premium_certificate_20260622_233550:317:        value = plan.get(key, [])
+app/services/export_service.py.bak_premium_certificate_20260622_233550:393:    weeks = plan.get("weeks", [])
+app/services/export_service.py.bak_premium_certificate_20260622_233550:916:        explanation = get_text(item, "explanation", "explicacion")
+app/services/export_service.py.bak_premium_certificate_20260622_233550:991:            if explanation:
+app/services/export_service.py.bak_premium_certificate_20260622_233550:997:                for line in wrap_lines(explanation, 90)[:3]:
+app/services/export_service.py.bak_fix_badge_qr_20260623_003659:295:def build_teaching_plan_pdf(
+app/services/export_service.py.bak_fix_badge_qr_20260623_003659:298:    plan: dict,
+app/services/export_service.py.bak_fix_badge_qr_20260623_003659:313:        value = plan.get(key, default)
+app/services/export_service.py.bak_fix_badge_qr_20260623_003659:317:        value = plan.get(key, [])
+app/services/export_service.py.bak_fix_badge_qr_20260623_003659:393:    weeks = plan.get("weeks", [])
+app/services/export_service.py.bak_fix_badge_qr_20260623_003659:916:        explanation = get_text(item, "explanation", "explicacion")
+app/services/export_service.py.bak_fix_badge_qr_20260623_003659:991:            if explanation:
+app/services/export_service.py.bak_fix_badge_qr_20260623_003659:997:                for line in wrap_lines(explanation, 90)[:3]:
+--- billing.py ---
+import os
+
+import stripe
+from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, Field
+
+from app.security.user_auth import AuthenticatedUser, require_current_user
+
+from app.services.usage_limit_service import get_usage_summary_for_user
+from app.services.subscription_service import upsert_user_subscription, downgrade_user_to_free, get_user_subscription
+
+
+router = APIRouter(
+    prefix="/billing",
+    tags=["billing"],
+)
+
+
+class CheckoutSessionRequest(BaseModel):
+    plan: str = Field(
+        ...,
+        description="Plan solicitado: pro o educator.",
+    )
+
+
+class CheckoutSessionResponse(BaseModel):
+    checkout_url: str
+
+
+class CustomerPortalResponse(BaseModel):
+    portal_url: str
+
+
+
+def _resolve_plan_from_stripe_object(data_object: dict, fallback: str = "free") -> str:
+    metadata = data_object.get("metadata", {}) or {}
+
+    plan = str(metadata.get("plan") or "").strip().lower()
+    if plan in {"pro", "educator"}:
+        return plan
+
+    price_pro = os.getenv("STRIPE_PRICE_PRO", "")
+    price_educator = os.getenv("STRIPE_PRICE_EDUCATOR", "")
+
+    items = data_object.get("items", {}).get("data", []) or []
+
+    for item in items:
+        price = item.get("price", {}) or {}
+        price_id = price.get("id") or item.get("plan", {}).get("id")
+
+        if price_id == price_educator:
+            return "educator"
+
+        if price_id == price_pro:
+            return "pro"
+
+    return fallback.strip().lower() or "free"
+
+
+def _get_price_id(plan: str) -> str:
+    price_map = {
+        "pro": os.getenv("STRIPE_PRICE_PRO", ""),
+        "educator": os.getenv("STRIPE_PRICE_EDUCATOR", ""),
+    }
+
+    price_id = price_map.get(plan)
+
+    if not price_id:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Plan no configurado para pagos. "
+                "Configura STRIPE_PRICE_PRO o STRIPE_PRICE_EDUCATOR."
+            ),
+        )
+
+    return price_id
+
+
+@router.post(
+    "/create-checkout-session",
+    response_model=CheckoutSessionResponse,
+)
+def create_checkout_session(
+    payload: CheckoutSessionRequest,
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    plan = payload.plan.strip().lower()
+
+    if plan not in {"pro", "educator"}:
+        raise HTTPException(
+            status_code=400,
+            detail="Plan inválido. Usa pro o educator.",
+        )
+
+    stripe_secret_key = os.getenv("STRIPE_SECRET_KEY", "")
+
+    if not stripe_secret_key:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Stripe no está configurado. "
+                "Falta STRIPE_SECRET_KEY."
+            ),
+        )
+
+    stripe.api_key = stripe_secret_key
+
+    price_id = _get_price_id(plan)
+
+    success_url_base = os.getenv(
+        "APP_SUCCESS_URL",
+        "http://localhost:5000/#/plans?checkout=success",
+    )
+    cancel_url_base = os.getenv(
+        "APP_CANCEL_URL",
+        "http://localhost:5000/#/plans?checkout=cancel",
+    )
+
+    separator_success = "&" if "?" in success_url_base else "?"
+    separator_cancel = "&" if "?" in cancel_url_base else "?"
+
+    success_url = f"{success_url_base}{separator_success}plan={plan}"
+    cancel_url = f"{cancel_url_base}{separator_cancel}plan={plan}"
+
+    try:
+        session = stripe.checkout.Session.create(
+            mode="subscription",
+            line_items=[
+                {
+                    "price": price_id,
+                    "quantity": 1,
+                }
+            ],
+            success_url=success_url,
+            cancel_url=cancel_url,
+            customer_email=current_user.email,
+            metadata={
+                "plan": plan,
+                "user_id": current_user.user_id,
+                "email": current_user.email or "",
+                "source": "studybook_ai",
+            },
+            subscription_data={
+                "metadata": {
+                    "plan": plan,
+                    "user_id": current_user.user_id,
+                    "email": current_user.email or "",
+                    "source": "studybook_ai",
+                },
+            },
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"No se pudo crear la sesión de pago: {exc}",
+        ) from exc
+
+    if not session.url:
+        raise HTTPException(
+            status_code=502,
+            detail="Stripe no devolvió una URL de checkout.",
+        )
+
+    return CheckoutSessionResponse(
+        checkout_url=session.url,
+    )
+
+
+@router.post(
+    "/create-customer-portal-session",
+    response_model=CustomerPortalResponse,
+)
+def create_customer_portal_session(
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    stripe_secret_key = os.getenv("STRIPE_SECRET_KEY", "")
+
+    if not stripe_secret_key:
+        raise HTTPException(
+            status_code=503,
+            detail="Stripe no está configurado. Falta STRIPE_SECRET_KEY.",
+        )
+
+    stripe.api_key = stripe_secret_key
+
+    subscription = get_user_subscription(
+        user_id=current_user.user_id,
+    )
+
+    stripe_customer_id = subscription.get("stripe_customer_id")
+
+    if not stripe_customer_id:
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                "No se encontró un cliente de Stripe asociado a esta cuenta. "
+                "Primero debes tener una suscripción activa."
+            ),
+        )
+
+    return_url = os.getenv(
+        "STRIPE_CUSTOMER_PORTAL_RETURN_URL",
+        os.getenv(
+            "APP_SUCCESS_URL",
+            "http://localhost:54713/#/settings",
+        ),
+    )
+
+    try:
+        session = stripe.billing_portal.Session.create(
+            customer=stripe_customer_id,
+            return_url=return_url,
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"No se pudo crear el portal de cliente: {exc}",
+        ) from exc
+
+--- subscription_service.py ---
+from __future__ import annotations
+
+from datetime import datetime, timezone
+
+from app.database.supabase_client import get_supabase_admin_client
+
+
+VALID_PLANS = {"free", "pro", "educator"}
+
+
+def default_free_subscription(user_id: str) -> dict:
+    return {
+        "user_id": user_id,
+        "plan": "free",
+        "subscription_status": "free",
+        "email": None,
+        "stripe_customer_id": None,
+        "stripe_subscription_id": None,
+        "source": "default",
+    }
+
+
+def upsert_user_subscription(
+    *,
+    user_id: str,
+    email: str | None,
+    plan: str,
+    stripe_customer_id: str | None = None,
+    stripe_subscription_id: str | None = None,
+    subscription_status: str | None = None,
+) -> dict:
+    clean_plan = plan.strip().lower()
+
+    if clean_plan not in VALID_PLANS:
+        clean_plan = "free"
+
+    if not user_id:
+        raise ValueError("user_id es requerido.")
+
+    client = get_supabase_admin_client()
+
+    payload = {
+        "user_id": user_id,
+        "email": email,
+        "plan": clean_plan,
+        "stripe_customer_id": stripe_customer_id,
+        "stripe_subscription_id": stripe_subscription_id,
+        "subscription_status": subscription_status,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    response = (
+        client
+        .table("user_subscriptions")
+        .upsert(
+            payload,
+            on_conflict="user_id",
+        )
+        .execute()
+    )
+
+    if not response.data:
+        return payload
+
+    return response.data[0]
+
+
+def downgrade_user_to_free(
+    *,
+    user_id: str,
+    email: str | None = None,
+    stripe_customer_id: str | None = None,
+    stripe_subscription_id: str | None = None,
+    subscription_status: str | None = "canceled",
+) -> dict:
+    return upsert_user_subscription(
+        user_id=user_id,
+        email=email,
+        plan="free",
+        stripe_customer_id=stripe_customer_id,
+        stripe_subscription_id=stripe_subscription_id,
+        subscription_status=subscription_status,
+    )
+
+
+def get_user_subscription(
+    *,
+    user_id: str,
+) -> dict:
+    if not user_id:
+        raise ValueError("user_id es requerido.")
+
+    client = get_supabase_admin_client()
+
+    try:
+        response = (
+            client
+            .table("user_subscriptions")
+            .select("*")
+            .eq("user_id", user_id)
+            .maybe_single()
+            .execute()
+        )
+    except Exception:
+        return default_free_subscription(user_id)
+
+    if response is None or not getattr(response, "data", None):
+        return default_free_subscription(user_id)
+
+    data = response.data
+
+    if not isinstance(data, dict):
+        return default_free_subscription(user_id)
+
+    plan = data.get("plan") or "free"
+    status = data.get("subscription_status") or "unknown"
+
+    if status != "active":
+        plan = "free"
+
+    return {
+        "user_id": data.get("user_id") or user_id,
+        "email": data.get("email"),
+        "plan": plan,
+        "subscription_status": status,
+        "stripe_customer_id": data.get("stripe_customer_id"),
+        "stripe_subscription_id": data.get("stripe_subscription_id"),
+        "source": "supabase",
+    }
+--- usage_limit_service.py ---
+from __future__ import annotations
+
+from datetime import datetime, timezone
+
+from fastapi import HTTPException
+
+from app.database.supabase_client import get_supabase_admin_client
+from app.services.subscription_service import get_user_subscription
+
+
+PLAN_UPLOAD_LIMITS = {
+    "free": 3,
+    "pro": 50,
+    "educator": 200,
+}
+
+PLAN_CHAT_LIMITS = {
+    "free": 25,
+    "pro": 500,
+    "educator": 2000,
+}
+
+PLAN_FLASHCARD_LIMITS = {
+    "free": 10,
+    "pro": 50,
+    "educator": 100,
+}
+
+PLAN_EXAM_LIMITS = {
+    "free": 10,
+    "pro": 50,
+    "educator": 100,
+}
+
+
+def get_plan_for_user(user_id: str) -> str:
+    subscription = get_user_subscription(
+        user_id=user_id,
+    )
+
+    plan = subscription.get("plan", "free")
+
+    if plan not in PLAN_UPLOAD_LIMITS:
+        return "free"
+
+    return plan
+
+
+def count_usage_today(
+    *,
+    user_id: str,
+    event_type: str,
+) -> int:
+    client = get_supabase_admin_client()
+
+    today = datetime.now(timezone.utc).date().isoformat()
+
+    response = (
+        client
+        .table("user_usage_events")
+        .select("id", count="exact")
+        .eq("user_id", user_id)
+        .eq("event_type", event_type)
+        .gte("created_at", f"{today}T00:00:00+00:00")
+        .execute()
+    )
+
+    return response.count or 0
+
+
+
+def count_usage_total(
+    *,
+    user_id: str,
+    event_type: str,
+) -> int:
+    client = get_supabase_admin_client()
+
+    response = (
+        client
+        .table("user_usage_events")
+        .select("id", count="exact")
+        .eq("user_id", user_id)
+        .eq("event_type", event_type)
+        .execute()
+    )
+
+    return response.count or 0
+
+
+def register_usage_event(
+    *,
+    user_id: str,
+    event_type: str,
+    plan: str,
+    metadata: dict | None = None,
+) -> dict:
+    client = get_supabase_admin_client()
+
+    payload = {
+        "user_id": user_id,
+        "event_type": event_type,
+        "plan": plan,
+        "metadata": metadata or {},
+    }
+
+    response = (
+        client
+        .table("user_usage_events")
+        .insert(payload)
+        .execute()
+    )
+
+    if response.data:
+        return response.data[0]
+
+    return payload
+
+
+def enforce_pdf_upload_limit(
+    *,
+    user_id: str,
+) -> str:
+    plan = get_plan_for_user(user_id)
+
+    limit = PLAN_UPLOAD_LIMITS.get(plan, PLAN_UPLOAD_LIMITS["free"])
+
+    used_today = count_usage_today(
+        user_id=user_id,
+        event_type="pdf_upload",
+    )
+
+    if used_today >= limit:
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                f"Tu plan {plan} permite {limit} PDFs por día. "
+                "Ya alcanzaste el límite de hoy."
+            ),
+        )
+
+    return plan
+
+
+def enforce_chat_limit(
+    *,
+    user_id: str,
+) -> str:
+    plan = get_plan_for_user(user_id)
+
+    limit = PLAN_CHAT_LIMITS.get(plan, PLAN_CHAT_LIMITS["free"])
+
+    used_today = count_usage_today(
+        user_id=user_id,
+        event_type="chat_message",
+    )
+
+    if used_today >= limit:
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                f"Tu plan {plan} permite {limit} mensajes de chat por día. "
+                "Ya alcanzaste el límite de hoy."
+            ),
+        )
+
+    return plan
+
+
+def enforce_flashcard_limit(
+    *,
+    user_id: str,
+    requested_amount: int,
+) -> str:
+    plan = get_plan_for_user(user_id)
+
+    limit = PLAN_FLASHCARD_LIMITS.get(
+        plan,
+        PLAN_FLASHCARD_LIMITS["free"],
+    )
+
+    if requested_amount > limit:
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                f"Tu plan {plan} permite hasta {limit} flashcards por PDF. "
+                f"Solicitaste {requested_amount}."
+            ),
+        )
+
+    return plan
+
+
+def enforce_exam_limit(
+    *,
+    user_id: str,
+    requested_amount: int,
+) -> str:
+    plan = get_plan_for_user(user_id)
+
+    limit = PLAN_EXAM_LIMITS.get(
+        plan,
+        PLAN_EXAM_LIMITS["free"],
+    )
+
+    if requested_amount > limit:
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                f"Tu plan {plan} permite hasta {limit} preguntas por examen. "
+                f"Solicitaste {requested_amount}."
+            ),
+        )
+
+    return plan
+
+
+PLAN_EXPORT_PERMISSIONS = {
+    "free": {
+        "pdf": True,
+        "docx": False,
+        "pptx": False,
+    },
+    "pro": {
+        "pdf": True,
+        "docx": True,
+        "pptx": True,
+        "xlsx": True,
+    },
+    "educator": {
+        "pdf": True,
+        "docx": True,
+        "pptx": True,
+        "xlsx": True,
+    },
+}
+
+
+def enforce_export_permission(
+    *,
+    user_id: str,
+    export_type: str,
+) -> str:
+    plan = get_plan_for_user(user_id)
+    clean_export_type = export_type.strip().lower()
+
+    permissions = PLAN_EXPORT_PERMISSIONS.get(
+        plan,
+        PLAN_EXPORT_PERMISSIONS["free"],
+    )
+
+    allowed = permissions.get(clean_export_type, False)
+
+    if not allowed:
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                f"Tu plan {plan} no permite exportar en formato "
+                f"{clean_export_type.upper()}."
+            ),
+--- backend compile ---
+
+===== FLUTTER BILLING DIAGNOSTIC =====
+--- flutter refs ---
+lib/l10n/app_localizations_fr.dart:270:      'Créez des espaces intelligents pour regrouper les documents par projet, recherche, matière ou thème.';
+lib/l10n/app_localizations_fr.dart:376:  String get processingDocument => 'Traitement du document...';
+lib/l10n/app_localizations_fr.dart:379:  String get processingDocumentDescription =>
+lib/l10n/app_localizations_fr.dart:599:  String checkoutSuccessMessage(Object planName) {
+lib/l10n/app_localizations_fr.dart:604:  String get checkoutCancelMessage => 'Paiement annulé.';
+lib/l10n/app_localizations_fr.dart:607:  String get checkoutTestModeMessage =>
+lib/l10n/app_localizations_fr.dart:693:      'Lecture IA complète et synchronisation cloud prochainement.';
+lib/l10n/app_localizations.dart:54:/// First, open your project’s ios/Runner.xcworkspace Xcode workspace file.
+lib/l10n/app_localizations.dart:56:/// project’s Runner folder.
+lib/l10n/app_localizations.dart:65:/// property.
+lib/l10n/app_localizations.dart:105:  /// No description provided for @appTitle.
+lib/l10n/app_localizations.dart:111:  /// No description provided for @dashboardTitle.
+lib/l10n/app_localizations.dart:117:  /// No description provided for @settingsTitle.
+lib/l10n/app_localizations.dart:123:  /// No description provided for @plansTitle.
+lib/l10n/app_localizations.dart:129:  /// No description provided for @chatTitle.
+lib/l10n/app_localizations.dart:135:  /// No description provided for @examTitle.
+lib/l10n/app_localizations.dart:141:  /// No description provided for @flashcardsTitle.
+lib/l10n/app_localizations.dart:147:  /// No description provided for @uploadDocument.
+lib/l10n/app_localizations.dart:153:  /// No description provided for @currentPlan.
+lib/l10n/app_localizations.dart:159:  /// No description provided for @manageSubscription.
+lib/l10n/app_localizations.dart:165:  /// No description provided for @syncPlan.
+lib/l10n/app_localizations.dart:171:  /// No description provided for @signOut.
+lib/l10n/app_localizations.dart:177:  /// No description provided for @language.
+lib/l10n/app_localizations.dart:183:  /// No description provided for @preferences.
+lib/l10n/app_localizations.dart:189:  /// No description provided for @settingsSubtitle.
+lib/l10n/app_localizations.dart:195:  /// No description provided for @darkMode.
+lib/l10n/app_localizations.dart:201:  /// No description provided for @darkModeDescription.
+lib/l10n/app_localizations.dart:207:  /// No description provided for @languageDescription.
+lib/l10n/app_localizations.dart:213:  /// No description provided for @clearHistory.
+lib/l10n/app_localizations.dart:219:  /// No description provided for @clearHistoryDescription.
+lib/l10n/app_localizations.dart:225:  /// No description provided for @historyCleared.
+lib/l10n/app_localizations.dart:231:  /// No description provided for @planAndSubscription.
+lib/l10n/app_localizations.dart:237:  /// No description provided for @planAndSubscriptionDescription.
+lib/l10n/app_localizations.dart:243:  /// No description provided for @syncReal.
+lib/l10n/app_localizations.dart:249:  /// No description provided for @useFree.
+lib/l10n/app_localizations.dart:255:  /// No description provided for @usePro.
+lib/l10n/app_localizations.dart:261:  /// No description provided for @useEducator.
+lib/l10n/app_localizations.dart:267:  /// No description provided for @usageTitle.
+lib/l10n/app_localizations.dart:273:  /// No description provided for @loadingPlanUsage.
+lib/l10n/app_localizations.dart:279:  /// No description provided for @activePlan.
+lib/l10n/app_localizations.dart:285:  /// No description provided for @pdfsUploadedToday.
+lib/l10n/app_localizations.dart:291:  /// No description provided for @chatMessagesToday.
+lib/l10n/app_localizations.dart:297:  /// No description provided for @exams.
+lib/l10n/app_localizations.dart:303:  /// No description provided for @exports.
+lib/l10n/app_localizations.dart:309:  /// No description provided for @today.
+lib/l10n/app_localizations.dart:315:  /// No description provided for @perPdf.
+lib/l10n/app_localizations.dart:321:  /// No description provided for @uploadAtLeastOneDocument.
+lib/l10n/app_localizations.dart:327:  /// No description provided for @selectAtLeastOneDocument.
+lib/l10n/app_localizations.dart:333:  /// No description provided for @workspaceCreatedFromStudyBook.
+lib/l10n/app_localizations.dart:339:  /// No description provided for @cloudConversation.
+lib/l10n/app_localizations.dart:345:  /// No description provided for @conversationWithoutDocument.
+lib/l10n/app_localizations.dart:351:  /// No description provided for @workspaceWithoutDocuments.
+lib/l10n/app_localizations.dart:357:  /// No description provided for @workspaceWithoutValidDocuments.
+lib/l10n/app_localizations.dart:363:  /// No description provided for @defaultPdfDocumentName.
+lib/l10n/app_localizations.dart:369:  /// No description provided for @summaryNotReceived.
+lib/l10n/app_localizations.dart:375:  /// No description provided for @audioGenerationErrorPrefix.
+lib/l10n/app_localizations.dart:381:  /// No description provided for @audioPlaybackErrorPrefix.
+lib/l10n/app_localizations.dart:384:  /// **'No se pudo reproducir el audio'**
+lib/l10n/app_localizations.dart:387:  /// No description provided for @audioReplayErrorPrefix.
+lib/l10n/app_localizations.dart:393:  /// No description provided for @documentLoaded.
+lib/l10n/app_localizations.dart:399:  /// No description provided for @documentDeletedFromHistory.
+lib/l10n/app_localizations.dart:405:  /// No description provided for @historyDeleted.
+lib/l10n/app_localizations.dart:411:  /// No description provided for @searchResult.
+lib/l10n/app_localizations.dart:417:  /// No description provided for @uploadOrSelectDocumentFirst.
+lib/l10n/app_localizations.dart:423:  /// No description provided for @activeDocument.
+lib/l10n/app_localizations.dart:429:  /// No description provided for @createWorkspace.
+lib/l10n/app_localizations.dart:435:  /// No description provided for @workspaceName.
+lib/l10n/app_localizations.dart:441:  /// No description provided for @workspaceNameHint.
+lib/l10n/app_localizations.dart:447:  /// No description provided for @selectDocuments.
+lib/l10n/app_localizations.dart:453:  /// No description provided for @cancel.
+lib/l10n/app_localizations.dart:459:  /// No description provided for @create.
+lib/l10n/app_localizations.dart:465:  /// No description provided for @myWorkspace.
+lib/l10n/app_localizations.dart:471:  /// No description provided for @heroSubtitle.
+lib/l10n/app_localizations.dart:477:  /// No description provided for @docsShort.
+lib/l10n/app_localizations.dart:483:  /// No description provided for @ragReady.
+lib/l10n/app_localizations.dart:489:  /// No description provided for @ragActive.
+lib/l10n/app_localizations.dart:495:  /// No description provided for @aiTools.
+lib/l10n/app_localizations.dart:501:  /// No description provided for @aiToolsSubtitle.
+lib/l10n/app_localizations.dart:507:  /// No description provided for @uploadPdf.
+lib/l10n/app_localizations.dart:513:  /// No description provided for @uploadPdfDescription.
+lib/l10n/app_localizations.dart:519:  /// No description provided for @aiChat.
+lib/l10n/app_localizations.dart:525:  /// No description provided for @aiChatDescription.
+lib/l10n/app_localizations.dart:531:  /// No description provided for @aiExam.
+lib/l10n/app_localizations.dart:537:  /// No description provided for @aiExamDescription.
+lib/l10n/app_localizations.dart:543:  /// No description provided for @flashcardsDescription.
+lib/l10n/app_localizations.dart:549:  /// No description provided for @documents.
+lib/l10n/app_localizations.dart:555:  /// No description provided for @aiStatus.
+lib/l10n/app_localizations.dart:561:  /// No description provided for @noDocument.
+lib/l10n/app_localizations.dart:567:  /// No description provided for @ready.
+lib/l10n/app_localizations.dart:573:  /// No description provided for @recentDocuments.
+lib/l10n/app_localizations.dart:579:  /// No description provided for @aiWorkspaces.
+lib/l10n/app_localizations.dart:585:  /// No description provided for @createWorkspaceButton.
+lib/l10n/app_localizations.dart:591:  /// No description provided for @newWorkspace.
+lib/l10n/app_localizations.dart:597:  /// No description provided for @workspaceEmptyDescription.
+lib/l10n/app_localizations.dart:600:  /// **'Crea espacios inteligentes para agrupar documentos por proyecto, investigación, materia o tema.'**
+lib/l10n/app_localizations.dart:603:  /// No description provided for @documentCountLabel.
+lib/l10n/app_localizations.dart:609:  /// No description provided for @updatedAt.
+lib/l10n/app_localizations.dart:615:  /// No description provided for @openWorkspace.
+lib/l10n/app_localizations.dart:621:  /// No description provided for @recentConversations.
+lib/l10n/app_localizations.dart:627:  /// No description provided for @renameConversation.
+lib/l10n/app_localizations.dart:633:  /// No description provided for @newName.
+lib/l10n/app_localizations.dart:639:  /// No description provided for @save.
+lib/l10n/app_localizations.dart:645:  /// No description provided for @renameConversationError.
+lib/l10n/app_localizations.dart:651:  /// No description provided for @deleteConversationError.
+lib/l10n/app_localizations.dart:657:  /// No description provided for @loadingConversations.
+lib/l10n/app_localizations.dart:663:  /// No description provided for @noSavedConversations.
+lib/l10n/app_localizations.dart:669:  /// No description provided for @untitledConversation.
+lib/l10n/app_localizations.dart:675:  /// No description provided for @deleteConversation.
+lib/l10n/app_localizations.dart:681:  /// No description provided for @noHistoryYet.
+lib/l10n/app_localizations.dart:687:  /// No description provided for @historyEmptyDescription.
+lib/l10n/app_localizations.dart:693:  /// No description provided for @recentHistory.
+lib/l10n/app_localizations.dart:699:  /// No description provided for @historyHint.
+lib/l10n/app_localizations.dart:705:  /// No description provided for @clear.
+lib/l10n/app_localizations.dart:711:  /// No description provided for @generatedAudio.
+lib/l10n/app_localizations.dart:717:  /// No description provided for @audioNotGeneratedSubtitle.
+lib/l10n/app_localizations.dart:723:  /// No description provided for @audioGeneratedSubtitle.
+lib/l10n/app_localizations.dart:729:  /// No description provided for @audioNotGeneratedDescription.
+lib/l10n/app_localizations.dart:735:  /// No description provided for @generating.
+lib/l10n/app_localizations.dart:741:  /// No description provided for @generateAudio.
+lib/l10n/app_localizations.dart:747:  /// No description provided for @smartAudiobook.
+lib/l10n/app_localizations.dart:753:  /// No description provided for @pauseAudio.
+lib/l10n/app_localizations.dart:759:  /// No description provided for @playAudio.
+lib/l10n/app_localizations.dart:762:  /// **'Reproducir audio'**
+lib/l10n/app_localizations.dart:765:  /// No description provided for @aiSummary.
+lib/l10n/app_localizations.dart:771:  /// No description provided for @summarySubtitle.
+lib/l10n/app_localizations.dart:777:  /// No description provided for @exportSummaryToWord.
+lib/l10n/app_localizations.dart:783:  /// No description provided for @exportSummaryToPowerPoint.
+lib/l10n/app_localizations.dart:789:  /// No description provided for @exportSummaryToPdf.
+lib/l10n/app_localizations.dart:795:  /// No description provided for @processingDocument.
+lib/l10n/app_localizations.dart:799:  String get processingDocument;
+lib/l10n/app_localizations.dart:801:  /// No description provided for @processingDocumentDescription.
+lib/l10n/app_localizations.dart:805:  String get processingDocumentDescription;
+lib/l10n/app_localizations.dart:807:  /// No description provided for @activeWorkspace.
+lib/l10n/app_localizations.dart:813:  /// No description provided for @documentReadyToStudy.
+lib/l10n/app_localizations.dart:819:  /// No description provided for @aiReady.
+lib/l10n/app_localizations.dart:825:  /// No description provided for @audioAvailable.
+lib/l10n/app_localizations.dart:831:  /// No description provided for @openAiChat.
+lib/l10n/app_localizations.dart:837:  /// No description provided for @workspaceChatWelcome.
+lib/l10n/app_localizations.dart:843:  /// No description provided for @documentChatWelcome.
+lib/l10n/app_localizations.dart:849:  /// No description provided for @noAnswerReceived.
+lib/l10n/app_localizations.dart:855:  /// No description provided for @chatTemporaryError.
+lib/l10n/app_localizations.dart:861:  /// No description provided for @exportChatToWord.
+lib/l10n/app_localizations.dart:867:  /// No description provided for @exportChatToPdf.
+lib/l10n/app_localizations.dart:873:  /// No description provided for @userRole.
+lib/l10n/app_localizations.dart:879:  /// No description provided for @noContentToExport.
+lib/l10n/app_localizations.dart:885:  /// No description provided for @chatExportWordError.
+lib/l10n/app_localizations.dart:891:  /// No description provided for @chatExportPdfError.
+lib/l10n/app_localizations.dart:897:  /// No description provided for @chatTitlePrefix.
+lib/l10n/app_localizations.dart:903:  /// No description provided for @workspaceAiChat.
+lib/l10n/app_localizations.dart:909:  /// No description provided for @contextualAiChat.
+lib/l10n/app_localizations.dart:915:  /// No description provided for @activeContext.
+lib/l10n/app_localizations.dart:921:  /// No description provided for @workspaceRagContext.
+lib/l10n/app_localizations.dart:927:  /// No description provided for @documentRagContext.
+lib/l10n/app_localizations.dart:933:  /// No description provided for @contextHintConcepts.
+lib/l10n/app_localizations.dart:939:  /// No description provided for @contextHintAcademic.
+lib/l10n/app_localizations.dart:945:  /// No description provided for @contextHintSources.
+lib/l10n/app_localizations.dart:951:  /// No description provided for @examSubtitle.
+lib/l10n/app_localizations.dart:957:  /// No description provided for @exportWord.
+lib/l10n/app_localizations.dart:963:  /// No description provided for @exportPdf.
+lib/l10n/app_localizations.dart:969:  /// No description provided for @exportExamToPdf.
+lib/l10n/app_localizations.dart:975:  /// No description provided for @exportExamToWord.
+lib/l10n/app_localizations.dart:981:  /// No description provided for @examEmptyPrompt.
+lib/l10n/app_localizations.dart:987:  /// No description provided for @questionNotAvailable.
+lib/l10n/app_localizations.dart:993:  /// No description provided for @notSpecifiedInDocument.
+lib/l10n/app_localizations.dart:999:  /// No description provided for @allOfTheAbove.
+lib/l10n/app_localizations.dart:1005:  /// No description provided for @noneOfTheAbove.
+lib/l10n/app_localizations.dart:1011:  /// No description provided for @questionOf.
+lib/l10n/app_localizations.dart:1017:  /// No description provided for @answerLabel.
+lib/l10n/app_localizations.dart:1023:  /// No description provided for @restart.
+lib/l10n/app_localizations.dart:1029:  /// No description provided for @viewResult.
+lib/l10n/app_localizations.dart:1035:  /// No description provided for @next.
+lib/l10n/app_localizations.dart:1041:  /// No description provided for @verify.
+lib/l10n/app_localizations.dart:1047:  /// No description provided for @correct.
+lib/l10n/app_localizations.dart:1053:  /// No description provided for @incorrect.
+lib/l10n/app_localizations.dart:1059:  /// No description provided for @correctAnswer.
+lib/l10n/app_localizations.dart:1065:  /// No description provided for @finalResult.
+lib/l10n/app_localizations.dart:1071:  /// No description provided for @retakeExam.
+lib/l10n/app_localizations.dart:1077:  /// No description provided for @generateExam.
+lib/l10n/app_localizations.dart:1083:  /// No description provided for @regenerateExam.
+lib/l10n/app_localizations.dart:1089:  /// No description provided for @generatingExam.
+lib/l10n/app_localizations.dart:1095:  /// No description provided for @examExportQuestion.
+lib/l10n/app_localizations.dart:1101:  /// No description provided for @examExportOptions.
+lib/l10n/app_localizations.dart:1107:  /// No description provided for @examExportCorrectAnswer.
+lib/l10n/app_localizations.dart:1113:  /// No description provided for @examExportExplanation.
+lib/l10n/app_localizations.dart:1119:  /// No description provided for @flashcardsAiTitle.
+lib/l10n/app_localizations.dart:1125:  /// No description provided for @flashcardsSubtitle.
+lib/l10n/app_localizations.dart:1131:  /// No description provided for @exportFlashcardsToPdf.
+lib/l10n/app_localizations.dart:1137:  /// No description provided for @exportFlashcardsToWord.
+lib/l10n/app_localizations.dart:1143:  /// No description provided for @answerNotAvailable.
+lib/l10n/app_localizations.dart:1149:  /// No description provided for @flashcardQuestion.
+lib/l10n/app_localizations.dart:1155:  /// No description provided for @flashcardAnswer.
+lib/l10n/app_localizations.dart:1161:  /// No description provided for @tapToSeeAnswer.
+lib/l10n/app_localizations.dart:1167:  /// No description provided for @tapToReturnQuestion.
+lib/l10n/app_localizations.dart:1173:  /// No description provided for @previous.
+lib/l10n/app_localizations.dart:1179:  /// No description provided for @flashcardsEmptyPrompt.
+lib/l10n/app_localizations.dart:1185:  /// No description provided for @generateFlashcards.
+lib/l10n/app_localizations.dart:1191:  /// No description provided for @regenerateFlashcards.
+lib/l10n/app_localizations.dart:1197:  /// No description provided for @generatingFlashcards.
+lib/l10n/app_localizations.dart:1203:  /// No description provided for @plansStudyBookTitle.
+lib/l10n/app_localizations.dart:1209:  /// No description provided for @checkoutSuccessMessage.
+lib/l10n/app_localizations.dart:1213:  String checkoutSuccessMessage(Object planName);
+lib/l10n/app_localizations.dart:1215:  /// No description provided for @checkoutCancelMessage.
+lib/l10n/app_localizations.dart:1219:  String get checkoutCancelMessage;
+lib/l10n/app_localizations.dart:1221:  /// No description provided for @checkoutTestModeMessage.
+lib/l10n/app_localizations.dart:1224:  /// **'Tu solicitud de pago fue procesada por Stripe en modo prueba.'**
+lib/l10n/app_localizations.dart:1225:  String get checkoutTestModeMessage;
+lib/l10n/app_localizations.dart:1227:  /// No description provided for @plansIntro.
+lib/l10n/app_localizations.dart:1233:  /// No description provided for @paymentStartError.
+lib/l10n/app_localizations.dart:1239:  /// No description provided for @pdfsPerDay.
+lib/l10n/app_localizations.dart:1245:  /// No description provided for @chatsPerDay.
+lib/l10n/app_localizations.dart:1251:  /// No description provided for @flashcardsPerPdf.
+lib/l10n/app_localizations.dart:1257:  /// No description provided for @examQuestionsPerPdf.
+lib/l10n/app_localizations.dart:1263:  /// No description provided for @exportDocx.
+lib/l10n/app_localizations.dart:1269:  /// No description provided for @exportPptx.
+lib/l10n/app_localizations.dart:1275:  /// No description provided for @advancedAnalytics.
+lib/l10n/app_localizations.dart:1281:  /// No description provided for @teacherTools.
+lib/l10n/app_localizations.dart:1284:  /// **'Herramientas profesor'**
+lib/l10n/app_localizations.dart:1287:  /// No description provided for @guidedVoice.
+lib/l10n/app_localizations.dart:1293:  /// No description provided for @yes.
+lib/l10n/app_localizations.dart:1299:  /// No description provided for @no.
+lib/l10n/app_localizations.dart:1305:  /// No description provided for @upgradeToPlan.
+lib/l10n/app_localizations.dart:1311:  /// No description provided for @completeEmailAndPassword.
+lib/l10n/app_localizations.dart:1317:  /// No description provided for @loginSubtitle.
+lib/l10n/app_localizations.dart:1323:  /// No description provided for @signupSubtitle.
+lib/l10n/app_localizations.dart:1329:  /// No description provided for @emailLabel.
+lib/l10n/app_localizations.dart:1335:  /// No description provided for @passwordLabel.
+lib/l10n/app_localizations.dart:1341:  /// No description provided for @loginButton.
+lib/l10n/app_localizations.dart:1347:  /// No description provided for @createAccountButton.
+lib/l10n/app_localizations.dart:1353:  /// No description provided for @createAccountLink.
+lib/l10n/app_localizations.dart:1359:  /// No description provided for @alreadyHaveAccount.
+lib/l10n/app_localizations.dart:1365:  /// No description provided for @dashboard.
+lib/l10n/app_localizations.dart:1371:  /// No description provided for @premiumAi.
+lib/l10n/app_localizations.dart:1377:  /// No description provided for @premiumAiDescription.
+lib/l10n/app_localizations.dart:1383:  /// No description provided for @upgradeRequiredMessage.
+lib/l10n/app_localizations.dart:1389:  /// No description provided for @viewPlans.
+lib/l10n/app_localizations.dart:1395:  /// No description provided for @askAboutDocumentHint.
+lib/l10n/app_localizations.dart:1401:  /// No description provided for @answerCopied.
+lib/l10n/app_localizations.dart:1407:  /// No description provided for @aiThinking.
+lib/l10n/app_localizations.dart:1413:  /// No description provided for @sourceLoadError.
+lib/l10n/app_localizations.dart:1419:  /// No description provided for @unknownConfidence.
+lib/l10n/app_localizations.dart:1425:  /// No description provided for @highConfidence.
+lib/l10n/app_localizations.dart:1431:  /// No description provided for @mediumConfidence.
+lib/l10n/app_localizations.dart:1437:  /// No description provided for @lowConfidence.
+lib/l10n/app_localizations.dart:1443:  /// No description provided for @pdfOpenError.
+lib/l10n/app_localizations.dart:1449:  /// No description provided for @sourceCopied.
+lib/l10n/app_localizations.dart:1455:  /// No description provided for @citedSource.
+lib/l10n/app_localizations.dart:1461:  /// No description provided for @copySource.
+lib/l10n/app_localizations.dart:1467:  /// No description provided for @close.
+lib/l10n/app_localizations.dart:1473:  /// No description provided for @document.
+lib/l10n/app_localizations.dart:1479:  /// No description provided for @page.
+lib/l10n/app_localizations.dart:1485:  /// No description provided for @chunk.
+lib/l10n/app_localizations.dart:1491:  /// No description provided for @metadata.
+lib/l10n/app_localizations.dart:1497:  /// No description provided for @fields.
+lib/l10n/app_localizations.dart:1503:  /// No description provided for @originalFragment.
+lib/l10n/app_localizations.dart:1509:  /// No description provided for @openPdf.
+lib/l10n/app_localizations.dart:1515:  /// No description provided for @smartSearch.
+lib/l10n/app_localizations.dart:1521:  /// No description provided for @searchAllDocumentsHint.
+lib/l10n/app_localizations.dart:1527:  /// No description provided for @search.
+lib/l10n/app_localizations.dart:1533:  /// No description provided for @score.
+lib/l10n/app_localizations.dart:1539:  /// No description provided for @voiceMode.
+lib/l10n/app_localizations.dart:1545:  /// No description provided for @startListening.
+lib/l10n/app_localizations.dart:1551:  /// No description provided for @stopListening.
+lib/l10n/app_localizations.dart:1557:  /// No description provided for @listening.
+lib/l10n/app_localizations.dart:1563:  /// No description provided for @voiceNotAvailable.
+lib/l10n/app_localizations.dart:1569:  /// No description provided for @microphonePermissionDenied.
+lib/l10n/app_localizations.dart:1575:  /// No description provided for @voiceInputTooltip.
+lib/l10n/app_localizations.dart:1581:  /// No description provided for @voiceModeActive.
+lib/l10n/app_localizations.dart:1587:  /// No description provided for @voiceModeInactive.
+lib/l10n/app_localizations.dart:1593:  /// No description provided for @voiceModeReady.
+lib/l10n/app_localizations.dart:1599:  /// No description provided for @voiceAnswerGeneratingAudio.
+lib/l10n/app_localizations.dart:1605:  /// No description provided for @voiceAnswerPlaybackError.
+lib/l10n/app_localizations.dart:1608:  /// **'No se pudo reproducir la respuesta en audio'**
+lib/l10n/app_localizations.dart:1611:  /// No description provided for @voiceAnswerAudioTitle.
+lib/l10n/app_localizations.dart:1617:  /// No description provided for @listenAnswer.
+lib/l10n/app_localizations.dart:1623:  /// No description provided for @generatingAnswerAudio.
+lib/l10n/app_localizations.dart:1629:  /// No description provided for @answerAudioError.
+lib/l10n/app_localizations.dart:1632:  /// **'No se pudo generar o reproducir el audio de la respuesta'**
+lib/l10n/app_localizations.dart:1635:  /// No description provided for @aiAudio.
+lib/l10n/app_localizations.dart:1641:  /// No description provided for @premiumFeatureTitle.
+lib/l10n/app_localizations.dart:1647:  /// No description provided for @premiumFeatureDescription.
+lib/l10n/app_localizations.dart:1653:  /// No description provided for @premiumBenefitAudio.
+lib/l10n/app_localizations.dart:1659:  /// No description provided for @premiumBenefitVoice.
+lib/l10n/app_localizations.dart:1665:  /// No description provided for @premiumBenefitExports.
+lib/l10n/app_localizations.dart:1671:  /// No description provided for @notNow.
+lib/l10n/app_localizations.dart:1677:  /// No description provided for @upgradePlan.
+lib/l10n/app_localizations.dart:1717:      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+lib/l10n/app_pt.arb:49:  "audioPlaybackErrorPrefix": "Não foi possível reproduzir o áudio",
+lib/l10n/app_pt.arb:85:  "workspaceEmptyDescription": "Crie espaços inteligentes para agrupar documentos por projeto, pesquisa, matéria ou tema.",
+lib/l10n/app_pt.arb:112:  "playAudio": "Reproduzir áudio",
+lib/l10n/app_pt.arb:118:  "processingDocument": "Processando documento...",
+lib/l10n/app_pt.arb:119:  "processingDocumentDescription": "Gerando resumo IA, áudio e embeddings RAG.",
+lib/l10n/app_pt.arb:121:  "documentReadyToStudy": "Documento pronto para estudar",
+lib/l10n/app_pt.arb:122:  "aiReady": "IA pronta",
+lib/l10n/app_pt.arb:125:  "workspaceChatWelcome": "Olá. Sou o StudyBook AI.\n\nEstou pronto para ajudar você a estudar este workspace com {count} documentos.\n\nVocê pode pedir comparações, sínteses cruzadas ou análises combinadas.",
+lib/l10n/app_pt.arb:131:  "documentChatWelcome": "Olá. Sou o StudyBook AI.\n\nEstou pronto para ajudar você a compreender o documento \"{fileName}\".\n\nVocê pode fazer perguntas, pedir explicações, resumos, conceitos-chave ou análises acadêmicas.",
+lib/l10n/app_pt.arb:203:  "checkoutSuccessMessage": "Pagamento concluído corretamente. Seu plano atual é {planName}.",
+lib/l10n/app_pt.arb:204:  "@checkoutSuccessMessage": {
+lib/l10n/app_pt.arb:209:  "checkoutCancelMessage": "Pagamento cancelado.",
+lib/l10n/app_pt.arb:210:  "checkoutTestModeMessage": "Sua solicitação de pagamento foi processada pelo Stripe em modo de teste.",
+lib/l10n/app_pt.arb:226:  "teacherTools": "Ferramentas para professor",
+lib/l10n/app_pt.arb:290:  "voiceAnswerPlaybackError": "Não foi possível reproduzir a resposta em áudio",
+lib/l10n/app_pt.arb:294:  "answerAudioError": "Não foi possível gerar ou reproduzir o áudio da resposta",
+lib/l10n/app_es.arb:49:  "audioPlaybackErrorPrefix": "No se pudo reproducir el audio",
+lib/l10n/app_es.arb:85:  "workspaceEmptyDescription": "Crea espacios inteligentes para agrupar documentos por proyecto, investigación, materia o tema.",
+lib/l10n/app_es.arb:112:  "playAudio": "Reproducir audio",
+lib/l10n/app_es.arb:118:  "processingDocument": "Procesando documento...",
+lib/l10n/app_es.arb:119:  "processingDocumentDescription": "Generando resumen IA, audio y embeddings RAG.",
+lib/l10n/app_es.arb:203:  "checkoutSuccessMessage": "Pago completado correctamente. Tu plan actual es {planName}.",
+lib/l10n/app_es.arb:204:  "@checkoutSuccessMessage": {
+lib/l10n/app_es.arb:209:  "checkoutCancelMessage": "Pago cancelado.",
+lib/l10n/app_es.arb:210:  "checkoutTestModeMessage": "Tu solicitud de pago fue procesada por Stripe en modo prueba.",
+lib/l10n/app_es.arb:226:  "teacherTools": "Herramientas profesor",
+lib/l10n/app_es.arb:290:  "voiceAnswerPlaybackError": "No se pudo reproducir la respuesta en audio",
+lib/l10n/app_es.arb:294:  "answerAudioError": "No se pudo generar o reproducir el audio de la respuesta",
+lib/l10n/app_localizations_es.dart:156:  String get audioPlaybackErrorPrefix => 'No se pudo reproducir el audio';
+lib/l10n/app_localizations_es.dart:267:      'Crea espacios inteligentes para agrupar documentos por proyecto, investigación, materia o tema.';
+lib/l10n/app_localizations_es.dart:351:  String get playAudio => 'Reproducir audio';
+lib/l10n/app_localizations_es.dart:369:  String get processingDocument => 'Procesando documento...';
+lib/l10n/app_localizations_es.dart:372:  String get processingDocumentDescription =>
+lib/l10n/app_localizations_es.dart:591:  String checkoutSuccessMessage(Object planName) {
+lib/l10n/app_localizations_es.dart:596:  String get checkoutCancelMessage => 'Pago cancelado.';
+lib/l10n/app_localizations_es.dart:599:  String get checkoutTestModeMessage =>
+lib/l10n/app_localizations_es.dart:600:      'Tu solicitud de pago fue procesada por Stripe en modo prueba.';
+lib/l10n/app_localizations_es.dart:633:  String get teacherTools => 'Herramientas profesor';
+lib/l10n/app_localizations_es.dart:803:      'No se pudo reproducir la respuesta en audio';
+lib/l10n/app_localizations_es.dart:816:      'No se pudo generar o reproducir el audio de la respuesta';
+lib/l10n/app_fr.arb:85:  "workspaceEmptyDescription": "Créez des espaces intelligents pour regrouper les documents par projet, recherche, matière ou thème.",
+lib/l10n/app_fr.arb:118:  "processingDocument": "Traitement du document...",
+lib/l10n/app_fr.arb:119:  "processingDocumentDescription": "Génération du résumé IA, de l’audio et des embeddings RAG.",
+lib/l10n/app_fr.arb:203:  "checkoutSuccessMessage": "Paiement effectué correctement. Votre forfait actuel est {planName}.",
+lib/l10n/app_fr.arb:204:  "@checkoutSuccessMessage": {
+lib/l10n/app_fr.arb:209:  "checkoutCancelMessage": "Paiement annulé.",
+lib/l10n/app_fr.arb:210:  "checkoutTestModeMessage": "Votre demande de paiement a été traitée par Stripe en mode test.",
+lib/l10n/app_fr.arb:247:  "premiumAiDescription": "Lecture IA complète et synchronisation cloud prochainement.",
+lib/l10n/app_en.arb:12:  "manageSubscription": "Manage subscription",
+lib/l10n/app_en.arb:24:  "planAndSubscription": "Plan and subscription",
+lib/l10n/app_en.arb:59:  "workspaceNameHint": "E.g.: Thesis, Criminal Law, Final project",
+lib/l10n/app_en.arb:85:  "workspaceEmptyDescription": "Create intelligent spaces to group documents by project, research, subject, or topic.",
+lib/l10n/app_en.arb:118:  "processingDocument": "Processing document...",
+lib/l10n/app_en.arb:119:  "processingDocumentDescription": "Generating AI summary, audio, and RAG embeddings.",
+lib/l10n/app_en.arb:203:  "checkoutSuccessMessage": "Payment completed successfully. Your current plan is {planName}.",
+lib/l10n/app_en.arb:204:  "@checkoutSuccessMessage": {
+lib/l10n/app_en.arb:209:  "checkoutCancelMessage": "Payment canceled.",
+lib/l10n/app_en.arb:210:  "checkoutTestModeMessage": "Your payment request was processed by Stripe in test mode.",
+lib/l10n/app_localizations_pt.dart:156:  String get audioPlaybackErrorPrefix => 'Não foi possível reproduzir o áudio';
+lib/l10n/app_localizations_pt.dart:267:      'Crie espaços inteligentes para agrupar documentos por projeto, pesquisa, matéria ou tema.';
+lib/l10n/app_localizations_pt.dart:351:  String get playAudio => 'Reproduzir áudio';
+lib/l10n/app_localizations_pt.dart:369:  String get processingDocument => 'Processando documento...';
+lib/l10n/app_localizations_pt.dart:372:  String get processingDocumentDescription =>
+lib/l10n/app_localizations_pt.dart:379:  String get documentReadyToStudy => 'Documento pronto para estudar';
+lib/l10n/app_localizations_pt.dart:382:  String get aiReady => 'IA pronta';
+lib/l10n/app_localizations_pt.dart:392:    return 'Olá. Sou o StudyBook AI.\n\nEstou pronto para ajudar você a estudar este workspace com $count documentos.\n\nVocê pode pedir comparações, sínteses cruzadas ou análises combinadas.';
+lib/l10n/app_localizations_pt.dart:397:    return 'Olá. Sou o StudyBook AI.\n\nEstou pronto para ajudar você a compreender o documento \"$fileName\".\n\nVocê pode fazer perguntas, pedir explicações, resumos, conceitos-chave ou análises acadêmicas.';
+lib/l10n/app_localizations_pt.dart:591:  String checkoutSuccessMessage(Object planName) {
+lib/l10n/app_localizations_pt.dart:596:  String get checkoutCancelMessage => 'Pagamento cancelado.';
+lib/l10n/app_localizations_pt.dart:599:  String get checkoutTestModeMessage =>
+lib/l10n/app_localizations_pt.dart:600:      'Sua solicitação de pagamento foi processada pelo Stripe em modo de teste.';
+lib/l10n/app_localizations_pt.dart:633:  String get teacherTools => 'Ferramentas para professor';
+lib/l10n/app_localizations_pt.dart:803:      'Não foi possível reproduzir a resposta em áudio';
+lib/l10n/app_localizations_pt.dart:816:      'Não foi possível gerar ou reproduzir o áudio da resposta';
+lib/l10n/app_localizations_en.dart:39:  String get manageSubscription => 'Manage subscription';
+lib/l10n/app_localizations_en.dart:75:  String get planAndSubscription => 'Plan and subscription';
+lib/l10n/app_localizations_en.dart:187:  String get workspaceNameHint => 'E.g.: Thesis, Criminal Law, Final project';
+lib/l10n/app_localizations_en.dart:266:      'Create intelligent spaces to group documents by project, research, subject, or topic.';
+lib/l10n/app_localizations_en.dart:370:  String get processingDocument => 'Processing document...';
+lib/l10n/app_localizations_en.dart:373:  String get processingDocumentDescription =>
+lib/l10n/app_localizations_en.dart:591:  String checkoutSuccessMessage(Object planName) {
+lib/l10n/app_localizations_en.dart:596:  String get checkoutCancelMessage => 'Payment canceled.';
+lib/l10n/app_localizations_en.dart:599:  String get checkoutTestModeMessage =>
+lib/l10n/app_localizations_en.dart:600:      'Your payment request was processed by Stripe in test mode.';
+lib/config/app_plans.dart:3:  pro,
+lib/config/app_plans.dart:4:  educator,
+lib/config/app_plans.dart:36:    CampusPlan.pro: 'Pro',
+lib/config/app_plans.dart:37:    CampusPlan.educator: 'Educator',
+lib/config/app_plans.dart:53:    CampusPlan.pro: PlanLimits(
+lib/config/app_plans.dart:65:    CampusPlan.educator: PlanLimits(
+lib/screens/academic_recognition_screen.dart.bak_history_final_ui_20260622_232512:262:            emptyText: 'No hay estudiantes con promedio igual o superior a 85.',
+lib/screens/academic_recognition_screen.dart.bak_history_final_ui_20260622_232512:494:            emptyText: 'No hay estudiantes con promedio igual o superior a 90.',
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:80:  int get approvedCount =>
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:81:      summaries.where((item) => item.hasGrades && item.approved).length;
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:89:      summaries.where((item) => item.hasGrades && !item.approved).length;
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:91:  double get approvalRate =>
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:92:      evaluatedCount == 0 ? 0 : (approvedCount / evaluatedCount) * 100;
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:108:      'Aprobado 70-79': evaluated
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:139:        summaries.where((item) => item.hasGrades && !item.approved).length;
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:142:      'Aprobados': approvedCount,
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:174:    final reprobados =
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:175:        summaries.where((item) => item.hasGrades && !item.approved).length;
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:265:                      label: 'Aprobados',
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:266:                      value: approvedCount.toString(),
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:270:                      label: '% Aprobación',
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:271:                      value: '${approvalRate.toStringAsFixed(1)}%',
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:275:                      label: '% Reprobación',
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:286:                      value: reprobados.toString(),
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:378:            subtitle: 'Aprobados, riesgo y pendientes',
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:483:            'Mejores promedios del curso',
+lib/screens/academic_dashboard_screen.dart.bak_honor_board_20260622_182513:676:          'student-profile',
+lib/screens/academic_recognition_screen.dart.bak_recognition_engine_20260622_225656:168:            emptyText: 'No hay estudiantes con promedio igual o superior a 85.',
+lib/screens/academic_recognition_screen.dart.bak_recognition_engine_20260622_225656:316:            emptyText: 'No hay estudiantes con promedio igual o superior a 90.',
+lib/screens/academic_recognition_screen.dart.bak_fix_pdf_labels_20260622_231537:262:            emptyText: 'No hay estudiantes con promedio igual o superior a 85.',
+lib/screens/academic_recognition_screen.dart.bak_fix_pdf_labels_20260622_231537:494:            emptyText: 'No hay estudiantes con promedio igual o superior a 90.',
+lib/screens/academic_recognition_screen.dart.bak_history_exports_20260622_185741:168:            emptyText: 'No hay estudiantes con promedio igual o superior a 85.',
+lib/screens/academic_recognition_screen.dart.bak_history_exports_20260622_185741:175:            emptyText: 'No hay estudiantes con promedio igual o superior a 90.',
+lib/screens/academic_recognition_screen.dart.bak_verify_buttons_20260622_233550:277:            emptyText: 'No hay estudiantes con promedio igual o superior a 85.',
+lib/screens/academic_recognition_screen.dart.bak_verify_buttons_20260622_233550:509:            emptyText: 'No hay estudiantes con promedio igual o superior a 90.',
+lib/screens/dashboard_screen.dart:12:import '../providers/document_provider.dart';
+lib/screens/dashboard_screen.dart:21:import '../services/subscription_service.dart';
+lib/screens/dashboard_screen.dart:30:import '../widgets/dashboard/dashboard_educator_center.dart';
+lib/screens/dashboard_screen.dart:41:import '../widgets/dashboard/modules/dashboard_processing_card.dart';
+lib/screens/dashboard_screen.dart:162:    String? checkoutStatus;
+lib/screens/dashboard_screen.dart:167:      checkoutStatus = uri.queryParameters['checkout'];
+lib/screens/dashboard_screen.dart:170:      checkoutStatus = Uri.base.queryParameters['checkout'];
+lib/screens/dashboard_screen.dart:174:    if (checkoutStatus != 'success') return;
+lib/screens/student_transcript_screen.dart.bak_ranking_pdf_20260622_181828:57:                  ? (course.approved ? 'Aprobado' : 'Reprobado')
+lib/screens/student_transcript_screen.dart.bak_ranking_pdf_20260622_181828:125:                        label: 'Asistencia promedio',
+lib/screens/student_transcript_screen.dart.bak_ranking_pdf_20260622_181828:129:                        label: 'Aprobados',
+lib/screens/student_transcript_screen.dart.bak_ranking_pdf_20260622_181828:130:                        value: data.approvedCourses.toString(),
+lib/screens/student_transcript_screen.dart.bak_ranking_pdf_20260622_181828:133:                        label: 'Reprobados',
+lib/screens/student_transcript_screen.dart.bak_ranking_pdf_20260622_181828:202:                      course.hasGrades && course.approved
+lib/screens/student_transcript_screen.dart.bak_ranking_pdf_20260622_181828:207:                      color: course.hasGrades && course.approved
+lib/screens/student_transcript_screen.dart.bak_ranking_pdf_20260622_181828:226:                          : course.approved
+lib/screens/student_transcript_screen.dart.bak_ranking_pdf_20260622_181828:227:                              ? 'Aprobado'
+lib/screens/student_transcript_screen.dart.bak_ranking_pdf_20260622_181828:228:                              : 'Reprobado',
+lib/screens/student_transcript_screen.dart.bak_ranking_pdf_20260622_181828:232:                            : course.approved
+lib/screens/student_profile_screen.dart:139:    final approved = average >= 70;
+lib/screens/student_profile_screen.dart:168:                    Chip(label: Text(approved ? 'Aprobado' : 'Reprobado')),
+lib/screens/student_transcript_screen.dart.bak_transcript_pdf_full_20260622_175144:55:              : course.approved
+lib/screens/student_transcript_screen.dart.bak_transcript_pdf_full_20260622_175144:56:                  ? 'Aprobado'
+lib/screens/student_transcript_screen.dart.bak_transcript_pdf_full_20260622_175144:57:                  : 'Reprobado',
+lib/screens/student_transcript_screen.dart.bak_transcript_pdf_full_20260622_175144:123:                        label: 'Asistencia promedio',
+lib/screens/student_transcript_screen.dart.bak_transcript_pdf_full_20260622_175144:127:                        label: 'Aprobados',
+lib/screens/student_transcript_screen.dart.bak_transcript_pdf_full_20260622_175144:128:                        value: data.approvedCourses.toString(),
+lib/screens/student_transcript_screen.dart.bak_transcript_pdf_full_20260622_175144:131:                        label: 'Reprobados',
+lib/screens/student_transcript_screen.dart.bak_transcript_pdf_full_20260622_175144:199:                      course.hasGrades && course.approved
+lib/screens/student_transcript_screen.dart.bak_transcript_pdf_full_20260622_175144:204:                      color: course.hasGrades && course.approved
+lib/screens/student_transcript_screen.dart.bak_transcript_pdf_full_20260622_175144:223:                          : course.approved
+lib/screens/student_transcript_screen.dart.bak_transcript_pdf_full_20260622_175144:224:                              ? 'Aprobado'
+lib/screens/student_transcript_screen.dart.bak_transcript_pdf_full_20260622_175144:225:                              : 'Reprobado',
+lib/screens/student_transcript_screen.dart.bak_transcript_pdf_full_20260622_175144:229:                            : course.approved
+lib/screens/chat_screen.dart:8:import '../providers/document_provider.dart';
+lib/screens/chat_screen.dart:56:    final providerIds = ref.read(activeWorkspaceProvider);
+lib/screens/chat_screen.dart:58:    if (providerIds.isNotEmpty) {
+lib/screens/chat_screen.dart:59:      return providerIds;
+lib/screens/student_transcript_screen.dart.bak_fix_real_fields_20260622_175459:121:                        label: 'Asistencia promedio',
+lib/screens/student_transcript_screen.dart.bak_fix_real_fields_20260622_175459:125:                        label: 'Aprobados',
+lib/screens/student_transcript_screen.dart.bak_fix_real_fields_20260622_175459:126:                        value: data.approvedCourses.toString(),
+lib/screens/student_transcript_screen.dart.bak_fix_real_fields_20260622_175459:129:                        label: 'Reprobados',
+lib/screens/student_transcript_screen.dart.bak_fix_real_fields_20260622_175459:198:                      course.hasGrades && course.approved
+lib/screens/student_transcript_screen.dart.bak_fix_real_fields_20260622_175459:203:                      color: course.hasGrades && course.approved
+lib/screens/student_transcript_screen.dart.bak_fix_real_fields_20260622_175459:222:                          : course.approved
+lib/screens/student_transcript_screen.dart.bak_fix_real_fields_20260622_175459:223:                              ? 'Aprobado'
+lib/screens/student_transcript_screen.dart.bak_fix_real_fields_20260622_175459:224:                              : 'Reprobado',
+lib/screens/student_transcript_screen.dart.bak_fix_real_fields_20260622_175459:228:                            : course.approved
+lib/screens/academic_recognition_screen.dart.bak_pretty_recognition_labels_20260622_230939:247:            emptyText: 'No hay estudiantes con promedio igual o superior a 85.',
+lib/screens/academic_recognition_screen.dart.bak_pretty_recognition_labels_20260622_230939:479:            emptyText: 'No hay estudiantes con promedio igual o superior a 90.',
+lib/screens/final_report_screen.dart.bak_excelencia_cert_20260622_183152:99:  int get approvedCount =>
+lib/screens/final_report_screen.dart.bak_excelencia_cert_20260622_183152:100:      evaluatedSummaries.where((item) => item.approved).length;
+lib/screens/final_report_screen.dart.bak_excelencia_cert_20260622_183152:103:    return evaluatedSummaries.where((item) => !item.approved).length;
+lib/screens/final_report_screen.dart.bak_excelencia_cert_20260622_183152:153:        'approved': approvedCount,
+lib/screens/final_report_screen.dart.bak_excelencia_cert_20260622_183152:269:                      label: 'Aprobados',
+lib/screens/final_report_screen.dart.bak_excelencia_cert_20260622_183152:270:                      value: approvedCount.toString(),
+lib/screens/final_report_screen.dart.bak_excelencia_cert_20260622_183152:273:                      label: 'Reprobados evaluados',
+lib/screens/final_report_screen.dart.bak_excelencia_cert_20260622_183152:410:            summary.approved ? 'Estado: Aprobado' : 'Estado: Reprobado',
+lib/screens/final_report_screen.dart.bak_excelencia_cert_20260622_183152:412:              color: summary.approved ? AppTheme.success : Colors.red,
+lib/screens/final_report_screen.dart.bak_excelencia_cert_20260622_183152:416:          if (summary.hasGrades && summary.approved) ...[
+lib/screens/final_report_screen.dart.bak_excelencia_cert_20260622_183152:441:                      badgeTitle: 'Curso Aprobado',
+lib/screens/academic_recognition_screen.dart.bak_fix_history_20260622_185248:140:            emptyText: 'No hay estudiantes con promedio igual o superior a 85.',
+lib/screens/academic_recognition_screen.dart.bak_fix_history_20260622_185248:147:            emptyText: 'No hay estudiantes con promedio igual o superior a 90.',
+lib/screens/gradebook_screen.dart:780:                  final approved = average >= 70;
+lib/screens/gradebook_screen.dart:812:                          label: Text(approved ? 'Aprobado' : 'Riesgo'),
+lib/screens/settings_screen.dart:7:import '../providers/theme_provider.dart';
+lib/screens/settings_screen.dart:8:import '../providers/locale_provider.dart';
+lib/screens/settings_screen.dart:11:import '../services/billing_service.dart';
+lib/screens/settings_screen.dart:14:import '../services/subscription_service.dart';
+lib/screens/settings_screen.dart:83:            'No se pudo abrir el portal de suscripción: $error',
+lib/screens/settings_screen.dart:349:      CampusPlan.pro => 'Pro',
+lib/screens/settings_screen.dart:350:      CampusPlan.educator => 'Educator',
+lib/screens/settings_screen.dart:549:                          CampusPlan.pro,
+lib/screens/settings_screen.dart:556:                          CampusPlan.educator,
+lib/screens/final_report_screen.dart.bak_ranking_fase2a_20260622_181029:101:  int get approvedCount => evaluatedSummaries.where((item) => item.approved).length;
+lib/screens/final_report_screen.dart.bak_ranking_fase2a_20260622_181029:104:    return evaluatedSummaries.where((item) => !item.approved).length;
+lib/screens/final_report_screen.dart.bak_ranking_fase2a_20260622_181029:155:        'approved': approvedCount,
+lib/screens/final_report_screen.dart.bak_ranking_fase2a_20260622_181029:273:                      label: 'Aprobados',
+lib/screens/final_report_screen.dart.bak_ranking_fase2a_20260622_181029:274:                      value: approvedCount.toString(),
+lib/screens/final_report_screen.dart.bak_ranking_fase2a_20260622_181029:277:                      label: 'Reprobados evaluados',
+lib/screens/final_report_screen.dart.bak_ranking_fase2a_20260622_181029:418:            summary.approved ? 'Estado: Aprobado' : 'Estado: Reprobado',
+lib/screens/final_report_screen.dart.bak_ranking_fase2a_20260622_181029:420:              color: summary.approved ? AppTheme.success : Colors.red,
+lib/screens/final_report_screen.dart.bak_ranking_fase2a_20260622_181029:424:          if (summary.hasGrades && summary.approved) ...[
+lib/screens/final_report_screen.dart.bak_ranking_fase2a_20260622_181029:449:                      badgeTitle: 'Curso Aprobado',
+lib/screens/certificate_verify_screen.dart:279:                  'Este portal permite verificar la autenticidad de certificados, insignias y reconocimientos emitidos por StudyBook AI.',
+lib/screens/student_profile_screen.dart.bak_ranking_v1_20260622_180654:132:    final approved = average >= 70;
+lib/screens/student_profile_screen.dart.bak_ranking_v1_20260622_180654:161:                    Chip(label: Text(approved ? 'Aprobado' : 'Reprobado')),
+lib/screens/student_transcript_screen.dart:60:                  ? (course.approved ? 'Aprobado' : 'Reprobado')
+lib/screens/student_transcript_screen.dart:128:                        label: 'Asistencia promedio',
+lib/screens/student_transcript_screen.dart:132:                        label: 'Aprobados',
+lib/screens/student_transcript_screen.dart:133:                        value: data.approvedCourses.toString(),
+lib/screens/student_transcript_screen.dart:136:                        label: 'Reprobados',
+lib/screens/student_transcript_screen.dart:234:                      course.hasGrades && course.approved
+lib/screens/student_transcript_screen.dart:239:                      color: course.hasGrades && course.approved
+lib/screens/student_transcript_screen.dart:258:                          : course.approved
+lib/screens/student_transcript_screen.dart:259:                              ? 'Aprobado'
+lib/screens/student_transcript_screen.dart:260:                              : 'Reprobado',
+lib/screens/student_transcript_screen.dart:264:                            : course.approved
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:80:  int get approvedCount =>
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:81:      summaries.where((item) => item.hasGrades && item.approved).length;
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:89:      summaries.where((item) => item.hasGrades && !item.approved).length;
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:91:  double get approvalRate =>
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:92:      evaluatedCount == 0 ? 0 : (approvedCount / evaluatedCount) * 100;
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:111:      'Aprobado 70-79': evaluated
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:152:        summaries.where((item) => item.hasGrades && !item.approved).length;
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:155:      'Aprobados': approvedCount,
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:187:    final reprobados =
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:188:        summaries.where((item) => item.hasGrades && !item.approved).length;
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:278:                      label: 'Aprobados',
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:279:                      value: approvedCount.toString(),
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:283:                      label: '% Aprobación',
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:284:                      value: '${approvalRate.toStringAsFixed(1)}%',
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:288:                      label: '% Reprobación',
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:299:                      value: reprobados.toString(),
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:393:            subtitle: 'Aprobados, riesgo y pendientes',
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:505:            'Mejores promedios del curso',
+lib/screens/academic_dashboard_screen.dart.bak_ranking_fase2a_20260622_181029:700:          'student-profile',
+lib/screens/academic_recognition_screen.dart.bak_excellence_badge_20260622_184536:133:            emptyText: 'No hay estudiantes con promedio igual o superior a 85.',
+lib/screens/academic_recognition_screen.dart.bak_excellence_badge_20260622_184536:140:            emptyText: 'No hay estudiantes con promedio igual o superior a 90.',
+lib/screens/dashboard_screen.dart.bak_premium_20260615_183443:12:import '../providers/document_provider.dart';
+lib/screens/dashboard_screen.dart.bak_premium_20260615_183443:19:import '../services/subscription_service.dart';
+lib/screens/dashboard_screen.dart.bak_premium_20260615_183443:37:import '../widgets/dashboard/modules/dashboard_processing_card.dart';
+lib/screens/dashboard_screen.dart.bak_premium_20260615_183443:118:    String? checkoutStatus;
+lib/screens/dashboard_screen.dart.bak_premium_20260615_183443:123:      checkoutStatus = uri.queryParameters['checkout'];
+lib/screens/dashboard_screen.dart.bak_premium_20260615_183443:126:      checkoutStatus = Uri.base.queryParameters['checkout'];
+lib/screens/dashboard_screen.dart.bak_premium_20260615_183443:130:    if (checkoutStatus != 'success') return;
+lib/screens/academic_recognition_screen.dart:277:            emptyText: 'No hay estudiantes con promedio igual o superior a 85.',
+lib/screens/academic_recognition_screen.dart:509:            emptyText: 'No hay estudiantes con promedio igual o superior a 90.',
+lib/screens/students_screen.dart:189:      'student-profile',
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:84:  int get approvedCount =>
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:85:      summaries.where((item) => item.hasGrades && item.approved).length;
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:93:      summaries.where((item) => item.hasGrades && !item.approved).length;
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:95:  double get approvalRate =>
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:96:      evaluatedCount == 0 ? 0 : (approvedCount / evaluatedCount) * 100;
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:112:      'Aprobado 70-79': evaluated
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:143:        summaries.where((item) => item.hasGrades && !item.approved).length;
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:146:      'Aprobados': approvedCount,
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:198:    final reprobados =
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:199:        summaries.where((item) => item.hasGrades && !item.approved).length;
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:289:                      label: 'Aprobados',
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:290:                      value: approvedCount.toString(),
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:294:                      label: '% Aprobación',
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:295:                      value: '${approvalRate.toStringAsFixed(1)}%',
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:299:                      label: '% Reprobación',
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:310:                      value: reprobados.toString(),
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:363:                      label: 'Mejor promedio',
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:542:            subtitle: 'Aprobados, riesgo y pendientes',
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:647:            'Mejores promedios del curso',
+lib/screens/academic_dashboard_screen.dart.bak_recognition_button_20260622_183737:840:          'student-profile',
+lib/screens/student_transcript_screen.dart.bak_fix_pdf_params_20260622_175315:55:              : course.approved
+lib/screens/student_transcript_screen.dart.bak_fix_pdf_params_20260622_175315:56:                  ? 'Aprobado'
+lib/screens/student_transcript_screen.dart.bak_fix_pdf_params_20260622_175315:57:                  : 'Reprobado',
+lib/screens/student_transcript_screen.dart.bak_fix_pdf_params_20260622_175315:123:                        label: 'Asistencia promedio',
+lib/screens/student_transcript_screen.dart.bak_fix_pdf_params_20260622_175315:127:                        label: 'Aprobados',
+lib/screens/student_transcript_screen.dart.bak_fix_pdf_params_20260622_175315:128:                        value: data.approvedCourses.toString(),
+lib/screens/student_transcript_screen.dart.bak_fix_pdf_params_20260622_175315:131:                        label: 'Reprobados',
+lib/screens/student_transcript_screen.dart.bak_fix_pdf_params_20260622_175315:200:                      course.hasGrades && course.approved
+lib/screens/student_transcript_screen.dart.bak_fix_pdf_params_20260622_175315:205:                      color: course.hasGrades && course.approved
+lib/screens/student_transcript_screen.dart.bak_fix_pdf_params_20260622_175315:224:                          : course.approved
+lib/screens/student_transcript_screen.dart.bak_fix_pdf_params_20260622_175315:225:                              ? 'Aprobado'
+lib/screens/student_transcript_screen.dart.bak_fix_pdf_params_20260622_175315:226:                              : 'Reprobado',
+lib/screens/student_transcript_screen.dart.bak_fix_pdf_params_20260622_175315:230:                            : course.approved
+lib/screens/academic_recognition_screen.dart.bak_recognition_history_20260622_185125:133:            emptyText: 'No hay estudiantes con promedio igual o superior a 85.',
+lib/screens/academic_recognition_screen.dart.bak_recognition_history_20260622_185125:140:            emptyText: 'No hay estudiantes con promedio igual o superior a 90.',
+lib/screens/academic_recognition_screen.dart.bak_honor_roll_exports_20260622_192344:168:            emptyText: 'No hay estudiantes con promedio igual o superior a 85.',
+lib/screens/academic_recognition_screen.dart.bak_honor_roll_exports_20260622_192344:175:            emptyText: 'No hay estudiantes con promedio igual o superior a 90.',
+lib/screens/academic_recognition_screen.dart.bak_executive_dashboard_20260622_192600:168:            emptyText: 'No hay estudiantes con promedio igual o superior a 85.',
+lib/screens/academic_recognition_screen.dart.bak_executive_dashboard_20260622_192600:258:            emptyText: 'No hay estudiantes con promedio igual o superior a 90.',
+lib/screens/plans_screen.dart:6:import '../services/billing_service.dart';
+lib/screens/plans_screen.dart:27:  String? _checkoutStatus() {
+lib/screens/plans_screen.dart:28:    String? checkoutStatus;
+lib/screens/plans_screen.dart:31:      checkoutStatus =
+lib/screens/plans_screen.dart:32:          GoRouterState.of(context).uri.queryParameters['checkout'];
+lib/screens/plans_screen.dart:34:      checkoutStatus = null;
+lib/screens/plans_screen.dart:37:    checkoutStatus ??= Uri.base.queryParameters['checkout'];
+lib/screens/plans_screen.dart:39:    if (checkoutStatus == null || checkoutStatus.isEmpty) {
+lib/screens/plans_screen.dart:47:        checkoutStatus = fragmentUri?.queryParameters['checkout'];
+lib/screens/plans_screen.dart:51:    return checkoutStatus;
+lib/screens/plans_screen.dart:54:  String? _checkoutPlanCode() {
+lib/screens/plans_screen.dart:80:  String? _checkoutMessage() {
+lib/screens/plans_screen.dart:81:    final status = _checkoutStatus();
+lib/screens/plans_screen.dart:82:    final plan = planFromCode(_checkoutPlanCode());
+lib/screens/plans_screen.dart:88:      return AppLocalizations.of(context).checkoutSuccessMessage(planName);
+lib/screens/plans_screen.dart:92:      return AppLocalizations.of(context).checkoutCancelMessage;
+lib/screens/plans_screen.dart:98:  IconData _checkoutIcon() {
+lib/screens/plans_screen.dart:99:    final status = _checkoutStatus();
+lib/screens/plans_screen.dart:109:    final message = _checkoutMessage();
+lib/screens/plans_screen.dart:169:        plan: CampusPlan.pro,
+lib/screens/plans_screen.dart:171:        audience: 'Para estudiar y producir más',
+lib/screens/plans_screen.dart:190:        plan: CampusPlan.educator,
+lib/screens/plans_screen.dart:216:    final checkoutMessage = _checkoutMessage();
+lib/screens/plans_screen.dart:226:          if (checkoutMessage != null) ...[
+lib/screens/plans_screen.dart:230:                  _checkoutIcon(),
+lib/screens/plans_screen.dart:234:                  checkoutMessage,
+lib/screens/plans_screen.dart:241:                  'Tu solicitud de pago fue procesada por Stripe.',
+lib/screens/plans_screen.dart:539:                      data.plan == CampusPlan.educator
+lib/screens/plans_screen.dart:544:                      data.plan == CampusPlan.educator
+lib/screens/plans_screen.dart:599:      'Puedes cambiar o cancelar tu plan desde la configuración de tu cuenta. Los precios pueden variar según promociones de lanzamiento.',
+lib/screens/academic_dashboard_screen.dart:84:  int get approvedCount =>
+lib/screens/academic_dashboard_screen.dart:85:      summaries.where((item) => item.hasGrades && item.approved).length;
+lib/screens/academic_dashboard_screen.dart:93:      summaries.where((item) => item.hasGrades && !item.approved).length;
+lib/screens/academic_dashboard_screen.dart:95:  double get approvalRate =>
+lib/screens/academic_dashboard_screen.dart:96:      evaluatedCount == 0 ? 0 : (approvedCount / evaluatedCount) * 100;
+lib/screens/academic_dashboard_screen.dart:112:      'Aprobado 70-79': evaluated
+lib/screens/academic_dashboard_screen.dart:143:        summaries.where((item) => item.hasGrades && !item.approved).length;
+lib/screens/academic_dashboard_screen.dart:146:      'Aprobados': approvedCount,
+lib/screens/academic_dashboard_screen.dart:198:    final reprobados =
+lib/screens/academic_dashboard_screen.dart:199:        summaries.where((item) => item.hasGrades && !item.approved).length;
+lib/screens/academic_dashboard_screen.dart:289:                      label: 'Aprobados',
+lib/screens/academic_dashboard_screen.dart:290:                      value: approvedCount.toString(),
+lib/screens/academic_dashboard_screen.dart:294:                      label: '% Aprobación',
+lib/screens/academic_dashboard_screen.dart:295:                      value: '${approvalRate.toStringAsFixed(1)}%',
+lib/screens/academic_dashboard_screen.dart:299:                      label: '% Reprobación',
+lib/screens/academic_dashboard_screen.dart:310:                      value: reprobados.toString(),
+lib/screens/academic_dashboard_screen.dart:374:                      label: 'Mejor promedio',
+lib/screens/academic_dashboard_screen.dart:553:            subtitle: 'Aprobados, riesgo y pendientes',
+lib/screens/academic_dashboard_screen.dart:658:            'Mejores promedios del curso',
+lib/screens/academic_dashboard_screen.dart:851:          'student-profile',
+lib/screens/admin_analytics_screen.dart:197:          'El tiempo promedio de respuesta está algo elevado.';
+lib/screens/admin_analytics_screen.dart:472:                    subtitle: 'Documentos procesados',
+lib/screens/admin_analytics_screen.dart:506:                    title: 'Tiempo promedio',
+lib/screens/academic_recognition_screen.dart.bak_download_feedback_20260622_230422:247:            emptyText: 'No hay estudiantes con promedio igual o superior a 85.',
+lib/screens/academic_recognition_screen.dart.bak_download_feedback_20260622_230422:479:            emptyText: 'No hay estudiantes con promedio igual o superior a 90.',
+lib/screens/exam_screen.dart:351:            item['prompt'] ??
+lib/screens/exam_screen.dart:695:          'Identificación del problema',
+lib/screens/exam_screen.dart:699:          'Conclusión o solución propuesta',
+lib/screens/exam_screen.dart:702:          'Reconoce el problema central, los hechos relevantes y las variables del caso.',
+lib/screens/exam_screen.dart:703:          'Interpreta la situación planteada con profundidad y coherencia.',
+lib/screens/exam_screen.dart:704:          'Aplica correctamente normas, conceptos, principios o procedimientos pertinentes.',
+lib/screens/exam_screen.dart:717:          'Resolución propuesta',
+lib/screens/exam_screen.dart:722:          'Describe adecuadamente la situación o problema que debe resolverse.',
+lib/screens/exam_screen.dart:783:          'Comprende la lógica entre columnas o pares propuestos.',
+lib/screens/exam_screen.dart:799:          'Aplica conocimientos a problemas o situaciones concretas.',
+lib/screens/assessment_weights_screen.dart:208:                  'Define el peso de cada evaluación para calcular el promedio ponderado del curso.',
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:80:  int get approvedCount =>
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:81:      summaries.where((item) => item.hasGrades && item.approved).length;
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:89:      summaries.where((item) => item.hasGrades && !item.approved).length;
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:91:  double get approvalRate =>
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:92:      evaluatedCount == 0 ? 0 : (approvedCount / evaluatedCount) * 100;
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:108:      'Aprobado 70-79': evaluated
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:139:        summaries.where((item) => item.hasGrades && !item.approved).length;
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:142:      'Aprobados': approvedCount,
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:194:    final reprobados =
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:195:        summaries.where((item) => item.hasGrades && !item.approved).length;
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:285:                      label: 'Aprobados',
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:286:                      value: approvedCount.toString(),
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:290:                      label: '% Aprobación',
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:291:                      value: '${approvalRate.toStringAsFixed(1)}%',
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:295:                      label: '% Reprobación',
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:306:                      value: reprobados.toString(),
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:456:            subtitle: 'Aprobados, riesgo y pendientes',
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:561:            'Mejores promedios del curso',
+lib/screens/academic_dashboard_screen.dart.bak_global_ranking_20260622_182724:754:          'student-profile',
+lib/screens/library_screen.dart:8:import '../providers/audio_provider.dart';
+lib/screens/library_screen.dart:606:                  content: Text('Reproduciendo capítulo del audiolibro...'),
+lib/screens/library_screen.dart:618:                    'No se pudo reproducir el capítulo: $error',
+lib/screens/library_screen.dart:1957:            'Escucha tus audiolibros generados sin volver a procesarlos.',
+lib/screens/library_screen.dart:2077:            ' • $totalEstimatedMinutes min aprox. • $formattedDate',
+lib/screens/library_screen.dart:2406:                        '$estimatedMinutes min aprox. · toca reproducir',
+lib/screens/library_screen.dart:2412:                        tooltip: 'Reproducir capítulo',
+lib/screens/question_bank_screen.dart:109:        item['prompt']?.toString() ??
+lib/screens/courses_screen.dart:133:          title: Text('Subiendo programa de clase'),
+lib/screens/courses_screen.dart:144:                  'StudyBook AI está subiendo el programa y asociándolo al curso.',
+lib/screens/courses_screen.dart:162:        throw Exception('No se recibió documentId del programa.');
+lib/screens/courses_screen.dart:197:          content: Text('No se pudo subir el programa: $error'),
+lib/screens/courses_screen.dart:293:            'Ya existe $title guardada para el programa de este curso. '
+lib/screens/courses_screen.dart:488:    CourseDocument program,
+lib/screens/courses_screen.dart:493:    final planId = '${program.documentId}_teaching_plan';
+lib/screens/courses_screen.dart:546:                  'StudyBook AI está usando el programa asociado al curso.',
+lib/screens/courses_screen.dart:566:        documentId: program.documentId,
+lib/screens/courses_screen.dart:617:    CourseDocument program,
+lib/screens/courses_screen.dart:622:    final rubricId = '${program.documentId}_rubric';
+lib/screens/courses_screen.dart:674:                  'StudyBook AI está usando el programa asociado al curso.',
+lib/screens/courses_screen.dart:694:        documentId: program.documentId,
+lib/screens/courses_screen.dart:956:    CourseDocument program,
+lib/screens/courses_screen.dart:961:    final examId = '${program.documentId}_exam';
+lib/screens/courses_screen.dart:1023:                  'StudyBook AI está creando el examen con base en el programa asociado al curso.',
+lib/screens/courses_screen.dart:1043:        documentId: program.documentId,
+lib/screens/courses_screen.dart:1077:          'source_document_id': program.documentId,
+lib/screens/courses_screen.dart:1183:    CourseDocument program,
+lib/screens/courses_screen.dart:1188:    final questionBankId = '${program.documentId}_question_bank';
+lib/screens/courses_screen.dart:1244:                  'StudyBook AI está creando preguntas reutilizables desde el programa asociado al curso.',
+lib/screens/courses_screen.dart:1264:        documentId: program.documentId,
+lib/screens/courses_screen.dart:1276:                    'source_document_id': program.documentId,
+lib/screens/courses_screen.dart:1581:                      final program = documentForCourse(course);
+lib/screens/courses_screen.dart:1626:                      if (program != null) ...[
+lib/screens/courses_screen.dart:1630:                          label: Text('Programa: ${program.fileName}'),
+lib/screens/courses_screen.dart:1678:                            onPressed: program == null
+lib/screens/courses_screen.dart:1680:                                : () => generateCourseTeachingPlan(course, program),
+lib/screens/courses_screen.dart:1685:                            onPressed: program == null
+lib/screens/courses_screen.dart:1687:                                : () => generateCourseRubric(course, program),
+lib/screens/courses_screen.dart:1692:                            onPressed: program == null
+lib/screens/courses_screen.dart:1694:                                : () => generateCourseExam(course, program),
+lib/screens/courses_screen.dart:1699:                            onPressed: program == null
+lib/screens/courses_screen.dart:1701:                                : () => generateCourseQuestionBank(course, program),
+lib/screens/courses_screen.dart:1708:                            label: Text(program == null ? 'Subir programa' : 'Cambiar programa'),
+lib/screens/courses_screen.dart:1710:                          if (program != null)
+lib/screens/courses_screen.dart:1714:                              label: const Text('Quitar programa'),
+lib/screens/final_report_screen.dart:99:  int get approvedCount =>
+lib/screens/final_report_screen.dart:100:      evaluatedSummaries.where((item) => item.approved).length;
+lib/screens/final_report_screen.dart:103:    return evaluatedSummaries.where((item) => !item.approved).length;
+lib/screens/final_report_screen.dart:153:        'approved': approvedCount,
+lib/screens/final_report_screen.dart:269:                      label: 'Aprobados',
+lib/screens/final_report_screen.dart:270:                      value: approvedCount.toString(),
+lib/screens/final_report_screen.dart:273:                      label: 'Reprobados evaluados',
+lib/screens/final_report_screen.dart:410:            summary.approved ? 'Estado: Aprobado' : 'Estado: Reprobado',
+lib/screens/final_report_screen.dart:412:              color: summary.approved ? AppTheme.success : Colors.red,
+lib/screens/final_report_screen.dart:416:          if (summary.hasGrades && summary.approved) ...[
+lib/screens/final_report_screen.dart:455:                      badgeTitle: 'Curso Aprobado',
+lib/screens/auth_screen.dart:6:import '../services/subscription_service.dart';
+lib/main.dart:6:import 'providers/theme_provider.dart';
+lib/main.dart:7:import 'providers/locale_provider.dart';
+lib/services/export_service.dart.bak_excelencia_cert_20260622_183152:76:      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+lib/services/export_service.dart.bak_excelencia_cert_20260622_183152:377:    String badgeTitle = 'Curso Aprobado',
+lib/services/academic_analytics_service.dart.bak_global_ranking_20260622_182724:40:  final bool approved;
+lib/services/academic_analytics_service.dart.bak_global_ranking_20260622_182724:55:    required this.approved,
+lib/services/academic_analytics_service.dart.bak_global_ranking_20260622_182724:80:          !hasGrades ? 'Sin evaluar' : (approved ? 'Aprobado' : 'Reprobado'),
+lib/services/academic_analytics_service.dart.bak_global_ranking_20260622_182724:268:          approved: hasGrades && average >= passingScore,
+lib/services/export_service.dart.bak_fix_transcript_pdf_20260622_174814:76:      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+lib/services/export_service.dart.bak_fix_transcript_pdf_20260622_174814:377:    String badgeTitle = 'Curso Aprobado',
+lib/services/billing_service.dart:15:      CampusPlan.pro => 'pro',
+lib/services/billing_service.dart:16:      CampusPlan.educator => 'educator',
+lib/services/billing_service.dart:18:          'El plan Free no requiere checkout.',
+lib/services/billing_service.dart:29:      Uri.parse('${ApiService.baseUrl}/billing/create-checkout-session'),
+lib/services/billing_service.dart:47:        detail ?? 'No se pudo iniciar el checkout.',
+lib/services/billing_service.dart:55:    final checkoutUrl = decoded['checkout_url']?.toString();
+lib/services/billing_service.dart:57:    if (checkoutUrl == null || checkoutUrl.isEmpty) {
+lib/services/billing_service.dart:58:      throw Exception('El servidor no devolvió la URL de checkout.');
+lib/services/billing_service.dart:61:    html.window.location.href = checkoutUrl;
+lib/services/billing_service.dart:72:        '${ApiService.baseUrl}/billing/create-customer-portal-session',
+lib/services/billing_service.dart:88:        detail ?? 'No se pudo abrir el portal de cliente.',
+lib/services/billing_service.dart:96:    final portalUrl = decoded['portal_url']?.toString();
+lib/services/billing_service.dart:98:    if (portalUrl == null || portalUrl.isEmpty) {
+lib/services/billing_service.dart:99:      throw Exception('El servidor no devolvió la URL del portal.');
+lib/services/billing_service.dart:102:    html.window.location.href = portalUrl;
+lib/services/academic_analytics_service.dart.bak_ranking_v1_20260622_180654:16:  final bool approved;
+lib/services/academic_analytics_service.dart.bak_ranking_v1_20260622_180654:31:    required this.approved,
+lib/services/academic_analytics_service.dart.bak_ranking_v1_20260622_180654:57:          : (approved ? 'Aprobado' : 'Reprobado'),
+lib/services/academic_analytics_service.dart.bak_ranking_v1_20260622_180654:249:          approved: hasGrades && average >= passingScore,
+lib/services/student_transcript_service.dart:12:  final bool approved;
+lib/services/student_transcript_service.dart:22:    required this.approved,
+lib/services/student_transcript_service.dart:44:  int get approvedCourses =>
+lib/services/student_transcript_service.dart:45:      courses.where((item) => item.hasGrades && item.approved).length;
+lib/services/student_transcript_service.dart:48:      courses.where((item) => item.hasGrades && !item.approved).length;
+lib/services/student_transcript_service.dart:78:    if (approvedCourses == 0 && failedCourses == 0) return 'Pendiente';
+lib/services/student_transcript_service.dart:102:    if (approvedCourses > 0 && failedCourses == 0) {
+lib/services/student_transcript_service.dart:103:      items.add('Trayectoria sin reprobación');
+lib/services/student_transcript_service.dart:176:          approved: item.approved,
+lib/services/export_service.dart.bak_transcript_pdf_full_20260622_175144:76:      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+lib/services/export_service.dart.bak_transcript_pdf_full_20260622_175144:377:    String badgeTitle = 'Curso Aprobado',
+lib/services/export_service.dart.bak_ranking_pdf_20260622_181828:76:      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+lib/services/export_service.dart.bak_ranking_pdf_20260622_181828:377:    String badgeTitle = 'Curso Aprobado',
+lib/services/plan_guard_service.dart:10:  static const String _subscriptionStatusStorageKey =
+lib/services/plan_guard_service.dart:11:      'studybook_ai_subscription_status';
+lib/services/plan_guard_service.dart:24:    return html.window.localStorage[_subscriptionStatusStorageKey] ?? 'free';
+lib/services/plan_guard_service.dart:45:    String subscriptionStatus = 'active',
+lib/services/plan_guard_service.dart:49:    html.window.localStorage[_subscriptionStatusStorageKey] =
+lib/services/plan_guard_service.dart:50:        subscriptionStatus;
+lib/services/plan_guard_service.dart:56:    html.window.localStorage[_subscriptionStatusStorageKey] = 'free';
+lib/services/plan_guard_service.dart:82:    'pro' => CampusPlan.pro,
+lib/services/plan_guard_service.dart:83:    'educator' => CampusPlan.educator,
+lib/services/plan_guard_service.dart:91:    CampusPlan.pro => 'pro',
+lib/services/plan_guard_service.dart:92:    CampusPlan.educator => 'educator',
+lib/services/academic_analytics_service.dart.bak_ranking_fase2a_20260622_181029:40:  final bool approved;
+lib/services/academic_analytics_service.dart.bak_ranking_fase2a_20260622_181029:55:    required this.approved,
+lib/services/academic_analytics_service.dart.bak_ranking_fase2a_20260622_181029:80:          !hasGrades ? 'Sin evaluar' : (approved ? 'Aprobado' : 'Reprobado'),
+lib/services/academic_analytics_service.dart.bak_ranking_fase2a_20260622_181029:268:          approved: hasGrades && average >= passingScore,
+lib/services/api_service.dart.bak_question_bank_20260616_102826:46:      '$baseUrl/billing/usage/me',
+lib/services/api_service.dart.bak_question_bank_20260616_102826:65:      '$baseUrl/billing/subscription/me',
+lib/services/student_transcript_service.dart.bak_ranking_pdf_20260622_181828:12:  final bool approved;
+lib/services/student_transcript_service.dart.bak_ranking_pdf_20260622_181828:22:    required this.approved,
+lib/services/student_transcript_service.dart.bak_ranking_pdf_20260622_181828:38:  int get approvedCourses =>
+lib/services/student_transcript_service.dart.bak_ranking_pdf_20260622_181828:39:      courses.where((item) => item.hasGrades && item.approved).length;
+lib/services/student_transcript_service.dart.bak_ranking_pdf_20260622_181828:42:      courses.where((item) => item.hasGrades && !item.approved).length;
+lib/services/student_transcript_service.dart.bak_ranking_pdf_20260622_181828:73:    if (approvedCourses == 0 && failedCourses == 0) return 'Pendiente';
+lib/services/student_transcript_service.dart.bak_ranking_pdf_20260622_181828:97:    if (approvedCourses > 0 && failedCourses == 0) {
+lib/services/student_transcript_service.dart.bak_ranking_pdf_20260622_181828:98:      items.add('Trayectoria sin reprobación');
+lib/services/student_transcript_service.dart.bak_ranking_pdf_20260622_181828:155:          approved: item.approved,
+lib/services/export_service.dart.bak_transcript_gpa_pdf_20260622_174612:75:      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+lib/services/export_service.dart.bak_transcript_gpa_pdf_20260622_174612:376:    String badgeTitle = 'Curso Aprobado',
+lib/services/api_service.dart:46:      '$baseUrl/billing/usage/me',
+lib/services/api_service.dart:65:      '$baseUrl/billing/subscription/me',
+lib/services/subscription_service.dart:20:    final status = response['subscription_status']?.toString();
+lib/services/subscription_service.dart:33:      subscriptionStatus: status ?? 'unknown',
+lib/services/audio_player_service.dart:14:  Stream<ProcessingState> get processingStateStream =>
+lib/services/audio_player_service.dart:15:      player.processingStateStream;
+lib/services/audio_player_service.dart:46:        'No se pudo reproducir el audio: $error',
+lib/services/academic_analytics_service.dart:41:  final bool approved;
+lib/services/academic_analytics_service.dart:56:    required this.approved,
+lib/services/academic_analytics_service.dart:81:          !hasGrades ? 'Sin evaluar' : (approved ? 'Aprobado' : 'Reprobado'),
+lib/services/academic_analytics_service.dart:269:          approved: hasGrades && average >= passingScore,
+lib/services/export_service.dart:76:      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+lib/services/export_service.dart:379:    String badgeTitle = 'Curso Aprobado',
+lib/widgets/chat/chat_bubble.dart:8:import '../../providers/audio_provider.dart';
+lib/widgets/dashboard/dashboard_stats.dart:208:                  ? 'PDFs procesados en total'
+lib/widgets/dashboard/dashboard_academic_activity.dart:57:              'PDFs procesados: $pdfs',
+lib/widgets/dashboard/dashboard_academic_activity.dart:103:              'Resumen inteligente de tu actividad académica y productividad con IA.',
+lib/widgets/dashboard/dashboard_educator_center.dart:32:    final isEducator = plan == CampusPlan.educator;
+lib/widgets/dashboard/dashboard_educator_center.dart:113:        subtitle: 'Define pesos por evaluación y promedio final.',
+lib/widgets/dashboard/modules/dashboard_processing_card.dart:27:                  l10n.processingDocument,
+lib/widgets/dashboard/modules/dashboard_processing_card.dart:36:                  l10n.processingDocumentDescription,
+lib/widgets/mini_player.dart:5:import '../providers/audio_provider.dart';
+lib/widgets/onboarding/studybook_onboarding_dialog.dart:4:import '../../providers/audio_provider.dart';
+lib/widgets/onboarding/studybook_onboarding_dialog.dart:69:            'No se pudo reproducir la bienvenida: $error',
+lib/widgets/sidebar.dart:98:                CampusPlan.educator => 'Cuenta Educator',
+lib/widgets/sidebar.dart:99:                CampusPlan.pro => 'Cuenta Pro',
+lib/widgets/sidebar.dart:104:                CampusPlan.educator =>
+lib/widgets/sidebar.dart:106:                CampusPlan.pro =>
+lib/widgets/sidebar.dart:113:                CampusPlan.educator => Icons.school_rounded,
+lib/widgets/sidebar.dart:114:                CampusPlan.pro => Icons.workspace_premium_rounded,
+lib/router/app_router.dart:21:import '../screens/student_profile_screen.dart';
+lib/router/app_router.dart:250:      path: '/student-profile',
+lib/router/app_router.dart:251:      name: 'student-profile',
+lib/router/app_router.dart.bak_recognition_portal_20260622_183431:20:import '../screens/student_profile_screen.dart';
+lib/router/app_router.dart.bak_recognition_portal_20260622_183431:252:      path: '/student-profile',
+lib/router/app_router.dart.bak_recognition_portal_20260622_183431:253:      name: 'student-profile',
+--- billing_service.dart ---
+import 'dart:convert';
+import 'dart:html' as html;
+
+import 'package:http/http.dart' as http;
+
+import '../config/app_plans.dart';
+import 'api_service.dart';
+import 'auth_service.dart';
+
+class BillingService {
+  const BillingService();
+
+  Future<void> startCheckout(CampusPlan plan) async {
+    final planCode = switch (plan) {
+      CampusPlan.pro => 'pro',
+      CampusPlan.educator => 'educator',
+      CampusPlan.free => throw Exception(
+          'El plan Free no requiere checkout.',
+        ),
+    };
+
+    if (!AuthService.isLoggedIn) {
+      throw Exception(
+        'Debes iniciar sesión para actualizar tu plan.',
+      );
+    }
+
+    final response = await http.post(
+      Uri.parse('${ApiService.baseUrl}/billing/create-checkout-session'),
+      headers: {
+        'Content-Type': 'application/json',
+        ...AuthService.authHeaders,
+      },
+      body: jsonEncode({
+        'plan': planCode,
+      }),
+    );
+
+    final decoded = jsonDecode(response.body);
+
+    if (response.statusCode != 200) {
+      final detail = decoded is Map<String, dynamic>
+          ? decoded['detail']?.toString()
+          : null;
+
+      throw Exception(
+        detail ?? 'No se pudo iniciar el checkout.',
+      );
+    }
+
+    if (decoded is! Map<String, dynamic>) {
+      throw Exception('Respuesta inválida del servidor.');
+    }
+
+    final checkoutUrl = decoded['checkout_url']?.toString();
+
+    if (checkoutUrl == null || checkoutUrl.isEmpty) {
+      throw Exception('El servidor no devolvió la URL de checkout.');
+    }
+
+    html.window.location.href = checkoutUrl;
+  }
+  Future<void> openCustomerPortal() async {
+    if (!AuthService.isLoggedIn) {
+      throw Exception(
+        'Debes iniciar sesión para administrar tu suscripción.',
+      );
+    }
+
+    final response = await http.post(
+      Uri.parse(
+        '${ApiService.baseUrl}/billing/create-customer-portal-session',
+      ),
+      headers: {
+        'Content-Type': 'application/json',
+        ...AuthService.authHeaders,
+      },
+    );
+
+    final decoded = jsonDecode(response.body);
+
+    if (response.statusCode != 200) {
+      final detail = decoded is Map<String, dynamic>
+          ? decoded['detail']?.toString()
+          : null;
+
+      throw Exception(
+        detail ?? 'No se pudo abrir el portal de cliente.',
+      );
+    }
+
+    if (decoded is! Map<String, dynamic>) {
+      throw Exception('Respuesta inválida del servidor.');
+    }
+
+    final portalUrl = decoded['portal_url']?.toString();
+
+    if (portalUrl == null || portalUrl.isEmpty) {
+      throw Exception('El servidor no devolvió la URL del portal.');
+    }
+
+    html.window.location.href = portalUrl;
+  }
+
+}--- plan_guard_service.dart ---
+import 'dart:html' as html;
+
+import '../config/app_plans.dart';
+
+class PlanGuardService {
+  const PlanGuardService();
+
+  static const String _planStorageKey = 'studybook_ai_current_plan';
+  static const String _planSourceStorageKey = 'studybook_ai_plan_source';
+  static const String _subscriptionStatusStorageKey =
+      'studybook_ai_subscription_status';
+
+  CampusPlan get currentPlan {
+    final storedPlan = html.window.localStorage[_planStorageKey];
+
+    return planFromCode(storedPlan);
+  }
+
+  String get currentPlanSource {
+    return html.window.localStorage[_planSourceStorageKey] ?? 'local';
+  }
+
+  String get currentSubscriptionStatus {
+    return html.window.localStorage[_subscriptionStatusStorageKey] ?? 'free';
+  }
+
+  bool get isSyncedFromSupabase {
+    return currentPlanSource == 'supabase';
+  }
+
+  PlanLimits get limits => AppPlans.limits[currentPlan]!;
+
+  bool get canExportPdf => limits.canExportPdf;
+  bool get canExportDocx => limits.canExportDocx;
+  bool get canExportPptx => limits.canExportPptx;
+  bool get canUseAdvancedAnalytics => limits.canUseAdvancedAnalytics;
+  bool get canUseEducatorTools => limits.canUseEducatorTools;
+  bool get canUseVoiceOnboarding => limits.canUseVoiceOnboarding;
+
+  String get currentPlanName => AppPlans.planNames[currentPlan]!;
+
+  void saveCurrentPlan(
+    CampusPlan plan, {
+    String source = 'local_test',
+    String subscriptionStatus = 'active',
+  }) {
+    html.window.localStorage[_planStorageKey] = planCode(plan);
+    html.window.localStorage[_planSourceStorageKey] = source;
+    html.window.localStorage[_subscriptionStatusStorageKey] =
+        subscriptionStatus;
+  }
+
+  void resetToFree() {
+    html.window.localStorage[_planStorageKey] = planCode(CampusPlan.free);
+    html.window.localStorage[_planSourceStorageKey] = 'local';
+    html.window.localStorage[_subscriptionStatusStorageKey] = 'free';
+  }
+
+  bool canGenerateFlashcards(int requestedAmount) {
+    return requestedAmount <= limits.maxFlashcardsPerPdf;
+  }
+
+  bool canGenerateExamQuestions(int requestedAmount) {
+    return requestedAmount <= limits.maxExamQuestionsPerPdf;
+  }
+
+  String upgradeMessage(String featureName) {
+    return 'La función "$featureName" requiere actualizar tu plan.';
+  }
+
+  String limitMessage({
+    required String featureName,
+    required int requested,
+    required int allowed,
+  }) {
+    return 'Tu plan actual permite $allowed en "$featureName". Solicitaste $requested.';
+  }
+}
+
+CampusPlan planFromCode(String? value) {
+  return switch (value) {
+    'pro' => CampusPlan.pro,
+    'educator' => CampusPlan.educator,
+    _ => CampusPlan.free,
+  };
+}
+
+String planCode(CampusPlan plan) {
+  return switch (plan) {
+    CampusPlan.free => 'free',
+    CampusPlan.pro => 'pro',
+    CampusPlan.educator => 'educator',
+  };
+}
+--- plans_screen.dart ---
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../config/app_plans.dart';
+import '../l10n/app_localizations.dart';
+import '../services/billing_service.dart';
+import '../services/plan_guard_service.dart';
+import '../theme/app_theme.dart';
+
+class PlansScreen extends StatefulWidget {
+  const PlansScreen({super.key});
+
+  @override
+  State<PlansScreen> createState() => _PlansScreenState();
+}
+
+class _PlansScreenState extends State<PlansScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showCheckoutSnackBar();
+    });
+  }
+
+  String? _checkoutStatus() {
+    String? checkoutStatus;
+
+    try {
+      checkoutStatus =
+          GoRouterState.of(context).uri.queryParameters['checkout'];
+    } catch (_) {
+      checkoutStatus = null;
+    }
+
+    checkoutStatus ??= Uri.base.queryParameters['checkout'];
+
+    if (checkoutStatus == null || checkoutStatus.isEmpty) {
+      final fragment = Uri.base.fragment;
+
+      if (fragment.isNotEmpty) {
+        final normalizedFragment =
+            fragment.startsWith('/') ? fragment : '/$fragment';
+
+        final fragmentUri = Uri.tryParse(normalizedFragment);
+        checkoutStatus = fragmentUri?.queryParameters['checkout'];
+      }
+    }
+
+    return checkoutStatus;
+  }
+
+  String? _checkoutPlanCode() {
+    String? planCode;
+
+    try {
+      planCode = GoRouterState.of(context).uri.queryParameters['plan'];
+    } catch (_) {
+      planCode = null;
+    }
+
+    planCode ??= Uri.base.queryParameters['plan'];
+
+    if (planCode == null || planCode.isEmpty) {
+      final fragment = Uri.base.fragment;
+
+      if (fragment.isNotEmpty) {
+        final normalizedFragment =
+            fragment.startsWith('/') ? fragment : '/$fragment';
+
+        final fragmentUri = Uri.tryParse(normalizedFragment);
+        planCode = fragmentUri?.queryParameters['plan'];
+      }
+    }
+
+    return planCode;
+  }
+
+  String? _checkoutMessage() {
+    final status = _checkoutStatus();
+    final plan = planFromCode(_checkoutPlanCode());
+    final planName = AppPlans.planNames[plan] ?? 'Premium';
+
+    if (status == 'success') {
+      const PlanGuardService().saveCurrentPlan(plan);
+
+      return AppLocalizations.of(context).checkoutSuccessMessage(planName);
+    }
+
+    if (status == 'cancel') {
+      return AppLocalizations.of(context).checkoutCancelMessage;
+    }
+
+    return null;
+  }
+
+  IconData _checkoutIcon() {
+    final status = _checkoutStatus();
+
+    return switch (status) {
+      'success' => Icons.check_circle_rounded,
+      'cancel' => Icons.info_rounded,
+      _ => Icons.info_rounded,
+    };
+  }
+
+  void _showCheckoutSnackBar() {
+    final message = _checkoutMessage();
+
+    if (message == null || !mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  Future<void> _startCheckout(
+    BuildContext context,
+    CampusPlan plan,
+  ) async {
+    final planName = AppPlans.planNames[plan] ?? 'Premium';
+
+    try {
+      await const BillingService().startCheckout(plan);
+    } catch (error) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)
+                .paymentStartError(planName, error.toString()),
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  List<_PlanUiData> _plans(BuildContext context) {
+    return [
+      const _PlanUiData(
+        plan: CampusPlan.free,
+        name: 'Free',
+        audience: 'Para comenzar',
+        price: 'RD\$0',
+        period: '/mes',
+        badge: '',
+        icon: Icons.school_outlined,
+        isHighlighted: false,
+        benefits: [
+          '3 PDFs diarios',
+          'Chat IA básico',
+          'Resúmenes inteligentes',
+          '10 flashcards por PDF',
+          '10 preguntas de examen',
+        ],
+        lockedBenefits: [
+          'Audiolibros Premium',
+          'Modo voz completo',
+          'Exportar DOCX y PPTX',
+        ],
+      ),
+      const _PlanUiData(
+        plan: CampusPlan.pro,
+        name: 'Pro',
+        audience: 'Para estudiar y producir más',
+        price: 'RD\$599',
+        period: '/mes',
+        badge: 'MÁS POPULAR',
+        icon: Icons.workspace_premium_rounded,
+        isHighlighted: true,
+        benefits: [
+          '50 PDFs diarios',
+          '500 chats diarios',
+          'Audiolibros y resumen en audio',
+          'Modo voz completo',
+          'Escuchar respuestas de la IA',
+          'Exportar PDF, DOCX y PPTX',
+          '50 flashcards por PDF',
+          '50 preguntas de examen',
+        ],
+        lockedBenefits: [],
+      ),
+      const _PlanUiData(
+        plan: CampusPlan.educator,
+        name: 'Educator',
+        audience: 'Para docentes e instituciones',
+        price: 'RD\$1,199',
+        period: '/mes',
+        badge: 'DOCENTES',
+        icon: Icons.groups_rounded,
+        isHighlighted: false,
+        benefits: [
+          '200 PDFs diarios',
+          '2,000 chats diarios',
+          'Todo lo incluido en Pro',
+          'Herramientas docentes',
+          'Analíticas avanzadas',
+          '100 flashcards por PDF',
+          '100 preguntas de examen',
+          'Mayor capacidad para clases',
+        ],
+        lockedBenefits: [],
+      ),
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final current = const PlanGuardService().currentPlan;
+    final checkoutMessage = _checkoutMessage();
+
+    return Scaffold(
+      backgroundColor: AppTheme.background,
+      appBar: AppBar(
+        title: const Text('Planes StudyBook AI'),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(22),
+        children: [
+          if (checkoutMessage != null) ...[
+            Card(
+              child: ListTile(
+                leading: Icon(
+                  _checkoutIcon(),
+                  color: AppTheme.accent,
+                ),
+                title: Text(
+                  checkoutMessage,
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                subtitle: const Text(
+                  'Tu solicitud de pago fue procesada por Stripe.',
+                  style: TextStyle(
+                    color: AppTheme.textMuted,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+          ],
+          const _PlansHero(),
+          const SizedBox(height: 22),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 980;
+              final cards = _plans(context)
+                  .map(
+                    (planData) => _PlanCard(
+                      data: planData,
+                      isCurrent: current == planData.plan,
+                      onSelect: () {
+                        if (planData.plan == CampusPlan.free) {
+                          return;
+                        }
+
+                        _startCheckout(context, planData.plan);
+                      },
+                    ),
+                  )
+                  .toList();
+
+              if (!isWide) {
+                return Column(
+                  children: cards
+                      .map(
+                        (card) => Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: card,
+                        ),
+                      )
+                      .toList(),
+                );
+              }
+
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: cards
+                    .map(
+                      (card) => Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          child: card,
+                        ),
+                      ),
+                    )
+                    .toList(),
+              );
+            },
+          ),
+          const SizedBox(height: 22),
+          const _PlansFooterNote(),
+--- flutter analyze ---
+Analyzing campusai_mobile...                                    
+
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:531:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:659:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:1008:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:1229:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:868:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:1104:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:1447:7 • use_build_context_synchronously
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/screens/library_screen.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/screens/library_screen.dart:1:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/attendance_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/attendance_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/billing_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/billing_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/course_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/course_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/export_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/export_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/gradebook_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/gradebook_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/plan_guard_service.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/plan_guard_service.dart:1:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/student_roster_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/student_roster_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/usage_limit_service.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/usage_limit_service.dart:1:1 • avoid_web_libraries_in_flutter
+

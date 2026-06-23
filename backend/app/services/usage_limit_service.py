@@ -10,26 +10,34 @@ from app.services.subscription_service import get_user_subscription
 
 PLAN_UPLOAD_LIMITS = {
     "free": 3,
-    "pro": 50,
-    "educator": 200,
+    "student": 25,
+    "teacher": 100,
+    "accessibility": 15,
+    "ultra": 999999,
 }
 
 PLAN_CHAT_LIMITS = {
-    "free": 25,
-    "pro": 500,
-    "educator": 2000,
+    "free": 30,
+    "student": 300,
+    "teacher": 1000,
+    "accessibility": 200,
+    "ultra": 999999,
 }
 
 PLAN_FLASHCARD_LIMITS = {
-    "free": 10,
-    "pro": 50,
-    "educator": 100,
+    "free": 20,
+    "student": 200,
+    "teacher": 1000,
+    "accessibility": 100,
+    "ultra": 999999,
 }
 
 PLAN_EXAM_LIMITS = {
     "free": 10,
-    "pro": 50,
-    "educator": 100,
+    "student": 100,
+    "teacher": 300,
+    "accessibility": 80,
+    "ultra": 999999,
 }
 
 
@@ -221,13 +229,13 @@ PLAN_EXPORT_PERMISSIONS = {
         "docx": False,
         "pptx": False,
     },
-    "pro": {
+    "student": {
         "pdf": True,
         "docx": True,
         "pptx": True,
         "xlsx": True,
     },
-    "educator": {
+    "teacher": {
         "pdf": True,
         "docx": True,
         "pptx": True,

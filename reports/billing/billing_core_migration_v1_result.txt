@@ -1,0 +1,94 @@
+===== BILLING CORE MIGRATION V1 =====
+Rama actual:
+development
+Creando backups...
+Migración base aplicada.
+
+===== REVISANDO REFERENCIAS ANTIGUAS =====
+backend/app/routes/documents.py.bak_import_grades_excel_20260617_093518:420:            plan="educator",
+backend/app/routes/documents.py.bak_import_grades_excel_20260617_093518:474:            plan="educator",
+backend/app/routes/documents.py.bak_import_grades_excel_20260617_093518:752:            plan="educator",
+backend/app/routes/documents.py.bak_import_grades_excel_20260617_093518:804:            plan="educator",
+backend/app/routes/documents.py:457:            plan="educator",
+backend/app/routes/documents.py:514:            plan="educator",
+backend/app/routes/documents.py:566:            plan="educator",
+backend/app/routes/documents.py:844:            plan="educator",
+backend/app/routes/documents.py:902:            plan="educator",
+backend/app/routes/documents.py.bak_import_grades_pdf_20260617_114659:456:            plan="educator",
+backend/app/routes/documents.py.bak_import_grades_pdf_20260617_114659:512:            plan="educator",
+backend/app/routes/documents.py.bak_import_grades_pdf_20260617_114659:790:            plan="educator",
+backend/app/routes/documents.py.bak_import_grades_pdf_20260617_114659:842:            plan="educator",
+backend/app/routes/documents.py.bak_teaching_plan_20260616_180216:521:            plan="educator",
+backend/app/routes/documents.py.bak_import_grades_excel_20260617_092109:309:            plan="educator",
+backend/app/routes/documents.py.bak_import_grades_excel_20260617_092109:587:            plan="educator",
+backend/app/routes/documents.py.bak_import_grades_excel_20260617_092109:639:            plan="educator",
+backend/app/routes/documents.py.bak_import_students_20260616_200918:523:            plan="educator",
+backend/app/routes/documents.py.bak_import_students_20260616_200918:575:            plan="educator",
+backend/app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:13:    "pro": 50,
+backend/app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:14:    "educator": 200,
+backend/app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:19:    "pro": 500,
+backend/app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:20:    "educator": 2000,
+backend/app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:25:    "pro": 50,
+backend/app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:26:    "educator": 100,
+backend/app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:31:    "pro": 50,
+backend/app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:32:    "educator": 100,
+backend/app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:204:    "pro": {
+backend/app/services/usage_limit_service.py.bak_total_metrics_20260616_090853:209:    "educator": {
+mobile/campusai_mobile/lib/screens/settings_screen.dart:349:      CampusPlan.pro => 'Pro',
+mobile/campusai_mobile/lib/screens/settings_screen.dart:350:      CampusPlan.educator => 'Educator',
+mobile/campusai_mobile/lib/screens/settings_screen.dart:549:                          CampusPlan.pro,
+mobile/campusai_mobile/lib/screens/settings_screen.dart:556:                          CampusPlan.educator,
+mobile/campusai_mobile/lib/services/plan_guard_service.dart:92:    'pro' => CampusPlan.student,
+mobile/campusai_mobile/lib/services/plan_guard_service.dart:93:    'educator' => CampusPlan.teacher,
+mobile/campusai_mobile/lib/widgets/dashboard/dashboard_educator_center.dart:32:    final isEducator = plan == CampusPlan.educator;
+mobile/campusai_mobile/lib/widgets/sidebar.dart:98:                CampusPlan.educator => 'Cuenta Educator',
+mobile/campusai_mobile/lib/widgets/sidebar.dart:99:                CampusPlan.pro => 'Cuenta Pro',
+mobile/campusai_mobile/lib/widgets/sidebar.dart:104:                CampusPlan.educator =>
+mobile/campusai_mobile/lib/widgets/sidebar.dart:106:                CampusPlan.pro =>
+mobile/campusai_mobile/lib/widgets/sidebar.dart:113:                CampusPlan.educator => Icons.school_rounded,
+mobile/campusai_mobile/lib/widgets/sidebar.dart:114:                CampusPlan.pro => Icons.workspace_premium_rounded,
+
+===== BACKEND COMPILE =====
+
+===== FLUTTER ANALYZE =====
+Analyzing campusai_mobile...                                    
+
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:531:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:659:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:1008:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:1229:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:868:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:1104:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:1447:7 • use_build_context_synchronously
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/screens/library_screen.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/screens/library_screen.dart:1:1 • avoid_web_libraries_in_flutter
+  error • There's no constant named 'pro' in 'CampusPlan' • lib/screens/settings_screen.dart:349:18 • undefined_enum_constant
+  error • There's no constant named 'educator' in 'CampusPlan' • lib/screens/settings_screen.dart:350:18 • undefined_enum_constant
+  error • The getter 'maxChatMessagesPerDay' isn't defined for the type 'PlanLimits' • lib/screens/settings_screen.dart:476:33 • undefined_getter
+  error • There's no constant named 'pro' in 'CampusPlan' • lib/screens/settings_screen.dart:549:38 • undefined_enum_constant
+  error • There's no constant named 'educator' in 'CampusPlan' • lib/screens/settings_screen.dart:556:38 • undefined_enum_constant
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/attendance_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/attendance_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/billing_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/billing_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/course_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/course_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/export_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/export_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/gradebook_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/gradebook_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/plan_guard_service.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/plan_guard_service.dart:1:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/student_roster_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/student_roster_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/usage_limit_service.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/usage_limit_service.dart:1:1 • avoid_web_libraries_in_flutter
+  error • There's no constant named 'educator' in 'CampusPlan' • lib/widgets/dashboard/dashboard_educator_center.dart:32:43 • undefined_enum_constant
+  error • The getter 'maxChatMessagesPerDay' isn't defined for the type 'PlanLimits' • lib/widgets/dashboard/dashboard_stats.dart:132:23 • undefined_getter
+  error • There's no constant named 'educator' in 'CampusPlan' • lib/widgets/sidebar.dart:98:28 • undefined_enum_constant
+  error • There's no constant named 'pro' in 'CampusPlan' • lib/widgets/sidebar.dart:99:28 • undefined_enum_constant
+  error • There's no constant named 'educator' in 'CampusPlan' • lib/widgets/sidebar.dart:104:28 • undefined_enum_constant
+  error • There's no constant named 'pro' in 'CampusPlan' • lib/widgets/sidebar.dart:106:28 • undefined_enum_constant
+  error • There's no constant named 'educator' in 'CampusPlan' • lib/widgets/sidebar.dart:113:28 • undefined_enum_constant
+  error • There's no constant named 'pro' in 'CampusPlan' • lib/widgets/sidebar.dart:114:28 • undefined_enum_constant
+

@@ -147,7 +147,7 @@ class _PlansScreenState extends State<PlansScreen> {
         plan: CampusPlan.free,
         name: 'Free',
         audience: 'Para comenzar',
-        price: 'RD\$0',
+        price: 'US\$0',
         period: '/mes',
         badge: '',
         icon: Icons.school_outlined,
@@ -166,10 +166,10 @@ class _PlansScreenState extends State<PlansScreen> {
         ],
       ),
       const _PlanUiData(
-        plan: CampusPlan.pro,
-        name: 'Pro',
-        audience: 'Para estudiar y producir más',
-        price: 'RD\$599',
+        plan: CampusPlan.student,
+        name: 'Student',
+        audience: 'Para estudiantes intensivos',
+        price: 'US\$6.99',
         period: '/mes',
         badge: 'MÁS POPULAR',
         icon: Icons.workspace_premium_rounded,
@@ -187,10 +187,10 @@ class _PlansScreenState extends State<PlansScreen> {
         lockedBenefits: [],
       ),
       const _PlanUiData(
-        plan: CampusPlan.educator,
-        name: 'Educator',
-        audience: 'Para docentes e instituciones',
-        price: 'RD\$1,199',
+        plan: CampusPlan.teacher,
+        name: 'Teacher',
+        audience: 'Para docentes y aulas',
+        price: 'US\$13.99',
         period: '/mes',
         badge: 'DOCENTES',
         icon: Icons.groups_rounded,
@@ -536,12 +536,12 @@ class _PlanCard extends StatelessWidget {
                 : FilledButton.icon(
                     onPressed: isFree ? null : onSelect,
                     icon: Icon(
-                      data.plan == CampusPlan.educator
+                      data.plan == CampusPlan.teacher
                           ? Icons.school_rounded
                           : Icons.rocket_launch_rounded,
                     ),
                     label: Text(
-                      data.plan == CampusPlan.educator
+                      data.plan == CampusPlan.teacher
                           ? 'Obtener Educator'
                           : 'Actualizar a ${data.name}',
                     ),

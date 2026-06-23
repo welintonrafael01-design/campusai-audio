@@ -95,24 +95,32 @@ class Sidebar extends StatelessWidget {
               final plan = const PlanGuardService().currentPlan;
 
               final title = switch (plan) {
-                CampusPlan.educator => 'Cuenta Educator',
-                CampusPlan.pro => 'Cuenta Pro',
-                CampusPlan.free => l10n.premiumAi,
+                CampusPlan.free => 'Cuenta Free',
+                CampusPlan.student => 'Cuenta Student',
+                CampusPlan.accessibility => 'Cuenta Accessibility',
+                CampusPlan.teacher => 'Cuenta Teacher',
+                CampusPlan.ultra => 'Cuenta Ultra Premium',
               };
 
               final description = switch (plan) {
-                CampusPlan.educator =>
-                  'Plan activo: 200 PDFs diarios, 2,000 chats, exportaciones y Workspace Multi-PDF.',
-                CampusPlan.pro =>
-                  'Plan activo: audiolibros, voz, DOCX, PPTX y mayor capacidad.',
                 CampusPlan.free =>
-                  'Desbloquea audiolibros, voz, exportaciones y mayor capacidad.',
+                    'Plan gratuito para comenzar con StudyBook AI.',
+                CampusPlan.student =>
+                    'Plan para estudiantes con IA, PDFs, audio y estudio avanzado.',
+                CampusPlan.accessibility =>
+                    'Plan accesible con audio, voz, IA y exportaciones.',
+                CampusPlan.teacher =>
+                    'Plan docente con herramientas académicas completas.',
+                CampusPlan.ultra =>
+                    'Máximo poder con límites ampliados y funciones premium.',
               };
 
               final icon = switch (plan) {
-                CampusPlan.educator => Icons.school_rounded,
-                CampusPlan.pro => Icons.workspace_premium_rounded,
-                CampusPlan.free => Icons.workspace_premium,
+                CampusPlan.free => Icons.school_outlined,
+                CampusPlan.student => Icons.workspace_premium_rounded,
+                CampusPlan.accessibility => Icons.accessibility_new_rounded,
+                CampusPlan.teacher => Icons.school_rounded,
+                CampusPlan.ultra => Icons.auto_awesome_rounded,
               };
 
               return Container(

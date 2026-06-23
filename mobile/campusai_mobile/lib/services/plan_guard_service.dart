@@ -12,7 +12,6 @@ class PlanGuardService {
 
   CampusPlan get currentPlan {
     final storedPlan = html.window.localStorage[_planStorageKey];
-
     return planFromCode(storedPlan);
   }
 
@@ -36,6 +35,12 @@ class PlanGuardService {
   bool get canUseAdvancedAnalytics => limits.canUseAdvancedAnalytics;
   bool get canUseEducatorTools => limits.canUseEducatorTools;
   bool get canUseVoiceOnboarding => limits.canUseVoiceOnboarding;
+  bool get canUseQuestionBank => limits.canUseQuestionBank;
+  bool get canUseTeachingPlan => limits.canUseTeachingPlan;
+  bool get canUseGradebook => limits.canUseGradebook;
+  bool get canUseCertificates => limits.canUseCertificates;
+  bool get canUseAcademicBadges => limits.canUseAcademicBadges;
+  bool get canUseTranscriptPremium => limits.canUseTranscriptPremium;
 
   String get currentPlanName => AppPlans.planNames[currentPlan]!;
 
@@ -44,14 +49,15 @@ class PlanGuardService {
     String source = 'local_test',
     String subscriptionStatus = 'active',
   }) {
-    html.window.localStorage[_planStorageKey] = planCode(plan);
+    html.window.localStorage[_planStorageKey] = planCodeFromCampusPlan(plan);
     html.window.localStorage[_planSourceStorageKey] = source;
     html.window.localStorage[_subscriptionStatusStorageKey] =
         subscriptionStatus;
   }
 
   void resetToFree() {
-    html.window.localStorage[_planStorageKey] = planCode(CampusPlan.free);
+    html.window.localStorage[_planStorageKey] =
+        planCodeFromCampusPlan(CampusPlan.free);
     html.window.localStorage[_planSourceStorageKey] = 'local';
     html.window.localStorage[_subscriptionStatusStorageKey] = 'free';
   }
@@ -79,16 +85,24 @@ class PlanGuardService {
 
 CampusPlan planFromCode(String? value) {
   return switch (value) {
-    'pro' => CampusPlan.pro,
-    'educator' => CampusPlan.educator,
+    'student' => CampusPlan.student,
+    'teacher' => CampusPlan.teacher,
+    'accessibility' => CampusPlan.accessibility,
+    'ultra' => CampusPlan.ultra,
+    'pro' => CampusPlan.student,
+    'educator' => CampusPlan.teacher,
     _ => CampusPlan.free,
   };
 }
 
-String planCode(CampusPlan plan) {
+String planCodeFromCampusPlan(CampusPlan plan) {
   return switch (plan) {
     CampusPlan.free => 'free',
-    CampusPlan.pro => 'pro',
-    CampusPlan.educator => 'educator',
+    CampusPlan.student => 'student',
+    CampusPlan.teacher => 'teacher',
+    CampusPlan.accessibility => 'accessibility',
+    CampusPlan.ultra => 'ultra',
   };
 }
+
+String planCode(CampusPlan plan) => planCodeFromCampusPlan(plan);
