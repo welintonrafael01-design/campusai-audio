@@ -82,6 +82,14 @@ class Sidebar extends StatelessWidget {
             },
           ),
           _SidebarItem(
+            title: 'Finanzas',
+            icon: Icons.query_stats_rounded,
+            selected: currentRoute == '/admin/financial-dashboard',
+            onTap: () {
+              context.go('/admin/financial-dashboard');
+            },
+          ),
+          _SidebarItem(
             title: 'Mi Cuenta',
             icon: Icons.account_circle_rounded,
             selected: currentRoute == '/settings',
