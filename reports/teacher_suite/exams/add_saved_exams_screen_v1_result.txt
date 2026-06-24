@@ -1,0 +1,44 @@
+Analyzing campusai_mobile...                                    
+
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:531:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:659:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:1008:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:1311:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:868:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:1104:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:1447:7 • use_build_context_synchronously
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/screens/library_screen.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/screens/library_screen.dart:1:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/attendance_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/attendance_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/billing_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/billing_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/course_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/course_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/export_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/export_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/gradebook_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/gradebook_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/plan_guard_service.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/plan_guard_service.dart:1:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/student_roster_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/student_roster_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/usage_limit_service.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/usage_limit_service.dart:1:1 • avoid_web_libraries_in_flutter
+  error • The getter 'assignment_add_rounded' isn't defined for the type 'Icons' • lib/widgets/dashboard/dashboard_educator_center.dart:114:21 • undefined_getter
+
+mobile/campusai_mobile/lib/screens/saved_exams_screen.dart:10:class SavedExamsScreen extends StatefulWidget {
+mobile/campusai_mobile/lib/screens/saved_exams_screen.dart:11:  const SavedExamsScreen({super.key});
+mobile/campusai_mobile/lib/screens/saved_exams_screen.dart:14:  State<SavedExamsScreen> createState() => _SavedExamsScreenState();
+mobile/campusai_mobile/lib/screens/saved_exams_screen.dart:17:class _SavedExamsScreenState extends State<SavedExamsScreen> {
+mobile/campusai_mobile/lib/screens/saved_exams_screen.dart:123:        title: const Text('Mis Exámenes'),
+mobile/campusai_mobile/lib/widgets/dashboard/dashboard_educator_center.dart:112:        title: 'Mis Exámenes',
+mobile/campusai_mobile/lib/widgets/dashboard/dashboard_educator_center.dart:117:        onTap: () => context.goNamed('saved-exams'),
+mobile/campusai_mobile/lib/router/app_router.dart:321:      path: '/saved-exams',
+mobile/campusai_mobile/lib/router/app_router.dart:322:      name: 'saved-exams',
+mobile/campusai_mobile/lib/router/app_router.dart:326:          child: const SavedExamsScreen(),
+ M mobile/campusai_mobile/lib/router/app_router.dart
+ M mobile/campusai_mobile/lib/widgets/dashboard/dashboard_educator_center.dart
+?? add_saved_exams_screen_v1.sh
+?? add_saved_exams_screen_v1_result.txt
+?? mobile/campusai_mobile/lib/screens/saved_exams_screen.dart

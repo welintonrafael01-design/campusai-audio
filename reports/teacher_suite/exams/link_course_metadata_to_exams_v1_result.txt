@@ -1,0 +1,49 @@
+Analyzing campusai_mobile...                                    
+
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:531:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:659:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:1008:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:1316:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:868:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:1104:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:1447:7 • use_build_context_synchronously
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/screens/library_screen.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/screens/library_screen.dart:1:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/attendance_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/attendance_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/billing_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/billing_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/course_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/course_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/export_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/export_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/gradebook_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/gradebook_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/plan_guard_service.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/plan_guard_service.dart:1:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/student_roster_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/student_roster_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/usage_limit_service.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/usage_limit_service.dart:1:1 • avoid_web_libraries_in_flutter
+
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1083:          'course_section': course.section,
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1084:          'course_period': course.period,
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1085:          'course_display_name': course.displayName,
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1088:          'exam_source': 'Curso',
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1371:                    'course_section': course.section,
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1372:                    'course_period': course.period,
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1373:                    'course_display_name': course.displayName,
+mobile/campusai_mobile/lib/screens/saved_exams_screen.dart:82:      final courseName = questions.first['course_display_name']?.toString().trim().isNotEmpty == true
+mobile/campusai_mobile/lib/screens/saved_exams_screen.dart:83:          ? questions.first['course_display_name']!.toString().trim()
+mobile/campusai_mobile/lib/screens/saved_exams_screen.dart:115:    final courseName = first['course_display_name']?.toString().trim().isNotEmpty == true
+mobile/campusai_mobile/lib/screens/saved_exams_screen.dart:116:        ? first['course_display_name']!.toString().trim()
+ M mobile/campusai_mobile/lib/router/app_router.dart
+ M mobile/campusai_mobile/lib/screens/courses_screen.dart
+ M mobile/campusai_mobile/lib/widgets/dashboard/dashboard_educator_center.dart
+?? add_saved_exams_screen_v1.sh
+?? add_saved_exams_screen_v1_result.txt
+?? link_course_metadata_to_exams_v1.sh
+?? link_course_metadata_to_exams_v1_result.txt
+?? mobile/campusai_mobile/lib/screens/saved_exams_screen.dart
+?? polish_saved_exams_repository_v2.sh
+?? polish_saved_exams_repository_v2_result.txt

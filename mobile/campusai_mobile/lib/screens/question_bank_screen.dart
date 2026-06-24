@@ -8,6 +8,7 @@ import '../models/study_result.dart';
 import '../services/study_result_service.dart';
 import '../services/export_service.dart';
 import '../services/api_service.dart';
+import '../services/cloud_api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
 
@@ -575,6 +576,16 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
         createdAt: DateTime.now().toIso8601String(),
       ),
     );
+
+    try {
+      await CloudApiService.saveStudyResult(
+        documentId: examId,
+        type: 'exam',
+        content: content,
+      );
+    } catch (cloudError) {
+      debugPrint('No se pudo guardar examen de banco en cloud: $cloudError');
+    }
 
     if (!mounted) return;
 

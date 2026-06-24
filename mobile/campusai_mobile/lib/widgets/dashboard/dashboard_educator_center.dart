@@ -109,6 +109,14 @@ class DashboardEducatorCenter extends StatelessWidget {
         onTap: () => context.goNamed('courses'),
       ),
       _EducatorAction(
+        title: 'Mis Exámenes',
+        subtitle: 'Repositorio docente de exámenes, versiones y claves.',
+        icon: Icons.assignment_turned_in_rounded,
+        color: AppTheme.accent,
+        enabled: true,
+        onTap: () => context.goNamed('saved-exams'),
+      ),
+      _EducatorAction(
         title: 'Ponderaciones',
         subtitle: 'Define pesos por evaluación y promedio final.',
         icon: Icons.percent_rounded,

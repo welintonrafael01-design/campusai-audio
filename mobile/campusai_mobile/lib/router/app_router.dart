@@ -24,6 +24,7 @@ import '../screens/student_transcript_screen.dart';
 import '../screens/assessment_weights_screen.dart';
 import '../screens/courses_screen.dart';
 import '../screens/students_screen.dart';
+import '../screens/saved_exams_screen.dart';
 import '../screens/teaching_plan_screen.dart';
 import '../screens/reset_password_screen.dart';
 
@@ -313,6 +314,16 @@ final appRouter = GoRouter(
         return _buildPage(
           state: state,
           child: const GradebookScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/saved-exams',
+      name: 'saved-exams',
+      pageBuilder: (context, state) {
+        return _buildPage(
+          state: state,
+          child: const SavedExamsScreen(),
         );
       },
     ),

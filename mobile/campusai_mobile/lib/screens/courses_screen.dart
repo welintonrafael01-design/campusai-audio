@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../services/course_service.dart';
+import '../services/cloud_api_service.dart';
 import '../services/api_service.dart';
 import '../services/course_document_service.dart';
 import '../services/export_service.dart';
@@ -1065,11 +1066,11 @@ class _CoursesScreenState extends State<CoursesScreen> {
 
       final limitedQuestions = questions.take(count).toList();
 
-      final pointsPerQuestion = questions.isEmpty
+      final pointsPerQuestion = limitedQuestions.isEmpty
           ? 0
-          : totalPoints / questions.length;
+          : totalPoints / limitedQuestions.length;
 
-      final enrichedQuestions = questions.map((item) {
+      final enrichedQuestions = limitedQuestions.map((item) {
         return {
           ...item,
           'exam_total_points': totalPoints,
@@ -1079,8 +1080,13 @@ class _CoursesScreenState extends State<CoursesScreen> {
           'source_document_id': program.documentId,
           'course_id': course.id,
           'course_name': course.name,
+          'course_code': course.code,
+          'course_section': course.section,
+          'course_period': course.period,
+          'course_display_name': course.displayName,
           'exam_topic': examTopic,
           'exam_objective': examObjective,
+          'exam_source': 'Curso',
         };
       }).toList();
 
@@ -1095,6 +1101,16 @@ class _CoursesScreenState extends State<CoursesScreen> {
         ),
       );
 
+      try {
+        await CloudApiService.saveStudyResult(
+          documentId: examId,
+          type: 'exam',
+          content: content,
+        );
+      } catch (cloudError) {
+        debugPrint('No se pudo guardar examen de curso en cloud: $cloudError');
+      }
+
       if (!mounted) return;
 
       if (Navigator.of(context).canPop()) {
@@ -1104,7 +1120,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
       context.goNamed(
         'exam',
         pathParameters: {'documentId': examId},
-        extra: limitedQuestions,
+        extra: enrichedQuestions,
       );
     } catch (error) {
       if (!mounted) return;
@@ -1362,6 +1378,10 @@ class _CoursesScreenState extends State<CoursesScreen> {
                     'source_document_id': program.documentId,
                     'course_id': course.id,
                     'course_name': course.name,
+                    'course_code': course.code,
+                    'course_section': course.section,
+                    'course_period': course.period,
+                    'course_display_name': course.displayName,
                     'program_topic': programTopic,
                     'learning_objective': learningObjective,
                     'competency': competency,

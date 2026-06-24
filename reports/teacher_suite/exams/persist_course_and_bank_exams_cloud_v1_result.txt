@@ -1,0 +1,46 @@
+Analyzing campusai_mobile...                                    
+
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:532:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:660:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:1009:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:1327:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:868:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:1104:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:1447:7 • use_build_context_synchronously
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/screens/library_screen.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/screens/library_screen.dart:1:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/attendance_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/attendance_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/billing_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/billing_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/course_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/course_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/export_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/export_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/gradebook_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/gradebook_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/plan_guard_service.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/plan_guard_service.dart:1:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/student_roster_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/student_roster_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/usage_limit_service.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/usage_limit_service.dart:1:1 • avoid_web_libraries_in_flutter
+
+mobile/campusai_mobile/lib/screens/question_bank_screen.dart:581:      await CloudApiService.saveStudyResult(
+mobile/campusai_mobile/lib/screens/question_bank_screen.dart:587:      debugPrint('No se pudo guardar examen de banco en cloud: $cloudError');
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1105:        await CloudApiService.saveStudyResult(
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1111:        debugPrint('No se pudo guardar examen de curso en cloud: $cloudError');
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1123:        extra: enrichedQuestions,
+ M mobile/campusai_mobile/lib/router/app_router.dart
+ M mobile/campusai_mobile/lib/screens/courses_screen.dart
+ M mobile/campusai_mobile/lib/screens/question_bank_screen.dart
+ M mobile/campusai_mobile/lib/widgets/dashboard/dashboard_educator_center.dart
+?? add_saved_exams_screen_v1.sh
+?? add_saved_exams_screen_v1_result.txt
+?? link_course_metadata_to_exams_v1.sh
+?? link_course_metadata_to_exams_v1_result.txt
+?? mobile/campusai_mobile/lib/screens/saved_exams_screen.dart
+?? persist_course_and_bank_exams_cloud_v1.sh
+?? persist_course_and_bank_exams_cloud_v1_result.txt
+?? polish_saved_exams_repository_v2.sh
+?? polish_saved_exams_repository_v2_result.txt
