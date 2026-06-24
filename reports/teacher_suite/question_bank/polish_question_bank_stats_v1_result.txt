@@ -1,0 +1,55 @@
+Analyzing campusai_mobile...                                    
+
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:531:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:659:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:1008:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:1309:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:868:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:1104:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:1447:7 • use_build_context_synchronously
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/screens/library_screen.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/screens/library_screen.dart:1:1 • avoid_web_libraries_in_flutter
+  error • Arguments of a constant creation must be constant expressions • lib/screens/question_bank_screen.dart:688:19 • const_with_non_constant_argument
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/attendance_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/attendance_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/billing_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/billing_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/course_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/course_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/export_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/export_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/gradebook_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/gradebook_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/plan_guard_service.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/plan_guard_service.dart:1:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/student_roster_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/student_roster_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/usage_limit_service.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/usage_limit_service.dart:1:1 • avoid_web_libraries_in_flutter
+
+mobile/campusai_mobile/lib/screens/question_bank_screen.dart:76:  int get requestedQuestionsCount {
+mobile/campusai_mobile/lib/screens/question_bank_screen.dart:79:    final value = questions.first['requested_questions'] ??
+mobile/campusai_mobile/lib/screens/question_bank_screen.dart:101:  String get bankExplanation {
+mobile/campusai_mobile/lib/screens/question_bank_screen.dart:697:                  'Solicitadas: ${requestedQuestionsCount == 0 ? questions.length : requestedQuestionsCount} | Generadas: ${questions.length}',
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1367:                    'requested_questions': count,
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1368:                    'bank_scope': 'course',
+ M backend/app/routes/documents.py
+ M backend/app/services/ai_service.py
+ M mobile/campusai_mobile/lib/screens/courses_screen.dart
+ M mobile/campusai_mobile/lib/screens/exam_screen.dart
+ M mobile/campusai_mobile/lib/screens/plans_screen.dart
+ M mobile/campusai_mobile/lib/screens/question_bank_screen.dart
+ M mobile/campusai_mobile/lib/services/api_service.dart
+?? backend/fix_stripe_price_ids_real_v1.sh
+?? fix_question_bank_backend_params_v1.sh
+?? fix_question_bank_backend_params_v1_result.txt
+?? fix_question_bank_count_title_v1.sh
+?? fix_question_bank_count_title_v1_result.txt
+?? guided_question_bank_v1.sh
+?? guided_question_bank_v1_result.txt
+?? polish_question_bank_stats_v1.sh
+?? polish_question_bank_stats_v1_result.txt
+?? professional_exam_builder_v2.sh
+?? professional_exam_builder_v2_result.txt
+?? professional_exam_versions_v1.sh
+?? professional_exam_versions_v1_result.txt

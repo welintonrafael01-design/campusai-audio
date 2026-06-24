@@ -417,7 +417,7 @@ def generate_exam_questions_from_context(
     if not document_text:
         raise ValueError("No hay contexto válido para generar preguntas.")
 
-    safe_number = max(1, min(number_of_questions, 20))
+    safe_number = max(1, min(number_of_questions, 100))
     clean_type = (exam_type or "Selección múltiple").strip().lower()
 
     if "verdadero" in clean_type or "falso" in clean_type:

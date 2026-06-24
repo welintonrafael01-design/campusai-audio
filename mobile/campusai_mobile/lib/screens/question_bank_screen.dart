@@ -73,6 +73,60 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
         .replaceAll(RegExp(r'_bank_exam$'), '');
   }
 
+  int get requestedQuestionsCount {
+    if (questions.isEmpty) return 0;
+
+    final value = questions.first['requested_questions'] ??
+        questions.first['number_of_questions'] ??
+        questions.first['requested_count'];
+
+    if (value is num) return value.toInt();
+
+    return int.tryParse(value?.toString() ?? '') ?? questions.length;
+  }
+
+  String get bankScopeLabel {
+    if (questions.isEmpty) return 'Banco general';
+
+    final courseName = questions.first['course_name']?.toString().trim() ?? '';
+    final courseId = questions.first['course_id']?.toString().trim() ?? '';
+
+    if (courseName.isNotEmpty || courseId.isNotEmpty) {
+      return 'Banco del curso';
+    }
+
+    return 'Banco general';
+  }
+
+  String get bankExplanation {
+    if (bankScopeLabel == 'Banco del curso') {
+      return 'Banco asociado a un curso, programa, tema, objetivo y competencia. Ideal para docentes que desean reutilizar preguntas y crear exámenes por asignatura.';
+    }
+
+    return 'Banco generado desde el PDF activo del Dashboard. Ideal para estudiar, repasar o crear preguntas rápidas desde cualquier documento.';
+  }
+
+  String get bankTitle {
+    if (questions.isEmpty) return 'Banco de preguntas';
+
+    final courseName = questions.first['course_name']?.toString().trim() ?? '';
+    final topic = questions.first['program_topic']?.toString().trim() ?? '';
+
+    if (courseName.isNotEmpty && topic.isNotEmpty) {
+      return 'Banco de preguntas — $courseName / $topic';
+    }
+
+    if (courseName.isNotEmpty) {
+      return 'Banco de preguntas — $courseName';
+    }
+
+    if (topic.isNotEmpty) {
+      return 'Banco de preguntas — $topic';
+    }
+
+    return 'Banco de preguntas';
+  }
+
   List<Map<String, dynamic>> get filteredQuestions {
     final cleanSearch = search.trim().toLowerCase();
 
@@ -153,7 +207,8 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
     String difficulty = 'Intermedio';
     String examType = 'Mixto';
     String bloomLevel = 'Aplicar';
-    String examVersion = 'Estudiante';
+    String examVersion = 'A';
+    String outputMode = 'Estudiante';
     String examTopic = '';
     String examObjective = '';
 
@@ -308,7 +363,7 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
                       ),
                       const SizedBox(height: 18),
                       const Text(
-                        'Versión del examen',
+                        'Tipo de salida',
                         style: TextStyle(fontWeight: FontWeight.w900),
                       ),
                       const SizedBox(height: 8),
@@ -321,6 +376,29 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
                         ].map((item) {
                           return ChoiceChip(
                             label: Text(item),
+                            selected: outputMode == item,
+                            onSelected: (_) {
+                              setDialogState(() => outputMode = item);
+                            },
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Versión del examen',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          'A',
+                          'B',
+                          'C',
+                        ].map((item) {
+                          return ChoiceChip(
+                            label: Text('Versión $item'),
                             selected: examVersion == item,
                             onSelected: (_) {
                               setDialogState(() => examVersion = item);
@@ -373,6 +451,7 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
                       'examType': examType,
                       'bloomLevel': bloomLevel,
                       'examVersion': examVersion,
+                      'outputMode': outputMode,
                       'examTopic': examTopic,
                       'examObjective': examObjective,
                     });
@@ -418,6 +497,7 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
     final examType = options['examType'] as String;
     final bloomLevel = options['bloomLevel'] as String;
     final examVersion = options['examVersion'] as String;
+    final outputMode = options['outputMode'] as String;
     final examTopic = options['examTopic'] as String;
     final examObjective = options['examObjective'] as String;
 
@@ -462,6 +542,10 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
       pool.shuffle(Random());
       selected = pool.take(min(count, pool.length)).toList();
     }
+    if (examVersion == 'B' || examVersion == 'C') {
+      selected.shuffle(Random());
+    }
+
     final pointsPerQuestion = selected.isEmpty ? 0 : totalPoints / selected.length;
 
     final enriched = selected.map((item) {
@@ -475,6 +559,7 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
         'exam_objective': examObjective,
         'bloom_level': bloomLevel,
         'exam_version': examVersion,
+        'exam_output_mode': outputMode,
         'exam_source': 'Banco de Preguntas',
       };
     }).toList();
@@ -599,8 +684,8 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Banco de preguntas Educator',
+                Text(
+                  bankTitle,
                   style: TextStyle(
                     color: AppTheme.textPrimary,
                     fontSize: 26,
@@ -609,7 +694,7 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${questions.length} preguntas reutilizables generadas con IA.',
+                  'Solicitadas: ${requestedQuestionsCount == 0 ? questions.length : requestedQuestionsCount} | Generadas: ${questions.length}',
                   style: const TextStyle(
                     color: AppTheme.textMuted,
                     height: 1.4,

@@ -481,6 +481,10 @@ async def import_grades_excel(
 async def import_grades_pdf(
     file: UploadFile = File(...),
     language: str = Query(default="es"),
+    program_topic: str = Query(default=""),
+    learning_objective: str = Query(default=""),
+    competency: str = Query(default=""),
+    bloom_level: str = Query(default=""),
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
@@ -932,6 +936,10 @@ async def question_bank_document_by_id(
         le=100,
     ),
     language: str = Query(default="es"),
+    program_topic: str = Query(default=""),
+    learning_objective: str = Query(default=""),
+    competency: str = Query(default=""),
+    bloom_level: str = Query(default=""),
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
@@ -949,7 +957,11 @@ async def question_bank_document_by_id(
             document_id=document_id,
             question=(
                 "banco de preguntas conceptos clave evaluación "
-                "comprensión aplicación análisis académico"
+                "comprensión aplicación análisis académico "
+                f"tema del programa: {program_topic} "
+                f"objetivo de aprendizaje: {learning_objective} "
+                f"competencia: {competency} "
+                f"nivel bloom: {bloom_level}"
             ),
             top_k=14,
         )
@@ -970,6 +982,10 @@ async def question_bank_document_by_id(
                 "document_id": document_id,
                 "number_of_questions": number_of_questions,
                 "mode": "single_document_question_bank",
+                "program_topic": program_topic,
+                "learning_objective": learning_objective,
+                "competency": competency,
+                "bloom_level": bloom_level,
             },
         )
 

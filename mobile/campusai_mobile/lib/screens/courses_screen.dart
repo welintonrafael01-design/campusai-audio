@@ -1063,6 +1063,8 @@ class _CoursesScreenState extends State<CoursesScreen> {
         throw Exception('La IA no devolvió preguntas válidas.');
       }
 
+      final limitedQuestions = questions.take(count).toList();
+
       final pointsPerQuestion = questions.isEmpty
           ? 0
           : totalPoints / questions.length;
@@ -1102,7 +1104,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
       context.goNamed(
         'exam',
         pathParameters: {'documentId': examId},
-        extra: questions,
+        extra: limitedQuestions,
       );
     } catch (error) {
       if (!mounted) return;
@@ -1121,10 +1123,14 @@ class _CoursesScreenState extends State<CoursesScreen> {
   }
 
 
-  Future<int?> pickQuestionBankCount() async {
+  Future<Map<String, dynamic>?> pickQuestionBankOptions() async {
     int selectedCount = 50;
+    String programTopic = '';
+    String learningObjective = '';
+    String competency = '';
+    String bloomLevel = 'Analizar';
 
-    final result = await showDialog<int>(
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
@@ -1133,15 +1139,77 @@ class _CoursesScreenState extends State<CoursesScreen> {
               title: const Text('Banco de Preguntas IA'),
               content: SingleChildScrollView(
                 child: SizedBox(
-                  width: 480,
+                  width: 560,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Selecciona la cantidad de preguntas reutilizables.',
+                        'Personaliza el banco para que las preguntas estén alineadas al programa, objetivo y competencia.',
                         style: TextStyle(fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 16),
+                      TextField(
+                        decoration: const InputDecoration(
+                          labelText: 'Tema del programa',
+                          hintText: 'Ej.: Contratos comerciales',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (value) => programTopic = value.trim(),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        minLines: 2,
+                        maxLines: 3,
+                        decoration: const InputDecoration(
+                          labelText: 'Objetivo de aprendizaje',
+                          hintText: 'Ej.: Analizar los elementos esenciales de los contratos mercantiles.',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (value) => learningObjective = value.trim(),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        minLines: 2,
+                        maxLines: 3,
+                        decoration: const InputDecoration(
+                          labelText: 'Competencia',
+                          hintText: 'Ej.: Interpretar y aplicar la normativa comercial vigente.',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (value) => competency = value.trim(),
+                      ),
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Nivel Bloom',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          'Recordar',
+                          'Comprender',
+                          'Aplicar',
+                          'Analizar',
+                          'Evaluar',
+                          'Crear',
+                        ].map((item) {
+                          return ChoiceChip(
+                            label: Text(item),
+                            selected: bloomLevel == item,
+                            onSelected: (_) {
+                              setDialogState(() => bloomLevel = item);
+                            },
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 18),
+                      const Text(
+                        'Cantidad de preguntas',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 8),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
@@ -1165,7 +1233,15 @@ class _CoursesScreenState extends State<CoursesScreen> {
                   child: const Text('Cancelar'),
                 ),
                 FilledButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(selectedCount),
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop({
+                      'count': selectedCount,
+                      'programTopic': programTopic,
+                      'learningObjective': learningObjective,
+                      'competency': competency,
+                      'bloomLevel': bloomLevel,
+                    });
+                  },
                   child: const Text('Generar banco'),
                 ),
               ],
@@ -1220,8 +1296,14 @@ class _CoursesScreenState extends State<CoursesScreen> {
       } catch (_) {}
     }
 
-    final count = await pickQuestionBankCount();
-    if (count == null) return;
+    final bankOptions = await pickQuestionBankOptions();
+    if (bankOptions == null) return;
+
+    final count = bankOptions['count'] as int;
+    final programTopic = bankOptions['programTopic'] as String;
+    final learningObjective = bankOptions['learningObjective'] as String;
+    final competency = bankOptions['competency'] as String;
+    final bloomLevel = bankOptions['bloomLevel'] as String;
 
     var cancelled = false;
 
@@ -1263,6 +1345,10 @@ class _CoursesScreenState extends State<CoursesScreen> {
       final data = await ApiService.generateQuestionBankByDocumentId(
         documentId: program.documentId,
         numberOfQuestions: count,
+        programTopic: programTopic,
+        learningObjective: learningObjective,
+        competency: competency,
+        bloomLevel: bloomLevel,
       );
 
       if (cancelled) return;
@@ -1276,6 +1362,12 @@ class _CoursesScreenState extends State<CoursesScreen> {
                     'source_document_id': program.documentId,
                     'course_id': course.id,
                     'course_name': course.name,
+                    'program_topic': programTopic,
+                    'learning_objective': learningObjective,
+                    'competency': competency,
+                    'bloom_level': bloomLevel,
+                    'requested_questions': count,
+                    'bank_scope': 'course',
                   })
               .toList()
           : <Map<String, dynamic>>[];
@@ -1284,7 +1376,9 @@ class _CoursesScreenState extends State<CoursesScreen> {
         throw Exception('La IA no devolvió preguntas válidas.');
       }
 
-      final content = jsonEncode(questions);
+      final limitedQuestions = questions.take(count).toList();
+
+      final content = jsonEncode(limitedQuestions);
 
       await StudyResultService.saveResult(
         StudyResult(
@@ -1304,7 +1398,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
       context.goNamed(
         'question-bank',
         pathParameters: {'documentId': questionBankId},
-        extra: questions,
+        extra: limitedQuestions,
       );
     } catch (error) {
       if (!mounted) return;

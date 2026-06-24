@@ -500,7 +500,7 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
     if (questions.isEmpty) return;
 
     await ExportService.exportExamToPdf(
-      title: l10n.examTitle,
+      title: professionalExamTitle,
       questions: questions,
       includeAnswers: false,
     );
@@ -510,6 +510,20 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
 
 
 
+
+  String get currentExamVersion {
+    if (questions.isEmpty) return '';
+    return questions.first['exam_version']?.toString() ?? '';
+  }
+
+  String get professionalExamTitle {
+    final version = currentExamVersion.trim();
+    if (version.isEmpty) {
+      return l10n.examTitle;
+    }
+
+    return '${l10n.examTitle} - Versión $version';
+  }
 
   String get currentExamTopic {
     if (questions.isEmpty) return '';
@@ -870,7 +884,7 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
     if (questions.isEmpty) return;
 
     await ExportService.exportTextToDocx(
-      title: l10n.examTitle,
+      title: professionalExamTitle,
       content: buildExamExportContent(),
     );
   }

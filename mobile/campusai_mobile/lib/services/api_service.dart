@@ -399,6 +399,10 @@ class ApiService {
   static Future<Map<String, dynamic>> generateQuestionBankByDocumentId({
     required String documentId,
     int numberOfQuestions = 50,
+    String programTopic = '',
+    String learningObjective = '',
+    String competency = '',
+    String bloomLevel = '',
   }) async {
     final cleanDocumentId = requireValue(
       documentId,
@@ -413,6 +417,10 @@ class ApiService {
       queryParameters: {
         'number_of_questions': numberOfQuestions.toString(),
         'language': language,
+        if (programTopic.trim().isNotEmpty) 'program_topic': programTopic.trim(),
+        if (learningObjective.trim().isNotEmpty) 'learning_objective': learningObjective.trim(),
+        if (competency.trim().isNotEmpty) 'competency': competency.trim(),
+        if (bloomLevel.trim().isNotEmpty) 'bloom_level': bloomLevel.trim(),
       },
     );
 

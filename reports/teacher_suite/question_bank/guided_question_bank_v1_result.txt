@@ -1,0 +1,80 @@
+Analyzing campusai_mobile...                                    
+
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:531:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:659:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:1008:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/courses_screen.dart:1309:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:868:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:1104:7 • use_build_context_synchronously
+   info • Don't use 'BuildContext's across async gaps • lib/screens/dashboard_screen.dart:1447:7 • use_build_context_synchronously
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/screens/library_screen.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/screens/library_screen.dart:1:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/attendance_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/attendance_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/billing_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/billing_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/course_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/course_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/export_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/export_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/gradebook_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/gradebook_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/plan_guard_service.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/plan_guard_service.dart:1:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/student_roster_service.dart:2:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/student_roster_service.dart:2:1 • avoid_web_libraries_in_flutter
+   info • 'dart:html' is deprecated and shouldn't be used. Use package:web and dart:js_interop instead • lib/services/usage_limit_service.dart:1:1 • deprecated_member_use
+   info • Don't use web-only libraries outside Flutter web plugins • lib/services/usage_limit_service.dart:1:1 • avoid_web_libraries_in_flutter
+
+backend/app/routes/documents.py:484:    program_topic: str = Query(default=""),
+backend/app/routes/documents.py:486:    competency: str = Query(default=""),
+backend/app/routes/documents.py:957:                f"tema del programa: {program_topic} "
+backend/app/routes/documents.py:959:                f"competencia: {competency} "
+backend/app/routes/documents.py:981:                "program_topic": program_topic,
+backend/app/routes/documents.py:983:                "competency": competency,
+mobile/campusai_mobile/lib/services/api_service.dart:402:    String programTopic = '',
+mobile/campusai_mobile/lib/services/api_service.dart:403:    String learningObjective = '',
+mobile/campusai_mobile/lib/services/api_service.dart:404:    String competency = '',
+mobile/campusai_mobile/lib/services/api_service.dart:405:    String bloomLevel = '',
+mobile/campusai_mobile/lib/services/api_service.dart:420:        if (programTopic.trim().isNotEmpty) 'program_topic': programTopic.trim(),
+mobile/campusai_mobile/lib/services/api_service.dart:421:        if (learningObjective.trim().isNotEmpty) 'learning_objective': learningObjective.trim(),
+mobile/campusai_mobile/lib/services/api_service.dart:422:        if (competency.trim().isNotEmpty) 'competency': competency.trim(),
+mobile/campusai_mobile/lib/services/api_service.dart:423:        if (bloomLevel.trim().isNotEmpty) 'bloom_level': bloomLevel.trim(),
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1126:    String programTopic = '';
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1127:    String learningObjective = '';
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1128:    String competency = '';
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1129:    String bloomLevel = 'Analizar';
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1155:                        onChanged: (value) => programTopic = value.trim(),
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1166:                        onChanged: (value) => learningObjective = value.trim(),
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1177:                        onChanged: (value) => competency = value.trim(),
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1198:                            selected: bloomLevel == item,
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1200:                              setDialogState(() => bloomLevel = item);
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1237:                      'programTopic': programTopic,
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1238:                      'learningObjective': learningObjective,
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1239:                      'competency': competency,
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1240:                      'bloomLevel': bloomLevel,
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1301:    final programTopic = bankOptions['programTopic'] as String;
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1302:    final learningObjective = bankOptions['learningObjective'] as String;
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1303:    final competency = bankOptions['competency'] as String;
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1304:    final bloomLevel = bankOptions['bloomLevel'] as String;
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1346:        programTopic: programTopic,
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1347:        learningObjective: learningObjective,
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1348:        competency: competency,
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1349:        bloomLevel: bloomLevel,
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1363:                    'program_topic': programTopic,
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1364:                    'learning_objective': learningObjective,
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1365:                    'competency': competency,
+mobile/campusai_mobile/lib/screens/courses_screen.dart:1366:                    'bloom_level': bloomLevel,
+ M backend/app/routes/documents.py
+ M mobile/campusai_mobile/lib/screens/courses_screen.dart
+ M mobile/campusai_mobile/lib/screens/exam_screen.dart
+ M mobile/campusai_mobile/lib/screens/plans_screen.dart
+ M mobile/campusai_mobile/lib/screens/question_bank_screen.dart
+ M mobile/campusai_mobile/lib/services/api_service.dart
+?? backend/fix_stripe_price_ids_real_v1.sh
+?? guided_question_bank_v1.sh
+?? guided_question_bank_v1_result.txt
+?? professional_exam_builder_v2.sh
+?? professional_exam_builder_v2_result.txt
+?? professional_exam_versions_v1.sh
+?? professional_exam_versions_v1_result.txt

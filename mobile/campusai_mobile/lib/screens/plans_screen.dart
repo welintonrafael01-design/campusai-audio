@@ -620,7 +620,7 @@ class _PlanCard extends StatelessWidget {
                     ),
                     label: Text(
                       data.plan == CampusPlan.teacher
-                          ? 'Obtener Educator'
+                          ? 'Actualizar a Teacher'
                           : 'Actualizar a ${data.name}',
                     ),
                   ),
