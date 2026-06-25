@@ -262,6 +262,38 @@ class ApiService {
     return decodeResponse(response);
   }
 
+  static Future<Map<String, dynamic>> generateVoiceTts({
+    required String messageId,
+    required String text,
+    String voiceProfile = 'standard',
+    String language = 'es',
+  }) async {
+    final cleanText = requireValue(
+      text,
+      'No hay texto válido para generar audio.',
+    );
+
+    final response = await http
+        .post(
+          Uri.parse('$baseUrl/voice/tts'),
+          headers: {
+            'Content-Type': 'application/json',
+            ...AuthService.authHeaders,
+          },
+          body: jsonEncode({
+            'message_id': messageId.trim(),
+            'text': cleanText,
+            'voice_profile': voiceProfile.trim().isEmpty
+                ? 'standard'
+                : voiceProfile.trim(),
+            'language': language.trim().isEmpty ? 'es' : language.trim(),
+          }),
+        )
+        .timeout(const Duration(seconds: 60));
+
+    return decodeResponse(response);
+  }
+
   // =========================
   // STREAM CHAT
   // =========================

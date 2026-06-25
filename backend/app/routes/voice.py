@@ -1,9 +1,10 @@
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from app.services.ai_service import ask_ai_coach
+from app.services.audio_service import build_audio_url, generate_audio_from_text
 
 
 router = APIRouter(
@@ -20,6 +21,13 @@ class VoiceCoachRequest(BaseModel):
     language: str = Field(default="es")
 
 
+class VoiceTtsRequest(BaseModel):
+    message_id: str = Field(default="")
+    text: str = Field(default="")
+    voice_profile: str = Field(default="standard")
+    language: str = Field(default="es")
+
+
 @router.post("/coach")
 async def voice_coach(payload: VoiceCoachRequest):
     return ask_ai_coach(
@@ -29,3 +37,26 @@ async def voice_coach(payload: VoiceCoachRequest):
         mode=payload.mode,
         language=payload.language,
     )
+
+
+@router.post("/tts")
+async def voice_tts(payload: VoiceTtsRequest):
+    clean_text = (payload.text or "").strip()
+
+    if not clean_text:
+        raise HTTPException(
+            status_code=400,
+            detail="No hay texto válido para generar audio.",
+        )
+
+    try:
+        filename = generate_audio_from_text(clean_text)
+        return {
+            "audio_url": build_audio_url(filename),
+            "duration_seconds": max(1, round(len(clean_text.split()) / 2)),
+        }
+    except Exception:
+        return {
+            "audio_url": "",
+            "duration_seconds": max(1, round(len(clean_text.split()) / 2)),
+        }
