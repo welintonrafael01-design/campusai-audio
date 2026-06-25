@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../layout/responsive_layout.dart';
 import '../../l10n/app_localizations.dart';
@@ -38,7 +39,7 @@ class DashboardTools extends StatelessWidget {
     }
 
     if (ResponsiveLayout.isDesktop(context)) {
-      crossAxisCount = 5;
+      crossAxisCount = 4;
     }
 
     return Column(
@@ -87,6 +88,20 @@ class DashboardTools extends StatelessWidget {
               color: AppTheme.accent,
               enabled: hasActiveDocument,
               onTap: hasActiveDocument ? openChat : null,
+            ),
+            _ToolCard(
+              title: 'Audio Libro',
+              subtitle: 'Crea una experiencia de audio aprendizaje.',
+              icon: Icons.auto_stories_rounded,
+              color: AppTheme.primary,
+              onTap: () => context.goNamed('audioBookStudio'),
+            ),
+            _ToolCard(
+              title: 'Mi Aprendizaje',
+              subtitle: 'Abre tu Student Studio y revisa tu progreso.',
+              icon: Icons.school_rounded,
+              color: AppTheme.accent,
+              onTap: () => context.goNamed('studentDashboard'),
             ),
             _ToolCard(
               title: 'Audiolibro',

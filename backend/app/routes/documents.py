@@ -27,6 +27,9 @@ from app.services.ai_service import (
     generate_flashcards,
     generate_flashcards_from_context,
     generate_academic_rubric_from_context,
+    generate_study_guide_from_context,
+    generate_teaching_resources_from_context,
+    generate_assessment_report_from_payload,
     generate_teaching_plan_from_context,
     parse_students_from_text,
     parse_grades_from_text,
@@ -926,6 +929,215 @@ async def rubric_document_by_id(
             status_code=500,
             detail=str(error),
         )
+
+
+@router.post("/study-guide/{document_id}")
+async def study_guide_document_by_id(
+    document_id: str,
+    language: str = Query(default="es"),
+    program_topic: str = Query(default=""),
+    learning_objective: str = Query(default=""),
+    competency: str = Query(default=""),
+    guide_type: str = Query(default="student"),
+    include_summary: bool = Query(default=True),
+    include_key_concepts: bool = Query(default=True),
+    include_practice_activities: bool = Query(default=True),
+    include_self_assessment: bool = Query(default=True),
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        validate_document_owner(
+            document_id=document_id,
+            current_user=current_user,
+        )
+
+        context = build_document_context(
+            document_id=document_id,
+            question=(
+                "guía de estudio resumen conceptos clave pasos de estudio "
+                "actividades de práctica autoevaluación recomendaciones "
+                f"tema del programa: {program_topic} "
+                f"objetivo de aprendizaje: {learning_objective} "
+                f"competencia: {competency}"
+            ),
+            top_k=14,
+        )
+
+        study_guide = generate_study_guide_from_context(
+            context=context,
+            language=language,
+            program_topic=program_topic,
+            learning_objective=learning_objective,
+            competency=competency,
+            guide_type=guide_type,
+            include_summary=include_summary,
+            include_key_concepts=include_key_concepts,
+            include_practice_activities=include_practice_activities,
+            include_self_assessment=include_self_assessment,
+        )
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="study_guide_generated",
+            plan="educator",
+            metadata={
+                "document_id": document_id,
+                "program_topic": program_topic,
+                "learning_objective": learning_objective,
+                "competency": competency,
+                "guide_type": guide_type,
+            },
+        )
+
+        return {
+            "document_id": document_id,
+            "study_guide": json.loads(study_guide),
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
+
+@router.post("/teaching-resources/{document_id}")
+async def teaching_resources_document_by_id(
+    document_id: str,
+    language: str = Query(default="es"),
+    program_topic: str = Query(default=""),
+    learning_objective: str = Query(default=""),
+    competency: str = Query(default=""),
+    include_presentation_outline: bool = Query(default=True),
+    include_class_activities: bool = Query(default=True),
+    include_collaborative_activities: bool = Query(default=True),
+    include_discussion_questions: bool = Query(default=True),
+    include_problem_based_learning: bool = Query(default=True),
+    include_gamification_ideas: bool = Query(default=True),
+    include_homework: bool = Query(default=True),
+    include_accessibility_adaptations: bool = Query(default=True),
+    include_complementary_readings: bool = Query(default=True),
+    include_multimedia_suggestions: bool = Query(default=True),
+    include_web_resources: bool = Query(default=True),
+    include_ai_prompts_for_students: bool = Query(default=True),
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        validate_document_owner(
+            document_id=document_id,
+            current_user=current_user,
+        )
+
+        context = build_document_context(
+            document_id=document_id,
+            question=(
+                "recursos docentes presentación actividades de clase "
+                "actividades colaborativas preguntas discusión problemas "
+                "gamificación tareas accesibilidad lecturas multimedia web "
+                "prompts IA recomendaciones docentes "
+                f"tema del programa: {program_topic} "
+                f"objetivo de aprendizaje: {learning_objective} "
+                f"competencia: {competency}"
+            ),
+            top_k=14,
+        )
+
+        teaching_resources = generate_teaching_resources_from_context(
+            context=context,
+            language=language,
+            program_topic=program_topic,
+            learning_objective=learning_objective,
+            competency=competency,
+            include_presentation_outline=include_presentation_outline,
+            include_class_activities=include_class_activities,
+            include_collaborative_activities=include_collaborative_activities,
+            include_discussion_questions=include_discussion_questions,
+            include_problem_based_learning=include_problem_based_learning,
+            include_gamification_ideas=include_gamification_ideas,
+            include_homework=include_homework,
+            include_accessibility_adaptations=include_accessibility_adaptations,
+            include_complementary_readings=include_complementary_readings,
+            include_multimedia_suggestions=include_multimedia_suggestions,
+            include_web_resources=include_web_resources,
+            include_ai_prompts_for_students=include_ai_prompts_for_students,
+        )
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="teaching_resources_generated",
+            plan="educator",
+            metadata={
+                "document_id": document_id,
+                "program_topic": program_topic,
+                "learning_objective": learning_objective,
+                "competency": competency,
+            },
+        )
+
+        return {
+            "document_id": document_id,
+            "teaching_resources": json.loads(teaching_resources),
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
+
+@router.post("/analyze-assessment")
+async def analyze_assessment_for_unit(
+    payload: dict = Body(...),
+    language: str = Query(default="es"),
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    try:
+        academic_metadata = payload.get("academic_metadata") or {}
+        source_document_id = str(
+            academic_metadata.get("source_document_id") or ""
+        ).strip()
+
+        if source_document_id:
+            validate_document_owner(
+                document_id=source_document_id,
+                current_user=current_user,
+            )
+
+        assessment_report = generate_assessment_report_from_payload(
+            payload=payload,
+            language=language,
+        )
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="assessment_report_generated",
+            plan="educator",
+            metadata={
+                "unit_id": academic_metadata.get("unit_id"),
+                "source_document_id": source_document_id,
+            },
+        )
+
+        return {
+            "assessment_report": json.loads(assessment_report),
+        }
+
+    except HTTPException:
+        raise
+
+    except Exception as error:
+        raise HTTPException(
+            status_code=500,
+            detail=str(error),
+        )
+
 
 @router.post("/question-bank/{document_id}")
 async def question_bank_document_by_id(

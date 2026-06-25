@@ -77,6 +77,14 @@ class DashboardEducatorCenter extends StatelessWidget {
         onTap: openTeachingPlan,
       ),
       _EducatorAction(
+        title: 'Audio Libro',
+        subtitle: 'Crea guiones narrados para audio aprendizaje.',
+        icon: Icons.headphones_rounded,
+        color: AppTheme.success,
+        enabled: true,
+        onTap: () => context.goNamed('audioBookStudio'),
+      ),
+      _EducatorAction(
         title: 'Asistencia',
         subtitle: 'Registra presencia, ausencias, tardanzas y excusas.',
         icon: Icons.fact_check_rounded,

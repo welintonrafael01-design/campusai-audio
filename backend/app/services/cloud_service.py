@@ -490,7 +490,6 @@ def create_chat(
             "workspace_id": payload.get("workspace_id"),
             "document_id": payload.get("document_id"),
             "title": payload.get("title"),
-            "user_id": user_id,
         },
     )
 

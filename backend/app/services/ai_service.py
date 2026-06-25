@@ -855,6 +855,310 @@ def generate_academic_rubric_from_context(
     return content
 
 
+def generate_study_guide_from_context(
+    context: str,
+    language: str = "es",
+    program_topic: str = "",
+    learning_objective: str = "",
+    competency: str = "",
+    guide_type: str = "student",
+    include_summary: bool = True,
+    include_key_concepts: bool = True,
+    include_practice_activities: bool = True,
+    include_self_assessment: bool = True,
+) -> str:
+    document_text = truncate_text(context)
+    language_instruction = build_language_instruction(language)
+
+    if not document_text:
+        raise ValueError("No hay contexto válido para generar la guía de estudio.")
+
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Eres StudyBook AI, especialista universitario en diseño de guías "
+                    "de estudio para estudiantes. Genera materiales claros, prácticos "
+                    "y alineados al contenido de la unidad. "
+                    f"{language_instruction}"
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Contexto del documento:\n\n{document_text}\n\n"
+                    f"Tema del programa: {program_topic}\n"
+                    f"Objetivo de aprendizaje: {learning_objective}\n"
+                    f"Competencia: {competency}\n"
+                    f"Tipo de guía: {guide_type}\n\n"
+                    "Genera una guía de estudio para una unidad didáctica.\n"
+                    f"Incluir resumen: {include_summary}.\n"
+                    f"Incluir conceptos clave: {include_key_concepts}.\n"
+                    f"Incluir actividades de práctica: {include_practice_activities}.\n"
+                    f"Incluir autoevaluación: {include_self_assessment}.\n\n"
+                    "IMPORTANTE: conserva las claves JSON en inglés exactamente como se indican, "
+                    "pero redacta los valores visibles en el idioma solicitado. "
+                    "Devuelve EXCLUSIVAMENTE JSON válido.\n\n"
+                    "{\n"
+                    '  "summary": "...",\n'
+                    '  "key_concepts": ["...", "..."],\n'
+                    '  "learning_objectives": ["...", "..."],\n'
+                    '  "study_steps": ["...", "..."],\n'
+                    '  "practice_activities": ["...", "..."],\n'
+                    '  "self_assessment": ["...", "..."],\n'
+                    '  "recommendations": ["...", "..."]\n'
+                    "}"
+                ),
+            },
+        ],
+        temperature=0.3,
+    )
+
+    content = response.choices[0].message.content.strip()
+
+    try:
+        json.loads(content)
+    except json.JSONDecodeError:
+        return json.dumps(
+            {
+                "summary": content,
+                "key_concepts": [],
+                "learning_objectives": [],
+                "study_steps": [],
+                "practice_activities": [],
+                "self_assessment": [],
+                "recommendations": [],
+                "error": "La IA no devolvió JSON válido.",
+                "raw_response": content,
+            },
+            ensure_ascii=False,
+        )
+
+    return content
+
+
+def generate_teaching_resources_from_context(
+    context: str,
+    language: str = "es",
+    program_topic: str = "",
+    learning_objective: str = "",
+    competency: str = "",
+    include_presentation_outline: bool = True,
+    include_class_activities: bool = True,
+    include_collaborative_activities: bool = True,
+    include_discussion_questions: bool = True,
+    include_problem_based_learning: bool = True,
+    include_gamification_ideas: bool = True,
+    include_homework: bool = True,
+    include_accessibility_adaptations: bool = True,
+    include_complementary_readings: bool = True,
+    include_multimedia_suggestions: bool = True,
+    include_web_resources: bool = True,
+    include_ai_prompts_for_students: bool = True,
+) -> str:
+    document_text = truncate_text(context)
+    language_instruction = build_language_instruction(language)
+
+    if not document_text:
+        raise ValueError("No hay contexto válido para generar recursos docentes.")
+
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Eres StudyBook AI, especialista universitario en diseño de "
+                    "recursos docentes por unidad didáctica. Genera materiales "
+                    "prácticos, accionables y alineados al currículo. "
+                    f"{language_instruction}"
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Contexto del documento:\n\n{document_text}\n\n"
+                    f"Tema del programa: {program_topic}\n"
+                    f"Objetivo de aprendizaje: {learning_objective}\n"
+                    f"Competencia: {competency}\n\n"
+                    "Genera un paquete de recursos docentes para una unidad didáctica.\n"
+                    f"Incluir esquema de presentación: {include_presentation_outline}.\n"
+                    f"Incluir actividades de clase: {include_class_activities}.\n"
+                    f"Incluir actividades colaborativas: {include_collaborative_activities}.\n"
+                    f"Incluir preguntas de discusión: {include_discussion_questions}.\n"
+                    f"Incluir aprendizaje basado en problemas: {include_problem_based_learning}.\n"
+                    f"Incluir gamificación: {include_gamification_ideas}.\n"
+                    f"Incluir tareas: {include_homework}.\n"
+                    f"Incluir adaptaciones de accesibilidad: {include_accessibility_adaptations}.\n"
+                    f"Incluir lecturas complementarias: {include_complementary_readings}.\n"
+                    f"Incluir multimedia: {include_multimedia_suggestions}.\n"
+                    f"Incluir recursos web: {include_web_resources}.\n"
+                    f"Incluir prompts de IA para estudiantes: {include_ai_prompts_for_students}.\n\n"
+                    "IMPORTANTE: conserva las claves JSON en inglés exactamente como se indican, "
+                    "pero redacta los valores visibles en el idioma solicitado. "
+                    "Devuelve EXCLUSIVAMENTE JSON válido.\n\n"
+                    "{\n"
+                    '  "presentation_outline": [],\n'
+                    '  "class_activities": [],\n'
+                    '  "collaborative_activities": [],\n'
+                    '  "discussion_questions": [],\n'
+                    '  "problem_based_learning": [],\n'
+                    '  "gamification_ideas": [],\n'
+                    '  "homework": [],\n'
+                    '  "accessibility_adaptations": [],\n'
+                    '  "complementary_readings": [],\n'
+                    '  "multimedia_suggestions": [],\n'
+                    '  "web_resources": [],\n'
+                    '  "ai_prompts_for_students": [],\n'
+                    '  "teacher_recommendations": []\n'
+                    "}"
+                ),
+            },
+        ],
+        temperature=0.3,
+    )
+
+    content = response.choices[0].message.content.strip()
+
+    try:
+        json.loads(content)
+    except json.JSONDecodeError:
+        return json.dumps(
+            {
+                "presentation_outline": [],
+                "class_activities": [],
+                "collaborative_activities": [],
+                "discussion_questions": [],
+                "problem_based_learning": [],
+                "gamification_ideas": [],
+                "homework": [],
+                "accessibility_adaptations": [],
+                "complementary_readings": [],
+                "multimedia_suggestions": [],
+                "web_resources": [],
+                "ai_prompts_for_students": [],
+                "teacher_recommendations": [content],
+                "error": "La IA no devolvió JSON válido.",
+                "raw_response": content,
+            },
+            ensure_ascii=False,
+        )
+
+    return content
+
+
+def generate_assessment_report_from_payload(
+    payload: dict,
+    language: str = "es",
+) -> str:
+    payload_text = truncate_text(
+        json.dumps(payload, ensure_ascii=False),
+        max_characters=18000,
+    )
+    language_instruction = build_language_instruction(language)
+
+    if not payload_text:
+        raise ValueError("No hay recursos válidos para analizar la evaluación.")
+
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Eres StudyBook AI, arquitecto académico especializado en "
+                    "coherencia evaluativa por unidad didáctica. Analiza cobertura, "
+                    "alineación, riesgos y calidad académica con criterios claros. "
+                    f"{language_instruction}"
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    "Analiza el siguiente paquete académico de unidad:\n\n"
+                    f"{payload_text}\n\n"
+                    "Evalúa coherencia entre banco de preguntas, examen, rúbrica, guía, "
+                    "objetivos y competencias. Si faltan recursos, decláralo en risks y "
+                    "recommendations, pero calcula lo que sea posible.\n\n"
+                    "IMPORTANTE: conserva las claves JSON en inglés exactamente como se indican, "
+                    "pero redacta los valores visibles en el idioma solicitado. "
+                    "Todos los puntajes deben estar entre 0 y 100. "
+                    "Devuelve EXCLUSIVAMENTE JSON válido.\n\n"
+                    "{\n"
+                    '  "objectives_coverage": 0,\n'
+                    '  "competencies_coverage": 0,\n'
+                    '  "bloom_distribution": {\n'
+                    '    "recordar": 0,\n'
+                    '    "comprender": 0,\n'
+                    '    "aplicar": 0,\n'
+                    '    "analizar": 0,\n'
+                    '    "evaluar": 0,\n'
+                    '    "crear": 0\n'
+                    "  },\n"
+                    '  "estimated_difficulty": "Media",\n'
+                    '  "estimated_time_minutes": 0,\n'
+                    '  "duplicate_questions_count": 0,\n'
+                    '  "exam_rubric_alignment": 0,\n'
+                    '  "exam_guide_alignment": 0,\n'
+                    '  "academic_quality_score": 0,\n'
+                    '  "strengths": [],\n'
+                    '  "risks": [],\n'
+                    '  "recommendations": [],\n'
+                    '  "coverage_details": {\n'
+                    '    "covered_objectives": [],\n'
+                    '    "uncovered_objectives": [],\n'
+                    '    "covered_competencies": [],\n'
+                    '    "uncovered_competencies": []\n'
+                    "  }\n"
+                    "}"
+                ),
+            },
+        ],
+        temperature=0.2,
+    )
+
+    content = response.choices[0].message.content.strip()
+
+    try:
+        json.loads(content)
+    except json.JSONDecodeError:
+        return json.dumps(
+            {
+                "objectives_coverage": 0,
+                "competencies_coverage": 0,
+                "bloom_distribution": {
+                    "recordar": 0,
+                    "comprender": 0,
+                    "aplicar": 0,
+                    "analizar": 0,
+                    "evaluar": 0,
+                    "crear": 0,
+                },
+                "estimated_difficulty": "Media",
+                "estimated_time_minutes": 0,
+                "duplicate_questions_count": 0,
+                "exam_rubric_alignment": 0,
+                "exam_guide_alignment": 0,
+                "academic_quality_score": 0,
+                "strengths": [],
+                "risks": ["La IA no devolvió JSON válido."],
+                "recommendations": [
+                    "Revisar manualmente la coherencia entre examen, rúbrica y guía."
+                ],
+                "coverage_details": {
+                    "covered_objectives": [],
+                    "uncovered_objectives": [],
+                    "covered_competencies": [],
+                    "uncovered_competencies": [],
+                },
+                "raw_response": content,
+            },
+            ensure_ascii=False,
+        )
+
+    return content
 
 
 def parse_grades_from_text(
@@ -1054,3 +1358,120 @@ def parse_students_from_text(
         )
 
     return content
+
+
+def ask_ai_coach(
+    message: str,
+    context: dict | None = None,
+    recent_messages: list | None = None,
+    mode: str = "general",
+    language: str = "es",
+) -> dict:
+    clean_message = clean_text(message)
+    language_instruction = build_language_instruction(language)
+
+    if not clean_message:
+        raise ValueError("La pregunta del estudiante está vacía.")
+
+    safe_context = context or {}
+    safe_mode = clean_text(mode) or "general"
+
+    context_summary = {
+        "audiobook_title": clean_text(str(safe_context.get("audiobookTitle", ""))),
+        "chapter_title": clean_text(str(safe_context.get("chapterTitle", ""))),
+        "chapter_summary": clean_text(str(safe_context.get("chapterSummary", ""))),
+        "key_concepts": safe_context.get("keyConcepts", []),
+        "learning_pack_summary": clean_text(
+            str(safe_context.get("learningPackSummary", ""))
+        ),
+        "competencies": safe_context.get("competencies", []),
+        "mastery": safe_context.get("mastery", {}),
+        "recommendations": safe_context.get("recommendations", []),
+    }
+
+    transcript = truncate_text(
+        str(safe_context.get("transcript", "")),
+        max_characters=5000,
+    )
+
+    memory_messages = build_memory_messages(
+        recent_messages if isinstance(recent_messages, list) else [],
+        max_messages=6,
+    )
+
+    try:
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Eres el Tutor IA de StudyBook AI. "
+                        "Actúas como un coach educativo claro, breve, motivador y pedagógico. "
+                        "Responde usando el contexto académico proporcionado. "
+                        "Si el estudiante pide explicación, explica paso a paso. "
+                        "Si pide práctica o preguntas, formula una pregunta concreta. "
+                        "Si pide repaso, resume y recomienda qué hacer después. "
+                        "No inventes datos fuera del contexto. "
+                        "No menciones IDs técnicos, JSON ni detalles internos. "
+                        f"Modo solicitado: {safe_mode}. "
+                        f"{language_instruction}"
+                    ),
+                },
+                *memory_messages,
+                {
+                    "role": "user",
+                    "content": (
+                        "Contexto académico resumido:\n"
+                        f"{json.dumps(context_summary, ensure_ascii=False)}\n\n"
+                        "Transcripción parcial del capítulo:\n"
+                        f"{transcript}\n\n"
+                        "Mensaje del estudiante:\n"
+                        f"{clean_message}\n\n"
+                        "Devuelve una respuesta útil, breve y accionable. "
+                        "No uses markdown excesivo."
+                    ),
+                },
+            ],
+            temperature=0.35,
+        )
+
+        text = clean_text(response.choices[0].message.content)
+
+        if not text:
+            text = (
+                "Puedo ayudarte con este capítulo. Te recomiendo revisar el resumen, "
+                "escuchar nuevamente el audio y responder el mini quiz."
+            )
+
+        return {
+            "text": text,
+            "suggestions": [
+                "Explícame con otro ejemplo",
+                "Hazme una pregunta",
+                "Resume lo más importante",
+            ],
+            "follow_up_questions": [
+                "¿Quieres practicar con una pregunta?",
+                "¿Deseas repasar los conceptos clave?",
+            ],
+            "detected_intent": safe_mode,
+            "confidence": 0.85,
+        }
+    except Exception:
+        return {
+            "text": (
+                "Puedo ayudarte con este capítulo. Te recomiendo revisar el resumen, "
+                "escuchar nuevamente el audio y responder el mini quiz."
+            ),
+            "suggestions": [
+                "Explícame el capítulo",
+                "Hazme preguntas",
+                "Dame un resumen",
+            ],
+            "follow_up_questions": [
+                "¿Qué parte quieres repasar primero?",
+            ],
+            "detected_intent": safe_mode,
+            "confidence": 0.55,
+        }

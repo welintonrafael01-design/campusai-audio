@@ -19,6 +19,8 @@ from app.routes.certificates import router as certificates_router
 from app.routes.analytics import router as analytics_router
 from app.routes.billing import router as billing_router
 from app.routes.educator import router as educator_router
+from app.routes.audiobook import router as audiobook_router
+from app.routes.voice import router as voice_router
 
 
 APP_DIR = Path(__file__).resolve().parent
@@ -82,6 +84,8 @@ app.include_router(certificates_router)
 app.include_router(analytics_router)
 app.include_router(billing_router)
 app.include_router(educator_router)
+app.include_router(audiobook_router)
+app.include_router(voice_router)
 
 
 app.mount(

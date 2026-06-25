@@ -1,12 +1,16 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../models/study_result.dart';
 import '../services/gradebook_service.dart';
 import '../services/academic_period_lock_service.dart';
 import '../services/student_roster_service.dart';
 import '../services/api_service.dart';
 import '../services/course_service.dart';
 import '../services/assessment_weight_service.dart';
+import '../services/study_result_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
 
@@ -19,16 +23,17 @@ class GradebookScreen extends StatefulWidget {
 
 class _GradebookScreenState extends State<GradebookScreen> {
   List<GradebookEntry> entries = [];
+  List<GradebookActivity> activities = [];
   List<CourseRecord> courses = [];
   List<AssessmentWeight> weights = [];
   String activeCourseId = '';
+  bool isImportingFromAcademicEngine = false;
 
   @override
   void initState() {
     super.initState();
     loadEntries();
   }
-
 
   Future<bool> ensurePeriodOpen() async {
     final courseId = activeCourseId.trim();
@@ -55,6 +60,7 @@ class _GradebookScreenState extends State<GradebookScreen> {
 
   Future<void> loadEntries() async {
     final data = await GradebookService.getEntries();
+    final activityData = await GradebookService.getActivities();
 
     var loadedCourses = await CourseService.getCourses();
 
@@ -129,6 +135,17 @@ class _GradebookScreenState extends State<GradebookScreen> {
                   activeCourse.name.toLowerCase().trim(),
             )
             .toList();
+    final filteredActivities = activeCourse == null
+        ? activityData
+        : activityData
+            .where(
+              (activity) =>
+                  activity.courseId.trim().isEmpty ||
+                  activity.courseId.trim() == activeCourse.id ||
+                  activity.courseName.toLowerCase().trim() ==
+                      activeCourse.name.toLowerCase().trim(),
+            )
+            .toList();
 
     if (!mounted) return;
 
@@ -137,6 +154,7 @@ class _GradebookScreenState extends State<GradebookScreen> {
       activeCourseId = resolvedActiveCourseId;
       weights = loadedWeights;
       entries = filteredEntries;
+      activities = filteredActivities;
     });
   }
 
@@ -214,8 +232,8 @@ class _GradebookScreenState extends State<GradebookScreen> {
 
           final studentCode = item['student_code']?.toString().trim() ?? '';
           final studentName = item['student_name']?.toString().trim() ?? '';
-          final assessment = item['assessment']?.toString().trim() ??
-              'Evaluación importada';
+          final assessment =
+              item['assessment']?.toString().trim() ?? 'Evaluación importada';
 
           final score = double.tryParse(item['score']?.toString() ?? '') ?? 0;
           final maxScore =
@@ -329,8 +347,8 @@ class _GradebookScreenState extends State<GradebookScreen> {
 
           final studentCode = item['student_code']?.toString().trim() ?? '';
           final studentName = item['student_name']?.toString().trim() ?? '';
-          final assessment = item['assessment']?.toString().trim() ??
-              'Evaluación importada';
+          final assessment =
+              item['assessment']?.toString().trim() ?? 'Evaluación importada';
 
           final score = double.tryParse(item['score']?.toString() ?? '') ?? 0;
           final maxScore =
@@ -432,8 +450,261 @@ class _GradebookScreenState extends State<GradebookScreen> {
     await loadEntries();
   }
 
+  Future<void> importFromAcademicEngine() async {
+    if (isImportingFromAcademicEngine) return;
 
+    final activeCourse = courses
+        .where((item) => item.id == activeCourseId)
+        .cast<CourseRecord?>()
+        .firstOrNull;
 
+    if (activeCourse == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Selecciona un curso antes de importar recursos.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    if (!await ensurePeriodOpen()) return;
+
+    setState(() => isImportingFromAcademicEngine = true);
+
+    try {
+      final options = await loadAcademicEngineResourceOptions(activeCourse);
+
+      if (!mounted) return;
+
+      if (options.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No hay recursos del Academic Engine para importar.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+
+      final selected = await showModalBottomSheet<_AcademicResourceOption>(
+        context: context,
+        showDragHandle: true,
+        builder: (_) {
+          return _AcademicEngineImportSheet(options: options);
+        },
+      );
+
+      if (selected == null) return;
+
+      final imported = await GradebookService.addActivityFromAcademicResource(
+        title: selected.title,
+        type: selected.type,
+        unitId: selected.unitId,
+        unitTopic: selected.unitTopic,
+        courseId: selected.courseId,
+        courseName: selected.courseName,
+        sourceDocumentId: selected.sourceDocumentId,
+        sourceResultId: selected.sourceResultId,
+        totalPoints: selected.totalPoints,
+        weight: 0,
+        rubricId: selected.type == 'rubric' ? selected.sourceResultId : '',
+        examId: selected.type == 'exam' ? selected.sourceResultId : '',
+        assessmentReportId:
+            selected.type == 'assessment_report' ? selected.sourceResultId : '',
+      );
+
+      if (!mounted) return;
+
+      if (!imported) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Este recurso ya fue importado al Libro de Calificaciones.',
+            ),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+
+      await loadEntries();
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Actividad importada al Libro de Calificaciones.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se pudo importar desde Academic Engine: $error'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => isImportingFromAcademicEngine = false);
+      }
+    }
+  }
+
+  Future<List<_AcademicResourceOption>> loadAcademicEngineResourceOptions(
+    CourseRecord activeCourse,
+  ) async {
+    final results = <StudyResult>[];
+
+    for (final type in const ['exam', 'rubric', 'assessment_report']) {
+      results.addAll(await StudyResultService.getResultsByType(type));
+    }
+
+    final options = results
+        .map((result) => academicResourceOptionFromResult(result, activeCourse))
+        .whereType<_AcademicResourceOption>()
+        .where((option) => option.matchesCourse(activeCourse))
+        .toList();
+
+    options.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return options;
+  }
+
+  _AcademicResourceOption? academicResourceOptionFromResult(
+    StudyResult result,
+    CourseRecord activeCourse,
+  ) {
+    final metadata = academicResourceMetadata(result.content);
+    if (metadata.isEmpty) return null;
+
+    final unitTopic = cleanText(metadata['unit_topic']);
+    final unitLabel = unitTopic.isNotEmpty ? unitTopic : 'Unidad';
+    final courseId = cleanText(metadata['course_id']).isNotEmpty
+        ? cleanText(metadata['course_id'])
+        : activeCourse.id;
+    final courseName = cleanText(metadata['course_name']).isNotEmpty
+        ? cleanText(metadata['course_name'])
+        : activeCourse.name;
+
+    String title;
+    String typeLabel;
+    double totalPoints;
+
+    switch (result.type) {
+      case 'exam':
+        title = firstCleanTextFrom([
+          metadata['exam_title'],
+          'Examen IA - $unitLabel',
+        ]);
+        typeLabel = 'Examen IA';
+        totalPoints = doubleValue(metadata['exam_total_points'], 100);
+        break;
+      case 'rubric':
+        title = firstCleanTextFrom([
+          metadata['rubric_title'],
+          'Rúbrica IA - $unitLabel',
+        ]);
+        typeLabel = 'Rúbrica IA';
+        totalPoints = doubleValue(metadata['total_points'], 100);
+        break;
+      case 'assessment_report':
+        title = firstCleanTextFrom([
+          metadata['assessment_title'],
+          'Reporte IA - $unitLabel',
+        ]);
+        typeLabel = 'Assessment Report';
+        totalPoints = doubleValue(metadata['academic_quality_score'], 100);
+        break;
+      default:
+        return null;
+    }
+
+    return _AcademicResourceOption(
+      title: title,
+      type: result.type,
+      typeLabel: typeLabel,
+      unitId: cleanText(metadata['unit_id']),
+      unitTopic: unitTopic,
+      courseId: courseId,
+      courseName: courseName,
+      sourceDocumentId: cleanText(metadata['source_document_id']),
+      sourceResultId: result.documentId,
+      totalPoints: totalPoints,
+      createdAt: result.createdAt,
+    );
+  }
+
+  Map<String, dynamic> academicResourceMetadata(String content) {
+    final decoded = decodeAcademicContent(content);
+
+    if (decoded is List) {
+      final first = decoded.whereType<Map>().firstOrNull;
+      return first == null ? {} : Map<String, dynamic>.from(first);
+    }
+
+    if (decoded is Map) {
+      final map = Map<String, dynamic>.from(decoded);
+      for (final key in const [
+        'rubric',
+        'assessment_report',
+        'report',
+        'data',
+        'content',
+      ]) {
+        final nested = map[key];
+        if (nested is Map) {
+          return {
+            ...map,
+            ...Map<String, dynamic>.from(nested),
+          };
+        }
+        if (nested is List) {
+          final first = nested.whereType<Map>().firstOrNull;
+          if (first != null) {
+            return {
+              ...map,
+              ...Map<String, dynamic>.from(first),
+            };
+          }
+        }
+      }
+
+      return map;
+    }
+
+    return {};
+  }
+
+  dynamic decodeAcademicContent(String content) {
+    try {
+      final decoded = jsonDecode(content);
+      if (decoded is String && decoded.trim() != content.trim()) {
+        return decodeAcademicContent(decoded);
+      }
+      return decoded;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String firstCleanTextFrom(List<dynamic> values) {
+    for (final value in values) {
+      final text = cleanText(value);
+      if (text.isNotEmpty) return text;
+    }
+    return '';
+  }
+
+  String cleanText(dynamic value) => value?.toString().trim() ?? '';
+
+  double doubleValue(dynamic value, double fallback) {
+    if (value == null) return fallback;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString()) ?? fallback;
+  }
 
   List<String> get assessmentColumns {
     final names = <String>{};
@@ -495,7 +766,6 @@ class _GradebookScreenState extends State<GradebookScreen> {
     return rows;
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -516,6 +786,19 @@ class _GradebookScreenState extends State<GradebookScreen> {
             tooltip: 'Importar notas CSV',
             onPressed: courses.isEmpty ? null : importGradesCsv,
             icon: const Icon(Icons.upload_file_rounded),
+          ),
+          IconButton(
+            tooltip: 'Importar desde Academic Engine',
+            onPressed: courses.isEmpty || isImportingFromAcademicEngine
+                ? null
+                : importFromAcademicEngine,
+            icon: isImportingFromAcademicEngine
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.auto_awesome_rounded),
           ),
           IconButton(
             tooltip: 'Exportar CSV para Excel',
@@ -553,7 +836,8 @@ class _GradebookScreenState extends State<GradebookScreen> {
                     width: 360,
                     child: DropdownButtonFormField<String>(
                       isExpanded: true,
-                      initialValue: activeCourseId.isEmpty ? null : activeCourseId,
+                      initialValue:
+                          activeCourseId.isEmpty ? null : activeCourseId,
                       decoration: const InputDecoration(
                         labelText: 'Curso / Sección',
                         border: OutlineInputBorder(),
@@ -585,6 +869,11 @@ class _GradebookScreenState extends State<GradebookScreen> {
                       icon: Icons.assignment_turned_in_rounded,
                     ),
                     _MetricChip(
+                      label: 'Actividades IA',
+                      value: activities.length.toString(),
+                      icon: Icons.auto_awesome_rounded,
+                    ),
+                    _MetricChip(
                       label: weights.isEmpty ? 'Promedio' : 'Ponderaciones',
                       value: weights.isEmpty
                           ? '${average.toStringAsFixed(1)}%'
@@ -606,6 +895,24 @@ class _GradebookScreenState extends State<GradebookScreen> {
                       icon: const Icon(Icons.upload_file_rounded),
                       label: const Text('Importar notas CSV'),
                     ),
+                    FilledButton.icon(
+                      onPressed:
+                          courses.isEmpty || isImportingFromAcademicEngine
+                              ? null
+                              : importFromAcademicEngine,
+                      icon: isImportingFromAcademicEngine
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.auto_awesome_rounded),
+                      label: Text(
+                        isImportingFromAcademicEngine
+                            ? 'Importando...'
+                            : 'Importar desde Academic Engine',
+                      ),
+                    ),
                     OutlinedButton.icon(
                       onPressed: entries.isEmpty ? null : exportCsv,
                       icon: const Icon(Icons.download_rounded),
@@ -621,6 +928,8 @@ class _GradebookScreenState extends State<GradebookScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 20),
+          _AcademicEngineActivitiesSection(activities: activities),
           const SizedBox(height: 20),
           if (entries.isEmpty)
             const SectionCard(
@@ -660,6 +969,176 @@ class _GradebookScreenState extends State<GradebookScreen> {
   }
 }
 
+class _AcademicResourceOption {
+  final String title;
+  final String type;
+  final String typeLabel;
+  final String unitId;
+  final String unitTopic;
+  final String courseId;
+  final String courseName;
+  final String sourceDocumentId;
+  final String sourceResultId;
+  final double totalPoints;
+  final String createdAt;
+
+  const _AcademicResourceOption({
+    required this.title,
+    required this.type,
+    required this.typeLabel,
+    required this.unitId,
+    required this.unitTopic,
+    required this.courseId,
+    required this.courseName,
+    required this.sourceDocumentId,
+    required this.sourceResultId,
+    required this.totalPoints,
+    required this.createdAt,
+  });
+
+  bool matchesCourse(CourseRecord activeCourse) {
+    if (courseId.trim().isEmpty && courseName.trim().isEmpty) return true;
+    if (courseId.trim() == activeCourse.id) return true;
+
+    return courseName.toLowerCase().trim() ==
+        activeCourse.name.toLowerCase().trim();
+  }
+
+  String get unitLabel => unitTopic.trim().isNotEmpty ? unitTopic : 'Unidad';
+}
+
+class _AcademicEngineImportSheet extends StatelessWidget {
+  final List<_AcademicResourceOption> options;
+
+  const _AcademicEngineImportSheet({required this.options});
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 6, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Importar desde Academic Engine',
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Selecciona un examen, rúbrica o reporte generado por unidad.',
+              style: TextStyle(color: AppTheme.textMuted),
+            ),
+            const SizedBox(height: 12),
+            Flexible(
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: options.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final option = options[index];
+
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: CircleAvatar(
+                      child: Icon(
+                        option.type == 'exam'
+                            ? Icons.quiz_rounded
+                            : option.type == 'rubric'
+                                ? Icons.fact_check_rounded
+                                : Icons.analytics_rounded,
+                      ),
+                    ),
+                    title: Text(
+                      option.title,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    subtitle: Text(
+                      '${option.typeLabel} • ${option.unitLabel} • '
+                      '${option.totalPoints.toStringAsFixed(1)} puntos • '
+                      '${option.createdAt}',
+                    ),
+                    onTap: () => Navigator.of(context).pop(option),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AcademicEngineActivitiesSection extends StatelessWidget {
+  final List<GradebookActivity> activities;
+
+  const _AcademicEngineActivitiesSection({required this.activities});
+
+  @override
+  Widget build(BuildContext context) {
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Actividades importadas desde Academic Engine',
+            style: TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 21,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Evaluaciones IA disponibles para el Libro de Calificaciones. La corrección automática queda pendiente.',
+            style: TextStyle(color: AppTheme.textMuted, height: 1.35),
+          ),
+          const SizedBox(height: 12),
+          if (activities.isEmpty)
+            const Text(
+              'Aún no hay actividades importadas desde Academic Engine.',
+              style: TextStyle(color: AppTheme.textMuted),
+            )
+          else
+            ...activities.map(
+              (activity) => ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: CircleAvatar(
+                  child: Icon(
+                    activity.type == 'exam'
+                        ? Icons.quiz_rounded
+                        : activity.type == 'rubric'
+                            ? Icons.fact_check_rounded
+                            : Icons.analytics_rounded,
+                  ),
+                ),
+                title: Text(
+                  activity.title,
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                subtitle: Text(
+                  '${activity.unitTopic.isEmpty ? 'Unidad' : activity.unitTopic} • '
+                  '${activity.type} • '
+                  '${activity.totalPoints.toStringAsFixed(1)} puntos • '
+                  '${activity.createdAt}',
+                  style: const TextStyle(color: AppTheme.textMuted),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
 
 class _StudentGradeRow {
   final String studentKey;
@@ -684,10 +1163,8 @@ class _StudentGradeRow {
   }
 
   double get average {
-    final values = scores.keys
-        .map(percentageFor)
-        .where((value) => value > 0)
-        .toList();
+    final values =
+        scores.keys.map(percentageFor).where((value) => value > 0).toList();
 
     if (values.isEmpty) return 0;
 
@@ -714,7 +1191,6 @@ class _MetricChip extends StatelessWidget {
     );
   }
 }
-
 
 class _GradebookTable extends StatelessWidget {
   final List<_StudentGradeRow> rows;
@@ -781,7 +1257,8 @@ class _GradebookTable extends StatelessWidget {
 
                   return DataRow(
                     cells: [
-                      DataCell(Text(row.studentCode.isEmpty ? '-' : row.studentCode)),
+                      DataCell(Text(
+                          row.studentCode.isEmpty ? '-' : row.studentCode)),
                       DataCell(
                         SizedBox(
                           width: 180,
@@ -834,9 +1311,8 @@ class _GradebookEntryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final percentage = entry.maxScore <= 0
-        ? 0
-        : (entry.score / entry.maxScore) * 100;
+    final percentage =
+        entry.maxScore <= 0 ? 0 : (entry.score / entry.maxScore) * 100;
 
     return SectionCard(
       child: Column(

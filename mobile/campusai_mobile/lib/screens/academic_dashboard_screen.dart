@@ -1,8 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../models/study_result.dart';
 import '../services/academic_analytics_service.dart';
+import '../services/academic_engine/academic_resource_repository.dart';
+import '../services/academic_engine/curriculum_intelligence_engine.dart';
 import '../services/course_service.dart';
+import '../services/study_result_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
 
@@ -19,6 +25,8 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
   String activeCourseId = '';
   List<StudentAcademicSummary> summaries = [];
   List<StudentRanking> globalRanking = [];
+  Map<String, dynamic> curriculumIntelligence = {};
+  bool curriculumIntelligenceUnavailable = false;
 
   @override
   void initState() {
@@ -47,6 +55,9 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
           );
 
     final globalData = await AcademicAnalyticsService.buildGlobalRanking();
+    final intelligence = await loadCurriculumIntelligence(
+      activeCourse: activeCourse,
+    );
 
     if (!mounted) return;
 
@@ -55,7 +66,94 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
       activeCourseId = resolvedActiveCourseId;
       summaries = data;
       globalRanking = globalData;
+      curriculumIntelligence = intelligence;
+      curriculumIntelligenceUnavailable = intelligence.isEmpty;
     });
+  }
+
+  Future<Map<String, dynamic>> loadCurriculumIntelligence({
+    required CourseRecord? activeCourse,
+  }) async {
+    try {
+      final plans = await StudyResultService.getResultsByType('teaching_plan');
+      final selectedPlan = selectTeachingPlanForCourse(plans, activeCourse);
+      if (selectedPlan == null) return {};
+
+      final plan = decodePlan(selectedPlan.content);
+      if (plan.isEmpty) return {};
+
+      final savedIntelligence = await StudyResultService.getResult(
+        documentId: '${selectedPlan.documentId}_curriculum_intelligence',
+        type: 'curriculum_intelligence',
+      );
+
+      if (savedIntelligence != null) {
+        final savedReport = decodePlan(savedIntelligence.content);
+        if (savedReport.isNotEmpty) return savedReport;
+      }
+
+      final report = CurriculumIntelligenceEngine.analyzeTeachingPlan(
+        plan: plan,
+      );
+
+      await AcademicResourceRepository.saveCurriculumIntelligence(
+        teachingPlanDocumentId: selectedPlan.documentId,
+        content: jsonEncode(report),
+      );
+
+      return report;
+    } catch (_) {
+      return {};
+    }
+  }
+
+  StudyResult? selectTeachingPlanForCourse(
+    List<StudyResult> plans,
+    CourseRecord? activeCourse,
+  ) {
+    if (plans.isEmpty) return null;
+    if (activeCourse == null) return plans.first;
+
+    for (final result in plans) {
+      final plan = decodePlan(result.content);
+      if (planMatchesCourse(plan, activeCourse)) return result;
+    }
+
+    return plans.first;
+  }
+
+  bool planMatchesCourse(Map<String, dynamic> plan, CourseRecord course) {
+    final courseId = plan['course_id']?.toString().trim() ?? '';
+    final courseName = plan['course_name']?.toString().trim() ?? '';
+    final courseCode = plan['course_code']?.toString().trim() ?? '';
+    final displayName = plan['course_display_name']?.toString().trim() ?? '';
+
+    if (courseId.isNotEmpty && courseId == course.id) return true;
+    if (courseName.isNotEmpty &&
+        courseName.toLowerCase() == course.name.toLowerCase()) {
+      return true;
+    }
+    if (courseCode.isNotEmpty &&
+        course.code.isNotEmpty &&
+        courseCode.toLowerCase() == course.code.toLowerCase()) {
+      return true;
+    }
+    if (displayName.isNotEmpty &&
+        displayName.toLowerCase() == course.displayName.toLowerCase()) {
+      return true;
+    }
+
+    return false;
+  }
+
+  Map<String, dynamic> decodePlan(String content) {
+    try {
+      final decoded = jsonDecode(content);
+      if (decoded is Map<String, dynamic>) return decoded;
+      if (decoded is Map) return Map<String, dynamic>.from(decoded);
+    } catch (_) {}
+
+    return {};
   }
 
   Future<void> changeCourse(String? courseId) async {
@@ -333,6 +431,11 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
             ),
           ),
           const SizedBox(height: 20),
+          _AcademicIntelligenceSection(
+            report: curriculumIntelligence,
+            isEmpty: curriculumIntelligenceUnavailable,
+          ),
+          const SizedBox(height: 20),
           _DashboardChartsSection(
             gradeDistribution: gradeDistribution,
             attendanceDistribution: attendanceDistribution,
@@ -506,6 +609,272 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
             students: summaries,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AcademicIntelligenceSection extends StatelessWidget {
+  final Map<String, dynamic> report;
+  final bool isEmpty;
+
+  const _AcademicIntelligenceSection({
+    required this.report,
+    required this.isEmpty,
+  });
+
+  String text(dynamic value) => value?.toString().trim() ?? '';
+
+  int intValue(dynamic value) {
+    if (value is num) return value.round();
+    return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  List<dynamic> listValue(dynamic value) {
+    return value is List ? value : const [];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (isEmpty || report.isEmpty) {
+      return const SectionCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Inteligencia Académica',
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'No hay planificación disponible para analizar.',
+              style: TextStyle(color: AppTheme.textMuted),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final quality = report['quality'] is Map
+        ? Map<String, dynamic>.from(report['quality'] as Map)
+        : <String, dynamic>{};
+    final alerts = listValue(report['alerts']);
+    final recommendations = listValue(report['recommendations']);
+    final missingResources = listValue(report['missing_resources']);
+    final units = listValue(report['units'])
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList();
+    final totalUnits = intValue(report['total_units']);
+    final completedUnits = intValue(report['completed_units']);
+
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Inteligencia Académica',
+            style: TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Diagnóstico curricular generado desde la planificación y los recursos IA por unidad.',
+            style: TextStyle(color: AppTheme.textMuted, height: 1.4),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              _MetricCard(
+                label: 'Cobertura curricular',
+                value: '${intValue(report['curriculum_coverage'])}%',
+                icon: Icons.auto_graph_rounded,
+              ),
+              _MetricCard(
+                label: 'Puntuación académica',
+                value: '${intValue(quality['academic_score'])}%',
+                icon: Icons.workspace_premium_rounded,
+              ),
+              _MetricCard(
+                label: 'Calidad evaluación',
+                value: '${intValue(quality['assessment_quality'])}%',
+                icon: Icons.fact_check_rounded,
+              ),
+              _MetricCard(
+                label: 'Calidad recursos',
+                value: '${intValue(quality['resource_quality'])}%',
+                icon: Icons.inventory_2_rounded,
+              ),
+              _MetricCard(
+                label: 'Unidades completas',
+                value: '$completedUnits / $totalUnits',
+                icon: Icons.check_circle_rounded,
+              ),
+              _MetricCard(
+                label: 'Recursos pendientes',
+                value: missingResources.length.toString(),
+                icon: Icons.pending_actions_rounded,
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Wrap(
+            spacing: 18,
+            runSpacing: 18,
+            children: [
+              SizedBox(
+                width: 420,
+                child: _IntelligenceList(
+                  title: 'Alertas',
+                  emptyText: 'Sin alertas críticas.',
+                  items: alerts.take(3).map(text).toList(),
+                ),
+              ),
+              SizedBox(
+                width: 420,
+                child: _IntelligenceList(
+                  title: 'Recomendaciones',
+                  emptyText: 'Sin recomendaciones pendientes.',
+                  items: recommendations.take(3).map(text).toList(),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          const Text(
+            'Estado por unidad',
+            style: TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 10),
+          if (units.isEmpty)
+            const Text(
+              'No hay unidades disponibles.',
+              style: TextStyle(color: AppTheme.textMuted),
+            )
+          else
+            ...units.map((unit) => _UnitStatusRow(unit: unit)),
+        ],
+      ),
+    );
+  }
+}
+
+class _IntelligenceList extends StatelessWidget {
+  final String title;
+  final String emptyText;
+  final List<String> items;
+
+  const _IntelligenceList({
+    required this.title,
+    required this.emptyText,
+    required this.items,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: AppTheme.textPrimary,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (items.where((item) => item.isNotEmpty).isEmpty)
+          Text(
+            emptyText,
+            style: const TextStyle(color: AppTheme.textMuted),
+          )
+        else
+          ...items.where((item) => item.isNotEmpty).map(
+                (item) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(
+                    '• $item',
+                    style: const TextStyle(
+                      color: AppTheme.textMuted,
+                      height: 1.35,
+                    ),
+                  ),
+                ),
+              ),
+      ],
+    );
+  }
+}
+
+class _UnitStatusRow extends StatelessWidget {
+  final Map<String, dynamic> unit;
+
+  const _UnitStatusRow({required this.unit});
+
+  String text(dynamic value) => value?.toString().trim() ?? '';
+
+  int intValue(dynamic value) {
+    if (value is num) return value.round();
+    return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final missing = unit['missing_resources'] is List
+        ? List<dynamic>.from(unit['missing_resources'] as List)
+        : <dynamic>[];
+    final missingLabels = missing
+        .map((item) {
+          if (item is Map) {
+            return text(item['resource_label']).isNotEmpty
+                ? text(item['resource_label'])
+                : text(item['resource_key']);
+          }
+
+          return text(item);
+        })
+        .where((item) => item.isNotEmpty)
+        .toList();
+    final progress = intValue(unit['completion_score']);
+    final title = text(unit['unit_topic']).isNotEmpty
+        ? text(unit['unit_topic'])
+        : 'Unidad ${text(unit['week'])}';
+    final missingText = missingLabels.isEmpty
+        ? 'Completa'
+        : 'Falta ${missingLabels.join(', ')}';
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        dense: true,
+        contentPadding: EdgeInsets.zero,
+        leading: CircleAvatar(
+          child: Text('${progress.clamp(0, 100)}%'),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            color: AppTheme.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        subtitle: Text(
+          missingText,
+          style: const TextStyle(color: AppTheme.textMuted),
+        ),
       ),
     );
   }

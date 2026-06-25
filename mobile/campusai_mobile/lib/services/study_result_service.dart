@@ -23,7 +23,8 @@ class StudyResultService {
     );
 
     if (result.type == 'question_bank') {
-      final current = prefs.getStringList(EducatorSyncService.questionBanksKey) ?? [];
+      final current =
+          prefs.getStringList(EducatorSyncService.questionBanksKey) ?? [];
       final asJson = result.toJson();
       asJson['id'] = result.documentId;
       asJson['documentId'] = result.documentId;
@@ -32,7 +33,8 @@ class StudyResultService {
           .map((item) {
             try {
               final decoded = jsonDecode(item);
-              if (decoded is Map && decoded['documentId']?.toString() == result.documentId) {
+              if (decoded is Map &&
+                  decoded['documentId']?.toString() == result.documentId) {
                 return null;
               }
             } catch (_) {}
@@ -73,6 +75,37 @@ class StudyResultService {
     } catch (_) {
       return null;
     }
+  }
+
+  static Future<List<StudyResult>> getResultsByType(String type) async {
+    final prefs = await SharedPreferences.getInstance();
+    final suffix = '_$type';
+    final results = <StudyResult>[];
+
+    for (final key in prefs.getKeys()) {
+      if (!key.startsWith('${_key}_') || !key.endsWith(suffix)) continue;
+
+      final raw = prefs.getString(key);
+      if (raw == null || raw.trim().isEmpty) continue;
+
+      try {
+        final decoded = jsonDecode(raw);
+        final map = decoded is Map<String, dynamic>
+            ? decoded
+            : decoded is Map
+                ? Map<String, dynamic>.from(decoded)
+                : null;
+        if (map == null) continue;
+
+        final result = StudyResult.fromJson(map);
+        if (result.isValid && result.type == type) {
+          results.add(result);
+        }
+      } catch (_) {}
+    }
+
+    results.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return results;
   }
 
   static Future<void> deleteResult({

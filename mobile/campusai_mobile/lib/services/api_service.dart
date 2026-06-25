@@ -229,6 +229,40 @@ class ApiService {
   }
 
   // =========================
+  // AI COACH
+  // =========================
+
+  static Future<Map<String, dynamic>> askAiCoach({
+    required String message,
+    String mode = 'general',
+    Map<String, dynamic> context = const {},
+    List<Map<String, dynamic>> recentMessages = const [],
+  }) async {
+    final cleanMessage = requireValue(
+      message,
+      'La pregunta no puede estar vacía.',
+    );
+
+    final response = await http
+        .post(
+          Uri.parse('$baseUrl/voice/coach'),
+          headers: {
+            'Content-Type': 'application/json',
+            ...AuthService.authHeaders,
+          },
+          body: jsonEncode({
+            'message': cleanMessage,
+            'mode': mode.trim().isEmpty ? 'general' : mode.trim(),
+            'context': context,
+            'recent_messages': recentMessages,
+          }),
+        )
+        .timeout(const Duration(seconds: 45));
+
+    return decodeResponse(response);
+  }
+
+  // =========================
   // STREAM CHAT
   // =========================
 
@@ -395,7 +429,6 @@ class ApiService {
     return decodeResponse(response);
   }
 
-
   static Future<Map<String, dynamic>> generateQuestionBankByDocumentId({
     required String documentId,
     int numberOfQuestions = 50,
@@ -417,8 +450,10 @@ class ApiService {
       queryParameters: {
         'number_of_questions': numberOfQuestions.toString(),
         'language': language,
-        if (programTopic.trim().isNotEmpty) 'program_topic': programTopic.trim(),
-        if (learningObjective.trim().isNotEmpty) 'learning_objective': learningObjective.trim(),
+        if (programTopic.trim().isNotEmpty)
+          'program_topic': programTopic.trim(),
+        if (learningObjective.trim().isNotEmpty)
+          'learning_objective': learningObjective.trim(),
         if (competency.trim().isNotEmpty) 'competency': competency.trim(),
         if (bloomLevel.trim().isNotEmpty) 'bloom_level': bloomLevel.trim(),
       },
@@ -510,10 +545,6 @@ class ApiService {
     return decodeResponse(response);
   }
 
-
-
-
-
   static Future<Map<String, dynamic>> importGradesExcel() async {
     final file = await pickExcelFile();
     final bytes = file.bytes;
@@ -539,7 +570,6 @@ class ApiService {
 
     return sendMultipartRequest(request);
   }
-
 
   static Future<Map<String, dynamic>> importGradesPdf() async {
     final file = await pickPdfFile();
@@ -638,6 +668,9 @@ class ApiService {
     String rubricType = 'Analítica',
     int criteriaCount = 5,
     int performanceLevels = 4,
+    String programTopic = '',
+    String learningObjective = '',
+    String competency = '',
   }) async {
     final cleanDocumentId = requireValue(
       documentId,
@@ -650,10 +683,16 @@ class ApiService {
       '$baseUrl/documents/rubric/$cleanDocumentId',
     ).replace(
       queryParameters: {
+        'total_points': totalPoints.toString(),
         'rubric_type': rubricType,
         'criteria_count': criteriaCount.toString(),
         'performance_levels': performanceLevels.toString(),
         'language': language,
+        if (programTopic.trim().isNotEmpty)
+          'program_topic': programTopic.trim(),
+        if (learningObjective.trim().isNotEmpty)
+          'learning_objective': learningObjective.trim(),
+        if (competency.trim().isNotEmpty) 'competency': competency.trim(),
       },
     );
 
@@ -661,6 +700,159 @@ class ApiService {
         .post(
           uri,
           headers: AuthService.authHeaders,
+        )
+        .timeout(timeoutDuration);
+
+    return decodeResponse(response);
+  }
+
+  static Future<Map<String, dynamic>> generateStudyGuideByDocumentId({
+    required String documentId,
+    String programTopic = '',
+    String learningObjective = '',
+    String competency = '',
+    String guideType = 'student',
+    bool includeSummary = true,
+    bool includeKeyConcepts = true,
+    bool includePracticeActivities = true,
+    bool includeSelfAssessment = true,
+  }) async {
+    final cleanDocumentId = requireValue(
+      documentId,
+      'No hay documento activo.',
+    );
+
+    final language = await getCurrentLanguageCode();
+
+    final uri = Uri.parse(
+      '$baseUrl/documents/study-guide/$cleanDocumentId',
+    ).replace(
+      queryParameters: {
+        'language': language,
+        'guide_type': guideType,
+        'include_summary': includeSummary.toString(),
+        'include_key_concepts': includeKeyConcepts.toString(),
+        'include_practice_activities': includePracticeActivities.toString(),
+        'include_self_assessment': includeSelfAssessment.toString(),
+        if (programTopic.trim().isNotEmpty)
+          'program_topic': programTopic.trim(),
+        if (learningObjective.trim().isNotEmpty)
+          'learning_objective': learningObjective.trim(),
+        if (competency.trim().isNotEmpty) 'competency': competency.trim(),
+      },
+    );
+
+    final response = await http
+        .post(
+          uri,
+          headers: AuthService.authHeaders,
+        )
+        .timeout(timeoutDuration);
+
+    return decodeResponse(response);
+  }
+
+  static Future<Map<String, dynamic>> generateTeachingResourcesByDocumentId({
+    required String documentId,
+    String programTopic = '',
+    String learningObjective = '',
+    String competency = '',
+    bool includePresentationOutline = true,
+    bool includeClassActivities = true,
+    bool includeCollaborativeActivities = true,
+    bool includeDiscussionQuestions = true,
+    bool includeProblemBasedLearning = true,
+    bool includeGamificationIdeas = true,
+    bool includeHomework = true,
+    bool includeAccessibilityAdaptations = true,
+    bool includeComplementaryReadings = true,
+    bool includeMultimediaSuggestions = true,
+    bool includeWebResources = true,
+    bool includeAiPromptsForStudents = true,
+  }) async {
+    final cleanDocumentId = requireValue(
+      documentId,
+      'No hay documento activo.',
+    );
+
+    final language = await getCurrentLanguageCode();
+
+    final uri = Uri.parse(
+      '$baseUrl/documents/teaching-resources/$cleanDocumentId',
+    ).replace(
+      queryParameters: {
+        'language': language,
+        'include_presentation_outline': includePresentationOutline.toString(),
+        'include_class_activities': includeClassActivities.toString(),
+        'include_collaborative_activities':
+            includeCollaborativeActivities.toString(),
+        'include_discussion_questions': includeDiscussionQuestions.toString(),
+        'include_problem_based_learning':
+            includeProblemBasedLearning.toString(),
+        'include_gamification_ideas': includeGamificationIdeas.toString(),
+        'include_homework': includeHomework.toString(),
+        'include_accessibility_adaptations':
+            includeAccessibilityAdaptations.toString(),
+        'include_complementary_readings':
+            includeComplementaryReadings.toString(),
+        'include_multimedia_suggestions':
+            includeMultimediaSuggestions.toString(),
+        'include_web_resources': includeWebResources.toString(),
+        'include_ai_prompts_for_students':
+            includeAiPromptsForStudents.toString(),
+        if (programTopic.trim().isNotEmpty)
+          'program_topic': programTopic.trim(),
+        if (learningObjective.trim().isNotEmpty)
+          'learning_objective': learningObjective.trim(),
+        if (competency.trim().isNotEmpty) 'competency': competency.trim(),
+      },
+    );
+
+    final response = await http
+        .post(
+          uri,
+          headers: AuthService.authHeaders,
+        )
+        .timeout(timeoutDuration);
+
+    return decodeResponse(response);
+  }
+
+  static Future<Map<String, dynamic>> analyzeAssessmentForUnit({
+    required Map<String, dynamic> academicMetadata,
+    required List<String> objectives,
+    required List<String> competencies,
+    required List<Map<String, dynamic>> questionBank,
+    required List<Map<String, dynamic>> exam,
+    required Map<String, dynamic> rubric,
+    required Map<String, dynamic> studyGuide,
+  }) async {
+    final language = await getCurrentLanguageCode();
+
+    final uri = Uri.parse(
+      '$baseUrl/documents/analyze-assessment',
+    ).replace(
+      queryParameters: {
+        'language': language,
+      },
+    );
+
+    final response = await http
+        .post(
+          uri,
+          headers: {
+            'Content-Type': 'application/json',
+            ...AuthService.authHeaders,
+          },
+          body: jsonEncode({
+            'academic_metadata': academicMetadata,
+            'objectives': objectives,
+            'competencies': competencies,
+            'question_bank': questionBank,
+            'exam': exam,
+            'rubric': rubric,
+            'study_guide': studyGuide,
+          }),
         )
         .timeout(timeoutDuration);
 
@@ -694,6 +886,125 @@ class ApiService {
         .post(
           uri,
           headers: AuthService.authHeaders,
+        )
+        .timeout(timeoutDuration);
+
+    return decodeResponse(response);
+  }
+
+  static Future<Map<String, dynamic>> generateAudioBookFromText({
+    required String title,
+    required String text,
+    String sourceMode = 'solo',
+    String sourceType = 'text',
+    String sourceDocumentId = '',
+    String courseId = '',
+    String courseName = '',
+    String unitId = '',
+    String unitTopic = '',
+    String language = 'es',
+    String voiceProfile = 'standard',
+  }) async {
+    final cleanText = requireValue(
+      text,
+      'No hay texto para generar Audio Libro.',
+    );
+
+    final cleanLanguage =
+        language.trim().isEmpty ? await getCurrentLanguageCode() : language;
+
+    final response = await http
+        .post(
+          Uri.parse('$baseUrl/audiobook/generate'),
+          headers: {
+            'Content-Type': 'application/json',
+            ...AuthService.authHeaders,
+          },
+          body: jsonEncode({
+            'title': title,
+            'text': cleanText,
+            'source_mode': sourceMode,
+            'source_type': sourceType,
+            'source_document_id': sourceDocumentId,
+            'course_id': courseId,
+            'course_name': courseName,
+            'unit_id': unitId,
+            'unit_topic': unitTopic,
+            'language': cleanLanguage,
+            'voice_profile': voiceProfile,
+          }),
+        )
+        .timeout(timeoutDuration);
+
+    return decodeResponse(response);
+  }
+
+  static Future<Map<String, dynamic>> generateAudioForAudioBookChapter({
+    required String audiobookId,
+    required String chapterId,
+    required String chapterTitle,
+    required String script,
+    String voiceProfile = 'standard',
+    String language = 'es',
+  }) async {
+    final cleanScript = requireValue(
+      script,
+      'No hay guion para generar audio.',
+    );
+    final cleanLanguage =
+        language.trim().isEmpty ? await getCurrentLanguageCode() : language;
+
+    final response = await http
+        .post(
+          Uri.parse('$baseUrl/audiobook/generate-chapter-audio'),
+          headers: {
+            'Content-Type': 'application/json',
+            ...AuthService.authHeaders,
+          },
+          body: jsonEncode({
+            'audiobook_id': audiobookId,
+            'chapter_id': chapterId,
+            'chapter_title': chapterTitle,
+            'script': cleanScript,
+            'voice_profile': voiceProfile,
+            'language': cleanLanguage,
+          }),
+        )
+        .timeout(timeoutDuration);
+
+    return decodeResponse(response);
+  }
+
+  static Future<Map<String, dynamic>> generateLearningPackForAudioBookChapter({
+    required String audiobookId,
+    required String chapterId,
+    required String chapterTitle,
+    required String summary,
+    required String script,
+    required String transcript,
+    List<String> keyConcepts = const [],
+    String language = 'es',
+  }) async {
+    final cleanLanguage =
+        language.trim().isEmpty ? await getCurrentLanguageCode() : language;
+
+    final response = await http
+        .post(
+          Uri.parse('$baseUrl/audiobook/generate-learning-pack'),
+          headers: {
+            'Content-Type': 'application/json',
+            ...AuthService.authHeaders,
+          },
+          body: jsonEncode({
+            'audiobook_id': audiobookId,
+            'chapter_id': chapterId,
+            'chapter_title': chapterTitle,
+            'summary': summary,
+            'script': script,
+            'transcript': transcript,
+            'key_concepts': keyConcepts,
+            'language': cleanLanguage,
+          }),
         )
         .timeout(timeoutDuration);
 
@@ -800,7 +1111,6 @@ class ApiService {
   // =========================
   // PICK PDF
   // =========================
-
 
   static Future<PlatformFile> pickExcelFile() async {
     final result = await FilePicker.platform.pickFiles(

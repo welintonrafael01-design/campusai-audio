@@ -20,12 +20,16 @@ import '../screens/final_report_screen.dart';
 import '../screens/academic_dashboard_screen.dart';
 import '../screens/academic_recognition_screen.dart';
 import '../screens/student_profile_screen.dart';
+import '../screens/student_dashboard_screen.dart';
 import '../screens/student_transcript_screen.dart';
 import '../screens/assessment_weights_screen.dart';
 import '../screens/courses_screen.dart';
 import '../screens/students_screen.dart';
 import '../screens/saved_exams_screen.dart';
 import '../screens/teaching_plan_screen.dart';
+import '../screens/unit_workspace_screen.dart';
+import '../screens/audiobook_studio_screen.dart';
+import '../screens/voice_tutor_screen.dart';
 import '../screens/reset_password_screen.dart';
 
 final appRouter = GoRouter(
@@ -73,12 +77,86 @@ final appRouter = GoRouter(
       },
     ),
     GoRoute(
+      path: '/audiobook-studio',
+      name: 'audioBookStudio',
+      pageBuilder: (context, state) {
+        final extra = state.extra is Map
+            ? Map<String, dynamic>.from(state.extra as Map)
+            : <String, dynamic>{};
+
+        return _buildPage(
+          state: state,
+          child: AudioBookStudioScreen(
+            sourceMode: extra['sourceMode']?.toString() ??
+                extra['source_mode']?.toString() ??
+                'solo',
+            sourceType: extra['sourceType']?.toString() ??
+                extra['source_type']?.toString() ??
+                'text',
+            sourceDocumentId: extra['sourceDocumentId']?.toString() ??
+                extra['source_document_id']?.toString() ??
+                '',
+            courseId: extra['courseId']?.toString() ??
+                extra['course_id']?.toString() ??
+                '',
+            courseName: extra['courseName']?.toString() ??
+                extra['course_name']?.toString() ??
+                '',
+            unitId: extra['unitId']?.toString() ??
+                extra['unit_id']?.toString() ??
+                '',
+            unitTopic: extra['unitTopic']?.toString() ??
+                extra['unit_topic']?.toString() ??
+                '',
+            initialTitle: extra['initialTitle']?.toString() ?? '',
+            initialText: extra['initialText']?.toString() ?? '',
+          ),
+        );
+      },
+    ),
+    GoRoute(
       path: '/dashboard',
       name: 'dashboard',
       pageBuilder: (context, state) {
         return _buildPage(
           state: state,
           child: const DashboardScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/student-dashboard',
+      name: 'studentDashboard',
+      pageBuilder: (context, state) {
+        return _buildPage(
+          state: state,
+          child: const StudentDashboardScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/voice-tutor',
+      name: 'voiceTutor',
+      pageBuilder: (context, state) {
+        final extra = state.extra is Map
+            ? Map<String, dynamic>.from(state.extra as Map)
+            : <String, dynamic>{};
+
+        return _buildPage(
+          state: state,
+          child: VoiceTutorScreen(
+            audiobookId: extra['audiobookId']?.toString() ??
+                extra['audiobook_id']?.toString() ??
+                '',
+            chapterId: extra['chapterId']?.toString() ??
+                extra['chapter_id']?.toString() ??
+                '',
+            title: extra['title']?.toString() ?? '',
+            sessionId: extra['sessionId']?.toString() ??
+                extra['session_id']?.toString() ??
+                '',
+            payload: extra,
+          ),
         );
       },
     ),
@@ -214,6 +292,36 @@ final appRouter = GoRouter(
           child: TeachingPlanScreen(
             documentId: documentId,
             initialPlan: initialPlan,
+          ),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/unit-workspace',
+      name: 'unitWorkspace',
+      pageBuilder: (context, state) {
+        final extra = state.extra is Map
+            ? Map<String, dynamic>.from(state.extra as Map)
+            : <String, dynamic>{};
+        final plan = extra['plan'] is Map
+            ? Map<String, dynamic>.from(extra['plan'] as Map)
+            : <String, dynamic>{};
+        final week = extra['week'] is Map
+            ? Map<String, dynamic>.from(extra['week'] as Map)
+            : <String, dynamic>{};
+        final rawWeekIndex = extra['weekIndex'];
+        final weekIndex = rawWeekIndex is int
+            ? rawWeekIndex
+            : int.tryParse(rawWeekIndex?.toString() ?? '') ?? 0;
+
+        return _buildPage(
+          state: state,
+          child: UnitWorkspaceScreen(
+            teachingPlanDocumentId:
+                extra['teachingPlanDocumentId']?.toString() ?? '',
+            plan: plan,
+            week: week,
+            weekIndex: weekIndex,
           ),
         );
       },
