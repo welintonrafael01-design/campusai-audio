@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../layout/responsive_layout.dart';
+import '../services/api_service.dart';
+import '../services/audio_player_service.dart';
 import '../services/voice_intelligence/ai_coach_service.dart';
 import '../services/voice_intelligence/voice_context_service.dart';
 import '../services/voice_intelligence/voice_memory_service.dart';
 import '../services/voice_intelligence/voice_models.dart';
 import '../services/voice_intelligence/voice_session_service.dart';
+import '../services/voice_intelligence/voice_tts_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
 
@@ -34,11 +37,14 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
   final contextService = const VoiceContextService();
   final memoryService = const VoiceMemoryService();
   final coachService = const AiCoachService();
+  final voiceTtsService = const VoiceTtsService();
+  final audioPlayerService = AudioPlayerService();
   final messageController = TextEditingController();
 
   bool isLoading = true;
   bool isSending = false;
   String errorMessage = '';
+  final Set<String> generatingAudioMessageIds = {};
 
   VoiceSession session = VoiceSession.empty();
   VoiceContext voiceContext = VoiceContext.empty;
@@ -55,6 +61,7 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
   @override
   void dispose() {
     messageController.dispose();
+    audioPlayerService.dispose();
     super.dispose();
   }
 
@@ -175,6 +182,101 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
     }
   }
 
+  Future<void> generateAudioForAssistantMessage(VoiceMessage message) async {
+    if (message.role != 'assistant') return;
+    if (generatingAudioMessageIds.contains(message.messageId)) return;
+
+    setState(() {
+      generatingAudioMessageIds.add(message.messageId);
+    });
+
+    try {
+      final updatedMessage = await voiceTtsService.generateAudioForMessage(
+        message: message,
+        voiceProfile: 'standard',
+        language: 'es',
+      );
+
+      final updatedSession = _sessionWithMessage(updatedMessage);
+      await sessionService.saveSession(updatedSession);
+
+      if (!mounted) return;
+
+      setState(() {
+        session = updatedSession;
+        messages = _replaceMessage(messages, updatedMessage);
+        generatingAudioMessageIds.remove(message.messageId);
+      });
+
+      if (!voiceTtsService.hasAudio(updatedMessage)) {
+        _showSnackBar('No se pudo generar audio para esta respuesta.');
+      }
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        generatingAudioMessageIds.remove(message.messageId);
+      });
+      _showSnackBar('No se pudo generar audio para esta respuesta.');
+    }
+  }
+
+  Future<void> playAssistantAudio(VoiceMessage message) async {
+    final audioUrl = voiceTtsService.audioUrl(message);
+    if (audioUrl.isEmpty) {
+      _showSnackBar('Esta respuesta todavía no tiene audio.');
+      return;
+    }
+
+    try {
+      await audioPlayerService.play(ApiService.buildAudioUrl(audioUrl));
+    } catch (_) {
+      if (!mounted) return;
+
+      _showSnackBar(
+        'No se pudo reproducir el audio. Puedes leer la respuesta en pantalla.',
+      );
+    }
+  }
+
+  VoiceSession _sessionWithMessage(VoiceMessage updatedMessage) {
+    final sessionMessages = _replaceMessage(session.messages, updatedMessage);
+    final exists = session.messages.any(
+      (message) => message.messageId == updatedMessage.messageId,
+    );
+
+    return session.copyWith(
+      updatedAt: DateTime.now(),
+      messages:
+          exists ? sessionMessages : [...session.messages, updatedMessage],
+    );
+  }
+
+  List<VoiceMessage> _replaceMessage(
+    List<VoiceMessage> source,
+    VoiceMessage updatedMessage,
+  ) {
+    var replaced = false;
+    final updated = source.map((message) {
+      if (message.messageId != updatedMessage.messageId) return message;
+      replaced = true;
+      return updatedMessage;
+    }).toList();
+
+    return replaced ? updated : [...source, updatedMessage];
+  }
+
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isMobile = ResponsiveLayout.isMobile(context);
@@ -206,7 +308,17 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
                                   _ErrorCard(message: errorMessage),
                                 ],
                                 const SizedBox(height: 16),
-                                _MessageList(messages: messages),
+                                _MessageList(
+                                  messages: messages,
+                                  generatingAudioMessageIds:
+                                      generatingAudioMessageIds,
+                                  hasAudio: voiceTtsService.hasAudio,
+                                  durationSeconds:
+                                      voiceTtsService.durationSeconds,
+                                  onGenerateAudio:
+                                      generateAudioForAssistantMessage,
+                                  onPlayAudio: playAssistantAudio,
+                                ),
                                 if (suggestions.isNotEmpty ||
                                     followUpQuestions.isNotEmpty) ...[
                                   const SizedBox(height: 16),
@@ -292,7 +404,7 @@ class _ContextHeader extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           const Text(
-            'MVP textual. TODO v2: capturar voz, STT, leer respuesta con TTS, interrupciones y streaming.',
+            'TODO Voice Intelligence 3.0: STT, botón micrófono, transcripción, conversación por voz, interrupciones y streaming.',
             style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
           ),
         ],
@@ -314,9 +426,9 @@ class _QuickActions extends StatelessWidget {
         runSpacing: 10,
         children: [
           _ActionButton(
-            label: 'Explícame',
+            label: 'Explícame mejor',
             mode: 'explain',
-            text: 'Explícame este capítulo paso a paso.',
+            text: 'Explícame mejor este capítulo paso a paso.',
             onAction: onAction,
           ),
           _ActionButton(
@@ -341,6 +453,12 @@ class _QuickActions extends StatelessWidget {
             label: 'Motívame',
             mode: 'motivate',
             text: 'Motívame para continuar estudiando.',
+            onAction: onAction,
+          ),
+          _ActionButton(
+            label: 'Evalúame oralmente próximamente',
+            mode: 'quiz',
+            text: 'Prepárame una evaluación oral para practicar próximamente.',
             onAction: onAction,
           ),
         ],
@@ -373,8 +491,20 @@ class _ActionButton extends StatelessWidget {
 
 class _MessageList extends StatelessWidget {
   final List<VoiceMessage> messages;
+  final Set<String> generatingAudioMessageIds;
+  final bool Function(VoiceMessage message) hasAudio;
+  final int Function(VoiceMessage message) durationSeconds;
+  final ValueChanged<VoiceMessage> onGenerateAudio;
+  final ValueChanged<VoiceMessage> onPlayAudio;
 
-  const _MessageList({required this.messages});
+  const _MessageList({
+    required this.messages,
+    required this.generatingAudioMessageIds,
+    required this.hasAudio,
+    required this.durationSeconds,
+    required this.onGenerateAudio,
+    required this.onPlayAudio,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -392,7 +522,15 @@ class _MessageList extends StatelessWidget {
         for (final message in messages)
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
-            child: _MessageBubble(message: message),
+            child: _MessageBubble(
+              message: message,
+              isGeneratingAudio:
+                  generatingAudioMessageIds.contains(message.messageId),
+              hasAudio: hasAudio(message),
+              durationSeconds: durationSeconds(message),
+              onGenerateAudio: () => onGenerateAudio(message),
+              onPlayAudio: () => onPlayAudio(message),
+            ),
           ),
       ],
     );
@@ -401,12 +539,26 @@ class _MessageList extends StatelessWidget {
 
 class _MessageBubble extends StatelessWidget {
   final VoiceMessage message;
+  final bool isGeneratingAudio;
+  final bool hasAudio;
+  final int durationSeconds;
+  final VoidCallback onGenerateAudio;
+  final VoidCallback onPlayAudio;
 
-  const _MessageBubble({required this.message});
+  const _MessageBubble({
+    required this.message,
+    required this.isGeneratingAudio,
+    required this.hasAudio,
+    required this.durationSeconds,
+    required this.onGenerateAudio,
+    required this.onPlayAudio,
+  });
 
   @override
   Widget build(BuildContext context) {
     final isUser = message.role == 'user';
+    final suggestions = _stringList(message.metadata['suggestions']);
+    final followUps = _stringList(message.metadata['follow_up_questions']);
 
     return Align(
       alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
@@ -442,10 +594,109 @@ class _MessageBubble extends StatelessWidget {
                     height: 1.4,
                   ),
                 ),
+                if (!isUser) ...[
+                  if (suggestions.isNotEmpty || followUps.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    _InlinePromptGroup(
+                      title: 'Sugerencias',
+                      values: suggestions,
+                    ),
+                    _InlinePromptGroup(
+                      title: 'Preguntas de seguimiento',
+                      values: followUps,
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      if (hasAudio)
+                        Chip(
+                          label: Text(
+                            durationSeconds > 0
+                                ? 'Audio listo · ${durationSeconds}s'
+                                : 'Audio listo',
+                          ),
+                        )
+                      else
+                        const Chip(label: Text('Audio pendiente')),
+                      OutlinedButton.icon(
+                        onPressed: isGeneratingAudio ? null : onGenerateAudio,
+                        icon: isGeneratingAudio
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.graphic_eq_rounded),
+                        label: Text(
+                          isGeneratingAudio
+                              ? 'Generando audio...'
+                              : 'Generar audio',
+                        ),
+                      ),
+                      if (hasAudio)
+                        FilledButton.icon(
+                          onPressed: onPlayAudio,
+                          icon: const Icon(Icons.play_arrow_rounded),
+                          label: const Text('Escuchar'),
+                        ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _InlinePromptGroup extends StatelessWidget {
+  final String title;
+  final List<String> values;
+
+  const _InlinePromptGroup({
+    required this.title,
+    required this.values,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (values.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: AppTheme.textSecondary,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final value in values.take(3))
+                Chip(
+                  label: Text(value),
+                  backgroundColor: AppTheme.primary.withValues(alpha: 0.10),
+                  side: BorderSide(
+                    color: AppTheme.primary.withValues(alpha: 0.14),
+                  ),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -566,4 +817,16 @@ class _ErrorCard extends StatelessWidget {
       ),
     );
   }
+}
+
+List<String> _stringList(dynamic raw) {
+  if (raw is List) {
+    return raw
+        .map((item) => item?.toString().trim() ?? '')
+        .where((item) => item.isNotEmpty)
+        .toList();
+  }
+
+  final text = raw?.toString().trim() ?? '';
+  return text.isEmpty ? <String>[] : <String>[text];
 }
