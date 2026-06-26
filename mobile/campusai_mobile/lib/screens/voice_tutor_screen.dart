@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../layout/responsive_layout.dart';
 import '../services/api_service.dart';
 import '../services/audio_player_service.dart';
+import '../services/learning_engine/learning_session_service.dart';
 import '../services/voice_intelligence/ai_coach_service.dart';
+import '../services/voice_intelligence/voice_conversation_service.dart';
 import '../services/voice_intelligence/voice_context_service.dart';
 import '../services/voice_intelligence/voice_memory_service.dart';
 import '../services/voice_intelligence/voice_models.dart';
@@ -38,16 +42,21 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
   final memoryService = const VoiceMemoryService();
   final coachService = const AiCoachService();
   final voiceTtsService = const VoiceTtsService();
+  final conversationService = VoiceConversationService();
+  final learningSessionService = const LearningSessionService();
   final audioPlayerService = AudioPlayerService();
   final messageController = TextEditingController();
 
   bool isLoading = true;
   bool isSending = false;
+  bool isProcessingVoiceInput = false;
   String errorMessage = '';
+  String lastHandledVoiceText = '';
   final Set<String> generatingAudioMessageIds = {};
 
   VoiceSession session = VoiceSession.empty();
   VoiceContext voiceContext = VoiceContext.empty;
+  VoiceConversationState conversationState = VoiceConversationState.idleState;
   List<VoiceMessage> messages = [];
   List<String> suggestions = const [];
   List<String> followUpQuestions = const [];
@@ -60,6 +69,11 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
 
   @override
   void dispose() {
+    unawaited(
+      conversationService.cancelListening(
+        onStateChanged: (_) {},
+      ),
+    );
     messageController.dispose();
     audioPlayerService.dispose();
     super.dispose();
@@ -124,16 +138,24 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
   Future<void> sendMessage({
     String? text,
     String mode = 'general',
+    String inputMode = 'text',
+    Map<String, dynamic> metadata = const {},
+    bool autoGenerateAudio = false,
   }) async {
     final content = (text ?? messageController.text).trim();
     if (content.isEmpty || isSending) return;
 
     messageController.clear();
+    final processingStartedAt = DateTime.now();
 
     final userMessage = sessionService.createMessage(
       role: 'user',
       content: content,
-      metadata: {'mode': mode},
+      metadata: {
+        'mode': mode,
+        'input_mode': inputMode,
+        ...metadata,
+      },
     );
 
     setState(() {
@@ -156,7 +178,14 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
       final assistantMessage = sessionService.createMessage(
         role: 'assistant',
         content: response.text,
-        metadata: response.toJson(),
+        metadata: {
+          ...response.toJson(),
+          'input_mode': 'assistant',
+          'conversation_turn': metadata['conversation_turn'],
+          'processing_time':
+              DateTime.now().difference(processingStartedAt).inMilliseconds /
+                  1000,
+        },
       );
       final updatedSession = await sessionService.addMessage(
         session: userSession,
@@ -172,6 +201,22 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
         followUpQuestions = response.followUpQuestions;
         isSending = false;
       });
+
+      VoiceMessage finalAssistantMessage = assistantMessage;
+      if (autoGenerateAudio) {
+        final generated = await generateAudioForAssistantMessage(
+          assistantMessage,
+          autoPlay: true,
+        );
+        finalAssistantMessage = generated ?? assistantMessage;
+      }
+
+      if (inputMode == 'voice') {
+        await _registerVoiceLearningSession(
+          metadata: metadata,
+          assistantMessage: finalAssistantMessage,
+        );
+      }
     } catch (_) {
       if (!mounted) return;
 
@@ -182,9 +227,12 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
     }
   }
 
-  Future<void> generateAudioForAssistantMessage(VoiceMessage message) async {
-    if (message.role != 'assistant') return;
-    if (generatingAudioMessageIds.contains(message.messageId)) return;
+  Future<VoiceMessage?> generateAudioForAssistantMessage(
+    VoiceMessage message, {
+    bool autoPlay = false,
+  }) async {
+    if (message.role != 'assistant') return null;
+    if (generatingAudioMessageIds.contains(message.messageId)) return null;
 
     setState(() {
       generatingAudioMessageIds.add(message.messageId);
@@ -200,7 +248,7 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
       final updatedSession = _sessionWithMessage(updatedMessage);
       await sessionService.saveSession(updatedSession);
 
-      if (!mounted) return;
+      if (!mounted) return null;
 
       setState(() {
         session = updatedSession;
@@ -210,14 +258,22 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
 
       if (!voiceTtsService.hasAudio(updatedMessage)) {
         _showSnackBar('No se pudo generar audio para esta respuesta.');
+        return updatedMessage;
       }
+
+      if (autoPlay) {
+        await playAssistantAudio(updatedMessage);
+      }
+
+      return updatedMessage;
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted) return null;
 
       setState(() {
         generatingAudioMessageIds.remove(message.messageId);
       });
       _showSnackBar('No se pudo generar audio para esta respuesta.');
+      return null;
     }
   }
 
@@ -277,6 +333,124 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
     );
   }
 
+  Future<void> startVoiceTurn() async {
+    if (isSending || isProcessingVoiceInput) return;
+
+    lastHandledVoiceText = '';
+    await conversationService.startListening(
+      onStateChanged: handleConversationState,
+    );
+  }
+
+  Future<void> stopVoiceTurn() async {
+    await conversationService.stopListening(
+      onStateChanged: handleConversationState,
+    );
+  }
+
+  Future<void> cancelVoiceTurn() async {
+    await conversationService.cancelListening(
+      onStateChanged: handleConversationState,
+    );
+    if (!mounted) return;
+
+    setState(() {
+      isProcessingVoiceInput = false;
+      lastHandledVoiceText = '';
+    });
+  }
+
+  void handleConversationState(VoiceConversationState state) {
+    if (!mounted) return;
+
+    setState(() {
+      conversationState = state;
+    });
+
+    if (state.status == VoiceConversationService.denied) {
+      _showSnackBar('Permiso de micrófono denegado.');
+      return;
+    }
+
+    if (state.status == VoiceConversationService.error) {
+      _showSnackBar(
+        state.errorMessage.trim().isEmpty
+            ? 'No se pudo iniciar el micrófono.'
+            : state.errorMessage,
+      );
+      return;
+    }
+
+    if (state.status != VoiceConversationService.processing) return;
+
+    final finalText = state.finalText.trim();
+    if (finalText.isEmpty) {
+      _showSnackBar('No se detectó una pregunta clara.');
+      return;
+    }
+    if (finalText == lastHandledVoiceText) return;
+
+    lastHandledVoiceText = finalText;
+    unawaited(sendVoiceTurn(state));
+  }
+
+  Future<void> sendVoiceTurn(VoiceConversationState state) async {
+    if (!mounted) return;
+
+    setState(() {
+      isProcessingVoiceInput = true;
+    });
+
+    final turn = messages.where((message) => message.role == 'user').length + 1;
+
+    await sendMessage(
+      text: state.finalText,
+      mode: 'general',
+      inputMode: 'voice',
+      autoGenerateAudio: true,
+      metadata: {
+        'speech_duration': state.durationSeconds,
+        'mic_language': 'es_ES',
+        'conversation_turn': turn,
+      },
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      isProcessingVoiceInput = false;
+      conversationState = VoiceConversationState.idleState.copyWith(
+        finalText: state.finalText,
+        durationSeconds: state.durationSeconds,
+        startedAt: state.startedAt,
+        endedAt: state.endedAt,
+      );
+    });
+  }
+
+  Future<void> _registerVoiceLearningSession({
+    required Map<String, dynamic> metadata,
+    required VoiceMessage assistantMessage,
+  }) async {
+    final audiobookId = voiceContext.audiobookId.trim();
+    final chapterId = voiceContext.chapterId.trim();
+    if (audiobookId.isEmpty || chapterId.isEmpty) return;
+
+    final speechDuration = _intFrom(metadata['speech_duration']);
+    final ttsDuration = voiceTtsService.durationSeconds(assistantMessage);
+    final totalDuration = speechDuration + ttsDuration;
+
+    try {
+      await learningSessionService.saveSession(
+        audiobookId: audiobookId,
+        chapterId: chapterId,
+        durationSeconds: totalDuration <= 0 ? 1 : totalDuration,
+      );
+    } catch (_) {
+      // TODO Voice Intelligence 4.0: registrar analítica avanzada del tutor.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isMobile = ResponsiveLayout.isMobile(context);
@@ -303,6 +477,14 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
                                 _ContextHeader(context: voiceContext),
                                 const SizedBox(height: 16),
                                 _QuickActions(onAction: sendMessage),
+                                const SizedBox(height: 16),
+                                _VoiceInputPanel(
+                                  state: conversationState,
+                                  isBusy: isSending || isProcessingVoiceInput,
+                                  onStart: startVoiceTurn,
+                                  onStop: stopVoiceTurn,
+                                  onCancel: cancelVoiceTurn,
+                                ),
                                 if (errorMessage.isNotEmpty) ...[
                                   const SizedBox(height: 16),
                                   _ErrorCard(message: errorMessage),
@@ -486,6 +668,167 @@ class _ActionButton extends StatelessWidget {
       onPressed: () => onAction(text: text, mode: mode),
       child: Text(label),
     );
+  }
+}
+
+class _VoiceInputPanel extends StatelessWidget {
+  final VoiceConversationState state;
+  final bool isBusy;
+  final VoidCallback onStart;
+  final VoidCallback onStop;
+  final VoidCallback onCancel;
+
+  const _VoiceInputPanel({
+    required this.state,
+    required this.isBusy,
+    required this.onStart,
+    required this.onStop,
+    required this.onCancel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isListening = state.status == VoiceConversationService.listening;
+    final isProcessing = state.status == VoiceConversationService.processing;
+    final isDenied = state.status == VoiceConversationService.denied;
+    final isError = state.status == VoiceConversationService.error;
+    final label = _statusLabel(state.status);
+    final transcript = state.partialText.trim().isNotEmpty
+        ? state.partialText
+        : state.finalText.trim();
+
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                width: 58,
+                height: 58,
+                decoration: BoxDecoration(
+                  color: (isListening ? AppTheme.danger : AppTheme.primary)
+                      .withValues(alpha: isListening ? 0.22 : 0.14),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isListening ? AppTheme.danger : AppTheme.primary,
+                    width: isListening ? 2 : 1,
+                  ),
+                ),
+                child: Icon(
+                  isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
+                  color: isListening ? AppTheme.danger : AppTheme.accent,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        color: AppTheme.textPrimary,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isDenied
+                          ? 'Activa el permiso del micrófono para preguntar por voz.'
+                          : isError
+                              ? state.errorMessage
+                              : 'Micrófono por turnos: habla, detén y el tutor responderá con audio.',
+                      style: const TextStyle(
+                        color: AppTheme.textMuted,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (transcript.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: AppTheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.08),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.record_voice_over_rounded,
+                      color: AppTheme.accent,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        transcript,
+                        style: const TextStyle(
+                          color: AppTheme.textPrimary,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              FilledButton.icon(
+                onPressed:
+                    isBusy || isListening || isProcessing ? null : onStart,
+                icon: const Icon(Icons.mic_rounded),
+                label: const Text('Preguntar por voz'),
+              ),
+              OutlinedButton.icon(
+                onPressed: isListening ? onStop : null,
+                icon: const Icon(Icons.stop_rounded),
+                label: const Text('Detener'),
+              ),
+              OutlinedButton.icon(
+                onPressed: isListening || isProcessing ? onCancel : null,
+                icon: const Icon(Icons.close_rounded),
+                label: const Text('Cancelar'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _statusLabel(String status) {
+    switch (status) {
+      case VoiceConversationService.requestingPermission:
+        return 'Solicitando permiso...';
+      case VoiceConversationService.listening:
+        return 'Escuchando...';
+      case VoiceConversationService.processing:
+        return 'Procesando...';
+      case VoiceConversationService.denied:
+        return 'Permiso denegado';
+      case VoiceConversationService.error:
+        return 'Error';
+      default:
+        return 'Listo';
+    }
   }
 }
 
@@ -829,4 +1172,9 @@ List<String> _stringList(dynamic raw) {
 
   final text = raw?.toString().trim() ?? '';
   return text.isEmpty ? <String>[] : <String>[text];
+}
+
+int _intFrom(dynamic value) {
+  if (value is num) return value.round();
+  return int.tryParse(value?.toString() ?? '') ?? 0;
 }

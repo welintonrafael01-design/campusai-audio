@@ -2349,7 +2349,7 @@ class _AudioBookChapterCard extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: onVoiceTutor,
                 icon: const Icon(Icons.record_voice_over_rounded),
-                label: const Text('Tutor IA'),
+                label: const Text('Preguntar por voz'),
               ),
             ],
           ),

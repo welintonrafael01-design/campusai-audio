@@ -27,6 +27,7 @@ class VoiceTtsService {
       ...message.metadata,
       'audio_url': audioUrl,
       'duration_seconds': durationSeconds,
+      'tts_duration': durationSeconds,
       'voice_profile': voiceProfile,
       'language': language,
       'tts_generated_at': DateTime.now().toIso8601String(),
