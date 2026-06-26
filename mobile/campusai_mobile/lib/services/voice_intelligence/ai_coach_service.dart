@@ -110,6 +110,15 @@ class AiCoachService {
   Map<String, dynamic> _safeContext(VoiceContext context) {
     return {
       ...context.toJson(),
+      'audiobookTitle': context.audiobookTitle,
+      'chapterTitle': context.chapterTitle,
+      'chapterSummary': _limit(context.chapterSummary, 600),
+      'learningPackSummary': _limit(context.learningPackSummary, 600),
+      'keyConcepts': context.keyConcepts.take(6).toList(),
+      'recommendedNextAction': _limit(context.recommendedNextAction, 160),
+      'academicRisk': context.academicRisk,
+      'campusWeaknesses': context.campusWeaknesses.take(4).toList(),
+      'adaptivePlanSummary': context.adaptivePlanSummary.take(4).toList(),
       'transcript': _limit(context.transcript, 1200),
       'flashcards': context.flashcards.take(5).toList(),
       'mini_quiz': context.miniQuiz.take(5).toList(),

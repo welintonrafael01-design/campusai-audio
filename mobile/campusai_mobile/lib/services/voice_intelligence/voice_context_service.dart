@@ -1,5 +1,6 @@
 import '../audiobook_progress_service.dart';
 import '../audiobook_service.dart';
+import '../campus_intelligence/campus_intelligence_service.dart';
 import '../learning_engine/learning_analytics_service.dart';
 import '../learning_engine/learning_progress_service.dart';
 import '../learning_engine/recommendation_engine.dart';
@@ -14,6 +15,7 @@ class VoiceContextService {
   final LearningAnalyticsService analyticsService;
   final RecommendationEngine recommendationEngine;
   final StudentIntelligenceService intelligenceService;
+  final CampusIntelligenceService campusIntelligenceService;
 
   const VoiceContextService({
     this.audiobookService = const AudiobookService(),
@@ -22,6 +24,7 @@ class VoiceContextService {
     this.analyticsService = const LearningAnalyticsService(),
     this.recommendationEngine = const RecommendationEngine(),
     this.intelligenceService = const StudentIntelligenceService(),
+    this.campusIntelligenceService = const CampusIntelligenceService(),
   });
 
   Future<VoiceContext> buildContext({
@@ -59,6 +62,7 @@ class VoiceContextService {
       final recommendations =
           await recommendationEngine.generateRecommendations();
       final intelligence = await intelligenceService.analyzeStudent();
+      final campusSnapshot = await campusIntelligenceService.buildSnapshot();
 
       // Touch analytics/progress services here so callers get one contextual API.
       await analyticsService.buildAnalytics();
@@ -115,6 +119,16 @@ class VoiceContextService {
         mastery: _intFrom(learningProgress['mastery_percentage']),
         recommendations:
             recommendations.map((item) => item.title).take(5).toList(),
+        recommendedNextAction: _limit(
+          campusSnapshot.recommendedNextAction,
+          160,
+        ),
+        academicRisk: campusSnapshot.academicRisk,
+        campusWeaknesses: campusSnapshot.weaknesses.take(4).toList(),
+        adaptivePlanSummary: campusSnapshot.adaptivePlan
+            .map((item) => item.title)
+            .take(4)
+            .toList(),
       );
     } catch (_) {
       return VoiceContext.empty;

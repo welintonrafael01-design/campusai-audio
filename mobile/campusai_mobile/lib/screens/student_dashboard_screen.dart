@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../layout/responsive_layout.dart';
+import '../services/campus_intelligence/campus_intelligence_models.dart';
+import '../services/campus_intelligence/campus_intelligence_service.dart';
 import '../services/learning_engine/achievement_service.dart';
 import '../services/learning_engine/learning_analytics_service.dart';
 import '../services/learning_engine/learning_models.dart';
@@ -26,6 +28,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   final achievementService = const AchievementService();
   final intelligenceService = const StudentIntelligenceService();
   final sessionService = const LearningSessionService();
+  final campusIntelligenceService = const CampusIntelligenceService();
 
   bool isLoading = true;
   String errorMessage = '';
@@ -36,6 +39,8 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   List<LearningRecommendation> recommendations = [];
   List<Achievement> achievements = [];
   StudentIntelligence intelligence = StudentIntelligence.empty;
+  CampusIntelligenceSnapshot campusSnapshot =
+      CampusIntelligenceSnapshot.empty();
   List<Map<String, dynamic>> recentSessions = [];
 
   @override
@@ -59,6 +64,8 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
       final loadedAchievements = await achievementService.getAchievements();
       final loadedIntelligence = await intelligenceService.analyzeStudent();
       final loadedSessions = await sessionService.getSessions();
+      final loadedCampusSnapshot =
+          await campusIntelligenceService.buildSnapshot();
 
       if (!mounted) return;
 
@@ -69,6 +76,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         recommendations = loadedRecommendations;
         achievements = loadedAchievements;
         intelligence = loadedIntelligence;
+        campusSnapshot = loadedCampusSnapshot;
         recentSessions = loadedSessions.take(6).toList();
         isLoading = false;
       });
@@ -124,6 +132,8 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                           ),
                           const SizedBox(height: 18),
                           _MetricsGrid(analytics: analytics),
+                          const SizedBox(height: 18),
+                          _CampusIntelligenceCard(snapshot: campusSnapshot),
                           const SizedBox(height: 18),
                           _ResponsivePair(
                             left: _StreakCard(streak: streak),
@@ -363,6 +373,59 @@ class _MetricCard extends StatelessWidget {
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CampusIntelligenceCard extends StatelessWidget {
+  final CampusIntelligenceSnapshot snapshot;
+
+  const _CampusIntelligenceCard({required this.snapshot});
+
+  @override
+  Widget build(BuildContext context) {
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionTitle(
+            title: 'Inteligencia CampusAI',
+            icon: Icons.hub_rounded,
+            color: AppTheme.accent,
+          ),
+          const SizedBox(height: 14),
+          Text(
+            snapshot.recommendedNextAction,
+            style: const TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              Chip(label: Text('Riesgo: ${snapshot.academicRisk}')),
+              Chip(label: Text('Dominio: ${snapshot.masteryScore}%')),
+              Chip(label: Text('Engagement: ${snapshot.engagementScore}%')),
+              Chip(label: Text('Score: ${snapshot.studentScore}%')),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (snapshot.alerts.isEmpty)
+            const Text(
+              'Sin alertas críticas.',
+              style: TextStyle(color: AppTheme.textMuted),
+            )
+          else
+            _ChipGroup(
+              title: 'Alertas principales',
+              values: snapshot.alerts.take(3).toList(),
+            ),
         ],
       ),
     );

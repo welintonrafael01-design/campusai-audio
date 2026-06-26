@@ -137,6 +137,10 @@ class VoiceContext {
   final List<String> competencies;
   final int mastery;
   final List<String> recommendations;
+  final String recommendedNextAction;
+  final String academicRisk;
+  final List<String> campusWeaknesses;
+  final List<String> adaptivePlanSummary;
 
   const VoiceContext({
     this.audiobookId = '',
@@ -152,6 +156,10 @@ class VoiceContext {
     this.competencies = const [],
     this.mastery = 0,
     this.recommendations = const [],
+    this.recommendedNextAction = '',
+    this.academicRisk = 'Sin datos',
+    this.campusWeaknesses = const [],
+    this.adaptivePlanSummary = const [],
   });
 
   static const empty = VoiceContext();
@@ -171,6 +179,10 @@ class VoiceContext {
       competencies: _stringList(json['competencies']),
       mastery: _intFrom(json['mastery']),
       recommendations: _stringList(json['recommendations']),
+      recommendedNextAction: json['recommended_next_action']?.toString() ?? '',
+      academicRisk: json['academic_risk']?.toString() ?? 'Sin datos',
+      campusWeaknesses: _stringList(json['campus_weaknesses']),
+      adaptivePlanSummary: _stringList(json['adaptive_plan_summary']),
     );
   }
 
@@ -189,6 +201,10 @@ class VoiceContext {
       'competencies': competencies,
       'mastery': mastery,
       'recommendations': recommendations,
+      'recommended_next_action': recommendedNextAction,
+      'academic_risk': academicRisk,
+      'campus_weaknesses': campusWeaknesses,
+      'adaptive_plan_summary': adaptivePlanSummary,
     };
   }
 }
