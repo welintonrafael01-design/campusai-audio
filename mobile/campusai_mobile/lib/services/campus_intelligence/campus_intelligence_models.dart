@@ -348,6 +348,375 @@ class StudentTimelineItem {
   }
 }
 
+class AdaptiveStudyBlock {
+  final String blockId;
+  final String activityType;
+  final String title;
+  final String objective;
+  final int estimatedMinutes;
+  final int priority;
+  final String reason;
+  final String targetId;
+
+  const AdaptiveStudyBlock({
+    this.blockId = '',
+    this.activityType = 'review',
+    this.title = '',
+    this.objective = '',
+    this.estimatedMinutes = 10,
+    this.priority = 3,
+    this.reason = '',
+    this.targetId = '',
+  });
+
+  factory AdaptiveStudyBlock.fromJson(Map<String, dynamic> json) {
+    return AdaptiveStudyBlock(
+      blockId: json['block_id']?.toString() ?? '',
+      activityType: json['activity_type']?.toString() ?? 'review',
+      title: json['title']?.toString() ?? '',
+      objective: json['objective']?.toString() ?? '',
+      estimatedMinutes: _intFrom(json['estimated_minutes']),
+      priority: _intFrom(json['priority']),
+      reason: json['reason']?.toString() ?? '',
+      targetId: json['target_id']?.toString() ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'block_id': blockId,
+      'activity_type': activityType,
+      'title': title,
+      'objective': objective,
+      'estimated_minutes': estimatedMinutes,
+      'priority': priority,
+      'reason': reason,
+      'target_id': targetId,
+    };
+  }
+}
+
+class AdaptiveScheduleSlot {
+  final String slotId;
+  final DateTime recommendedAt;
+  final String activityType;
+  final String title;
+  final int durationMinutes;
+  final int priority;
+  final String reason;
+  final AdaptiveStudyBlock studyBlock;
+
+  const AdaptiveScheduleSlot({
+    this.slotId = '',
+    required this.recommendedAt,
+    this.activityType = 'review',
+    this.title = '',
+    this.durationMinutes = 10,
+    this.priority = 3,
+    this.reason = '',
+    this.studyBlock = const AdaptiveStudyBlock(),
+  });
+
+  factory AdaptiveScheduleSlot.fromJson(Map<String, dynamic> json) {
+    return AdaptiveScheduleSlot(
+      slotId: json['slot_id']?.toString() ?? '',
+      recommendedAt:
+          DateTime.tryParse(json['recommended_at']?.toString() ?? '') ??
+              DateTime.fromMillisecondsSinceEpoch(0),
+      activityType: json['activity_type']?.toString() ?? 'review',
+      title: json['title']?.toString() ?? '',
+      durationMinutes: _intFrom(json['duration_minutes']),
+      priority: _intFrom(json['priority']),
+      reason: json['reason']?.toString() ?? '',
+      studyBlock: AdaptiveStudyBlock.fromJson(_mapFrom(json['study_block'])),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'slot_id': slotId,
+      'recommended_at': recommendedAt.toIso8601String(),
+      'activity_type': activityType,
+      'title': title,
+      'duration_minutes': durationMinutes,
+      'priority': priority,
+      'reason': reason,
+      'study_block': studyBlock.toJson(),
+    };
+  }
+}
+
+class AdaptiveSchedule {
+  final DateTime generatedAt;
+  final String nextAction;
+  final String nextActivityType;
+  final int priority;
+  final int totalMinutes;
+  final String reason;
+  final List<AdaptiveScheduleSlot> slots;
+
+  const AdaptiveSchedule({
+    required this.generatedAt,
+    this.nextAction = 'Continúa con tu próxima actividad.',
+    this.nextActivityType = 'review',
+    this.priority = 3,
+    this.totalMinutes = 0,
+    this.reason = '',
+    this.slots = const [],
+  });
+
+  factory AdaptiveSchedule.empty() {
+    return AdaptiveSchedule(
+      generatedAt: DateTime.fromMillisecondsSinceEpoch(0),
+    );
+  }
+
+  factory AdaptiveSchedule.fromJson(Map<String, dynamic> json) {
+    return AdaptiveSchedule(
+      generatedAt: DateTime.tryParse(json['generated_at']?.toString() ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+      nextAction: json['next_action']?.toString() ??
+          'Continúa con tu próxima actividad.',
+      nextActivityType: json['next_activity_type']?.toString() ?? 'review',
+      priority: _intFrom(json['priority']),
+      totalMinutes: _intFrom(json['total_minutes']),
+      reason: json['reason']?.toString() ?? '',
+      slots: _mapList(json['slots'])
+          .map((item) => AdaptiveScheduleSlot.fromJson(item))
+          .toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'generated_at': generatedAt.toIso8601String(),
+      'next_action': nextAction,
+      'next_activity_type': nextActivityType,
+      'priority': priority,
+      'total_minutes': totalMinutes,
+      'reason': reason,
+      'slots': slots.map((item) => item.toJson()).toList(),
+    };
+  }
+}
+
+class SmartStudyDay {
+  final DateTime date;
+  final String goal;
+  final AdaptiveStudyBlock primaryActivity;
+  final AdaptiveStudyBlock secondaryActivity;
+  final int studyMinutes;
+  final int restMinutes;
+  final String summary;
+
+  const SmartStudyDay({
+    required this.date,
+    this.goal = '',
+    this.primaryActivity = const AdaptiveStudyBlock(),
+    this.secondaryActivity = const AdaptiveStudyBlock(),
+    this.studyMinutes = 0,
+    this.restMinutes = 5,
+    this.summary = '',
+  });
+
+  factory SmartStudyDay.fromJson(Map<String, dynamic> json) {
+    return SmartStudyDay(
+      date: DateTime.tryParse(json['date']?.toString() ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+      goal: json['goal']?.toString() ?? '',
+      primaryActivity:
+          AdaptiveStudyBlock.fromJson(_mapFrom(json['primary_activity'])),
+      secondaryActivity:
+          AdaptiveStudyBlock.fromJson(_mapFrom(json['secondary_activity'])),
+      studyMinutes: _intFrom(json['study_minutes']),
+      restMinutes: _intFrom(json['rest_minutes']),
+      summary: json['summary']?.toString() ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'date': date.toIso8601String(),
+      'goal': goal,
+      'primary_activity': primaryActivity.toJson(),
+      'secondary_activity': secondaryActivity.toJson(),
+      'study_minutes': studyMinutes,
+      'rest_minutes': restMinutes,
+      'summary': summary,
+    };
+  }
+}
+
+class SmartStudyPlan {
+  final DateTime generatedAt;
+  final String summary;
+  final String todayAction;
+  final int suggestedMinutes;
+  final String nextActivity;
+  final String reason;
+  final List<SmartStudyDay> days;
+
+  const SmartStudyPlan({
+    required this.generatedAt,
+    this.summary = '',
+    this.todayAction = 'Continúa con tu próxima actividad.',
+    this.suggestedMinutes = 0,
+    this.nextActivity = 'review',
+    this.reason = '',
+    this.days = const [],
+  });
+
+  factory SmartStudyPlan.empty() {
+    return SmartStudyPlan(
+      generatedAt: DateTime.fromMillisecondsSinceEpoch(0),
+    );
+  }
+
+  factory SmartStudyPlan.fromJson(Map<String, dynamic> json) {
+    return SmartStudyPlan(
+      generatedAt: DateTime.tryParse(json['generated_at']?.toString() ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+      summary: json['summary']?.toString() ?? '',
+      todayAction: json['today_action']?.toString() ??
+          'Continúa con tu próxima actividad.',
+      suggestedMinutes: _intFrom(json['suggested_minutes']),
+      nextActivity: json['next_activity']?.toString() ?? 'review',
+      reason: json['reason']?.toString() ?? '',
+      days: _mapList(json['days'])
+          .map((item) => SmartStudyDay.fromJson(item))
+          .toList(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'generated_at': generatedAt.toIso8601String(),
+      'summary': summary,
+      'today_action': todayAction,
+      'suggested_minutes': suggestedMinutes,
+      'next_activity': nextActivity,
+      'reason': reason,
+      'days': days.map((item) => item.toJson()).toList(),
+    };
+  }
+}
+
+class AdaptiveRecommendation {
+  final String recommendationId;
+  final String type;
+  final String title;
+  final String description;
+  final int priority;
+  final String reason;
+  final int estimatedMinutes;
+  final String targetId;
+
+  const AdaptiveRecommendation({
+    this.recommendationId = '',
+    this.type = 'continue',
+    this.title = '',
+    this.description = '',
+    this.priority = 3,
+    this.reason = '',
+    this.estimatedMinutes = 10,
+    this.targetId = '',
+  });
+
+  factory AdaptiveRecommendation.fromJson(Map<String, dynamic> json) {
+    return AdaptiveRecommendation(
+      recommendationId: json['recommendation_id']?.toString() ?? '',
+      type: json['type']?.toString() ?? 'continue',
+      title: json['title']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      priority: _intFrom(json['priority']),
+      reason: json['reason']?.toString() ?? '',
+      estimatedMinutes: _intFrom(json['estimated_minutes']),
+      targetId: json['target_id']?.toString() ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'recommendation_id': recommendationId,
+      'type': type,
+      'title': title,
+      'description': description,
+      'priority': priority,
+      'reason': reason,
+      'estimated_minutes': estimatedMinutes,
+      'target_id': targetId,
+    };
+  }
+}
+
+class StudentEnterpriseAnalytics {
+  final DateTime generatedAt;
+  final int learningVelocity;
+  final int retentionScore;
+  final int effortScore;
+  final int consistencyScore;
+  final int voiceEngagement;
+  final int quizReliability;
+  final int masteryMomentum;
+  final String riskTrajectory;
+  final int predictedCompletionDays;
+  final int predictedSuccessProbability;
+
+  const StudentEnterpriseAnalytics({
+    required this.generatedAt,
+    this.learningVelocity = 0,
+    this.retentionScore = 0,
+    this.effortScore = 0,
+    this.consistencyScore = 0,
+    this.voiceEngagement = 0,
+    this.quizReliability = 0,
+    this.masteryMomentum = 0,
+    this.riskTrajectory = 'Sin datos',
+    this.predictedCompletionDays = 0,
+    this.predictedSuccessProbability = 0,
+  });
+
+  factory StudentEnterpriseAnalytics.empty() {
+    return StudentEnterpriseAnalytics(
+      generatedAt: DateTime.fromMillisecondsSinceEpoch(0),
+    );
+  }
+
+  factory StudentEnterpriseAnalytics.fromJson(Map<String, dynamic> json) {
+    return StudentEnterpriseAnalytics(
+      generatedAt: DateTime.tryParse(json['generated_at']?.toString() ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+      learningVelocity: _intFrom(json['learning_velocity']),
+      retentionScore: _intFrom(json['retention_score']),
+      effortScore: _intFrom(json['effort_score']),
+      consistencyScore: _intFrom(json['consistency_score']),
+      voiceEngagement: _intFrom(json['voice_engagement']),
+      quizReliability: _intFrom(json['quiz_reliability']),
+      masteryMomentum: _intFrom(json['mastery_momentum']),
+      riskTrajectory: json['risk_trajectory']?.toString() ?? 'Sin datos',
+      predictedCompletionDays: _intFrom(json['predicted_completion_days']),
+      predictedSuccessProbability:
+          _intFrom(json['predicted_success_probability']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'generated_at': generatedAt.toIso8601String(),
+      'learning_velocity': learningVelocity,
+      'retention_score': retentionScore,
+      'effort_score': effortScore,
+      'consistency_score': consistencyScore,
+      'voice_engagement': voiceEngagement,
+      'quiz_reliability': quizReliability,
+      'mastery_momentum': masteryMomentum,
+      'risk_trajectory': riskTrajectory,
+      'predicted_completion_days': predictedCompletionDays,
+      'predicted_success_probability': predictedSuccessProbability,
+    };
+  }
+}
+
 List<Map<String, dynamic>> _mapList(dynamic raw) {
   if (raw is! List) return <Map<String, dynamic>>[];
   return raw

@@ -8,12 +8,23 @@ import '../learning_engine/recommendation_engine.dart';
 import '../learning_engine/streak_service.dart';
 import '../learning_engine/student_intelligence_service.dart';
 import '../voice_intelligence/voice_session_service.dart';
+import '../gamification/gamification_service.dart';
+import '../institution/institution_service.dart';
+import '../marketplace/marketplace_service.dart';
 import 'adaptive_learning_service.dart';
 import 'campus_intelligence_models.dart';
 import 'campus_prediction_engine.dart';
 import 'campus_snapshot_repository.dart';
+import 'campus_trend_service.dart';
+import 'knowledge_map_service.dart';
+import 'learning_graph_enterprise_service.dart';
+import 'predictive_success_engine.dart';
+import 'productivity_service.dart';
+import 'smart_goals_engine.dart';
+import 'student_digital_twin_service.dart';
 import 'learning_graph_service.dart';
 import 'smart_notification_engine.dart';
+import 'student_timeline_service.dart';
 
 class CampusIntelligenceService {
   static const String snapshotType = CampusSnapshotRepository.snapshotType;
@@ -34,6 +45,17 @@ class CampusIntelligenceService {
   final AdaptiveLearningService adaptiveLearningService;
   final SmartNotificationEngine notificationEngine;
   final CampusSnapshotRepository snapshotRepository;
+  final CampusTrendService trendService;
+  final StudentTimelineService timelineService;
+  final LearningGraphEnterpriseService learningGraphEnterpriseService;
+  final KnowledgeMapService knowledgeMapService;
+  final SmartGoalsEngine smartGoalsEngine;
+  final ProductivityService productivityService;
+  final StudentDigitalTwinService digitalTwinService;
+  final PredictiveSuccessEngine predictiveSuccessEngine;
+  final GamificationService gamificationService;
+  final MarketplaceService marketplaceService;
+  final InstitutionService institutionService;
 
   const CampusIntelligenceService({
     this.analyticsService = const LearningAnalyticsService(),
@@ -50,6 +72,18 @@ class CampusIntelligenceService {
     this.adaptiveLearningService = const AdaptiveLearningService(),
     this.notificationEngine = const SmartNotificationEngine(),
     this.snapshotRepository = const CampusSnapshotRepository(),
+    this.trendService = const CampusTrendService(),
+    this.timelineService = const StudentTimelineService(),
+    this.learningGraphEnterpriseService =
+        const LearningGraphEnterpriseService(),
+    this.knowledgeMapService = const KnowledgeMapService(),
+    this.smartGoalsEngine = const SmartGoalsEngine(),
+    this.productivityService = const ProductivityService(),
+    this.digitalTwinService = const StudentDigitalTwinService(),
+    this.predictiveSuccessEngine = const PredictiveSuccessEngine(),
+    this.gamificationService = const GamificationService(),
+    this.marketplaceService = const MarketplaceService(),
+    this.institutionService = const InstitutionService(),
   });
 
   Future<CampusIntelligenceSnapshot> buildSnapshot() async {
@@ -65,6 +99,21 @@ class CampusIntelligenceService {
       final audiobookProgress = await audiobookProgressService.getAllProgress();
       final voiceSessions = await voiceSessionService.getSessions();
       final graph = await learningGraphService.buildGraph();
+      final trends = await trendService.buildTrends();
+      final timeline = await timelineService.buildTimeline(limit: 12);
+      final enterpriseRoadmap =
+          await learningGraphEnterpriseService.getLatestRoadmap();
+      final knowledgeMap = await knowledgeMapService.getLatestKnowledgeMap();
+      final studyGoals = await smartGoalsEngine.getLatestGoals();
+      final productivity = await productivityService.getLatestSnapshot();
+      final digitalTwin = await digitalTwinService.getLatestTwin();
+      final successPrediction =
+          await predictiveSuccessEngine.getLatestPrediction();
+      final gamification = await gamificationService.getLatestProfile() ??
+          await gamificationService.buildProfile();
+      final marketplace = await marketplaceService.buildCatalog();
+      final institution = await institutionService.getLatestDashboard() ??
+          await institutionService.buildDashboard();
       final predictions = predictionEngine.generatePredictions(
         analytics: analytics,
         streak: streak,
@@ -85,6 +134,9 @@ class CampusIntelligenceService {
         streak: streak,
         predictions: predictions,
         adaptivePlan: adaptivePlan,
+        trends: trends,
+        timeline: timeline,
+        achievements: achievements,
       );
 
       final engagementScore = _engagementScore(
@@ -115,12 +167,21 @@ class CampusIntelligenceService {
         ...achievements
             .where((achievement) => achievement.unlocked)
             .map((achievement) => achievement.title),
+        if (digitalTwin != null) ...digitalTwin.strengths,
+        ...gamification.badges
+            .where((badge) => badge.unlocked)
+            .map((badge) => badge.title),
       }.take(6).toList();
       final weaknesses = {
         ...intelligence.weaknesses,
         ...predictions
             .where((prediction) => prediction.severity == 'high')
             .map((prediction) => prediction.title),
+        if (knowledgeMap != null) ...knowledgeMap.tomorrowFocus,
+        if (digitalTwin != null) ...digitalTwin.weaknesses,
+        ...institution.alerts.map((alert) => alert.title),
+        if (marketplace.items.isEmpty)
+          'No hay recursos del Marketplace disponibles.',
       }.take(6).toList();
 
       final snapshot = CampusIntelligenceSnapshot(
@@ -132,9 +193,17 @@ class CampusIntelligenceService {
         consistencyScore: consistencyScore,
         recommendedNextAction: adaptivePlan.isNotEmpty
             ? adaptivePlan.first.title
-            : recommendations.isNotEmpty
-                ? recommendations.first.title
-                : 'Continúa con tu próxima actividad.',
+            : enterpriseRoadmap?.recommendations.isNotEmpty == true
+                ? enterpriseRoadmap!.recommendations.first.title
+                : studyGoals?.goals.isNotEmpty == true
+                    ? studyGoals!.goals.first.title
+                    : productivity?.efficiency.recommendation.isNotEmpty == true
+                        ? productivity!.efficiency.recommendation
+                        : successPrediction?.recommendation.isNotEmpty == true
+                            ? successPrediction!.recommendation
+                            : recommendations.isNotEmpty
+                                ? recommendations.first.title
+                                : 'Continúa con tu próxima actividad.',
         alerts: alerts,
         strengths: strengths,
         weaknesses: weaknesses,

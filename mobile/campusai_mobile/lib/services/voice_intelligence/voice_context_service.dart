@@ -1,8 +1,22 @@
 import '../audiobook_progress_service.dart';
 import '../audiobook_service.dart';
+import '../campus_intelligence/adaptive_scheduler_service.dart';
 import '../campus_intelligence/campus_intelligence_models.dart';
 import '../campus_intelligence/campus_intelligence_service.dart';
 import '../campus_intelligence/campus_trend_service.dart';
+import '../campus_intelligence/enterprise_intelligence_models.dart';
+import '../campus_intelligence/knowledge_map_service.dart';
+import '../campus_intelligence/learning_graph_enterprise_service.dart';
+import '../campus_intelligence/personal_ai_assistant_memory_service.dart';
+import '../campus_intelligence/predictive_success_engine.dart';
+import '../campus_intelligence/productivity_service.dart';
+import '../campus_intelligence/smart_study_planner_service.dart';
+import '../campus_intelligence/smart_goals_engine.dart';
+import '../campus_intelligence/student_analytics_enterprise_service.dart';
+import '../campus_intelligence/student_digital_twin_service.dart';
+import '../gamification/gamification_service.dart';
+import '../institution/institution_service.dart';
+import '../marketplace/marketplace_service.dart';
 import '../learning_engine/learning_analytics_service.dart';
 import '../learning_engine/learning_progress_service.dart';
 import '../learning_engine/recommendation_engine.dart';
@@ -19,6 +33,19 @@ class VoiceContextService {
   final StudentIntelligenceService intelligenceService;
   final CampusIntelligenceService campusIntelligenceService;
   final CampusTrendService campusTrendService;
+  final AdaptiveSchedulerService adaptiveSchedulerService;
+  final SmartStudyPlannerService smartStudyPlannerService;
+  final StudentAnalyticsEnterpriseService enterpriseAnalyticsService;
+  final LearningGraphEnterpriseService learningGraphEnterpriseService;
+  final KnowledgeMapService knowledgeMapService;
+  final SmartGoalsEngine smartGoalsEngine;
+  final ProductivityService productivityService;
+  final PersonalAiAssistantMemoryService assistantMemoryService;
+  final StudentDigitalTwinService digitalTwinService;
+  final PredictiveSuccessEngine predictiveSuccessEngine;
+  final GamificationService gamificationService;
+  final MarketplaceService marketplaceService;
+  final InstitutionService institutionService;
 
   const VoiceContextService({
     this.audiobookService = const AudiobookService(),
@@ -29,6 +56,20 @@ class VoiceContextService {
     this.intelligenceService = const StudentIntelligenceService(),
     this.campusIntelligenceService = const CampusIntelligenceService(),
     this.campusTrendService = const CampusTrendService(),
+    this.adaptiveSchedulerService = const AdaptiveSchedulerService(),
+    this.smartStudyPlannerService = const SmartStudyPlannerService(),
+    this.enterpriseAnalyticsService = const StudentAnalyticsEnterpriseService(),
+    this.learningGraphEnterpriseService =
+        const LearningGraphEnterpriseService(),
+    this.knowledgeMapService = const KnowledgeMapService(),
+    this.smartGoalsEngine = const SmartGoalsEngine(),
+    this.productivityService = const ProductivityService(),
+    this.assistantMemoryService = const PersonalAiAssistantMemoryService(),
+    this.digitalTwinService = const StudentDigitalTwinService(),
+    this.predictiveSuccessEngine = const PredictiveSuccessEngine(),
+    this.gamificationService = const GamificationService(),
+    this.marketplaceService = const MarketplaceService(),
+    this.institutionService = const InstitutionService(),
   });
 
   Future<VoiceContext> buildContext({
@@ -71,6 +112,37 @@ class VoiceContextService {
       final masteryTrend = _trendDescription(campusTrends, 'Dominio');
       final riskTrend = _trendDescription(campusTrends, 'Riesgo');
       final latestRelevantChange = _latestRelevantChange(campusTrends);
+      final adaptiveSchedule =
+          await adaptiveSchedulerService.buildSchedule(days: 3);
+      final smartStudyPlan = await smartStudyPlannerService.buildPlan(
+        days: 3,
+        schedule: adaptiveSchedule,
+      );
+      final enterpriseAnalytics =
+          await enterpriseAnalyticsService.buildAnalytics();
+      final learningRoadmap =
+          await learningGraphEnterpriseService.buildRoadmap();
+      final knowledgeMap = await knowledgeMapService.buildKnowledgeMap(
+        roadmap: learningRoadmap,
+      );
+      final goals = await smartGoalsEngine.buildGoals(
+        knowledgeMap: knowledgeMap,
+      );
+      final productivity = await productivityService.buildSnapshot();
+      final memory = await assistantMemoryService.buildMemory(
+        preferredStudyHours: _bestStudyHours(adaptiveSchedule),
+      );
+      final digitalTwin = await digitalTwinService.buildTwin(
+        productivity: productivity,
+      );
+      final prediction = await predictiveSuccessEngine.predict(
+        analytics: enterpriseAnalytics,
+        twin: digitalTwin,
+        goals: goals,
+      );
+      final gamification = await gamificationService.buildProfile();
+      final marketplace = await marketplaceService.buildCatalog();
+      final institution = await institutionService.buildDashboard();
 
       // Touch analytics/progress services here so callers get one contextual API.
       await analyticsService.buildAnalytics();
@@ -144,6 +216,38 @@ class VoiceContextService {
           campusSnapshot.recommendedNextAction,
           160,
         ),
+        adaptiveScheduleSummary: _limit(
+          _scheduleSummary(adaptiveSchedule),
+          220,
+        ),
+        smartStudyPlanSummary: _limit(smartStudyPlan.summary, 220),
+        enterpriseAnalyticsSummary: _limit(
+          _enterpriseSummary(enterpriseAnalytics),
+          220,
+        ),
+        bestStudyHours: _bestStudyHours(adaptiveSchedule),
+        priorityNextAction: _limit(
+          smartStudyPlan.todayAction.isNotEmpty
+              ? smartStudyPlan.todayAction
+              : adaptiveSchedule.nextAction,
+          160,
+        ),
+        knowledgeMapSummary: _limit(knowledgeMap.summary, 220),
+        digitalTwinSummary: _limit(_digitalTwinSummary(digitalTwin), 220),
+        goalsSummary: _limit(_goalsSummary(goals), 220),
+        productivitySummary: _limit(_productivitySummary(productivity), 220),
+        successPredictionSummary: _limit(_predictionSummary(prediction), 220),
+        learningRoadmapSummary: _limit(_roadmapSummary(learningRoadmap), 220),
+        assistantMemorySummary: _limit(_memorySummary(memory), 220),
+        gamificationSummary: _limit(
+            'Nivel ${gamification.level.number}, ${gamification.xp.total} XP, ${gamification.wallet.balance} coins.',
+            160),
+        marketplaceSummary: _limit(
+            '${marketplace.items.length} recursos disponibles para tu ruta.',
+            160),
+        institutionSummary: _limit(
+            'Progreso ${institution.metrics.progress}%, retención ${institution.metrics.retention}%, riesgo ${institution.metrics.risk}%.',
+            160),
       );
     } catch (_) {
       return VoiceContext.empty;
@@ -221,6 +325,53 @@ class VoiceContextService {
     return trends.isNotEmpty
         ? trends.first.description
         : 'Sin cambios longitudinales suficientes.';
+  }
+
+  String _scheduleSummary(AdaptiveSchedule schedule) {
+    if (schedule.generatedAt.millisecondsSinceEpoch <= 0) return '';
+    return '${schedule.nextAction} · ${schedule.nextActivityType} · '
+        '${schedule.reason}';
+  }
+
+  String _digitalTwinSummary(StudentDigitalTwin twin) =>
+      'Conocimiento ${twin.knowledgeScore}%, hábitos ${twin.habitScore}%, motivación ${twin.motivationScore}%, riesgo ${twin.risk}.';
+
+  String _goalsSummary(StudyGoals goals) => goals.goals.isEmpty
+      ? ''
+      : goals.goals
+          .take(2)
+          .map((goal) => '${goal.title}: ${goal.progress}%')
+          .join(' | ');
+
+  String _productivitySummary(ProductivitySnapshot productivity) =>
+      'Foco ${productivity.focus.score}%, deep work ${productivity.deepWork.deepWorkMinutes} min, eficiencia ${productivity.efficiency.score}%.';
+
+  String _predictionSummary(SuccessPrediction prediction) =>
+      'Aprobar ${prediction.passProbability}%, terminar ${prediction.courseCompletionProbability}%, riesgo de abandono ${prediction.dropoutRisk}%.';
+
+  String _roadmapSummary(LearningRoadmap roadmap) => roadmap.recommendations
+      .take(3)
+      .map((recommendation) => recommendation.title)
+      .join(' | ');
+
+  String _memorySummary(AssistantMemory memory) =>
+      'Estilo ${memory.learningStyle}; horario ${memory.preferredStudyHours.take(2).join(', ')}; dificultades ${memory.difficulties.take(2).join(', ')}.';
+
+  String _enterpriseSummary(StudentEnterpriseAnalytics analytics) {
+    if (analytics.generatedAt.millisecondsSinceEpoch <= 0) return '';
+    return 'Velocidad ${analytics.learningVelocity}%, '
+        'retención ${analytics.retentionScore}%, '
+        'consistencia ${analytics.consistencyScore}%, '
+        'éxito ${analytics.predictedSuccessProbability}%, '
+        'riesgo ${analytics.riskTrajectory}.';
+  }
+
+  List<String> _bestStudyHours(AdaptiveSchedule schedule) {
+    final hours = <String>{};
+    for (final slot in schedule.slots.take(6)) {
+      hours.add('${slot.recommendedAt.hour.toString().padLeft(2, '0')}:00');
+    }
+    return hours.take(3).toList();
   }
 
   Map<String, dynamic> _mapFrom(dynamic raw) {

@@ -145,6 +145,21 @@ class VoiceContext {
   final String riskTrend;
   final String latestRelevantChange;
   final String longitudinalRecommendation;
+  final String adaptiveScheduleSummary;
+  final String smartStudyPlanSummary;
+  final String enterpriseAnalyticsSummary;
+  final List<String> bestStudyHours;
+  final String priorityNextAction;
+  final String knowledgeMapSummary;
+  final String digitalTwinSummary;
+  final String goalsSummary;
+  final String productivitySummary;
+  final String successPredictionSummary;
+  final String learningRoadmapSummary;
+  final String assistantMemorySummary;
+  final String gamificationSummary;
+  final String marketplaceSummary;
+  final String institutionSummary;
 
   const VoiceContext({
     this.audiobookId = '',
@@ -168,6 +183,21 @@ class VoiceContext {
     this.riskTrend = '',
     this.latestRelevantChange = '',
     this.longitudinalRecommendation = '',
+    this.adaptiveScheduleSummary = '',
+    this.smartStudyPlanSummary = '',
+    this.enterpriseAnalyticsSummary = '',
+    this.bestStudyHours = const [],
+    this.priorityNextAction = '',
+    this.knowledgeMapSummary = '',
+    this.digitalTwinSummary = '',
+    this.goalsSummary = '',
+    this.productivitySummary = '',
+    this.successPredictionSummary = '',
+    this.learningRoadmapSummary = '',
+    this.assistantMemorySummary = '',
+    this.gamificationSummary = '',
+    this.marketplaceSummary = '',
+    this.institutionSummary = '',
   });
 
   static const empty = VoiceContext();
@@ -196,6 +226,26 @@ class VoiceContext {
       latestRelevantChange: json['latest_relevant_change']?.toString() ?? '',
       longitudinalRecommendation:
           json['longitudinal_recommendation']?.toString() ?? '',
+      adaptiveScheduleSummary:
+          json['adaptive_schedule_summary']?.toString() ?? '',
+      smartStudyPlanSummary: json['smart_study_plan_summary']?.toString() ?? '',
+      enterpriseAnalyticsSummary:
+          json['enterprise_analytics_summary']?.toString() ?? '',
+      bestStudyHours: _stringList(json['best_study_hours']),
+      priorityNextAction: json['priority_next_action']?.toString() ?? '',
+      knowledgeMapSummary: json['knowledge_map_summary']?.toString() ?? '',
+      digitalTwinSummary: json['digital_twin_summary']?.toString() ?? '',
+      goalsSummary: json['goals_summary']?.toString() ?? '',
+      productivitySummary: json['productivity_summary']?.toString() ?? '',
+      successPredictionSummary:
+          json['success_prediction_summary']?.toString() ?? '',
+      learningRoadmapSummary:
+          json['learning_roadmap_summary']?.toString() ?? '',
+      assistantMemorySummary:
+          json['assistant_memory_summary']?.toString() ?? '',
+      gamificationSummary: json['gamification_summary']?.toString() ?? '',
+      marketplaceSummary: json['marketplace_summary']?.toString() ?? '',
+      institutionSummary: json['institution_summary']?.toString() ?? '',
     );
   }
 
@@ -222,6 +272,21 @@ class VoiceContext {
       'risk_trend': riskTrend,
       'latest_relevant_change': latestRelevantChange,
       'longitudinal_recommendation': longitudinalRecommendation,
+      'adaptive_schedule_summary': adaptiveScheduleSummary,
+      'smart_study_plan_summary': smartStudyPlanSummary,
+      'enterprise_analytics_summary': enterpriseAnalyticsSummary,
+      'best_study_hours': bestStudyHours,
+      'priority_next_action': priorityNextAction,
+      'knowledge_map_summary': knowledgeMapSummary,
+      'digital_twin_summary': digitalTwinSummary,
+      'goals_summary': goalsSummary,
+      'productivity_summary': productivitySummary,
+      'success_prediction_summary': successPredictionSummary,
+      'learning_roadmap_summary': learningRoadmapSummary,
+      'assistant_memory_summary': assistantMemorySummary,
+      'gamification_summary': gamificationSummary,
+      'marketplace_summary': marketplaceSummary,
+      'institution_summary': institutionSummary,
     };
   }
 }

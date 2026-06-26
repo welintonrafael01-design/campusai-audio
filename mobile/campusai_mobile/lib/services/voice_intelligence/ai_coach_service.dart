@@ -63,7 +63,7 @@ class AiCoachService {
       'review' => _reviewResponse(title, summary, concepts),
       'motivate' => _motivateResponse(title, context.mastery),
       'explain' => _explainResponse(title, summary, concepts),
-      _ => _generalResponse(title, summary, concepts),
+      _ => _generalResponse(title, summary, concepts, context),
     };
 
     return AiCoachResponse(
@@ -124,6 +124,22 @@ class AiCoachService {
       'latestRelevantChange': _limit(context.latestRelevantChange, 180),
       'longitudinalRecommendation':
           _limit(context.longitudinalRecommendation, 160),
+      'adaptiveScheduleSummary': _limit(context.adaptiveScheduleSummary, 220),
+      'smartStudyPlanSummary': _limit(context.smartStudyPlanSummary, 220),
+      'enterpriseAnalyticsSummary':
+          _limit(context.enterpriseAnalyticsSummary, 220),
+      'bestStudyHours': context.bestStudyHours.take(3).toList(),
+      'priorityNextAction': _limit(context.priorityNextAction, 160),
+      'knowledgeMapSummary': _limit(context.knowledgeMapSummary, 220),
+      'digitalTwinSummary': _limit(context.digitalTwinSummary, 220),
+      'goalsSummary': _limit(context.goalsSummary, 220),
+      'productivitySummary': _limit(context.productivitySummary, 220),
+      'successPredictionSummary': _limit(context.successPredictionSummary, 220),
+      'learningRoadmapSummary': _limit(context.learningRoadmapSummary, 220),
+      'assistantMemorySummary': _limit(context.assistantMemorySummary, 220),
+      'gamificationSummary': _limit(context.gamificationSummary, 160),
+      'marketplaceSummary': _limit(context.marketplaceSummary, 160),
+      'institutionSummary': _limit(context.institutionSummary, 160),
       'transcript': _limit(context.transcript, 1200),
       'flashcards': context.flashcards.take(5).toList(),
       'mini_quiz': context.miniQuiz.take(5).toList(),
@@ -131,11 +147,18 @@ class AiCoachService {
     };
   }
 
-  String _generalResponse(String title, String summary, String concepts) {
+  String _generalResponse(
+    String title,
+    String summary,
+    String concepts,
+    VoiceContext context,
+  ) {
     final parts = [
       'Puedo ayudarte con $title.',
       if (summary.isNotEmpty) 'Idea central: ${_limit(summary, 260)}',
       if (concepts.isNotEmpty) 'Conceptos clave: $concepts.',
+      if (context.priorityNextAction.isNotEmpty)
+        'Prioridad actual: ${context.priorityNextAction}.',
       'Puedes pedirme una explicación, un ejemplo, un repaso o preguntas de práctica.',
     ];
     return parts.join('\n\n');

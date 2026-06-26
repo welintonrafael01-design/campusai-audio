@@ -2,9 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../layout/responsive_layout.dart';
+import '../services/campus_intelligence/adaptive_scheduler_service.dart';
 import '../services/campus_intelligence/campus_intelligence_models.dart';
 import '../services/campus_intelligence/campus_intelligence_service.dart';
 import '../services/campus_intelligence/campus_trend_service.dart';
+import '../services/campus_intelligence/enterprise_intelligence_models.dart'
+    hide LearningRecommendation;
+import '../services/campus_intelligence/knowledge_map_service.dart';
+import '../services/campus_intelligence/learning_graph_enterprise_service.dart';
+import '../services/campus_intelligence/predictive_success_engine.dart';
+import '../services/campus_intelligence/productivity_service.dart';
+import '../services/campus_intelligence/smart_study_planner_service.dart';
+import '../services/campus_intelligence/smart_goals_engine.dart';
+import '../services/campus_intelligence/student_analytics_enterprise_service.dart';
+import '../services/campus_intelligence/student_digital_twin_service.dart';
+import '../services/campus_intelligence/student_timeline_service.dart';
 import '../services/learning_engine/achievement_service.dart';
 import '../services/learning_engine/learning_analytics_service.dart';
 import '../services/learning_engine/learning_models.dart';
@@ -12,7 +24,15 @@ import '../services/learning_engine/learning_session_service.dart';
 import '../services/learning_engine/recommendation_engine.dart';
 import '../services/learning_engine/streak_service.dart';
 import '../services/learning_engine/student_intelligence_service.dart';
+import '../services/gamification/gamification_models.dart' hide Achievement;
+import '../services/gamification/gamification_service.dart';
+import '../services/institution/institution_models.dart';
+import '../services/institution/institution_service.dart';
+import '../services/marketplace/marketplace_models.dart';
+import '../services/marketplace/marketplace_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/enterprise_dashboard_widgets.dart';
+import '../widgets/enterprise4_dashboard_widgets.dart';
 import '../widgets/section_card.dart';
 
 class StudentDashboardScreen extends StatefulWidget {
@@ -31,6 +51,21 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   final sessionService = const LearningSessionService();
   final campusIntelligenceService = const CampusIntelligenceService();
   final campusTrendService = const CampusTrendService();
+  final adaptiveSchedulerService = const AdaptiveSchedulerService();
+  final smartStudyPlannerService = const SmartStudyPlannerService();
+  final enterpriseAnalyticsService = const StudentAnalyticsEnterpriseService();
+  final graphEnterpriseService = const LearningGraphEnterpriseService();
+  final knowledgeMapService = const KnowledgeMapService();
+  final smartGoalsEngine = const SmartGoalsEngine();
+  final productivityService = const ProductivityService();
+  final digitalTwinService = const StudentDigitalTwinService();
+  final predictiveSuccessEngine = const PredictiveSuccessEngine();
+  final timelineService = const StudentTimelineService();
+  final gamificationService = const GamificationService();
+  final marketplaceService = const MarketplaceService();
+  final marketplaceRecommendationEngine =
+      const MarketplaceRecommendationEngine();
+  final institutionService = const InstitutionService();
 
   bool isLoading = true;
   String errorMessage = '';
@@ -44,6 +79,20 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   CampusIntelligenceSnapshot campusSnapshot =
       CampusIntelligenceSnapshot.empty();
   List<CampusTrend> campusTrends = [];
+  AdaptiveSchedule adaptiveSchedule = AdaptiveSchedule.empty();
+  SmartStudyPlan smartStudyPlan = SmartStudyPlan.empty();
+  StudentEnterpriseAnalytics enterpriseAnalytics =
+      StudentEnterpriseAnalytics.empty();
+  LearningRoadmap learningRoadmap = LearningRoadmap.empty();
+  KnowledgeMap knowledgeMap = KnowledgeMap.empty();
+  StudyGoals studyGoals = StudyGoals.empty();
+  ProductivitySnapshot productivity = ProductivitySnapshot.empty();
+  StudentDigitalTwin digitalTwin = StudentDigitalTwin.empty();
+  SuccessPrediction successPrediction = SuccessPrediction.empty();
+  List<StudentTimelineItem> smartTimeline = [];
+  GamificationProfile gamificationProfile = GamificationProfile.empty();
+  List<MarketplaceItem> marketplaceSuggestions = [];
+  InstitutionDashboard institutionDashboard = InstitutionDashboard.empty();
   List<Map<String, dynamic>> recentSessions = [];
 
   @override
@@ -70,6 +119,39 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
       final loadedCampusSnapshot =
           await campusIntelligenceService.buildSnapshot();
       final loadedCampusTrends = await campusTrendService.buildTrends();
+      final loadedAdaptiveSchedule =
+          await adaptiveSchedulerService.buildSchedule();
+      final loadedSmartStudyPlan = await smartStudyPlannerService.buildPlan(
+        schedule: loadedAdaptiveSchedule,
+      );
+      final loadedEnterpriseAnalytics =
+          await enterpriseAnalyticsService.buildAnalytics();
+      final loadedRoadmap = await graphEnterpriseService.buildRoadmap();
+      final loadedKnowledgeMap = await knowledgeMapService.buildKnowledgeMap(
+        roadmap: loadedRoadmap,
+      );
+      final loadedStudyGoals = await smartGoalsEngine.buildGoals(
+        knowledgeMap: loadedKnowledgeMap,
+      );
+      final loadedProductivity = await productivityService.buildSnapshot();
+      final loadedTwin = await digitalTwinService.buildTwin(
+        productivity: loadedProductivity,
+      );
+      final loadedPrediction = await predictiveSuccessEngine.predict(
+        analytics: loadedEnterpriseAnalytics,
+        twin: loadedTwin,
+        goals: loadedStudyGoals,
+      );
+      final loadedTimeline = await timelineService.buildTimeline(limit: 8);
+      final loadedGamification = await gamificationService.buildProfile();
+      final loadedCatalog = await marketplaceService.buildCatalog();
+      final loadedInstitution = await institutionService.buildDashboard();
+      final loadedMarketplaceSuggestions =
+          marketplaceRecommendationEngine.recommend(
+        loadedCatalog,
+        focus: loadedKnowledgeMap.tomorrowFocus,
+        risk: loadedPrediction.failureRisk >= 60 ? 'Alto' : 'Bajo',
+      );
 
       if (!mounted) return;
 
@@ -82,6 +164,19 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         intelligence = loadedIntelligence;
         campusSnapshot = loadedCampusSnapshot;
         campusTrends = loadedCampusTrends;
+        adaptiveSchedule = loadedAdaptiveSchedule;
+        smartStudyPlan = loadedSmartStudyPlan;
+        enterpriseAnalytics = loadedEnterpriseAnalytics;
+        learningRoadmap = loadedRoadmap;
+        knowledgeMap = loadedKnowledgeMap;
+        studyGoals = loadedStudyGoals;
+        productivity = loadedProductivity;
+        digitalTwin = loadedTwin;
+        successPrediction = loadedPrediction;
+        smartTimeline = loadedTimeline;
+        gamificationProfile = loadedGamification;
+        marketplaceSuggestions = loadedMarketplaceSuggestions;
+        institutionDashboard = loadedInstitution;
         recentSessions = loadedSessions.take(6).toList();
         isLoading = false;
       });
@@ -143,6 +238,101 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                           _CampusTrendsCard(
                             trends: campusTrends,
                             latestSnapshot: campusSnapshot,
+                          ),
+                          const SizedBox(height: 18),
+                          _ResponsivePair(
+                            left: _SmartStudyPlanCard(
+                              plan: smartStudyPlan,
+                              schedule: adaptiveSchedule,
+                            ),
+                            right: _EnterpriseAnalyticsCard(
+                              analytics: enterpriseAnalytics,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          _ResponsivePair(
+                            left:
+                                KnowledgeMapWidget(knowledgeMap: knowledgeMap),
+                            right: LearningRoadmapWidget(
+                              roadmap: learningRoadmap,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          _ResponsivePair(
+                            left: DigitalTwinWidget(twin: digitalTwin),
+                            right: StudyHealthWidget(
+                              twin: digitalTwin,
+                              productivity: productivity,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          _ResponsivePair(
+                            left: FocusScoreWidget(focus: productivity.focus),
+                            right:
+                                ProductivityWidget(productivity: productivity),
+                          ),
+                          const SizedBox(height: 18),
+                          _ResponsivePair(
+                            left: GoalTrackerWidget(goals: studyGoals),
+                            right: SuccessPredictionWidget(
+                              prediction: successPrediction,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          _ResponsivePair(
+                            left:
+                                RiskMeterWidget(prediction: successPrediction),
+                            right: SmartTimelineWidget(items: smartTimeline),
+                          ),
+                          const SizedBox(height: 18),
+                          _ResponsivePair(
+                            left: XpCard(xp: gamificationProfile.xp),
+                            right: CurrentLevelWidget(
+                              level: gamificationProfile.level,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          _ResponsivePair(
+                            left: NextLevelWidget(
+                              level: gamificationProfile.level,
+                            ),
+                            right: MissionCard(
+                              missions: gamificationProfile.missions,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          _ResponsivePair(
+                            left: AchievementGrid(
+                              achievements: gamificationProfile.achievements,
+                            ),
+                            right: CoinWalletWidget(
+                              wallet: gamificationProfile.wallet,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          _ResponsivePair(
+                            left: CreatorProfileWidget(
+                              author: marketplaceSuggestions.isEmpty
+                                  ? const MarketplaceAuthor(
+                                      name: 'StudyBook AI')
+                                  : marketplaceSuggestions.first.author,
+                            ),
+                            right: MarketplaceSuggestionsWidget(
+                              items: marketplaceSuggestions,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          _ResponsivePair(
+                            left: InstitutionHealthWidget(
+                              metrics: institutionDashboard.metrics,
+                            ),
+                            right: InstitutionAlertsWidget(
+                              alerts: institutionDashboard.alerts,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          InstitutionKpisWidget(
+                            metrics: institutionDashboard.metrics,
                           ),
                           const SizedBox(height: 18),
                           _ResponsivePair(
@@ -560,6 +750,124 @@ class _TrendChip extends StatelessWidget {
       avatar: Icon(icon, size: 16, color: color),
       label: Text(
         '$label: ${_formatTrendNumber(trend.currentValue)}$suffix',
+      ),
+    );
+  }
+}
+
+class _SmartStudyPlanCard extends StatelessWidget {
+  final SmartStudyPlan plan;
+  final AdaptiveSchedule schedule;
+
+  const _SmartStudyPlanCard({
+    required this.plan,
+    required this.schedule,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final today = plan.days.isNotEmpty ? plan.days.first : null;
+
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionTitle(
+            title: 'Plan Inteligente',
+            icon: Icons.event_note_rounded,
+            color: AppTheme.accent,
+          ),
+          const SizedBox(height: 14),
+          Text(
+            plan.todayAction.isEmpty ? schedule.nextAction : plan.todayAction,
+            style: const TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 10),
+          _InfoRow(
+            label: 'Tiempo sugerido',
+            value: '${plan.suggestedMinutes} min',
+          ),
+          _InfoRow(
+            label: 'Próxima actividad',
+            value: plan.nextActivity.isEmpty
+                ? schedule.nextActivityType
+                : plan.nextActivity,
+          ),
+          _InfoRow(
+            label: 'Prioridad',
+            value: '${schedule.priority}',
+          ),
+          const SizedBox(height: 10),
+          Text(
+            plan.reason.isEmpty ? schedule.reason : plan.reason,
+            style: const TextStyle(color: AppTheme.textMuted, height: 1.35),
+          ),
+          if (today != null) ...[
+            const SizedBox(height: 12),
+            _ListItem(
+              title: today.goal,
+              subtitle: today.summary,
+              icon: Icons.flag_rounded,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _EnterpriseAnalyticsCard extends StatelessWidget {
+  final StudentEnterpriseAnalytics analytics;
+
+  const _EnterpriseAnalyticsCard({required this.analytics});
+
+  @override
+  Widget build(BuildContext context) {
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionTitle(
+            title: 'Analítica Avanzada',
+            icon: Icons.analytics_rounded,
+            color: AppTheme.secondary,
+          ),
+          const SizedBox(height: 14),
+          _InfoRow(
+            label: 'Velocidad',
+            value: '${analytics.learningVelocity}%',
+          ),
+          _InfoRow(
+            label: 'Retención',
+            value: '${analytics.retentionScore}%',
+          ),
+          _InfoRow(
+            label: 'Consistencia',
+            value: '${analytics.consistencyScore}%',
+          ),
+          _InfoRow(
+            label: 'Probabilidad de éxito',
+            value: '${analytics.predictedSuccessProbability}%',
+          ),
+          _InfoRow(
+            label: 'Riesgo',
+            value: analytics.riskTrajectory,
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              Chip(label: Text('Esfuerzo: ${analytics.effortScore}%')),
+              Chip(label: Text('Tutor IA: ${analytics.voiceEngagement}%')),
+              Chip(label: Text('Quiz: ${analytics.quizReliability}%')),
+            ],
+          ),
+        ],
       ),
     );
   }
