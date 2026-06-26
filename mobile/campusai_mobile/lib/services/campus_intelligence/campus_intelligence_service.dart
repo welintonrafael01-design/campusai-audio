@@ -11,12 +11,14 @@ import '../voice_intelligence/voice_session_service.dart';
 import 'adaptive_learning_service.dart';
 import 'campus_intelligence_models.dart';
 import 'campus_prediction_engine.dart';
+import 'campus_snapshot_repository.dart';
 import 'learning_graph_service.dart';
 import 'smart_notification_engine.dart';
 
 class CampusIntelligenceService {
-  static const String snapshotType = 'campus_intelligence_snapshot';
-  static const String latestDocumentId = 'campus_intelligence_latest';
+  static const String snapshotType = CampusSnapshotRepository.snapshotType;
+  static const String latestDocumentId =
+      CampusSnapshotRepository.latestDocumentId;
 
   final LearningAnalyticsService analyticsService;
   final RecommendationEngine recommendationEngine;
@@ -31,6 +33,7 @@ class CampusIntelligenceService {
   final LearningGraphService learningGraphService;
   final AdaptiveLearningService adaptiveLearningService;
   final SmartNotificationEngine notificationEngine;
+  final CampusSnapshotRepository snapshotRepository;
 
   const CampusIntelligenceService({
     this.analyticsService = const LearningAnalyticsService(),
@@ -46,6 +49,7 @@ class CampusIntelligenceService {
     this.learningGraphService = const LearningGraphService(),
     this.adaptiveLearningService = const AdaptiveLearningService(),
     this.notificationEngine = const SmartNotificationEngine(),
+    this.snapshotRepository = const CampusSnapshotRepository(),
   });
 
   Future<CampusIntelligenceSnapshot> buildSnapshot() async {
@@ -119,7 +123,7 @@ class CampusIntelligenceService {
             .map((prediction) => prediction.title),
       }.take(6).toList();
 
-      return CampusIntelligenceSnapshot(
+      final snapshot = CampusIntelligenceSnapshot(
         generatedAt: DateTime.now(),
         studentScore: studentScore,
         academicRisk: risk,
@@ -139,6 +143,8 @@ class CampusIntelligenceService {
         adaptivePlan: adaptivePlan,
         notifications: notifications,
       );
+      await snapshotRepository.saveSnapshot(snapshot);
+      return snapshot;
     } catch (_) {
       return CampusIntelligenceSnapshot.empty();
     }

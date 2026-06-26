@@ -141,6 +141,10 @@ class VoiceContext {
   final String academicRisk;
   final List<String> campusWeaknesses;
   final List<String> adaptivePlanSummary;
+  final String masteryTrend;
+  final String riskTrend;
+  final String latestRelevantChange;
+  final String longitudinalRecommendation;
 
   const VoiceContext({
     this.audiobookId = '',
@@ -160,6 +164,10 @@ class VoiceContext {
     this.academicRisk = 'Sin datos',
     this.campusWeaknesses = const [],
     this.adaptivePlanSummary = const [],
+    this.masteryTrend = '',
+    this.riskTrend = '',
+    this.latestRelevantChange = '',
+    this.longitudinalRecommendation = '',
   });
 
   static const empty = VoiceContext();
@@ -183,6 +191,11 @@ class VoiceContext {
       academicRisk: json['academic_risk']?.toString() ?? 'Sin datos',
       campusWeaknesses: _stringList(json['campus_weaknesses']),
       adaptivePlanSummary: _stringList(json['adaptive_plan_summary']),
+      masteryTrend: json['mastery_trend']?.toString() ?? '',
+      riskTrend: json['risk_trend']?.toString() ?? '',
+      latestRelevantChange: json['latest_relevant_change']?.toString() ?? '',
+      longitudinalRecommendation:
+          json['longitudinal_recommendation']?.toString() ?? '',
     );
   }
 
@@ -205,6 +218,10 @@ class VoiceContext {
       'academic_risk': academicRisk,
       'campus_weaknesses': campusWeaknesses,
       'adaptive_plan_summary': adaptivePlanSummary,
+      'mastery_trend': masteryTrend,
+      'risk_trend': riskTrend,
+      'latest_relevant_change': latestRelevantChange,
+      'longitudinal_recommendation': longitudinalRecommendation,
     };
   }
 }

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../layout/responsive_layout.dart';
 import '../services/campus_intelligence/campus_intelligence_models.dart';
 import '../services/campus_intelligence/campus_intelligence_service.dart';
+import '../services/campus_intelligence/campus_trend_service.dart';
 import '../services/learning_engine/achievement_service.dart';
 import '../services/learning_engine/learning_analytics_service.dart';
 import '../services/learning_engine/learning_models.dart';
@@ -29,6 +30,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   final intelligenceService = const StudentIntelligenceService();
   final sessionService = const LearningSessionService();
   final campusIntelligenceService = const CampusIntelligenceService();
+  final campusTrendService = const CampusTrendService();
 
   bool isLoading = true;
   String errorMessage = '';
@@ -41,6 +43,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   StudentIntelligence intelligence = StudentIntelligence.empty;
   CampusIntelligenceSnapshot campusSnapshot =
       CampusIntelligenceSnapshot.empty();
+  List<CampusTrend> campusTrends = [];
   List<Map<String, dynamic>> recentSessions = [];
 
   @override
@@ -66,6 +69,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
       final loadedSessions = await sessionService.getSessions();
       final loadedCampusSnapshot =
           await campusIntelligenceService.buildSnapshot();
+      final loadedCampusTrends = await campusTrendService.buildTrends();
 
       if (!mounted) return;
 
@@ -77,6 +81,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         achievements = loadedAchievements;
         intelligence = loadedIntelligence;
         campusSnapshot = loadedCampusSnapshot;
+        campusTrends = loadedCampusTrends;
         recentSessions = loadedSessions.take(6).toList();
         isLoading = false;
       });
@@ -134,6 +139,11 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                           _MetricsGrid(analytics: analytics),
                           const SizedBox(height: 18),
                           _CampusIntelligenceCard(snapshot: campusSnapshot),
+                          const SizedBox(height: 18),
+                          _CampusTrendsCard(
+                            trends: campusTrends,
+                            latestSnapshot: campusSnapshot,
+                          ),
                           const SizedBox(height: 18),
                           _ResponsivePair(
                             left: _StreakCard(streak: streak),
@@ -427,6 +437,129 @@ class _CampusIntelligenceCard extends StatelessWidget {
               values: snapshot.alerts.take(3).toList(),
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _CampusTrendsCard extends StatelessWidget {
+  final List<CampusTrend> trends;
+  final CampusIntelligenceSnapshot latestSnapshot;
+
+  const _CampusTrendsCard({
+    required this.trends,
+    required this.latestSnapshot,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final mastery = _trendFor('Dominio');
+    final engagement = _trendFor('Engagement');
+    final risk = _trendFor('Riesgo');
+    final score = _trendFor('Score general');
+
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionTitle(
+            title: 'Tendencias',
+            icon: Icons.trending_up_rounded,
+            color: AppTheme.secondary,
+          ),
+          const SizedBox(height: 14),
+          _InfoRow(
+            label: 'Último snapshot',
+            value: _formatDate(latestSnapshot.generatedAt),
+          ),
+          if (score != null)
+            _InfoRow(
+              label: 'Comparación anterior',
+              value: _deltaLabel(score, suffix: '%'),
+            ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              if (mastery != null)
+                _TrendChip(trend: mastery, label: 'Dominio', suffix: '%'),
+              if (engagement != null)
+                _TrendChip(
+                  trend: engagement,
+                  label: 'Engagement',
+                  suffix: '%',
+                ),
+              if (risk != null) _TrendChip(trend: risk, label: 'Riesgo'),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (trends.isEmpty)
+            const Text(
+              'Aún no hay historial suficiente para calcular tendencias.',
+              style: TextStyle(color: AppTheme.textMuted),
+            )
+          else
+            for (final trend in trends.take(4))
+              _ListItem(
+                title: trend.metric,
+                subtitle: trend.description,
+                icon: _trendIcon(trend.direction),
+              ),
+        ],
+      ),
+    );
+  }
+
+  CampusTrend? _trendFor(String metric) {
+    final cleanMetric = metric.trim().toLowerCase();
+    for (final trend in trends) {
+      if (trend.metric.trim().toLowerCase() == cleanMetric) return trend;
+    }
+    return null;
+  }
+
+  String _deltaLabel(CampusTrend trend, {String suffix = ''}) {
+    if (trend.previousValue <= 0) return 'Sin snapshot anterior';
+    final sign = trend.delta > 0 ? '+' : '';
+    return '$sign${_formatTrendNumber(trend.delta)}$suffix';
+  }
+
+  IconData _trendIcon(String direction) {
+    if (direction == 'up') return Icons.trending_up_rounded;
+    if (direction == 'down') return Icons.trending_down_rounded;
+    return Icons.trending_flat_rounded;
+  }
+}
+
+class _TrendChip extends StatelessWidget {
+  final CampusTrend trend;
+  final String label;
+  final String suffix;
+
+  const _TrendChip({
+    required this.trend,
+    required this.label,
+    this.suffix = '',
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final icon = trend.direction == 'up'
+        ? Icons.arrow_upward_rounded
+        : trend.direction == 'down'
+            ? Icons.arrow_downward_rounded
+            : Icons.remove_rounded;
+    final color = trend.direction == 'up'
+        ? AppTheme.success
+        : trend.direction == 'down'
+            ? AppTheme.warning
+            : AppTheme.textMuted;
+
+    return Chip(
+      avatar: Icon(icon, size: 16, color: color),
+      label: Text(
+        '$label: ${_formatTrendNumber(trend.currentValue)}$suffix',
       ),
     );
   }
@@ -909,6 +1042,11 @@ String _durationLabel(dynamic seconds) {
   final minutes = (_intFrom(seconds) / 60).round();
   if (minutes <= 0) return '0 min';
   return '$minutes min';
+}
+
+String _formatTrendNumber(double value) {
+  if (value % 1 == 0) return value.round().toString();
+  return value.toStringAsFixed(1);
 }
 
 String _quizLabel(Map<String, dynamic> session) {

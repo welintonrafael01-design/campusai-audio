@@ -1,6 +1,8 @@
 import '../audiobook_progress_service.dart';
 import '../audiobook_service.dart';
+import '../campus_intelligence/campus_intelligence_models.dart';
 import '../campus_intelligence/campus_intelligence_service.dart';
+import '../campus_intelligence/campus_trend_service.dart';
 import '../learning_engine/learning_analytics_service.dart';
 import '../learning_engine/learning_progress_service.dart';
 import '../learning_engine/recommendation_engine.dart';
@@ -16,6 +18,7 @@ class VoiceContextService {
   final RecommendationEngine recommendationEngine;
   final StudentIntelligenceService intelligenceService;
   final CampusIntelligenceService campusIntelligenceService;
+  final CampusTrendService campusTrendService;
 
   const VoiceContextService({
     this.audiobookService = const AudiobookService(),
@@ -25,6 +28,7 @@ class VoiceContextService {
     this.recommendationEngine = const RecommendationEngine(),
     this.intelligenceService = const StudentIntelligenceService(),
     this.campusIntelligenceService = const CampusIntelligenceService(),
+    this.campusTrendService = const CampusTrendService(),
   });
 
   Future<VoiceContext> buildContext({
@@ -63,6 +67,10 @@ class VoiceContextService {
           await recommendationEngine.generateRecommendations();
       final intelligence = await intelligenceService.analyzeStudent();
       final campusSnapshot = await campusIntelligenceService.buildSnapshot();
+      final campusTrends = await campusTrendService.buildTrends();
+      final masteryTrend = _trendDescription(campusTrends, 'Dominio');
+      final riskTrend = _trendDescription(campusTrends, 'Riesgo');
+      final latestRelevantChange = _latestRelevantChange(campusTrends);
 
       // Touch analytics/progress services here so callers get one contextual API.
       await analyticsService.buildAnalytics();
@@ -129,6 +137,13 @@ class VoiceContextService {
             .map((item) => item.title)
             .take(4)
             .toList(),
+        masteryTrend: _limit(masteryTrend, 160),
+        riskTrend: _limit(riskTrend, 160),
+        latestRelevantChange: _limit(latestRelevantChange, 180),
+        longitudinalRecommendation: _limit(
+          campusSnapshot.recommendedNextAction,
+          160,
+        ),
       );
     } catch (_) {
       return VoiceContext.empty;
@@ -182,6 +197,30 @@ class VoiceContextService {
     final text = value.trim();
     if (text.length <= maxLength) return text;
     return '${text.substring(0, maxLength)}...';
+  }
+
+  String _trendDescription(List<CampusTrend> trends, String metric) {
+    final cleanMetric = metric.trim().toLowerCase();
+    for (final trend in trends) {
+      final trendMetric = trend.metric.trim().toLowerCase();
+      if (trendMetric == cleanMetric) {
+        return trend.description;
+      }
+    }
+    return '';
+  }
+
+  String _latestRelevantChange(List<CampusTrend> trends) {
+    for (final trend in trends) {
+      final direction = trend.direction;
+      final description = trend.description;
+      if (direction != 'stable' && description.trim().isNotEmpty) {
+        return description;
+      }
+    }
+    return trends.isNotEmpty
+        ? trends.first.description
+        : 'Sin cambios longitudinales suficientes.';
   }
 
   Map<String, dynamic> _mapFrom(dynamic raw) {

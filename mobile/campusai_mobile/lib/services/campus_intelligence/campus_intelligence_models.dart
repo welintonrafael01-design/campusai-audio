@@ -263,12 +263,102 @@ class SmartNotification {
   }
 }
 
+class CampusTrend {
+  final String metric;
+  final double currentValue;
+  final double previousValue;
+  final double delta;
+  final String direction;
+  final String description;
+
+  const CampusTrend({
+    this.metric = '',
+    this.currentValue = 0,
+    this.previousValue = 0,
+    this.delta = 0,
+    this.direction = 'stable',
+    this.description = '',
+  });
+
+  factory CampusTrend.fromJson(Map<String, dynamic> json) {
+    return CampusTrend(
+      metric: json['metric']?.toString() ?? '',
+      currentValue: _doubleFrom(json['current_value']),
+      previousValue: _doubleFrom(json['previous_value']),
+      delta: _doubleFrom(json['delta']),
+      direction: json['direction']?.toString() ?? 'stable',
+      description: json['description']?.toString() ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'metric': metric,
+      'current_value': currentValue,
+      'previous_value': previousValue,
+      'delta': delta,
+      'direction': direction,
+      'description': description,
+    };
+  }
+}
+
+class StudentTimelineItem {
+  final String itemId;
+  final String title;
+  final String description;
+  final String category;
+  final DateTime createdAt;
+  final int score;
+  final Map<String, dynamic> metadata;
+
+  const StudentTimelineItem({
+    this.itemId = '',
+    this.title = '',
+    this.description = '',
+    this.category = 'snapshot',
+    required this.createdAt,
+    this.score = 0,
+    this.metadata = const {},
+  });
+
+  factory StudentTimelineItem.fromJson(Map<String, dynamic> json) {
+    return StudentTimelineItem(
+      itemId: json['item_id']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      category: json['category']?.toString() ?? 'snapshot',
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+      score: _intFrom(json['score']),
+      metadata: _mapFrom(json['metadata']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'item_id': itemId,
+      'title': title,
+      'description': description,
+      'category': category,
+      'created_at': createdAt.toIso8601String(),
+      'score': score,
+      'metadata': metadata,
+    };
+  }
+}
+
 List<Map<String, dynamic>> _mapList(dynamic raw) {
   if (raw is! List) return <Map<String, dynamic>>[];
   return raw
       .whereType<Map>()
       .map((item) => Map<String, dynamic>.from(item))
       .toList();
+}
+
+Map<String, dynamic> _mapFrom(dynamic raw) {
+  if (raw is Map) return Map<String, dynamic>.from(raw);
+  return <String, dynamic>{};
 }
 
 List<String> _stringList(dynamic raw) {

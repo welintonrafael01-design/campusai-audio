@@ -119,6 +119,11 @@ class AiCoachService {
       'academicRisk': context.academicRisk,
       'campusWeaknesses': context.campusWeaknesses.take(4).toList(),
       'adaptivePlanSummary': context.adaptivePlanSummary.take(4).toList(),
+      'masteryTrend': _limit(context.masteryTrend, 160),
+      'riskTrend': _limit(context.riskTrend, 160),
+      'latestRelevantChange': _limit(context.latestRelevantChange, 180),
+      'longitudinalRecommendation':
+          _limit(context.longitudinalRecommendation, 160),
       'transcript': _limit(context.transcript, 1200),
       'flashcards': context.flashcards.take(5).toList(),
       'mini_quiz': context.miniQuiz.take(5).toList(),
