@@ -5,7 +5,7 @@ class StudentAgent extends LocalAgent {
   StudentAgent() : super('student', 'Student Agent');
 }
 
-class LocalAgent implements BaseAgent {
+class LocalAgent extends BaseAgent {
   @override
   final String id;
   @override
