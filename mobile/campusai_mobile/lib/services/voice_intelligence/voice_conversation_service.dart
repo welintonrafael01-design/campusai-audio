@@ -158,12 +158,18 @@ class VoiceConversationService {
         localeId: localeId,
         partialResults: true,
         listenMode: ListenMode.confirmation,
-        listenFor: const Duration(seconds: 8),
-        pauseFor: const Duration(seconds: 2),
+        listenFor: const Duration(seconds: 45),
+        pauseFor: const Duration(seconds: 3),
       ),
     );
 
     return _state;
+  }
+
+  Future<void> release() async {
+    if (_speech.isListening) {
+      await _speech.cancel();
+    }
   }
 
   Future<VoiceConversationState> stopListening({

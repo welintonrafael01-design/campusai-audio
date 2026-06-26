@@ -46,10 +46,12 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
   final learningSessionService = const LearningSessionService();
   final audioPlayerService = AudioPlayerService();
   final messageController = TextEditingController();
+  StreamSubscription<dynamic>? tutorAudioSubscription;
 
   bool isLoading = true;
   bool isSending = false;
   bool isProcessingVoiceInput = false;
+  bool isSpeaking = false;
   String errorMessage = '';
   String lastHandledVoiceText = '';
   final Set<String> generatingAudioMessageIds = {};
@@ -64,16 +66,24 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
   @override
   void initState() {
     super.initState();
+    tutorAudioSubscription = audioPlayerService.playerStateStream.listen(
+      (state) {
+        if (!mounted) return;
+
+        setState(() {
+          isSpeaking = state.playing;
+        });
+      },
+    );
     loadTutor();
   }
 
   @override
   void dispose() {
     unawaited(
-      conversationService.cancelListening(
-        onStateChanged: (_) {},
-      ),
+      conversationService.release(),
     );
+    unawaited(tutorAudioSubscription?.cancel());
     messageController.dispose();
     audioPlayerService.dispose();
     super.dispose();
@@ -233,6 +243,12 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
   }) async {
     if (message.role != 'assistant') return null;
     if (generatingAudioMessageIds.contains(message.messageId)) return null;
+    if (voiceTtsService.hasAudio(message)) {
+      if (autoPlay) {
+        await playAssistantAudio(message);
+      }
+      return message;
+    }
 
     setState(() {
       generatingAudioMessageIds.add(message.messageId);
@@ -480,7 +496,11 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
                                 const SizedBox(height: 16),
                                 _VoiceInputPanel(
                                   state: conversationState,
-                                  isBusy: isSending || isProcessingVoiceInput,
+                                  isBusy: isSending ||
+                                      isProcessingVoiceInput ||
+                                      isSpeaking,
+                                  isThinking: isSending,
+                                  isSpeaking: isSpeaking,
                                   onStart: startVoiceTurn,
                                   onStop: stopVoiceTurn,
                                   onCancel: cancelVoiceTurn,
@@ -674,6 +694,8 @@ class _ActionButton extends StatelessWidget {
 class _VoiceInputPanel extends StatelessWidget {
   final VoiceConversationState state;
   final bool isBusy;
+  final bool isThinking;
+  final bool isSpeaking;
   final VoidCallback onStart;
   final VoidCallback onStop;
   final VoidCallback onCancel;
@@ -681,6 +703,8 @@ class _VoiceInputPanel extends StatelessWidget {
   const _VoiceInputPanel({
     required this.state,
     required this.isBusy,
+    required this.isThinking,
+    required this.isSpeaking,
     required this.onStart,
     required this.onStop,
     required this.onCancel,
@@ -692,7 +716,11 @@ class _VoiceInputPanel extends StatelessWidget {
     final isProcessing = state.status == VoiceConversationService.processing;
     final isDenied = state.status == VoiceConversationService.denied;
     final isError = state.status == VoiceConversationService.error;
-    final label = _statusLabel(state.status);
+    final label = isSpeaking
+        ? 'Hablando...'
+        : isThinking
+            ? 'Pensando...'
+            : _statusLabel(state.status);
     final transcript = state.partialText.trim().isNotEmpty
         ? state.partialText
         : state.finalText.trim();
@@ -741,7 +769,11 @@ class _VoiceInputPanel extends StatelessWidget {
                           ? 'Activa el permiso del micrófono para preguntar por voz.'
                           : isError
                               ? state.errorMessage
-                              : 'Micrófono por turnos: habla, detén y el tutor responderá con audio.',
+                              : isSpeaking
+                                  ? 'El Tutor IA está reproduciendo su respuesta.'
+                                  : isThinking
+                                      ? 'El Tutor IA está preparando una respuesta.'
+                                      : 'Micrófono por turnos: habla, detén y el tutor responderá con audio.',
                       style: const TextStyle(
                         color: AppTheme.textMuted,
                         height: 1.35,
