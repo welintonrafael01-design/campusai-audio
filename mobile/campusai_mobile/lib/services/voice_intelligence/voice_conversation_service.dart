@@ -158,6 +158,8 @@ class VoiceConversationService {
         localeId: localeId,
         partialResults: true,
         listenMode: ListenMode.confirmation,
+        listenFor: const Duration(seconds: 8),
+        pauseFor: const Duration(seconds: 2),
       ),
     );
 
