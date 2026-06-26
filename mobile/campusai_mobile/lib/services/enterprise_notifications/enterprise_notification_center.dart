@@ -1,8 +1,13 @@
 import '../campus_intelligence/campus_snapshot_repository.dart';
+import '../campus_intelligence/campus_intelligence_models.dart';
 import '../campus_intelligence/enterprise_result_repository.dart';
+import '../learning_engine/learning_models.dart';
 import '../gamification/gamification_service.dart';
+import '../gamification/gamification_models.dart';
 import '../institution/institution_service.dart';
+import '../institution/institution_models.dart';
 import '../marketplace/marketplace_service.dart';
+import '../marketplace/marketplace_models.dart';
 
 enum NotificationPriority { critical, high, normal, low }
 
@@ -127,6 +132,79 @@ class EnterpriseNotificationCenter {
           type: 'enterprise_notification_history',
           payload: history.toJson());
       return history;
+    } catch (_) {
+      return const NotificationHistory();
+    }
+  }
+
+  Future<NotificationHistory> buildLite({
+    required CampusIntelligenceSnapshot campusSnapshot,
+    required GamificationProfile gamificationProfile,
+    required MarketplaceCatalog catalog,
+    required InstitutionDashboard institutionDashboard,
+    required SmartStudyPlan studyPlan,
+    required LearningStreak streak,
+  }) async {
+    try {
+      final now = DateTime.now();
+      final items = <EnterpriseNotification>[
+        if (campusSnapshot.alerts.isNotEmpty)
+          EnterpriseNotification(
+              id: 'campus_alert',
+              title: 'Riesgo académico',
+              message: campusSnapshot.alerts.first,
+              priority: NotificationPriority.high,
+              category: NotificationCategory.campus,
+              createdAt: now),
+        if (studyPlan.todayAction.trim().isNotEmpty)
+          EnterpriseNotification(
+              id: 'planner_today',
+              title: 'Plan pendiente',
+              message: studyPlan.todayAction,
+              priority: NotificationPriority.normal,
+              category: NotificationCategory.planner,
+              createdAt: now),
+        if (gamificationProfile.missions.any((m) => !m.completed))
+          EnterpriseNotification(
+              id: 'achievement_close',
+              title: 'Logro cercano',
+              message: gamificationProfile.missions.first.title,
+              priority: NotificationPriority.low,
+              category: NotificationCategory.achievement,
+              createdAt: now),
+        if (catalog.items.isNotEmpty)
+          EnterpriseNotification(
+              id: 'marketplace_recommended',
+              title: 'Recurso recomendado',
+              message: catalog.items.first.title,
+              priority: NotificationPriority.low,
+              category: NotificationCategory.marketplace,
+              createdAt: now),
+        if (streak.currentStreakDays <= 0)
+          EnterpriseNotification(
+              id: 'inactivity',
+              title: 'Retoma tu racha',
+              message: 'Completa una sesión corta para activar tu progreso.',
+              priority: NotificationPriority.normal,
+              category: NotificationCategory.voice,
+              createdAt: now),
+        if (institutionDashboard.alerts.isNotEmpty)
+          EnterpriseNotification(
+              id: 'institution_alert',
+              title: institutionDashboard.alerts.first.title,
+              message: institutionDashboard.alerts.first.message,
+              priority: NotificationPriority.high,
+              category: NotificationCategory.institution,
+              createdAt: now),
+      ];
+      final prioritized = NotificationHistory(
+        items: NotificationScheduler().prioritize(NotificationHistory(items: items)).take(3).toList(),
+      );
+      await repository.save(
+          documentId: 'enterprise_notification_history_latest',
+          type: 'enterprise_notification_history',
+          payload: prioritized.toJson());
+      return prioritized;
     } catch (_) {
       return const NotificationHistory();
     }

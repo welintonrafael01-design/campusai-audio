@@ -1,4 +1,5 @@
 import '../campus_intelligence/enterprise_result_repository.dart';
+import '../audiobook_service.dart';
 import '../study_result_service.dart';
 import 'marketplace_models.dart';
 
@@ -27,7 +28,11 @@ class MarketplaceRepository {
 
 class MarketplaceService {
   final MarketplaceRepository repository;
-  const MarketplaceService({this.repository = const MarketplaceRepository()});
+  final AudiobookService audiobookService;
+  const MarketplaceService({
+    this.repository = const MarketplaceRepository(),
+    this.audiobookService = const AudiobookService(),
+  });
   Future<MarketplaceCatalog> buildCatalog({bool refresh = false}) async {
     if (!refresh) {
       final cached = await repository.getCatalog();
@@ -37,11 +42,16 @@ class MarketplaceService {
       final items = <MarketplaceItem>[];
       final mapping = {
         'audiobook': 'audiobooks',
+        'learning_pack': 'learning_packs',
         'question_bank': 'question_banks',
         'study_guide': 'learning_packs',
         'exam': 'evaluations',
         'rubric': 'rubrics',
-        'presentation': 'presentations'
+        'presentation': 'presentations',
+        'teaching_plan': 'courses',
+        'teaching_resources': 'templates',
+        'course_resource': 'templates',
+        'assessment_report': 'evaluations'
       };
       for (final entry in mapping.entries) {
         final results = await StudyResultService.getResultsByType(entry.key);
@@ -60,6 +70,7 @@ class MarketplaceService {
                   DateTime.tryParse(result.createdAt) ?? DateTime.now()));
         }
       }
+      items.addAll(await _learningPacksFromAudiobooks());
       final catalog = MarketplaceCatalog(
           updatedAt: DateTime.now(), categories: _categories, items: items);
       await repository.saveCatalog(catalog);
@@ -69,11 +80,58 @@ class MarketplaceService {
     }
   }
 
+  Future<List<MarketplaceItem>> _learningPacksFromAudiobooks() async {
+    final items = <MarketplaceItem>[];
+    final audiobookResults = await audiobookService.getAudioBooks();
+    for (final result in audiobookResults.take(20)) {
+      final audiobook = audiobookService.decodeAudioBook(result);
+      final audiobookId = _field(audiobook, ['audiobook_id', 'id', 'document_id']);
+      final title = _field(audiobook, ['title', 'name'], 'AudioBook');
+      final chapters = audiobook['chapters'];
+      if (chapters is! List) continue;
+      for (final chapter in chapters.whereType<Map>().take(8)) {
+        final learningPack = chapter['learning_pack'];
+        if (learningPack is! Map) continue;
+        final chapterId = _field(chapter, ['chapter_id', 'id']);
+        items.add(MarketplaceItem(
+          id: 'local_learning_pack_${audiobookId}_$chapterId',
+          title: _field(
+            learningPack,
+            ['title', 'guide_title'],
+            'Learning Pack - ${_field(chapter, ['title'], title)}',
+          ),
+          description: _field(
+            learningPack,
+            ['summary', 'overview', 'description'],
+            'Learning Pack generado desde AudioBook Studio.',
+          ),
+          categoryId: 'learning_packs',
+          author: const MarketplaceAuthor(
+              id: 'studybook', name: 'StudyBook AI', verified: true),
+          rating: 4.8,
+          downloads: 0,
+          tags: const ['learning_pack', 'audiobook', 'local'],
+          publishedAt: DateTime.now(),
+        ));
+      }
+    }
+    return items;
+  }
+
   String _title(String content, String fallback) {
     final line = content.replaceAll(RegExp(r'[{}\[\]"]'), ' ').trim();
     return line.isEmpty
         ? 'Recurso ${fallback.replaceAll('_', ' ')}'
         : line.substring(0, line.length > 60 ? 60 : line.length);
+  }
+
+  String _field(Map<dynamic, dynamic> map, List<String> keys,
+      [String fallback = '']) {
+    for (final key in keys) {
+      final value = map[key]?.toString().trim() ?? '';
+      if (value.isNotEmpty) return value;
+    }
+    return fallback;
   }
 
   static const _categories = [
