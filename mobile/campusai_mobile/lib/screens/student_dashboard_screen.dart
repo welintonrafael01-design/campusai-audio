@@ -11,13 +11,20 @@ import '../services/enterprise_notifications/enterprise_notification_center.dart
 import '../services/gamification/gamification_models.dart' hide Achievement;
 import '../services/institution/institution_models.dart';
 import '../services/learning_engine/learning_models.dart';
+import '../services/launch/launch_models.dart';
+import '../services/launch/launch_readiness_service.dart';
+import '../services/launch/onboarding_flow_service.dart';
+import '../services/launch/onboarding_readiness_service.dart';
+import '../services/launch/user_feedback_service.dart';
 import '../services/marketplace/marketplace_models.dart';
 import '../services/release_candidate/rc_models.dart';
 import '../services/student_dashboard_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/beta_launch_card.dart';
 import '../widgets/enterprise_dashboard_widgets.dart';
 import '../widgets/enterprise4_dashboard_widgets.dart';
 import '../widgets/next_best_action_card.dart';
+import '../widgets/onboarding_step_card.dart';
 import '../widgets/section_card.dart';
 
 class StudentDashboardScreen extends StatefulWidget {
@@ -30,9 +37,14 @@ class StudentDashboardScreen extends StatefulWidget {
 class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   final dashboardController = const StudentDashboardController();
   final autonomousActionExecutor = const AutonomousActionExecutor();
+  final launchReadinessService = const LaunchReadinessService();
+  final feedbackService = const UserFeedbackService();
+  final onboardingReadinessService = const OnboardingReadinessService();
+  final onboardingFlowService = const OnboardingFlowService();
 
   bool isLoading = true;
   bool isRefreshing = false;
+  bool isLaunchLoading = true;
   String errorMessage = '';
   final Set<String> processingActionIds = {};
 
@@ -61,6 +73,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   InstitutionDashboard institutionDashboard = InstitutionDashboard.empty();
   NotificationHistory notificationHistory = const NotificationHistory();
   AutonomousActionPlan autonomousActionPlan = AutonomousActionPlan.empty();
+  LaunchReadinessReport launchReport = LaunchReadinessReport.empty();
   ReleaseCandidateReport? rcReport;
   List<Map<String, dynamic>> recentSessions = [];
 
@@ -77,11 +90,13 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
       } else {
         isLoading = true;
       }
+      isLaunchLoading = true;
       errorMessage = '';
     });
 
     try {
       final loaded = await dashboardController.load(refresh: refresh);
+      final loadedLaunchReport = await launchReadinessService.buildReport();
 
       if (!mounted) return;
 
@@ -109,10 +124,12 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         institutionDashboard = loaded.institutionDashboard;
         notificationHistory = loaded.notificationHistory;
         autonomousActionPlan = loaded.autonomousActionPlan;
+        launchReport = loadedLaunchReport;
         rcReport = loaded.rcReport;
         recentSessions = loaded.recentSessions;
         isLoading = false;
         isRefreshing = false;
+        isLaunchLoading = false;
       });
     } catch (error) {
       if (!mounted) return;
@@ -121,6 +138,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         errorMessage = 'No se pudo cargar tu panel de aprendizaje.';
         isLoading = false;
         isRefreshing = false;
+        isLaunchLoading = false;
       });
     }
   }
@@ -183,6 +201,170 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(result.message)),
     );
+  }
+
+  Future<void> openBetaFeedback() async {
+    final controller = TextEditingController();
+    var category = FeedbackCategory.ux;
+    var isSaving = false;
+    final submitted = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Compartir feedback beta'),
+              content: SizedBox(
+                width: 480,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DropdownButtonFormField<FeedbackCategory>(
+                      initialValue: category,
+                      decoration: const InputDecoration(
+                        labelText: 'Categoría',
+                      ),
+                      items: FeedbackCategory.values
+                          .map(
+                            (item) => DropdownMenuItem(
+                              value: item,
+                              child: Text(_feedbackCategoryLabel(item)),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: isSaving
+                          ? null
+                          : (value) {
+                              if (value == null) return;
+                              setDialogState(() => category = value);
+                            },
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: controller,
+                      minLines: 4,
+                      maxLines: 7,
+                      maxLength: 2000,
+                      onChanged: (_) => setDialogState(() {}),
+                      decoration: const InputDecoration(
+                        labelText: '¿Qué ocurrió o qué mejorarías?',
+                        alignLabelWithHint: true,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'No incluyas contraseñas, tokens ni datos personales.',
+                      style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSaving
+                      ? null
+                      : () => Navigator.of(dialogContext).pop(false),
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: isSaving || controller.text.trim().isEmpty
+                      ? null
+                      : () async {
+                          setDialogState(() => isSaving = true);
+                          final saved = await feedbackService.submit(
+                            category: category,
+                            message: controller.text,
+                            source: 'student_dashboard',
+                          );
+                          if (!dialogContext.mounted) return;
+                          Navigator.of(dialogContext).pop(saved != null);
+                        },
+                  child: isSaving
+                      ? const SizedBox.square(
+                          dimension: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Enviar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    controller.dispose();
+    if (submitted != true || !mounted) return;
+    final updated = await launchReadinessService.buildReport();
+    if (!mounted) return;
+    setState(() => launchReport = updated);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+          content: Text('Gracias. Tu feedback beta quedó guardado.')),
+    );
+  }
+
+  Future<void> openOnboardingGuide() async {
+    final progress = await onboardingReadinessService.loadProgress();
+    if (!mounted) return;
+    final steps = onboardingFlowService.stepsForRole('student');
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(22, 8, 22, 24),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Guía inicial',
+                    style: TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Elige un primer paso. Puedes volver a esta guía cuando quieras.',
+                    style: TextStyle(color: AppTheme.textMuted),
+                  ),
+                  const SizedBox(height: 14),
+                  for (final step in steps)
+                    OnboardingStepCard(
+                      step: step,
+                      completed: progress.completedStepIds.contains(step.id),
+                      onOpen: () async {
+                        await onboardingReadinessService.completeStep(step.id);
+                        if (!sheetContext.mounted) return;
+                        Navigator.of(sheetContext).pop();
+                        if (!mounted || step.routeName.isEmpty) return;
+                        context.goNamed(step.routeName);
+                      },
+                    ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () async {
+                      await onboardingReadinessService.skip();
+                      if (!sheetContext.mounted) return;
+                      Navigator.of(sheetContext).pop();
+                    },
+                    child: const Text('Saltar por ahora'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+    final updated = await launchReadinessService.buildReport();
+    if (!mounted) return;
+    setState(() => launchReport = updated);
   }
 
   @override
@@ -453,6 +635,13 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                             right: InstitutionKpisWidget(
                               metrics: institutionDashboard.metrics,
                             ),
+                          ),
+                          const SizedBox(height: 18),
+                          BetaLaunchCard(
+                            report: launchReport,
+                            isLoading: isLaunchLoading,
+                            onFeedback: openBetaFeedback,
+                            onOnboarding: openOnboardingGuide,
                           ),
                         ],
                       ),
@@ -1871,4 +2060,19 @@ String _cleanText(dynamic value) {
 int _intFrom(dynamic value) {
   if (value is num) return value.round();
   return int.tryParse(value?.toString() ?? '') ?? 0;
+}
+
+String _feedbackCategoryLabel(FeedbackCategory category) {
+  return switch (category) {
+    FeedbackCategory.bug => 'Error o bloqueo',
+    FeedbackCategory.ux => 'Experiencia de usuario',
+    FeedbackCategory.performance => 'Rendimiento',
+    FeedbackCategory.content => 'Contenido',
+    FeedbackCategory.voice => 'Tutor por voz',
+    FeedbackCategory.dashboard => 'Dashboard',
+    FeedbackCategory.audiobook => 'AudioBook',
+    FeedbackCategory.teacher => 'Teacher Studio',
+    FeedbackCategory.marketplace => 'Marketplace',
+    FeedbackCategory.institution => 'Institution',
+  };
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/audio_provider.dart';
 import '../../services/api_service.dart';
+import '../../services/launch/onboarding_readiness_service.dart';
 import '../../services/onboarding_service.dart';
 import '../../theme/app_theme.dart';
 
@@ -33,6 +34,12 @@ Para comenzar, sube tu primer PDF y deja que StudyBook AI lo analice por ti.
 
     if (!context.mounted) return;
 
+    Navigator.of(context).pop();
+  }
+
+  Future<void> skip(BuildContext context) async {
+    await const OnboardingReadinessService().skip();
+    if (!context.mounted) return;
     Navigator.of(context).pop();
   }
 
@@ -168,17 +175,24 @@ Para comenzar, sube tu primer PDF y deja que StudyBook AI lo analice por ti.
               subtitle:
                   'Convierte el contenido en audio, flashcards y exámenes automáticos.',
             ),
+            const _OnboardingStep(
+              icon: Icons.school_outlined,
+              title: '¿Eres docente?',
+              subtitle:
+                  'Crea tu primer curso y genera recursos desde Teacher Studio.',
+            ),
           ],
         ),
       ),
       actions: [
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton.icon(
-            onPressed: () => complete(context),
-            icon: const Icon(Icons.rocket_launch_rounded),
-            label: const Text('Comenzar'),
-          ),
+        TextButton(
+          onPressed: () => skip(context),
+          child: const Text('Saltar por ahora'),
+        ),
+        FilledButton.icon(
+          onPressed: () => complete(context),
+          icon: const Icon(Icons.rocket_launch_rounded),
+          label: const Text('Comenzar'),
         ),
       ],
     );

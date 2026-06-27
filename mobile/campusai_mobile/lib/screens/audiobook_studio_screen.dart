@@ -10,6 +10,7 @@ import '../services/audiobook_progress_service.dart';
 import '../services/audiobook_service.dart';
 import '../services/learning_engine/learning_progress_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/launch_empty_state.dart';
 import '../widgets/section_card.dart';
 
 class AudioBookStudioScreen extends StatefulWidget {
@@ -1395,9 +1396,11 @@ class _SavedAudioBooksSection extends StatelessWidget {
           if (isLoading)
             const LinearProgressIndicator()
           else if (savedAudioBooks.isEmpty)
-            const Text(
-              'Escribe un tema arriba y genera tu primer AudioBook para activar recomendaciones.',
-              style: TextStyle(color: AppTheme.textMuted),
+            const LaunchEmptyState(
+              title: 'Crea tu primer AudioBook',
+              message:
+                  'Escribe un tema arriba para activar audio, actividades y recomendaciones.',
+              icon: Icons.headphones_outlined,
             )
           else
             ...savedAudioBooks.map(

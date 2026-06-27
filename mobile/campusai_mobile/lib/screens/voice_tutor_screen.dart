@@ -14,6 +14,7 @@ import '../services/voice_intelligence/voice_models.dart';
 import '../services/voice_intelligence/voice_session_service.dart';
 import '../services/voice_intelligence/voice_tts_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/launch_empty_state.dart';
 import '../widgets/section_card.dart';
 
 class VoiceTutorScreen extends StatefulWidget {
@@ -1017,9 +1018,11 @@ class _MessageList extends StatelessWidget {
   Widget build(BuildContext context) {
     if (messages.isEmpty) {
       return const SectionCard(
-        child: Text(
-          'Hazme una pregunta sobre este capítulo.',
-          style: TextStyle(color: AppTheme.textMuted),
+        child: LaunchEmptyState(
+          title: 'Tu conversación está lista',
+          message:
+              'Elige una sugerencia o escribe qué tema quieres comprender mejor.',
+          icon: Icons.chat_bubble_outline_rounded,
         ),
       );
     }
