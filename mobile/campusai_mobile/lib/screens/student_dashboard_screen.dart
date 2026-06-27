@@ -2,34 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../layout/responsive_layout.dart';
-import '../services/campus_intelligence/adaptive_scheduler_service.dart';
 import '../services/campus_intelligence/campus_intelligence_models.dart';
-import '../services/campus_intelligence/campus_intelligence_service.dart';
-import '../services/campus_intelligence/campus_trend_service.dart';
 import '../services/campus_intelligence/enterprise_intelligence_models.dart'
     hide LearningRecommendation;
-import '../services/campus_intelligence/knowledge_map_service.dart';
-import '../services/campus_intelligence/learning_graph_enterprise_service.dart';
-import '../services/campus_intelligence/predictive_success_engine.dart';
-import '../services/campus_intelligence/productivity_service.dart';
-import '../services/campus_intelligence/smart_study_planner_service.dart';
-import '../services/campus_intelligence/smart_goals_engine.dart';
-import '../services/campus_intelligence/student_analytics_enterprise_service.dart';
-import '../services/campus_intelligence/student_digital_twin_service.dart';
-import '../services/campus_intelligence/student_timeline_service.dart';
-import '../services/learning_engine/achievement_service.dart';
-import '../services/learning_engine/learning_analytics_service.dart';
-import '../services/learning_engine/learning_models.dart';
-import '../services/learning_engine/learning_session_service.dart';
-import '../services/learning_engine/recommendation_engine.dart';
-import '../services/learning_engine/streak_service.dart';
-import '../services/learning_engine/student_intelligence_service.dart';
+import '../services/enterprise_notifications/enterprise_notification_center.dart';
 import '../services/gamification/gamification_models.dart' hide Achievement;
-import '../services/gamification/gamification_service.dart';
 import '../services/institution/institution_models.dart';
-import '../services/institution/institution_service.dart';
+import '../services/learning_engine/learning_models.dart';
 import '../services/marketplace/marketplace_models.dart';
-import '../services/marketplace/marketplace_service.dart';
+import '../services/release_candidate/rc_models.dart';
+import '../services/student_dashboard_controller.dart';
 import '../theme/app_theme.dart';
 import '../widgets/enterprise_dashboard_widgets.dart';
 import '../widgets/enterprise4_dashboard_widgets.dart';
@@ -43,29 +25,7 @@ class StudentDashboardScreen extends StatefulWidget {
 }
 
 class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
-  final analyticsService = const LearningAnalyticsService();
-  final streakService = const StreakService();
-  final recommendationEngine = const RecommendationEngine();
-  final achievementService = const AchievementService();
-  final intelligenceService = const StudentIntelligenceService();
-  final sessionService = const LearningSessionService();
-  final campusIntelligenceService = const CampusIntelligenceService();
-  final campusTrendService = const CampusTrendService();
-  final adaptiveSchedulerService = const AdaptiveSchedulerService();
-  final smartStudyPlannerService = const SmartStudyPlannerService();
-  final enterpriseAnalyticsService = const StudentAnalyticsEnterpriseService();
-  final graphEnterpriseService = const LearningGraphEnterpriseService();
-  final knowledgeMapService = const KnowledgeMapService();
-  final smartGoalsEngine = const SmartGoalsEngine();
-  final productivityService = const ProductivityService();
-  final digitalTwinService = const StudentDigitalTwinService();
-  final predictiveSuccessEngine = const PredictiveSuccessEngine();
-  final timelineService = const StudentTimelineService();
-  final gamificationService = const GamificationService();
-  final marketplaceService = const MarketplaceService();
-  final marketplaceRecommendationEngine =
-      const MarketplaceRecommendationEngine();
-  final institutionService = const InstitutionService();
+  final dashboardController = const StudentDashboardController();
 
   bool isLoading = true;
   String errorMessage = '';
@@ -93,6 +53,8 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   GamificationProfile gamificationProfile = GamificationProfile.empty();
   List<MarketplaceItem> marketplaceSuggestions = [];
   InstitutionDashboard institutionDashboard = InstitutionDashboard.empty();
+  NotificationHistory notificationHistory = const NotificationHistory();
+  ReleaseCandidateReport? rcReport;
   List<Map<String, dynamic>> recentSessions = [];
 
   @override
@@ -101,90 +63,49 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     loadStudentDashboard();
   }
 
-  Future<void> loadStudentDashboard() async {
+  Future<void> loadStudentDashboard({bool refresh = false}) async {
     setState(() {
       isLoading = true;
       errorMessage = '';
     });
 
     try {
-      final loadedAnalytics = await analyticsService.buildAnalytics();
-      final loadedContinue = await analyticsService.buildContinueLearningItem();
-      final loadedStreak = await streakService.calculateStreak();
-      final loadedRecommendations =
-          await recommendationEngine.generateRecommendations();
-      final loadedAchievements = await achievementService.getAchievements();
-      final loadedIntelligence = await intelligenceService.analyzeStudent();
-      final loadedSessions = await sessionService.getSessions();
-      final loadedCampusSnapshot =
-          await campusIntelligenceService.buildSnapshot();
-      final loadedCampusTrends = await campusTrendService.buildTrends();
-      final loadedAdaptiveSchedule =
-          await adaptiveSchedulerService.buildSchedule();
-      final loadedSmartStudyPlan = await smartStudyPlannerService.buildPlan(
-        schedule: loadedAdaptiveSchedule,
-      );
-      final loadedEnterpriseAnalytics =
-          await enterpriseAnalyticsService.buildAnalytics();
-      final loadedRoadmap = await graphEnterpriseService.buildRoadmap();
-      final loadedKnowledgeMap = await knowledgeMapService.buildKnowledgeMap(
-        roadmap: loadedRoadmap,
-      );
-      final loadedStudyGoals = await smartGoalsEngine.buildGoals(
-        knowledgeMap: loadedKnowledgeMap,
-      );
-      final loadedProductivity = await productivityService.buildSnapshot();
-      final loadedTwin = await digitalTwinService.buildTwin(
-        productivity: loadedProductivity,
-      );
-      final loadedPrediction = await predictiveSuccessEngine.predict(
-        analytics: loadedEnterpriseAnalytics,
-        twin: loadedTwin,
-        goals: loadedStudyGoals,
-      );
-      final loadedTimeline = await timelineService.buildTimeline(limit: 8);
-      final loadedGamification = await gamificationService.buildProfile();
-      final loadedCatalog = await marketplaceService.buildCatalog();
-      final loadedInstitution = await institutionService.buildDashboard();
-      final loadedMarketplaceSuggestions =
-          marketplaceRecommendationEngine.recommend(
-        loadedCatalog,
-        focus: loadedKnowledgeMap.tomorrowFocus,
-        risk: loadedPrediction.failureRisk >= 60 ? 'Alto' : 'Bajo',
-      );
+      final loaded = await dashboardController.load(refresh: refresh);
 
       if (!mounted) return;
 
       setState(() {
-        analytics = loadedAnalytics;
-        continueLearning = loadedContinue;
-        streak = loadedStreak;
-        recommendations = loadedRecommendations;
-        achievements = loadedAchievements;
-        intelligence = loadedIntelligence;
-        campusSnapshot = loadedCampusSnapshot;
-        campusTrends = loadedCampusTrends;
-        adaptiveSchedule = loadedAdaptiveSchedule;
-        smartStudyPlan = loadedSmartStudyPlan;
-        enterpriseAnalytics = loadedEnterpriseAnalytics;
-        learningRoadmap = loadedRoadmap;
-        knowledgeMap = loadedKnowledgeMap;
-        studyGoals = loadedStudyGoals;
-        productivity = loadedProductivity;
-        digitalTwin = loadedTwin;
-        successPrediction = loadedPrediction;
-        smartTimeline = loadedTimeline;
-        gamificationProfile = loadedGamification;
-        marketplaceSuggestions = loadedMarketplaceSuggestions;
-        institutionDashboard = loadedInstitution;
-        recentSessions = loadedSessions.take(6).toList();
+        analytics = loaded.analytics;
+        continueLearning = loaded.continueLearning;
+        streak = loaded.streak;
+        recommendations = loaded.recommendations;
+        achievements = loaded.achievements;
+        intelligence = loaded.intelligence;
+        campusSnapshot = loaded.campusSnapshot;
+        campusTrends = loaded.campusTrends;
+        adaptiveSchedule = loaded.adaptiveSchedule;
+        smartStudyPlan = loaded.smartStudyPlan;
+        enterpriseAnalytics = loaded.enterpriseAnalytics;
+        learningRoadmap = loaded.learningRoadmap;
+        knowledgeMap = loaded.knowledgeMap;
+        studyGoals = loaded.studyGoals;
+        productivity = loaded.productivity;
+        digitalTwin = loaded.digitalTwin;
+        successPrediction = loaded.successPrediction;
+        smartTimeline = loaded.smartTimeline;
+        gamificationProfile = loaded.gamificationProfile;
+        marketplaceSuggestions = loaded.marketplaceSuggestions;
+        institutionDashboard = loaded.institutionDashboard;
+        notificationHistory = loaded.notificationHistory;
+        rcReport = loaded.rcReport;
+        recentSessions = loaded.recentSessions;
         isLoading = false;
       });
     } catch (error) {
       if (!mounted) return;
 
       setState(() {
-        errorMessage = 'No se pudo cargar Learning Engine.';
+        errorMessage = 'No se pudo cargar tu panel de aprendizaje.';
         isLoading = false;
       });
     }
@@ -202,7 +123,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
             : RefreshIndicator(
-                onRefresh: loadStudentDashboard,
+                onRefresh: () => loadStudentDashboard(refresh: true),
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: EdgeInsets.all(isMobile ? 16 : 24),
@@ -215,7 +136,11 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                           _Header(isMobile: isMobile),
                           if (errorMessage.isNotEmpty) ...[
                             const SizedBox(height: 18),
-                            _ErrorCard(message: errorMessage),
+                            _ErrorCard(
+                              message: errorMessage,
+                              onRetry: () =>
+                                  loadStudentDashboard(refresh: true),
+                            ),
                           ],
                           const SizedBox(height: 18),
                           _ContinueLearningCard(
@@ -231,23 +156,30 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                                 : null,
                           ),
                           const SizedBox(height: 18),
-                          _MetricsGrid(analytics: analytics),
-                          const SizedBox(height: 18),
-                          _CampusIntelligenceCard(snapshot: campusSnapshot),
-                          const SizedBox(height: 18),
-                          _CampusTrendsCard(
-                            trends: campusTrends,
-                            latestSnapshot: campusSnapshot,
-                          ),
-                          const SizedBox(height: 18),
                           _ResponsivePair(
                             left: _SmartStudyPlanCard(
                               plan: smartStudyPlan,
                               schedule: adaptiveSchedule,
                             ),
+                            right: _SmartAlertsCard(
+                              history: notificationHistory,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          _MetricsGrid(analytics: analytics),
+                          const SizedBox(height: 18),
+                          _ResponsivePair(
+                            left: _CampusIntelligenceCard(
+                              snapshot: campusSnapshot,
+                            ),
                             right: _EnterpriseAnalyticsCard(
                               analytics: enterpriseAnalytics,
                             ),
+                          ),
+                          const SizedBox(height: 18),
+                          _CampusTrendsCard(
+                            trends: campusTrends,
+                            latestSnapshot: campusSnapshot,
                           ),
                           const SizedBox(height: 18),
                           _ResponsivePair(
@@ -311,15 +243,17 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                           ),
                           const SizedBox(height: 18),
                           _ResponsivePair(
-                            left: CreatorProfileWidget(
-                              author: marketplaceSuggestions.isEmpty
-                                  ? const MarketplaceAuthor(
-                                      name: 'StudyBook AI')
-                                  : marketplaceSuggestions.first.author,
-                            ),
-                            right: MarketplaceSuggestionsWidget(
+                            left: _RecommendedResourcesCard(
                               items: marketplaceSuggestions,
                             ),
+                            right: rcReport == null
+                                ? CreatorProfileWidget(
+                                    author: marketplaceSuggestions.isEmpty
+                                        ? const MarketplaceAuthor(
+                                            name: 'StudyBook AI')
+                                        : marketplaceSuggestions.first.author,
+                                  )
+                                : _RcStatusCard(report: rcReport!),
                           ),
                           const SizedBox(height: 18),
                           _ResponsivePair(
@@ -814,6 +748,114 @@ class _SmartStudyPlanCard extends StatelessWidget {
               icon: Icons.flag_rounded,
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class _SmartAlertsCard extends StatelessWidget {
+  final NotificationHistory history;
+
+  const _SmartAlertsCard({required this.history});
+
+  @override
+  Widget build(BuildContext context) {
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionTitle(
+            title: 'Alertas inteligentes',
+            icon: Icons.notifications_active_outlined,
+            color: AppTheme.warning,
+          ),
+          const SizedBox(height: 10),
+          if (history.items.isEmpty)
+            const Text(
+              'No hay alertas prioritarias por ahora.',
+              style: TextStyle(color: AppTheme.textMuted),
+            )
+          else
+            for (final item in history.items.take(3))
+              _ListItem(
+                title: item.title,
+                subtitle: item.message,
+                icon: item.priority == NotificationPriority.critical ||
+                        item.priority == NotificationPriority.high
+                    ? Icons.warning_amber_rounded
+                    : Icons.lightbulb_outline_rounded,
+              ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RecommendedResourcesCard extends StatelessWidget {
+  final List<MarketplaceItem> items;
+
+  const _RecommendedResourcesCard({required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionTitle(
+            title: 'Recursos recomendados',
+            icon: Icons.auto_stories_outlined,
+            color: AppTheme.secondary,
+          ),
+          const SizedBox(height: 10),
+          if (items.isEmpty)
+            const Text(
+              'Aún no hay recursos relacionados con tu progreso.',
+              style: TextStyle(color: AppTheme.textMuted),
+            )
+          else
+            for (final item in items.take(3))
+              _ListItem(
+                title: item.title,
+                subtitle: item.description.isEmpty
+                    ? item.categoryId
+                    : item.description,
+                icon: Icons.menu_book_rounded,
+              ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RcStatusCard extends StatelessWidget {
+  final ReleaseCandidateReport report;
+
+  const _RcStatusCard({required this.report});
+
+  @override
+  Widget build(BuildContext context) {
+    final passedGates = report.qualityGates.where((gate) => gate.passed).length;
+    final openRisks = report.risks
+        .where((risk) => risk.severity.toLowerCase() != 'low')
+        .length;
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionTitle(
+            title: 'Estado RC1',
+            icon: Icons.verified_outlined,
+            color: AppTheme.success,
+          ),
+          const SizedBox(height: 14),
+          _InfoRow(label: 'Readiness', value: '${report.score}%'),
+          _InfoRow(
+            label: 'Quality gates',
+            value: '$passedGates/${report.qualityGates.length}',
+          ),
+          _InfoRow(label: 'Riesgos abiertos', value: '$openRisks'),
         ],
       ),
     );
@@ -1317,8 +1359,9 @@ class _EmptyState extends StatelessWidget {
 
 class _ErrorCard extends StatelessWidget {
   final String message;
+  final VoidCallback onRetry;
 
-  const _ErrorCard({required this.message});
+  const _ErrorCard({required this.message, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -1332,6 +1375,11 @@ class _ErrorCard extends StatelessWidget {
               message,
               style: const TextStyle(color: AppTheme.textSecondary),
             ),
+          ),
+          const SizedBox(width: 10),
+          TextButton(
+            onPressed: onRetry,
+            child: const Text('Reintentar'),
           ),
         ],
       ),
