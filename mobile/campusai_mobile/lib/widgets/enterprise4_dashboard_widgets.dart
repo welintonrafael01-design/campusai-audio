@@ -9,8 +9,8 @@ class XpCard extends StatelessWidget {
   final XP xp;
   const XpCard({super.key, required this.xp});
   @override
-  Widget build(BuildContext c) =>
-      _Card('XP', Icons.bolt_rounded, '${xp.total} XP · hoy ${xp.earnedToday}');
+  Widget build(BuildContext c) => _Card('Progreso XP', Icons.bolt_rounded,
+      '${xp.total} XP · ${xp.earnedToday} ganados hoy');
 }
 
 class CurrentLevelWidget extends StatelessWidget {
@@ -34,12 +34,12 @@ class MissionCard extends StatelessWidget {
   const MissionCard({super.key, required this.missions});
   @override
   Widget build(BuildContext c) => _Card(
-      'Misiones',
+      'Misión diaria',
       Icons.flag_rounded,
       missions.isEmpty
-          ? 'Sin misiones activas'
+          ? 'Completa una sesión para activar tu próxima misión.'
           : missions
-              .take(2)
+              .take(1)
               .map((m) => '${m.title}: ${m.progress}/${m.target}')
               .join('\n'));
 }
@@ -48,24 +48,24 @@ class AchievementGrid extends StatelessWidget {
   final List<Achievement> achievements;
   const AchievementGrid({super.key, required this.achievements});
   @override
-  Widget build(BuildContext c) => _Card(
-      'Insignias',
-      Icons.workspace_premium_rounded,
-      achievements.where((a) => a.unlocked).isEmpty
-          ? 'Aún sin insignias'
-          : achievements
-              .where((a) => a.unlocked)
-              .take(3)
-              .map((a) => a.title)
-              .join(' · '));
+  Widget build(BuildContext c) {
+    final pending = achievements.where((item) => !item.unlocked).toList();
+    final unlocked = achievements.where((item) => item.unlocked).toList();
+    final body = pending.isNotEmpty
+        ? '${pending.first.title}: ${pending.first.progress}/${pending.first.target}'
+        : unlocked.isNotEmpty
+            ? 'Último logro: ${unlocked.first.title}'
+            : 'Sigue estudiando para desbloquear tu primer logro.';
+    return _Card('Logro cercano', Icons.workspace_premium_rounded, body);
+  }
 }
 
 class CoinWalletWidget extends StatelessWidget {
   final CoinWallet wallet;
   const CoinWalletWidget({super.key, required this.wallet});
   @override
-  Widget build(BuildContext c) => _Card(
-      'Coin Wallet', Icons.monetization_on_rounded, '${wallet.balance} coins');
+  Widget build(BuildContext c) => _Card('Créditos de progreso',
+      Icons.monetization_on_rounded, '${wallet.balance} disponibles');
 }
 
 class CreatorProfileWidget extends StatelessWidget {
@@ -73,7 +73,7 @@ class CreatorProfileWidget extends StatelessWidget {
   const CreatorProfileWidget({super.key, required this.author});
   @override
   Widget build(BuildContext c) => _Card(
-      'Creator Profile',
+      'Fuente del recurso',
       Icons.person_outline_rounded,
       '${author.name} · ${author.followers} seguidores');
 }
@@ -83,7 +83,7 @@ class MarketplaceSuggestionsWidget extends StatelessWidget {
   const MarketplaceSuggestionsWidget({super.key, required this.items});
   @override
   Widget build(BuildContext c) => _Card(
-      'Marketplace',
+      'Recursos sugeridos',
       Icons.storefront_rounded,
       items.isEmpty
           ? 'Sin recursos sugeridos'
@@ -95,7 +95,7 @@ class InstitutionHealthWidget extends StatelessWidget {
   const InstitutionHealthWidget({super.key, required this.metrics});
   @override
   Widget build(BuildContext c) => _Card(
-      'Institution Health',
+      'Indicadores institucionales',
       Icons.health_and_safety_rounded,
       'Progreso ${metrics.progress}% · Retención ${metrics.retention}%');
 }
@@ -105,7 +105,7 @@ class InstitutionAlertsWidget extends StatelessWidget {
   const InstitutionAlertsWidget({super.key, required this.alerts});
   @override
   Widget build(BuildContext c) => _Card(
-      'Institution Alerts',
+      'Alertas institucionales',
       Icons.warning_amber_rounded,
       alerts.isEmpty
           ? 'Sin alertas institucionales'
@@ -117,9 +117,9 @@ class InstitutionKpisWidget extends StatelessWidget {
   const InstitutionKpisWidget({super.key, required this.metrics});
   @override
   Widget build(BuildContext c) => _Card(
-      'Institution KPIs',
+      'Uso institucional',
       Icons.analytics_rounded,
-      'IA ${metrics.aiUsage}% · Voice ${metrics.voiceUsage}% · Engagement ${metrics.engagement}%');
+      'IA ${metrics.aiUsage}% · Voz ${metrics.voiceUsage}% · Participación ${metrics.engagement}%');
 }
 
 class _Card extends StatelessWidget {

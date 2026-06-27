@@ -17,6 +17,7 @@ import '../services/student_dashboard_controller.dart';
 import '../theme/app_theme.dart';
 import '../widgets/enterprise_dashboard_widgets.dart';
 import '../widgets/enterprise4_dashboard_widgets.dart';
+import '../widgets/next_best_action_card.dart';
 import '../widgets/section_card.dart';
 
 class StudentDashboardScreen extends StatefulWidget {
@@ -31,6 +32,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   final autonomousActionExecutor = const AutonomousActionExecutor();
 
   bool isLoading = true;
+  bool isRefreshing = false;
   String errorMessage = '';
   final Set<String> processingActionIds = {};
 
@@ -70,7 +72,11 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
 
   Future<void> loadStudentDashboard({bool refresh = false}) async {
     setState(() {
-      isLoading = true;
+      if (refresh) {
+        isRefreshing = true;
+      } else {
+        isLoading = true;
+      }
       errorMessage = '';
     });
 
@@ -106,6 +112,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         rcReport = loaded.rcReport;
         recentSessions = loaded.recentSessions;
         isLoading = false;
+        isRefreshing = false;
       });
     } catch (error) {
       if (!mounted) return;
@@ -113,8 +120,25 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
       setState(() {
         errorMessage = 'No se pudo cargar tu panel de aprendizaje.';
         isLoading = false;
+        isRefreshing = false;
       });
     }
+  }
+
+  String intelligentDayMessage(List<AutonomousAction> pendingActions) {
+    if (pendingActions.isNotEmpty) {
+      return 'Hoy tu mejor siguiente paso es ${pendingActions.first.title.toLowerCase()}.';
+    }
+    if (continueLearning.hasProgress) {
+      return 'Hoy conviene continuar con ${continueLearning.audiobookTitle}.';
+    }
+    if (smartStudyPlan.suggestedMinutes > 0) {
+      return 'Puedes avanzar ${smartStudyPlan.suggestedMinutes} minutos hoy para mantener tu progreso.';
+    }
+    if (analytics.sessions <= 0) {
+      return 'Bienvenido. Completa una sesión para activar recomendaciones personalizadas.';
+    }
+    return 'Tu progreso está al día. Elige una actividad breve para seguir avanzando.';
   }
 
   Future<void> executeAutonomousAction(AutonomousAction action) async {
@@ -164,14 +188,37 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final isMobile = ResponsiveLayout.isMobile(context);
+    final pendingActions = autonomousActionPlan.pendingActions;
+    final nextBestAction = pendingActions.isEmpty ? null : pendingActions.first;
+    final remainingActions = pendingActions.skip(1).toList();
+    final dayDetail = nextBestAction?.reason ??
+        (analytics.sessions <= 0 && !continueLearning.hasProgress
+            ? 'Genera un AudioBook o habla con el Tutor IA para comenzar.'
+            : campusSnapshot.recommendedNextAction);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mi Aprendizaje'),
+        actions: [
+          if (isRefreshing)
+            const Padding(
+              padding: EdgeInsets.all(14),
+              child: SizedBox.square(
+                dimension: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            )
+          else
+            IconButton(
+              tooltip: 'Actualizar panel',
+              onPressed: () => loadStudentDashboard(refresh: true),
+              icon: const Icon(Icons.refresh_rounded),
+            ),
+        ],
       ),
       body: SafeArea(
         child: isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const _DashboardLoadingState()
             : RefreshIndicator(
                 onRefresh: () => loadStudentDashboard(refresh: true),
                 child: SingleChildScrollView(
@@ -193,6 +240,11 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                             ),
                           ],
                           const SizedBox(height: 18),
+                          _IntelligentDayCard(
+                            message: intelligentDayMessage(pendingActions),
+                            detail: dayDetail,
+                          ),
+                          const SizedBox(height: 18),
                           _ContinueLearningCard(
                             item: continueLearning,
                             onContinue: continueLearning.hasProgress
@@ -206,25 +258,126 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                                 : null,
                           ),
                           const SizedBox(height: 18),
-                          _ResponsivePair(
-                            left: _SmartStudyPlanCard(
-                              plan: smartStudyPlan,
-                              schedule: adaptiveSchedule,
+                          _SmartStudyPlanCard(
+                            plan: smartStudyPlan,
+                            schedule: adaptiveSchedule,
+                          ),
+                          const SizedBox(height: 18),
+                          NextBestActionCard(
+                            action: nextBestAction,
+                            isProcessing: nextBestAction != null &&
+                                processingActionIds.contains(nextBestAction.id),
+                            onPrimary: nextBestAction == null
+                                ? () => context.goNamed('voiceTutor')
+                                : () => executeAutonomousAction(nextBestAction),
+                            onSecondary: () => context.goNamed(
+                              'voiceTutor',
+                              extra: {
+                                'title': nextBestAction?.title ?? 'Tutor IA',
+                                'suggested_prompt':
+                                    nextBestAction?.reason ?? '',
+                              },
                             ),
-                            right: _SmartAlertsCard(
-                              history: notificationHistory,
-                            ),
+                            onDismiss: nextBestAction == null
+                                ? null
+                                : () => dismissAutonomousAction(nextBestAction),
                           ),
                           const SizedBox(height: 18),
                           _AutonomousActionsCard(
-                            actions: autonomousActionPlan.pendingActions,
+                            actions: remainingActions,
                             processingActionIds: processingActionIds,
                             onExecute: executeAutonomousAction,
                             onDismiss: dismissAutonomousAction,
                           ),
                           const SizedBox(height: 18),
+                          _SmartAlertsCard(history: notificationHistory),
+                          const SizedBox(height: 24),
+                          const _DashboardSectionLabel(
+                            title: 'Progreso y logros',
+                            subtitle: 'Tu avance, constancia y próximos hitos.',
+                          ),
+                          const SizedBox(height: 12),
                           _MetricsGrid(analytics: analytics),
                           const SizedBox(height: 18),
+                          _ResponsivePair(
+                            left: XpCard(xp: gamificationProfile.xp),
+                            right: CurrentLevelWidget(
+                              level: gamificationProfile.level,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          _ResponsivePair(
+                            left: NextLevelWidget(
+                              level: gamificationProfile.level,
+                            ),
+                            right: MissionCard(
+                              missions: gamificationProfile.missions,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          _ResponsivePair(
+                            left: AchievementGrid(
+                              achievements: gamificationProfile.achievements,
+                            ),
+                            right: CoinWalletWidget(
+                              wallet: gamificationProfile.wallet,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          _ResponsivePair(
+                            left: _StreakCard(streak: streak),
+                            right: _RecommendationsCard(
+                              recommendations: recommendations,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          _ResponsivePair(
+                            left: _AchievementsCard(
+                              achievements: achievements,
+                            ),
+                            right: _StudentIntelligenceCard(
+                              intelligence: intelligence,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          _RecentSessionsCard(sessions: recentSessions),
+                          const SizedBox(height: 18),
+                          _TutorCtaCard(
+                            actionTitle: nextBestAction?.title ?? '',
+                            onOpen: () => context.goNamed(
+                              'voiceTutor',
+                              extra: {
+                                'title': 'Tutor IA',
+                                'suggested_prompt':
+                                    nextBestAction?.reason ?? '',
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          const _DashboardSectionLabel(
+                            title: 'Recursos recomendados',
+                            subtitle:
+                                'Materiales reales para reforzar tus áreas débiles.',
+                          ),
+                          const SizedBox(height: 12),
+                          _ResponsivePair(
+                            left: _RecommendedResourcesCard(
+                              items: marketplaceSuggestions,
+                            ),
+                            right: CreatorProfileWidget(
+                              author: marketplaceSuggestions.isEmpty
+                                  ? const MarketplaceAuthor(
+                                      name: 'StudyBook AI')
+                                  : marketplaceSuggestions.first.author,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          const _DashboardSectionLabel(
+                            title: 'Analítica y contexto',
+                            subtitle:
+                                'Indicadores avanzados para comprender tu evolución.',
+                          ),
+                          const SizedBox(height: 12),
                           _ResponsivePair(
                             left: _CampusIntelligenceCard(
                               snapshot: campusSnapshot,
@@ -273,76 +426,34 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                                 RiskMeterWidget(prediction: successPrediction),
                             right: SmartTimelineWidget(items: smartTimeline),
                           ),
-                          const SizedBox(height: 18),
-                          _ResponsivePair(
-                            left: XpCard(xp: gamificationProfile.xp),
-                            right: CurrentLevelWidget(
-                              level: gamificationProfile.level,
-                            ),
+                          const SizedBox(height: 24),
+                          const _DashboardSectionLabel(
+                            title: 'Estado Enterprise',
+                            subtitle:
+                                'Indicadores secundarios de plataforma e institución.',
                           ),
-                          const SizedBox(height: 18),
+                          const SizedBox(height: 12),
                           _ResponsivePair(
-                            left: NextLevelWidget(
-                              level: gamificationProfile.level,
-                            ),
-                            right: MissionCard(
-                              missions: gamificationProfile.missions,
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          _ResponsivePair(
-                            left: AchievementGrid(
-                              achievements: gamificationProfile.achievements,
-                            ),
-                            right: CoinWalletWidget(
-                              wallet: gamificationProfile.wallet,
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          _ResponsivePair(
-                            left: _RecommendedResourcesCard(
-                              items: marketplaceSuggestions,
-                            ),
-                            right: rcReport == null
+                            left: rcReport == null
                                 ? CreatorProfileWidget(
-                                    author: marketplaceSuggestions.isEmpty
-                                        ? const MarketplaceAuthor(
-                                            name: 'StudyBook AI')
-                                        : marketplaceSuggestions.first.author,
+                                    author: const MarketplaceAuthor(
+                                      name: 'StudyBook AI',
+                                    ),
                                   )
                                 : _RcStatusCard(report: rcReport!),
-                          ),
-                          const SizedBox(height: 18),
-                          _ResponsivePair(
-                            left: InstitutionHealthWidget(
+                            right: InstitutionHealthWidget(
                               metrics: institutionDashboard.metrics,
                             ),
-                            right: InstitutionAlertsWidget(
+                          ),
+                          const SizedBox(height: 18),
+                          _ResponsivePair(
+                            left: InstitutionAlertsWidget(
                               alerts: institutionDashboard.alerts,
                             ),
-                          ),
-                          const SizedBox(height: 18),
-                          InstitutionKpisWidget(
-                            metrics: institutionDashboard.metrics,
-                          ),
-                          const SizedBox(height: 18),
-                          _ResponsivePair(
-                            left: _StreakCard(streak: streak),
-                            right: _RecommendationsCard(
-                              recommendations: recommendations,
+                            right: InstitutionKpisWidget(
+                              metrics: institutionDashboard.metrics,
                             ),
                           ),
-                          const SizedBox(height: 18),
-                          _ResponsivePair(
-                            left: _AchievementsCard(
-                              achievements: achievements,
-                            ),
-                            right: _StudentIntelligenceCard(
-                              intelligence: intelligence,
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          _RecentSessionsCard(sessions: recentSessions),
                         ],
                       ),
                     ),
@@ -374,20 +485,162 @@ class _Header extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         const Text(
-          'Continúa tu progreso con StudyBook AI',
+          'Un plan claro para avanzar a tu ritmo.',
           style: TextStyle(
             color: AppTheme.textMuted,
             fontSize: 16,
             height: 1.4,
           ),
         ),
-        const SizedBox(height: 14),
-        FilledButton.icon(
-          onPressed: () => context.goNamed('voiceTutor'),
-          icon: const Icon(Icons.record_voice_over_rounded),
-          label: const Text('Tutor IA'),
-        ),
       ],
+    );
+  }
+}
+
+class _DashboardLoadingState extends StatelessWidget {
+  const _DashboardLoadingState();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text(
+              'Preparando tu día inteligente...',
+              style: TextStyle(color: AppTheme.textMuted),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _IntelligentDayCard extends StatelessWidget {
+  final String message;
+  final String detail;
+
+  const _IntelligentDayCard({required this.message, required this.detail});
+
+  @override
+  Widget build(BuildContext context) {
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _SectionTitle(
+            title: 'Tu día inteligente',
+            icon: Icons.wb_sunny_outlined,
+            color: AppTheme.warning,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            style: const TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              height: 1.3,
+            ),
+          ),
+          if (detail.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              detail,
+              style: const TextStyle(color: AppTheme.textMuted, height: 1.4),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _DashboardSectionLabel extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const _DashboardSectionLabel({
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: AppTheme.textPrimary,
+            fontSize: 22,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(subtitle, style: const TextStyle(color: AppTheme.textMuted)),
+      ],
+    );
+  }
+}
+
+class _TutorCtaCard extends StatelessWidget {
+  final String actionTitle;
+  final VoidCallback onOpen;
+
+  const _TutorCtaCard({required this.actionTitle, required this.onOpen});
+
+  @override
+  Widget build(BuildContext context) {
+    return SectionCard(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.record_voice_over_rounded,
+            color: AppTheme.accent,
+            size: 30,
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Tutor IA',
+                  style: TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  actionTitle.trim().isEmpty
+                      ? 'Habla con el Tutor IA para recibir orientación personalizada.'
+                      : 'Pídele ayuda para avanzar con: $actionTitle.',
+                  style: const TextStyle(
+                    color: AppTheme.textMuted,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                FilledButton.icon(
+                  onPressed: onOpen,
+                  icon: const Icon(Icons.chat_bubble_outline_rounded),
+                  label: const Text('Abrir Tutor IA'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -457,7 +710,8 @@ class _ContinueLearningCard extends StatelessWidget {
           : const _EmptyState(
               icon: Icons.auto_stories_rounded,
               title: 'Continuar aprendiendo',
-              message: 'Aún no has iniciado una sesión de aprendizaje.',
+              message:
+                  'Genera tu primer AudioBook para activar recomendaciones inteligentes.',
             ),
     );
   }
@@ -877,7 +1131,7 @@ class _AutonomousActionsCard extends StatelessWidget {
           const SizedBox(height: 10),
           if (visibleActions.isEmpty)
             const Text(
-              'No hay acciones prioritarias pendientes.',
+              'No hay más acciones pendientes. Sigue tu plan o consulta al Tutor IA.',
               style: TextStyle(color: AppTheme.textMuted),
             )
           else
@@ -1005,7 +1259,7 @@ class _RecommendedResourcesCard extends StatelessWidget {
           const SizedBox(height: 10),
           if (items.isEmpty)
             const Text(
-              'Aún no hay recursos relacionados con tu progreso.',
+              'Completa una sesión para recibir recursos relacionados con tus áreas débiles.',
               style: TextStyle(color: AppTheme.textMuted),
             )
           else
@@ -1267,7 +1521,7 @@ class _RecentSessionsCard extends StatelessWidget {
           const SizedBox(height: 12),
           if (sessions.isEmpty)
             const Text(
-              'No hay sesiones recientes.',
+              'Tu historial aparecerá después de completar una sesión de estudio.',
               style: TextStyle(color: AppTheme.textMuted),
             )
           else

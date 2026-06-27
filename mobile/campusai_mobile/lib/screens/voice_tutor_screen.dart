@@ -470,6 +470,11 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
   @override
   Widget build(BuildContext context) {
     final isMobile = ResponsiveLayout.isMobile(context);
+    final payloadSuggestion =
+        widget.payload['suggested_prompt']?.toString().trim() ?? '';
+    final proactiveSuggestion = voiceContext.nextBestAction.trim().isNotEmpty
+        ? voiceContext.nextBestAction.trim()
+        : payloadSuggestion;
 
     return Scaffold(
       appBar: AppBar(
@@ -477,7 +482,7 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
       ),
       body: SafeArea(
         child: isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const _TutorLoadingState()
             : Column(
                 children: [
                   Expanded(
@@ -492,7 +497,17 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
                               children: [
                                 _ContextHeader(context: voiceContext),
                                 const SizedBox(height: 16),
-                                _QuickActions(onAction: sendMessage),
+                                _ProactiveOpening(
+                                  context: voiceContext,
+                                  fallbackSuggestion: proactiveSuggestion,
+                                ),
+                                const SizedBox(height: 16),
+                                _QuickActions(
+                                  context: voiceContext,
+                                  fallbackSuggestion: proactiveSuggestion,
+                                  isBusy: isSending,
+                                  onAction: sendMessage,
+                                ),
                                 const SizedBox(height: 16),
                                 _VoiceInputPanel(
                                   state: conversationState,
@@ -507,7 +522,10 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
                                 ),
                                 if (errorMessage.isNotEmpty) ...[
                                   const SizedBox(height: 16),
-                                  _ErrorCard(message: errorMessage),
+                                  _ErrorCard(
+                                    message: errorMessage,
+                                    onRetry: loadTutor,
+                                  ),
                                 ],
                                 const SizedBox(height: 16),
                                 _MessageList(
@@ -604,11 +622,103 @@ class _ContextHeader extends StatelessWidget {
                 Chip(label: Text(this.context.recommendations.first)),
             ],
           ),
-          const SizedBox(height: 10),
-          const Text(
-            'TODO Voice Intelligence 3.0: STT, botón micrófono, transcripción, conversación por voz, interrupciones y streaming.',
-            style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+        ],
+      ),
+    );
+  }
+}
+
+class _TutorLoadingState extends StatelessWidget {
+  const _TutorLoadingState();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Padding(
+        padding: EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text(
+              'Preparando tu contexto de aprendizaje...',
+              style: TextStyle(color: AppTheme.textMuted),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProactiveOpening extends StatelessWidget {
+  final VoiceContext context;
+  final String fallbackSuggestion;
+
+  const _ProactiveOpening({
+    required this.context,
+    required this.fallbackSuggestion,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final suggestion = this.context.nextBestAction.trim().isNotEmpty
+        ? this.context.nextBestAction.trim()
+        : fallbackSuggestion.trim().isNotEmpty
+            ? fallbackSuggestion.trim()
+            : 'Cuéntame qué quieres aprender y construiremos el siguiente paso.';
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.auto_awesome_rounded, color: AppTheme.accent),
+              SizedBox(width: 10),
+              Text(
+                'Podemos empezar por aquí',
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
           ),
+          const SizedBox(height: 12),
+          Text(
+            suggestion,
+            style: const TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+              height: 1.35,
+            ),
+          ),
+          if (this.context.actionReason.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              this.context.actionReason,
+              style: const TextStyle(color: AppTheme.textMuted, height: 1.4),
+            ),
+          ],
+          if (this.context.studyPlanStatus.trim().isNotEmpty ||
+              this.context.riskPriority.trim().isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (this.context.studyPlanStatus.trim().isNotEmpty)
+                  Chip(label: Text(this.context.studyPlanStatus)),
+                if (this.context.riskPriority.trim().isNotEmpty)
+                  Chip(
+                    label: Text('Prioridad: ${this.context.riskPriority}'),
+                  ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -616,51 +726,71 @@ class _ContextHeader extends StatelessWidget {
 }
 
 class _QuickActions extends StatelessWidget {
+  final VoiceContext context;
+  final String fallbackSuggestion;
+  final bool isBusy;
   final Future<void> Function({String? text, String mode}) onAction;
 
-  const _QuickActions({required this.onAction});
+  const _QuickActions({
+    required this.context,
+    required this.fallbackSuggestion,
+    required this.isBusy,
+    required this.onAction,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final nextAction = this.context.nextBestAction.trim().isNotEmpty
+        ? this.context.nextBestAction.trim()
+        : fallbackSuggestion.trim();
+    final weakness = this.context.campusWeaknesses.isEmpty
+        ? 'mi principal dificultad'
+        : this.context.campusWeaknesses.first;
+    final plan = this.context.priorityNextAction.trim().isNotEmpty
+        ? this.context.priorityNextAction.trim()
+        : this.context.smartStudyPlanSummary.trim();
     return SectionCard(
       child: Wrap(
         spacing: 10,
         runSpacing: 10,
         children: [
           _ActionButton(
-            label: 'Explícame mejor',
-            mode: 'explain',
-            text: 'Explícame mejor este capítulo paso a paso.',
+            label: 'Empecemos',
+            mode: 'general',
+            text: nextAction.isEmpty
+                ? 'Ayúdame a elegir el mejor punto para empezar hoy.'
+                : 'Ayúdame a comenzar con esta acción: $nextAction.',
+            isBusy: isBusy,
             onAction: onAction,
           ),
           _ActionButton(
-            label: 'Hazme preguntas',
+            label: 'Explícame',
+            mode: 'explain',
+            text: 'Explícame este tema paso a paso con un ejemplo claro.',
+            isBusy: isBusy,
+            onAction: onAction,
+          ),
+          _ActionButton(
+            label: 'Hazme un quiz',
             mode: 'quiz',
-            text: 'Hazme preguntas para practicar.',
+            text: 'Hazme un quiz breve para comprobar lo que aprendí.',
+            isBusy: isBusy,
             onAction: onAction,
           ),
           _ActionButton(
-            label: 'Dame un ejemplo',
-            mode: 'explain',
-            text: 'Dame un ejemplo aplicado de este tema.',
-            onAction: onAction,
-          ),
-          _ActionButton(
-            label: 'Resume',
+            label: 'Repasar debilidad',
             mode: 'review',
-            text: 'Resume lo más importante.',
+            text: 'Ayúdame a repasar esta debilidad: $weakness.',
+            isBusy: isBusy,
             onAction: onAction,
           ),
           _ActionButton(
-            label: 'Motívame',
-            mode: 'motivate',
-            text: 'Motívame para continuar estudiando.',
-            onAction: onAction,
-          ),
-          _ActionButton(
-            label: 'Evalúame oralmente próximamente',
-            mode: 'quiz',
-            text: 'Prepárame una evaluación oral para practicar próximamente.',
+            label: 'Plan de hoy',
+            mode: 'general',
+            text: plan.isEmpty
+                ? 'Ayúdame a organizar un plan breve para estudiar hoy.'
+                : 'Ayúdame a ejecutar este plan de hoy: $plan.',
+            isBusy: isBusy,
             onAction: onAction,
           ),
         ],
@@ -673,19 +803,21 @@ class _ActionButton extends StatelessWidget {
   final String label;
   final String mode;
   final String text;
+  final bool isBusy;
   final Future<void> Function({String? text, String mode}) onAction;
 
   const _ActionButton({
     required this.label,
     required this.mode,
     required this.text,
+    required this.isBusy,
     required this.onAction,
   });
 
   @override
   Widget build(BuildContext context) {
     return OutlinedButton(
-      onPressed: () => onAction(text: text, mode: mode),
+      onPressed: isBusy ? null : () => onAction(text: text, mode: mode),
       child: Text(label),
     );
   }
@@ -1172,8 +1304,9 @@ class _Composer extends StatelessWidget {
 
 class _ErrorCard extends StatelessWidget {
   final String message;
+  final VoidCallback onRetry;
 
-  const _ErrorCard({required this.message});
+  const _ErrorCard({required this.message, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -1188,6 +1321,8 @@ class _ErrorCard extends StatelessWidget {
               style: const TextStyle(color: AppTheme.textSecondary),
             ),
           ),
+          const SizedBox(width: 10),
+          TextButton(onPressed: onRetry, child: const Text('Reintentar')),
         ],
       ),
     );

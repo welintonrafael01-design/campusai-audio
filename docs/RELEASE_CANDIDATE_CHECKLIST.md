@@ -69,6 +69,19 @@ flutter analyze
 - Rollback documentado.
 - No cambios en Billing, Stripe, Auth ni APIs existentes.
 
+## RC4 Intelligent Learning Experience
+
+- Revisar la narrativa "Tu dia inteligente" con y sin progreso previo.
+- Ejecutar la siguiente mejor accion y confirmar feedback visual.
+- Descartar una accion y confirmar que no reaparece al recargar.
+- Abrir Tutor IA y validar sugerencia inicial sin envio automatico.
+- Probar los cinco accesos rapidos del Tutor IA.
+- Abrir AudioBook y revisar CTAs de escucha, actividades, Tutor, quiz y flashcards.
+- Revisar estados vacios de AudioBooks, acciones, recursos, historial y alertas.
+- Confirmar que recursos recomendados solo muestra resultados locales reales.
+- Ejecutar pull-to-refresh y el boton de actualizar del Student Dashboard.
+- Verificar botones deshabilitados durante carga o ejecucion.
+
 ## Rollback
 
 ```bash

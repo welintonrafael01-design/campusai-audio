@@ -610,9 +610,13 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
     });
   }
 
-  void openVoiceTutorForChapter(Map<String, dynamic> chapter) {
+  void openVoiceTutorForChapter(
+    Map<String, dynamic> chapter, {
+    bool startWithVoice = false,
+  }) {
     final audiobookId = cleanText(selectedAudioBook['audiobook_id']);
     final chapterId = cleanText(chapter['chapter_id']);
+    final chapterTitle = audiobookService.chapterTitle(chapter);
 
     context.goNamed(
       'voiceTutor',
@@ -620,6 +624,10 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
         'audiobookId': audiobookId,
         'chapterId': chapterId,
         'title': 'Tutor IA',
+        'suggested_prompt': chapterTitle.isEmpty
+            ? 'Ayúdame a estudiar este capítulo.'
+            : 'Ayúdame a estudiar $chapterTitle.',
+        'start_with_voice': startWithVoice,
       },
     );
   }
@@ -784,7 +792,7 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
                         title: 'Flashcards',
                         child: flashcards.isEmpty
                             ? const Text(
-                                'No hay flashcards disponibles.',
+                                'Genera actividades para practicar con flashcards.',
                                 style: TextStyle(color: AppTheme.textMuted),
                               )
                             : Column(
@@ -814,7 +822,7 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
                         title: 'Mini Quiz',
                         child: miniQuiz.isEmpty
                             ? const Text(
-                                'No hay mini quiz disponible.',
+                                'Genera actividades para activar el mini quiz.',
                                 style: TextStyle(color: AppTheme.textMuted),
                               )
                             : Column(
@@ -1148,7 +1156,7 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  'TODO planes: Free con límite bajo, Student para audio libros personales, Teacher para convertir unidades, Accessibility para audio avanzado, Ultra/Institutional para uso extendido.',
+                  'Escucha, practica y consulta al Tutor IA desde cada capítulo.',
                   style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
                 ),
                 const SizedBox(height: 16),
@@ -1329,7 +1337,11 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
               onGenerateLearningPack: generateLearningPackForChapter,
               onLearningPack: showLearningPack,
               onTranscript: showTranscript,
-              onVoiceTutor: openVoiceTutorForChapter,
+              onTutor: openVoiceTutorForChapter,
+              onVoiceTutor: (chapter) => openVoiceTutorForChapter(
+                chapter,
+                startWithVoice: true,
+              ),
               stringListFrom: stringListFrom,
               cleanText: cleanText,
               intFrom: intFrom,
@@ -1384,7 +1396,7 @@ class _SavedAudioBooksSection extends StatelessWidget {
             const LinearProgressIndicator()
           else if (savedAudioBooks.isEmpty)
             const Text(
-              'Aún no has generado audio libros.',
+              'Escribe un tema arriba y genera tu primer AudioBook para activar recomendaciones.',
               style: TextStyle(color: AppTheme.textMuted),
             )
           else
@@ -1606,7 +1618,7 @@ class _RecentAudioBooksSection extends StatelessWidget {
           const SizedBox(height: 12),
           if (recentAudioBooks.isEmpty)
             const Text(
-              'Tu historial aparecerá cuando empieces a escuchar.',
+              'Escucha un capítulo y aquí podrás retomarlo rápidamente.',
               style: TextStyle(color: AppTheme.textMuted),
             )
           else
@@ -1875,6 +1887,7 @@ class _AudioBookResult extends StatelessWidget {
   final ValueChanged<Map<String, dynamic>> onGenerateLearningPack;
   final ValueChanged<Map<String, dynamic>> onLearningPack;
   final ValueChanged<Map<String, dynamic>> onTranscript;
+  final ValueChanged<Map<String, dynamic>> onTutor;
   final ValueChanged<Map<String, dynamic>> onVoiceTutor;
   final List<String> Function(dynamic raw) stringListFrom;
   final String Function(dynamic value) cleanText;
@@ -1907,6 +1920,7 @@ class _AudioBookResult extends StatelessWidget {
     required this.onGenerateLearningPack,
     required this.onLearningPack,
     required this.onTranscript,
+    required this.onTutor,
     required this.onVoiceTutor,
     required this.stringListFrom,
     required this.cleanText,
@@ -2035,6 +2049,7 @@ class _AudioBookResult extends StatelessWidget {
                 onGenerateLearningPack: () => onGenerateLearningPack(chapter),
                 onLearningPack: () => onLearningPack(chapter),
                 onTranscript: () => onTranscript(chapter),
+                onTutor: () => onTutor(chapter),
                 onVoiceTutor: () => onVoiceTutor(chapter),
                 stringListFrom: stringListFrom,
                 cleanText: cleanText,
@@ -2184,6 +2199,7 @@ class _AudioBookChapterCard extends StatelessWidget {
   final VoidCallback onGenerateLearningPack;
   final VoidCallback onLearningPack;
   final VoidCallback onTranscript;
+  final VoidCallback onTutor;
   final VoidCallback onVoiceTutor;
   final List<String> Function(dynamic raw) stringListFrom;
   final String Function(dynamic value) cleanText;
@@ -2205,6 +2221,7 @@ class _AudioBookChapterCard extends StatelessWidget {
     required this.onGenerateLearningPack,
     required this.onLearningPack,
     required this.onTranscript,
+    required this.onTutor,
     required this.onVoiceTutor,
     required this.stringListFrom,
     required this.cleanText,
@@ -2219,6 +2236,13 @@ class _AudioBookChapterCard extends StatelessWidget {
     final summary = cleanText(chapter['summary']);
     final hasAudio = cleanText(chapter['audio_url']).isNotEmpty;
     final hasLearningPack = chapter['learning_pack'] is Map;
+    final learningPack = hasLearningPack
+        ? Map<String, dynamic>.from(chapter['learning_pack'] as Map)
+        : <String, dynamic>{};
+    final hasFlashcards = learningPack['flashcards'] is List &&
+        (learningPack['flashcards'] as List).isNotEmpty;
+    final hasMiniQuiz = learningPack['mini_quiz'] is List &&
+        (learningPack['mini_quiz'] as List).isNotEmpty;
     final audioState = isGeneratingAudio
         ? 'Generando audio'
         : hasAudioError
@@ -2297,7 +2321,11 @@ class _AudioBookChapterCard extends StatelessWidget {
                 icon: Icon(
                   hasAudio ? Icons.volume_up_rounded : Icons.play_arrow_rounded,
                 ),
-                label: const Text('Escuchar'),
+                label: Text(
+                  currentPositionSeconds > 0
+                      ? 'Continuar escuchando'
+                      : 'Escuchar',
+                ),
               ),
               OutlinedButton.icon(
                 onPressed: isGeneratingAudio ? null : onGenerateAudio,
@@ -2316,35 +2344,50 @@ class _AudioBookChapterCard extends StatelessWidget {
                           : 'Generar audio',
                 ),
               ),
-              OutlinedButton.icon(
-                onPressed: isGeneratingLearningPack
-                    ? null
-                    : hasLearningPack
-                        ? onLearningPack
-                        : onGenerateLearningPack,
-                icon: isGeneratingLearningPack
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Icon(
-                        hasLearningPack
-                            ? Icons.school_rounded
-                            : Icons.quiz_rounded,
-                      ),
-                label: Text(
-                  hasLearningPack
-                      ? 'Ver actividades'
-                      : isGeneratingLearningPack
-                          ? 'Generando actividades...'
-                          : 'Generar actividades',
+              if (!hasLearningPack)
+                OutlinedButton.icon(
+                  onPressed:
+                      isGeneratingLearningPack ? null : onGenerateLearningPack,
+                  icon: isGeneratingLearningPack
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.quiz_rounded),
+                  label: Text(
+                    isGeneratingLearningPack
+                        ? 'Generando actividades...'
+                        : 'Generar actividades',
+                  ),
                 ),
-              ),
+              if (hasLearningPack && !hasFlashcards && !hasMiniQuiz)
+                OutlinedButton.icon(
+                  onPressed: onLearningPack,
+                  icon: const Icon(Icons.school_rounded),
+                  label: const Text('Ver actividades'),
+                ),
+              if (hasFlashcards)
+                OutlinedButton.icon(
+                  onPressed: onLearningPack,
+                  icon: const Icon(Icons.style_rounded),
+                  label: const Text('Repasar flashcards'),
+                ),
+              if (hasMiniQuiz)
+                OutlinedButton.icon(
+                  onPressed: onLearningPack,
+                  icon: const Icon(Icons.quiz_rounded),
+                  label: const Text('Hacer mini quiz'),
+                ),
               OutlinedButton.icon(
                 onPressed: onTranscript,
                 icon: const Icon(Icons.article_rounded),
                 label: const Text('Ver transcripción'),
+              ),
+              OutlinedButton.icon(
+                onPressed: onTutor,
+                icon: const Icon(Icons.chat_bubble_outline_rounded),
+                label: const Text('Preguntar al Tutor IA'),
               ),
               OutlinedButton.icon(
                 onPressed: onVoiceTutor,
