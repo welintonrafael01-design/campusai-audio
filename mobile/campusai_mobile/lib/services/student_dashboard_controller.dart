@@ -13,6 +13,8 @@ import 'campus_intelligence/smart_study_planner_service.dart';
 import 'campus_intelligence/student_analytics_enterprise_service.dart';
 import 'campus_intelligence/student_digital_twin_service.dart';
 import 'campus_intelligence/student_timeline_service.dart';
+import 'autonomous_ai/autonomous_action_engine.dart';
+import 'autonomous_ai/autonomous_action_models.dart';
 import 'enterprise_notifications/enterprise_notification_center.dart';
 import 'gamification/gamification_models.dart' hide Achievement;
 import 'gamification/gamification_service.dart';
@@ -54,6 +56,7 @@ class StudentDashboardData {
   final List<MarketplaceItem> marketplaceSuggestions;
   final InstitutionDashboard institutionDashboard;
   final NotificationHistory notificationHistory;
+  final AutonomousActionPlan autonomousActionPlan;
   final ReleaseCandidateReport? rcReport;
   final List<Map<String, dynamic>> recentSessions;
   final DateTime loadedAt;
@@ -81,6 +84,7 @@ class StudentDashboardData {
     required this.marketplaceSuggestions,
     required this.institutionDashboard,
     required this.notificationHistory,
+    required this.autonomousActionPlan,
     required this.rcReport,
     required this.recentSessions,
     required this.loadedAt,
@@ -109,6 +113,7 @@ class StudentDashboardData {
         marketplaceSuggestions: const [],
         institutionDashboard: InstitutionDashboard.empty(),
         notificationHistory: const NotificationHistory(),
+        autonomousActionPlan: AutonomousActionPlan.empty(),
         rcReport: null,
         recentSessions: const [],
         loadedAt: DateTime.fromMillisecondsSinceEpoch(0),
@@ -142,6 +147,7 @@ class StudentDashboardController {
   final MarketplaceRecommendationEngine marketplaceRecommendationEngine;
   final InstitutionService institutionService;
   final EnterpriseNotificationCenter notificationCenter;
+  final AutonomousActionEngine autonomousActionEngine;
   final RcReadinessService rcReadinessService;
   final EnterpriseCacheService cacheService;
 
@@ -170,6 +176,7 @@ class StudentDashboardController {
         const MarketplaceRecommendationEngine(),
     this.institutionService = const InstitutionService(),
     this.notificationCenter = const EnterpriseNotificationCenter(),
+    this.autonomousActionEngine = const AutonomousActionEngine(),
     this.rcReadinessService = const RcReadinessService(),
     this.cacheService = const EnterpriseCacheService(),
   });
@@ -186,6 +193,19 @@ class StudentDashboardController {
 
     final core = await _loadCore();
     final enterprise = await _loadEnterprise(core);
+    final autonomousActionPlan = await autonomousActionEngine.generatePlan(
+      campusSnapshot: enterprise.campusSnapshot,
+      smartStudyPlan: enterprise.smartStudyPlan,
+      digitalTwin: enterprise.digitalTwin,
+      successPrediction: enterprise.successPrediction,
+      knowledgeMap: enterprise.knowledgeMap,
+      gamificationProfile: enterprise.gamificationProfile,
+      marketplaceSuggestions: enterprise.marketplaceSuggestions,
+      notificationHistory: enterprise.notificationHistory,
+      continueLearning: core.continueLearning,
+      streak: core.streak,
+      refresh: refresh,
+    );
     final data = StudentDashboardData(
       analytics: core.analytics,
       continueLearning: core.continueLearning,
@@ -210,6 +230,7 @@ class StudentDashboardController {
       marketplaceSuggestions: enterprise.marketplaceSuggestions,
       institutionDashboard: enterprise.institutionDashboard,
       notificationHistory: enterprise.notificationHistory,
+      autonomousActionPlan: autonomousActionPlan,
       rcReport: enterprise.rcReport,
       loadedAt: DateTime.now(),
     );
@@ -217,6 +238,11 @@ class StudentDashboardController {
     _cachedAt = DateTime.now();
     cacheService.putDashboard('student_dashboard_latest', data);
     return data;
+  }
+
+  void invalidateCache() {
+    _cachedData = null;
+    _cachedAt = null;
   }
 
   Future<_CoreDashboardData> _loadCore() async {

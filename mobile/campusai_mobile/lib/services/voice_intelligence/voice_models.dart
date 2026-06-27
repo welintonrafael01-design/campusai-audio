@@ -160,6 +160,11 @@ class VoiceContext {
   final String gamificationSummary;
   final String marketplaceSummary;
   final String institutionSummary;
+  final String nextBestAction;
+  final List<String> autonomousActionsTop3;
+  final String actionReason;
+  final String studyPlanStatus;
+  final String riskPriority;
 
   const VoiceContext({
     this.audiobookId = '',
@@ -198,6 +203,11 @@ class VoiceContext {
     this.gamificationSummary = '',
     this.marketplaceSummary = '',
     this.institutionSummary = '',
+    this.nextBestAction = '',
+    this.autonomousActionsTop3 = const [],
+    this.actionReason = '',
+    this.studyPlanStatus = '',
+    this.riskPriority = '',
   });
 
   static const empty = VoiceContext();
@@ -246,6 +256,11 @@ class VoiceContext {
       gamificationSummary: json['gamification_summary']?.toString() ?? '',
       marketplaceSummary: json['marketplace_summary']?.toString() ?? '',
       institutionSummary: json['institution_summary']?.toString() ?? '',
+      nextBestAction: json['next_best_action']?.toString() ?? '',
+      autonomousActionsTop3: _stringList(json['autonomous_actions_top_3']),
+      actionReason: json['action_reason']?.toString() ?? '',
+      studyPlanStatus: json['study_plan_status']?.toString() ?? '',
+      riskPriority: json['risk_priority']?.toString() ?? '',
     );
   }
 
@@ -287,6 +302,11 @@ class VoiceContext {
       'gamification_summary': gamificationSummary,
       'marketplace_summary': marketplaceSummary,
       'institution_summary': institutionSummary,
+      'next_best_action': nextBestAction,
+      'autonomous_actions_top_3': autonomousActionsTop3,
+      'action_reason': actionReason,
+      'study_plan_status': studyPlanStatus,
+      'risk_priority': riskPriority,
     };
   }
 }

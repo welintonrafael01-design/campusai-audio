@@ -109,7 +109,8 @@ class AiCoachService {
 
   Map<String, dynamic> _safeContext(VoiceContext context) {
     return {
-      ...context.toJson(),
+      'audiobookId': context.audiobookId,
+      'chapterId': context.chapterId,
       'audiobookTitle': context.audiobookTitle,
       'chapterTitle': context.chapterTitle,
       'chapterSummary': _limit(context.chapterSummary, 600),
@@ -140,7 +141,12 @@ class AiCoachService {
       'gamificationSummary': _limit(context.gamificationSummary, 160),
       'marketplaceSummary': _limit(context.marketplaceSummary, 160),
       'institutionSummary': _limit(context.institutionSummary, 160),
-      'transcript': _limit(context.transcript, 1200),
+      'nextBestAction': _limit(context.nextBestAction, 160),
+      'autonomousActionsTop3': context.autonomousActionsTop3.take(3).toList(),
+      'actionReason': _limit(context.actionReason, 180),
+      'studyPlanStatus': _limit(context.studyPlanStatus, 120),
+      'riskPriority': _limit(context.riskPriority, 80),
+      'transcript': _limit(context.transcript, 800),
       'flashcards': context.flashcards.take(5).toList(),
       'mini_quiz': context.miniQuiz.take(5).toList(),
       'recommendations': context.recommendations.take(5).toList(),
@@ -159,6 +165,8 @@ class AiCoachService {
       if (concepts.isNotEmpty) 'Conceptos clave: $concepts.',
       if (context.priorityNextAction.isNotEmpty)
         'Prioridad actual: ${context.priorityNextAction}.',
+      if (context.nextBestAction.isNotEmpty)
+        'Siguiente mejor acción: ${context.nextBestAction}.',
       'Puedes pedirme una explicación, un ejemplo, un repaso o preguntas de práctica.',
     ];
     return parts.join('\n\n');

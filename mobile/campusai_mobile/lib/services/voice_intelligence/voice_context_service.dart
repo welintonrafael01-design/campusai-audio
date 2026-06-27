@@ -1,5 +1,6 @@
 import '../audiobook_progress_service.dart';
 import '../audiobook_service.dart';
+import '../autonomous_ai/autonomous_action_repository.dart';
 import '../campus_intelligence/adaptive_scheduler_service.dart';
 import '../campus_intelligence/campus_intelligence_models.dart';
 import '../campus_intelligence/campus_intelligence_service.dart';
@@ -46,6 +47,7 @@ class VoiceContextService {
   final GamificationService gamificationService;
   final MarketplaceService marketplaceService;
   final InstitutionService institutionService;
+  final AutonomousActionRepository autonomousActionRepository;
 
   const VoiceContextService({
     this.audiobookService = const AudiobookService(),
@@ -70,6 +72,7 @@ class VoiceContextService {
     this.gamificationService = const GamificationService(),
     this.marketplaceService = const MarketplaceService(),
     this.institutionService = const InstitutionService(),
+    this.autonomousActionRepository = const AutonomousActionRepository(),
   });
 
   Future<VoiceContext> buildContext({
@@ -143,6 +146,12 @@ class VoiceContextService {
       final gamification = await gamificationService.buildProfile();
       final marketplace = await marketplaceService.buildCatalog();
       final institution = await institutionService.buildDashboard();
+      final autonomousPlan = await autonomousActionRepository.loadLatestPlan(
+        maxAge: const Duration(hours: 6),
+      );
+      final autonomousActions = autonomousPlan?.pendingActions ?? const [];
+      final nextBestAction =
+          autonomousActions.isEmpty ? null : autonomousActions.first;
 
       // Touch analytics/progress services here so callers get one contextual API.
       await analyticsService.buildAnalytics();
@@ -248,6 +257,17 @@ class VoiceContextService {
         institutionSummary: _limit(
             'Progreso ${institution.metrics.progress}%, retención ${institution.metrics.retention}%, riesgo ${institution.metrics.risk}%.',
             160),
+        nextBestAction: _limit(nextBestAction?.title ?? '', 160),
+        autonomousActionsTop3: autonomousActions
+            .take(3)
+            .map((action) => _limit(action.title, 120))
+            .toList(),
+        actionReason: _limit(nextBestAction?.reason ?? '', 180),
+        studyPlanStatus: autonomousActions.isEmpty
+            ? 'Sin acciones pendientes'
+            : 'Plan activo con ${autonomousActions.length} acciones',
+        riskPriority:
+            nextBestAction?.priority.name ?? campusSnapshot.academicRisk,
       );
     } catch (_) {
       return VoiceContext.empty;

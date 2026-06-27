@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../layout/responsive_layout.dart';
+import '../services/autonomous_ai/autonomous_action_executor.dart';
+import '../services/autonomous_ai/autonomous_action_models.dart';
 import '../services/campus_intelligence/campus_intelligence_models.dart';
 import '../services/campus_intelligence/enterprise_intelligence_models.dart'
     hide LearningRecommendation;
@@ -26,9 +28,11 @@ class StudentDashboardScreen extends StatefulWidget {
 
 class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   final dashboardController = const StudentDashboardController();
+  final autonomousActionExecutor = const AutonomousActionExecutor();
 
   bool isLoading = true;
   String errorMessage = '';
+  final Set<String> processingActionIds = {};
 
   LearningAnalytics analytics = LearningAnalytics.empty;
   ContinueLearningItem continueLearning = ContinueLearningItem.empty;
@@ -54,6 +58,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   List<MarketplaceItem> marketplaceSuggestions = [];
   InstitutionDashboard institutionDashboard = InstitutionDashboard.empty();
   NotificationHistory notificationHistory = const NotificationHistory();
+  AutonomousActionPlan autonomousActionPlan = AutonomousActionPlan.empty();
   ReleaseCandidateReport? rcReport;
   List<Map<String, dynamic>> recentSessions = [];
 
@@ -97,6 +102,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         marketplaceSuggestions = loaded.marketplaceSuggestions;
         institutionDashboard = loaded.institutionDashboard;
         notificationHistory = loaded.notificationHistory;
+        autonomousActionPlan = loaded.autonomousActionPlan;
         rcReport = loaded.rcReport;
         recentSessions = loaded.recentSessions;
         isLoading = false;
@@ -109,6 +115,50 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         isLoading = false;
       });
     }
+  }
+
+  Future<void> executeAutonomousAction(AutonomousAction action) async {
+    if (processingActionIds.contains(action.id)) return;
+    setState(() => processingActionIds.add(action.id));
+    final result = await autonomousActionExecutor.execute(
+      action,
+      navigate: (route, extra) {
+        if (!mounted || route == 'studentDashboard') return;
+        context.goNamed(route, extra: extra);
+      },
+    );
+    dashboardController.invalidateCache();
+    if (!mounted) return;
+    setState(() {
+      processingActionIds.remove(action.id);
+      autonomousActionPlan = autonomousActionPlan.copyWith(
+        actions: autonomousActionPlan.actions
+            .where((item) => item.id != action.id)
+            .toList(),
+      );
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result.message)),
+    );
+  }
+
+  Future<void> dismissAutonomousAction(AutonomousAction action) async {
+    if (processingActionIds.contains(action.id)) return;
+    setState(() => processingActionIds.add(action.id));
+    final result = await autonomousActionExecutor.dismiss(action);
+    dashboardController.invalidateCache();
+    if (!mounted) return;
+    setState(() {
+      processingActionIds.remove(action.id);
+      autonomousActionPlan = autonomousActionPlan.copyWith(
+        actions: autonomousActionPlan.actions
+            .where((item) => item.id != action.id)
+            .toList(),
+      );
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result.message)),
+    );
   }
 
   @override
@@ -164,6 +214,13 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                             right: _SmartAlertsCard(
                               history: notificationHistory,
                             ),
+                          ),
+                          const SizedBox(height: 18),
+                          _AutonomousActionsCard(
+                            actions: autonomousActionPlan.pendingActions,
+                            processingActionIds: processingActionIds,
+                            onExecute: executeAutonomousAction,
+                            onDismiss: dismissAutonomousAction,
                           ),
                           const SizedBox(height: 18),
                           _MetricsGrid(analytics: analytics),
@@ -789,6 +846,143 @@ class _SmartAlertsCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _AutonomousActionsCard extends StatelessWidget {
+  final List<AutonomousAction> actions;
+  final Set<String> processingActionIds;
+  final Future<void> Function(AutonomousAction action) onExecute;
+  final Future<void> Function(AutonomousAction action) onDismiss;
+
+  const _AutonomousActionsCard({
+    required this.actions,
+    required this.processingActionIds,
+    required this.onExecute,
+    required this.onDismiss,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final visibleActions = actions.take(3).toList();
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionTitle(
+            title: 'Acciones inteligentes',
+            icon: Icons.auto_awesome_rounded,
+            color: AppTheme.accent,
+          ),
+          const SizedBox(height: 10),
+          if (visibleActions.isEmpty)
+            const Text(
+              'No hay acciones prioritarias pendientes.',
+              style: TextStyle(color: AppTheme.textMuted),
+            )
+          else
+            for (var index = 0; index < visibleActions.length; index++) ...[
+              if (index > 0) const Divider(height: 24),
+              _AutonomousActionRow(
+                action: visibleActions[index],
+                isProcessing:
+                    processingActionIds.contains(visibleActions[index].id),
+                onExecute: onExecute,
+                onDismiss: onDismiss,
+              ),
+            ],
+        ],
+      ),
+    );
+  }
+}
+
+class _AutonomousActionRow extends StatelessWidget {
+  final AutonomousAction action;
+  final bool isProcessing;
+  final Future<void> Function(AutonomousAction action) onExecute;
+  final Future<void> Function(AutonomousAction action) onDismiss;
+
+  const _AutonomousActionRow({
+    required this.action,
+    required this.isProcessing,
+    required this.onExecute,
+    required this.onDismiss,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final priorityColor = switch (action.priority) {
+      AutonomousActionPriority.critical => AppTheme.danger,
+      AutonomousActionPriority.high => AppTheme.warning,
+      AutonomousActionPriority.normal => AppTheme.accent,
+      AutonomousActionPriority.low => AppTheme.textMuted,
+    };
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(Icons.bolt_rounded, color: priorityColor),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    action.title,
+                    style: const TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  Chip(
+                    visualDensity: VisualDensity.compact,
+                    label: Text(_priorityLabel(action.priority)),
+                    side:
+                        BorderSide(color: priorityColor.withValues(alpha: .3)),
+                    backgroundColor: priorityColor.withValues(alpha: .1),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                action.reason,
+                style: const TextStyle(color: AppTheme.textMuted, height: 1.35),
+              ),
+              const SizedBox(height: 10),
+              FilledButton(
+                onPressed: isProcessing ? null : () => onExecute(action),
+                child: isProcessing
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(action.actionLabel),
+              ),
+            ],
+          ),
+        ),
+        IconButton(
+          tooltip: 'Descartar',
+          onPressed: isProcessing ? null : () => onDismiss(action),
+          icon: const Icon(Icons.close_rounded),
+        ),
+      ],
+    );
+  }
+
+  String _priorityLabel(AutonomousActionPriority priority) {
+    return switch (priority) {
+      AutonomousActionPriority.critical => 'Crítica',
+      AutonomousActionPriority.high => 'Alta',
+      AutonomousActionPriority.normal => 'Normal',
+      AutonomousActionPriority.low => 'Baja',
+    };
   }
 }
 
