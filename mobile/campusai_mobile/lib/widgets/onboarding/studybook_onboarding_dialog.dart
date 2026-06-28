@@ -23,9 +23,9 @@ class _StudyBookOnboardingDialogState
     return '''
 Hola, soy Booky, tu Chief Learning Companion en StudyBook AI. Te ayudo a transformar cualquier contenido en conocimiento.
 
-Puedes subir un documento, escucharlo como AudioBook, crear flashcards, practicar y preguntarme lo que necesites mientras estudias.
+Sube o pega cualquier contenido. Puedo convertirlo en AudioBook, resumen, flashcards y quiz, y acompañarte cuando necesites una explicación.
 
-Para comenzar, sube tu primer contenido. Lee menos. Aprende más.
+Empecemos por algo sencillo. Puedes crear tu primera experiencia en menos de dos minutos.
 ''';
   }
 
@@ -123,63 +123,71 @@ Para comenzar, sube tu primer contenido. Lee menos. Aprende más.
       ),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 520),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Hola, soy Booky. Te ayudaré a transformar contenido en conocimiento.',
-              style: TextStyle(
-                color: AppTheme.textSecondary,
-                height: 1.45,
-                fontSize: 15.5,
-              ),
-            ),
-            const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: isGeneratingWelcomeAudio ? null : playWelcomeAudio,
-                icon: isGeneratingWelcomeAudio
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.2,
-                        ),
-                      )
-                    : const Icon(Icons.volume_up_rounded),
-                label: Text(
-                  isGeneratingWelcomeAudio
-                      ? 'Generando bienvenida...'
-                      : 'Escuchar bienvenida',
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Hola, soy Booky. Te ayudaré a transformar contenido en conocimiento.',
+                style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  height: 1.45,
+                  fontSize: 15.5,
                 ),
               ),
-            ),
-            const SizedBox(height: 18),
-            _OnboardingStep(
-              icon: Icons.upload_file_rounded,
-              title: '1. Sube tu PDF',
-              subtitle:
-                  'Carga documentos, libros, guías o materiales de clase.',
-            ),
-            _OnboardingStep(
-              icon: Icons.psychology_rounded,
-              title: '2. La IA lo analiza',
-              subtitle: 'Obtén resúmenes, respuestas y búsquedas inteligentes.',
-            ),
-            _OnboardingStep(
-              icon: Icons.headphones_rounded,
-              title: '3. Escúchalo y estudia mejor',
-              subtitle:
-                  'Convierte el contenido en audio, flashcards y exámenes automáticos.',
-            ),
-            const _OnboardingStep(
-              icon: Icons.school_outlined,
-              title: '¿Eres docente?',
-              subtitle:
-                  'Crea tu primer curso y genera recursos desde Teacher Studio.',
-            ),
-          ],
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: isGeneratingWelcomeAudio ? null : playWelcomeAudio,
+                  icon: isGeneratingWelcomeAudio
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.2,
+                          ),
+                        )
+                      : const Icon(Icons.volume_up_rounded),
+                  label: Text(
+                    isGeneratingWelcomeAudio
+                        ? 'Generando bienvenida...'
+                        : 'Escuchar bienvenida',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18),
+              _OnboardingStep(
+                icon: Icons.upload_file_rounded,
+                title: '1. Sube o pega contenido',
+                subtitle: 'Usa un texto, documento, libro o material de clase.',
+              ),
+              _OnboardingStep(
+                icon: Icons.auto_stories_rounded,
+                title: '2. Booky lo transforma',
+                subtitle:
+                    'Obtén audio, resumen, flashcards y práctica en minutos.',
+              ),
+              _OnboardingStep(
+                icon: Icons.headphones_rounded,
+                title: '3. Aprende como prefieras',
+                subtitle:
+                    'Escucha, lee, practica o pregunta a Booky paso a paso.',
+              ),
+              const _OnboardingStep(
+                icon: Icons.accessibility_new_rounded,
+                title: 'Aprende a tu manera',
+                subtitle:
+                    'Ajusta audio, texto grande, lenguaje simple y contraste cuando quieras.',
+              ),
+              const _OnboardingStep(
+                icon: Icons.school_outlined,
+                title: '¿Eres docente?',
+                subtitle:
+                    'Crea tu primer curso y genera recursos desde Teacher Studio.',
+              ),
+            ],
+          ),
         ),
       ),
       actions: [
@@ -190,7 +198,7 @@ Para comenzar, sube tu primer contenido. Lee menos. Aprende más.
         FilledButton.icon(
           onPressed: () => complete(context),
           icon: const Icon(Icons.rocket_launch_rounded),
-          label: const Text('Comenzar'),
+          label: const Text('Empezar con Booky'),
         ),
       ],
     );

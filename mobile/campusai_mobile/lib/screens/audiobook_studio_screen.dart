@@ -11,6 +11,7 @@ import '../services/audiobook_service.dart';
 import '../services/learning_engine/learning_progress_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/accessible_tip_card.dart';
+import '../widgets/ftue_welcome_card.dart';
 import '../widgets/section_card.dart';
 import '../widgets/studybook/booky_card.dart';
 import '../widgets/studybook/studybook_states.dart';
@@ -46,6 +47,7 @@ class AudioBookStudioScreen extends StatefulWidget {
 class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
   final titleController = TextEditingController();
   final textController = TextEditingController();
+  final contentFocusNode = FocusNode();
   final audiobookService = const AudiobookService();
   final progressService = const AudiobookProgressService();
   final audioPlayerService = AudioPlayerService();
@@ -87,6 +89,7 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
     audioPlayerService.dispose();
     titleController.dispose();
     textController.dispose();
+    contentFocusNode.dispose();
     super.dispose();
   }
 
@@ -1134,6 +1137,9 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
         })
         .take(3)
         .toList();
+    final isFirstAudioBook = !isLoadingSavedAudioBooks &&
+        savedAudioBooks.isEmpty &&
+        selectedAudioBook.isEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -1180,11 +1186,25 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          const BookyCard(
-            title: 'Booky convierte contenido en aprendizaje',
-            message:
-                'Puedo convertir este contenido en un audiolibro inteligente y acompañarte durante el repaso.',
-          ),
+          if (isFirstAudioBook)
+            FtueWelcomeCard(
+              title: 'Crea tu primer AudioBook',
+              message:
+                  'Pega un texto o sube un documento. Booky lo convertirá en una experiencia de aprendizaje.',
+              benefits: const [
+                'Audio y resumen para comprender el contenido.',
+                'Flashcards y quiz para practicar.',
+                'Puedes hacerlo en menos de 2 minutos.',
+              ],
+              actionLabel: 'Pegar contenido',
+              onAction: contentFocusNode.requestFocus,
+            )
+          else
+            const BookyCard(
+              title: 'Booky convierte contenido en aprendizaje',
+              message:
+                  'Puedo convertir este contenido en un audiolibro inteligente y acompañarte durante el repaso.',
+            ),
           const SizedBox(height: 18),
           const AccessibleTipCard(
             title: 'Aprende a tu manera',
@@ -1259,6 +1279,7 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: textController,
+                  focusNode: contentFocusNode,
                   minLines: 8,
                   maxLines: 14,
                   decoration: const InputDecoration(

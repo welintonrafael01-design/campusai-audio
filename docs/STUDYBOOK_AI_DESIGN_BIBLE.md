@@ -141,6 +141,30 @@ El dashboard v1.0 debe contar una historia breve y accionable. Su orden es:
 - Los estados vacíos explican qué ocurrirá al avanzar; no muestran mensajes como
   "Sin datos" o "No disponible".
 
+## First Time User Experience
+
+El FTUE debe explicar el valor y conducir a una primera acción útil en menos de
+cinco minutos. La promesa visible es: "Sube cualquier contenido. Booky lo
+convierte en una experiencia de aprendizaje."
+
+### Reglas FTUE
+
+- Presentar una acción sencilla antes de explicar todas las capacidades.
+- No completar pasos únicamente por abrir una pantalla.
+- Usar actividad real para reconocer AudioBook, quiz, conversación y progreso.
+- Mostrar la ruta completa solo a usuarios nuevos.
+- Compactar la guía después de los primeros avances y ocultarla al terminar.
+- Permitir descartar la guía y conservar esa decisión localmente.
+- Nunca otorgar XP, monedas o badges por acciones de onboarding.
+- Mantener Free, Student, Teacher y Accessibility como rutas claras.
+- No forzar preferencias de accesibilidad durante la bienvenida.
+- Booky guía con tono humano: "Empecemos por algo sencillo" y "Puedes hacerlo
+  en menos de 2 minutos".
+
+Los componentes oficiales son `FtueWelcomeCard`, `FtueStepCard`,
+`FtueQuickStartCard`, `BookyWelcomeCard` y `TimeToValueCard`. El contrato de
+persistencia y QA está documentado en `docs/FTUE_V1.md`.
+
 ### Voice Tutor
 
 - Se presenta como "Tutor IA con Booky".

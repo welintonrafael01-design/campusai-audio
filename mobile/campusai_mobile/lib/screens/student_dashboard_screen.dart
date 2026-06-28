@@ -11,6 +11,8 @@ import '../services/campus_intelligence/campus_intelligence_models.dart';
 import '../services/campus_intelligence/enterprise_intelligence_models.dart'
     hide LearningRecommendation;
 import '../services/enterprise_notifications/enterprise_notification_center.dart';
+import '../services/ftue/ftue_models.dart';
+import '../services/ftue/ftue_service.dart';
 import '../services/gamification/gamification_models.dart' hide Achievement;
 import '../services/learning_engine/learning_models.dart';
 import '../services/launch/launch_models.dart';
@@ -24,6 +26,7 @@ import '../theme/app_theme.dart';
 import '../widgets/accessibility_card.dart';
 import '../widgets/accessibility_toggle_tile.dart';
 import '../widgets/beta_launch_card.dart';
+import '../widgets/ftue_quick_start_card.dart';
 import '../widgets/enterprise_dashboard_widgets.dart';
 import '../widgets/enterprise4_dashboard_widgets.dart';
 import '../widgets/next_best_action_card.dart';
@@ -33,6 +36,7 @@ import '../widgets/studybook/booky_card.dart';
 import '../widgets/studybook/premium_section_card.dart';
 import '../widgets/studybook/studybook_buttons.dart';
 import '../widgets/studybook/studybook_states.dart';
+import '../widgets/time_to_value_card.dart';
 
 class StudentDashboardScreen extends StatefulWidget {
   const StudentDashboardScreen({super.key});
@@ -51,6 +55,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   final accessibilityPreferencesService =
       const AccessibilityPreferencesService();
   final accessibilityContentService = const AccessibilityContentService();
+  final ftueService = const FtueService();
 
   bool isLoading = true;
   bool isRefreshing = false;
@@ -88,6 +93,8 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   List<Map<String, dynamic>> recentSessions = [];
   AccessibilityPreferences accessibilityPreferences =
       AccessibilityPreferences.defaults();
+  FtueProgress ftueProgress = FtueProgress.initial(FtueUserPath.student);
+  List<FtueStep> ftueSteps = const [];
 
   @override
   void initState() {
@@ -113,6 +120,15 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
       final loadedLaunchReport = await launchReadinessService.buildReport();
       final loadedAccessibilityPreferences =
           await accessibilityPreferencesService.load();
+      final loadedFtueProgress = await ftueService.load(FtueUserPath.student);
+      final synchronizedFtueProgress =
+          await ftueService.synchronizeStudentActivity(
+        loadedFtueProgress,
+        hasAudioBook: loaded.continueLearning.hasProgress ||
+            loaded.analytics.audiobooksStarted > 0,
+        hasQuiz: loaded.analytics.quizCompleted > 0,
+        hasLearningActivity: loaded.analytics.sessions > 0,
+      );
 
       if (!mounted) return;
 
@@ -142,6 +158,8 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         launchReport = loadedLaunchReport;
         recentSessions = loaded.recentSessions;
         accessibilityPreferences = loadedAccessibilityPreferences;
+        ftueProgress = synchronizedFtueProgress;
+        ftueSteps = ftueService.stepsForPath(FtueUserPath.student);
         isLoading = false;
         isRefreshing = false;
         isLaunchLoading = false;
@@ -559,6 +577,31 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     );
   }
 
+  FtueStep? nextFtueStep() {
+    for (final step in ftueSteps) {
+      if (!ftueProgress.isStepComplete(step.id)) return step;
+    }
+    return null;
+  }
+
+  Future<void> openFtueStep(FtueStep step) async {
+    if (step.id == 'student_progress') {
+      final updated = await ftueService.completeStep(ftueProgress, step.id);
+      if (!mounted) return;
+      setState(() => ftueProgress = updated);
+      scrollToProgress();
+      return;
+    }
+    if (step.routeName.isEmpty || step.routeName == 'studentDashboard') return;
+    context.goNamed(step.routeName);
+  }
+
+  Future<void> dismissFtue() async {
+    final updated = await ftueService.dismiss(ftueProgress);
+    if (!mounted) return;
+    setState(() => ftueProgress = updated);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isMobile = ResponsiveLayout.isMobile(context);
@@ -569,6 +612,10 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         (analytics.sessions <= 0 && !continueLearning.hasProgress
             ? 'Crea tu primer AudioBook o pregúntale a Booky para comenzar.'
             : campusSnapshot.recommendedNextAction);
+    final nextFirstStep = nextFtueStep();
+    final showFtue = ftueSteps.isNotEmpty &&
+        !ftueProgress.dismissed &&
+        !ftueProgress.isComplete(ftueSteps.length);
 
     return Scaffold(
       appBar: AppBar(
@@ -619,6 +666,26 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                           BookyCard(
                             message: bookyGuidanceMessage(nextBestAction),
                           ),
+                          if (showFtue) ...[
+                            const SizedBox(height: 18),
+                            if (ftueProgress.completedStepIds.isEmpty)
+                              FtueQuickStartCard(
+                                progress: ftueProgress,
+                                steps: ftueSteps,
+                                onOpenStep: openFtueStep,
+                                onDismiss: dismissFtue,
+                              )
+                            else if (nextFirstStep != null)
+                              TimeToValueCard(
+                                nextStep: nextFirstStep,
+                                completionPercentage:
+                                    ftueProgress.completionPercentage(
+                                  ftueSteps.length,
+                                ),
+                                onContinue: () => openFtueStep(nextFirstStep),
+                                onDismiss: dismissFtue,
+                              ),
+                          ],
                           const SizedBox(height: 18),
                           _IntelligentDayCard(
                             message: intelligentDayMessage(pendingActions),

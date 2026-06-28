@@ -15,6 +15,7 @@ import '../services/voice_intelligence/voice_session_service.dart';
 import '../services/voice_intelligence/voice_tts_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/accessible_tip_card.dart';
+import '../widgets/booky_welcome_card.dart';
 import '../widgets/section_card.dart';
 import '../widgets/studybook/booky_card.dart';
 import '../widgets/studybook/studybook_states.dart';
@@ -498,10 +499,47 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const BookyCard(
-                                  message:
-                                      'No todos aprendemos igual. Puedo ayudarte a estudiar de la forma que mejor funcione para ti.',
-                                ),
+                                if (messages.isEmpty)
+                                  BookyWelcomeCard(
+                                    actions: const [
+                                      BookyWelcomeAction(
+                                        label: 'Explícame un tema',
+                                        prompt:
+                                            'Explícame un tema de forma clara y ayúdame a elegir por dónde empezar.',
+                                        mode: 'explain',
+                                      ),
+                                      BookyWelcomeAction(
+                                        label: 'Hazme un quiz',
+                                        prompt:
+                                            'Hazme un quiz breve para comprobar lo que sé.',
+                                        mode: 'quiz',
+                                      ),
+                                      BookyWelcomeAction(
+                                        label: 'Repasa conmigo',
+                                        prompt:
+                                            'Ayúdame a repasar este contenido con preguntas y ejemplos.',
+                                        mode: 'review',
+                                      ),
+                                      BookyWelcomeAction(
+                                        label: 'Léelo en voz alta',
+                                        prompt:
+                                            'Prepara un resumen breve y claro para escucharlo en voz alta.',
+                                        mode: 'explain',
+                                        readAloud: true,
+                                      ),
+                                    ],
+                                    isBusy: isSending,
+                                    onAction: (action) => sendMessage(
+                                      text: action.prompt,
+                                      mode: action.mode,
+                                      autoGenerateAudio: action.readAloud,
+                                    ),
+                                  )
+                                else
+                                  const BookyCard(
+                                    message:
+                                        'No todos aprendemos igual. Puedo ayudarte a estudiar de la forma que mejor funcione para ti.',
+                                  ),
                                 const SizedBox(height: 16),
                                 const AccessibleTipCard(
                                   title: 'También puedes aprender con apoyo',
@@ -519,13 +557,15 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
                                   fallbackSuggestion: proactiveSuggestion,
                                 ),
                                 const SizedBox(height: 16),
-                                _QuickActions(
-                                  context: voiceContext,
-                                  fallbackSuggestion: proactiveSuggestion,
-                                  isBusy: isSending,
-                                  onAction: sendMessage,
-                                ),
-                                const SizedBox(height: 16),
+                                if (messages.isNotEmpty) ...[
+                                  _QuickActions(
+                                    context: voiceContext,
+                                    fallbackSuggestion: proactiveSuggestion,
+                                    isBusy: isSending,
+                                    onAction: sendMessage,
+                                  ),
+                                  const SizedBox(height: 16),
+                                ],
                                 _VoiceInputPanel(
                                   state: conversationState,
                                   isBusy: isSending ||
