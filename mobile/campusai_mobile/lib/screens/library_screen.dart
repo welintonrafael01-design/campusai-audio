@@ -19,6 +19,7 @@ import '../widgets/sidebar.dart';
 import '../layout/responsive_layout.dart';
 import '../widgets/section_card.dart';
 import '../widgets/mini_player.dart';
+import '../widgets/studybook/studybook_states.dart';
 
 enum LibrarySortOption {
   newest,
@@ -1261,8 +1262,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
   Widget buildLibraryContent() {
     if (isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
+      return const StudyBookLoadingState(
+        message: 'Booky está organizando tu biblioteca...',
       );
     }
 

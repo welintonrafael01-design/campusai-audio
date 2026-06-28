@@ -42,7 +42,7 @@ class AccessibilityCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Puedo adaptar tu experiencia para que estudies con más comodidad.',
+              'Puedes escuchar, leer, repasar paso a paso o pedir una explicación simple. Booky adapta la experiencia para que estudies con más comodidad.',
               style: TextStyle(color: AppTheme.textMuted, height: 1.4),
             ),
             const SizedBox(height: 14),

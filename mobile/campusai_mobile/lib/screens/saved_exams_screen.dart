@@ -11,6 +11,7 @@ import '../services/study_result_service.dart';
 import '../services/educator_sync_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
+import '../widgets/studybook/studybook_states.dart';
 
 class SavedExamsScreen extends StatefulWidget {
   const SavedExamsScreen({super.key});
@@ -22,6 +23,7 @@ class SavedExamsScreen extends StatefulWidget {
 class _SavedExamsScreenState extends State<SavedExamsScreen> {
   bool isLoading = true;
   String search = '';
+  String loadErrorMessage = '';
   List<Map<String, dynamic>> exams = [];
 
   @override
@@ -31,7 +33,10 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
   }
 
   Future<void> loadExams() async {
-    setState(() => isLoading = true);
+    setState(() {
+      isLoading = true;
+      loadErrorMessage = '';
+    });
 
     try {
       final data = await CloudApiService.getStudyResults(type: 'exam');
@@ -55,9 +60,14 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
         exams = parsed;
         isLoading = false;
       });
-    } catch (_) {
+    } catch (error) {
+      debugPrint('No se pudieron cargar los exámenes: $error');
       if (!mounted) return;
-      setState(() => isLoading = false);
+      setState(() {
+        isLoading = false;
+        loadErrorMessage =
+            'Booky no pudo cargar tus exámenes esta vez. Podemos intentarlo otra vez.';
+      });
     }
   }
 
@@ -573,7 +583,9 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
         ],
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const StudyBookLoadingState(
+              message: 'Booky está preparando tus exámenes...',
+            )
           : ListView(
               padding: const EdgeInsets.all(22),
               children: [
@@ -635,11 +647,29 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
                   ),
                 ),
                 const SizedBox(height: 18),
-                if (filteredExams.isEmpty)
-                  const SectionCard(
-                    child: Text(
-                      'Aún no hay exámenes guardados. Crea un examen desde un documento o desde un banco de preguntas.',
-                      style: TextStyle(color: AppTheme.textMuted),
+                if (loadErrorMessage.isNotEmpty)
+                  SectionCard(
+                    child: StudyBookEmptyState(
+                      title: 'Podemos intentarlo otra vez',
+                      message: loadErrorMessage,
+                      actionLabel: 'Reintentar',
+                      onAction: loadExams,
+                    ),
+                  )
+                else if (filteredExams.isEmpty)
+                  SectionCard(
+                    child: StudyBookEmptyState(
+                      title: search.trim().isEmpty
+                          ? 'Tu repositorio está listo'
+                          : 'No encontramos coincidencias',
+                      message: search.trim().isEmpty
+                          ? 'Crea un examen desde una unidad, un documento o un banco de preguntas.'
+                          : 'Prueba con otro curso, tema o fecha.',
+                      actionLabel:
+                          search.trim().isEmpty ? 'Ir a Mis Cursos' : '',
+                      onAction: search.trim().isEmpty
+                          ? () => context.goNamed('courses')
+                          : null,
                     ),
                   )
                 else

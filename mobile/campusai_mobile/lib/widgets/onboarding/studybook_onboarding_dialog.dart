@@ -21,7 +21,7 @@ class _StudyBookOnboardingDialogState
 
   String get welcomeText {
     return '''
-Hola, soy Booky, tu Chief Learning Companion en StudyBook AI. Te ayudo a transformar cualquier contenido en conocimiento.
+Hola, soy Booky, tu compañero de aprendizaje en StudyBook AI. Te ayudo a transformar cualquier contenido en conocimiento.
 
 Sube o pega cualquier contenido. Puedo convertirlo en AudioBook, resumen, flashcards y quiz, y acompañarte cuando necesites una explicación.
 

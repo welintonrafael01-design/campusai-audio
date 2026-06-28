@@ -686,7 +686,7 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
                   const SizedBox(height: 14),
                   Text(
                     transcript.isEmpty
-                        ? 'No hay transcripción disponible.'
+                        ? 'La transcripción aún no está lista.'
                         : transcript,
                     style: const TextStyle(
                       color: AppTheme.textPrimary,
@@ -791,7 +791,7 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
                         title: 'Resumen',
                         child: Text(
                           cleanText(learningPack['summary']).isEmpty
-                              ? 'No hay resumen disponible.'
+                              ? 'El resumen aún no está listo.'
                               : cleanText(learningPack['summary']),
                           style: const TextStyle(
                             color: AppTheme.textMuted,
@@ -2562,7 +2562,7 @@ class _FlashcardTile extends StatelessWidget {
               const SizedBox(height: 8),
               if (revealed)
                 Text(
-                  back.isEmpty ? 'Sin respuesta disponible.' : back,
+                  back.isEmpty ? 'Esta respuesta aún no está lista.' : back,
                   style: const TextStyle(color: AppTheme.textMuted),
                 )
               else

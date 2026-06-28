@@ -112,15 +112,15 @@ class Sidebar extends StatelessWidget {
 
               final description = switch (plan) {
                 CampusPlan.free =>
-                    'Plan gratuito para comenzar con StudyBook AI.',
+                  'Prueba StudyBook AI y descubre cómo Booky puede ayudarte.',
                 CampusPlan.student =>
-                    'Plan para estudiantes con IA, PDFs, audio y estudio avanzado.',
+                  'Convierte contenido en audiolibros, quizzes, flashcards y tutoría inteligente.',
                 CampusPlan.accessibility =>
-                    'Plan accesible con audio, voz, IA y exportaciones.',
+                  'Aprende a tu manera con audio, lectura y explicaciones simples.',
                 CampusPlan.teacher =>
-                    'Plan docente con herramientas académicas completas.',
+                  'Prepara clases, rúbricas, exámenes y recursos en menos tiempo.',
                 CampusPlan.ultra =>
-                    'Máximo poder con límites ampliados y funciones premium.',
+                  'Máximo poder con límites ampliados y funciones premium.',
               };
 
               final icon = switch (plan) {

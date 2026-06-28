@@ -476,14 +476,14 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
                     _MetricCard(
                       label: 'Mejor promedio',
                       value: globalRanking.isEmpty
-                          ? 'Sin datos'
+                          ? 'Pendiente'
                           : '${globalRanking.first.average.toStringAsFixed(1)}%',
                       icon: Icons.emoji_events_rounded,
                     ),
                     _MetricCard(
                       label: 'Mejor estudiante',
                       value: globalRanking.isEmpty
-                          ? 'Sin datos'
+                          ? 'Pendiente'
                           : globalRanking.first.studentName,
                       icon: Icons.workspace_premium_rounded,
                     ),
@@ -971,7 +971,7 @@ class _BarChartCard extends StatelessWidget {
           const SizedBox(height: 16),
           if (maxValue == 0)
             const Text(
-              'Sin datos suficientes.',
+              'Aún no hay información suficiente para este indicador.',
               style: TextStyle(color: AppTheme.textMuted),
             )
           else
@@ -1030,7 +1030,7 @@ class _TopVisualCard extends StatelessWidget {
           const SizedBox(height: 16),
           if (data.isEmpty)
             const Text(
-              'Sin datos suficientes.',
+              'Aún no hay información suficiente para este indicador.',
               style: TextStyle(color: AppTheme.textMuted),
             )
           else

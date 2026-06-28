@@ -69,7 +69,6 @@ class _ExamScreenState extends State<ExamScreen> {
     }
   }
 
-
   Future<void> loadCourseAndStudents() async {
     final courseId = await CourseService.getActiveCourseId();
     final courses = await CourseService.getCourses();
@@ -96,9 +95,8 @@ class _ExamScreenState extends State<ExamScreen> {
     setState(() {
       activeCourse = course;
       students = filteredStudents;
-      selectedStudent = filteredStudents.isNotEmpty
-          ? filteredStudents.first
-          : null;
+      selectedStudent =
+          filteredStudents.isNotEmpty ? filteredStudents.first : null;
     });
   }
 
@@ -126,9 +124,7 @@ class _ExamScreenState extends State<ExamScreen> {
         ? ''
         : (questions.first['exam_difficulty']?.toString() ?? '');
 
-    return difficulty.trim().isEmpty
-        ? type
-        : '$type - $difficulty';
+    return difficulty.trim().isEmpty ? type : '$type - $difficulty';
   }
 
   Future<void> saveExamResultToGradebook() async {
@@ -187,7 +183,6 @@ class _ExamScreenState extends State<ExamScreen> {
       ),
     );
   }
-
 
   String get sourceDocumentId {
     if (questions.isNotEmpty) {
@@ -272,10 +267,12 @@ class _ExamScreenState extends State<ExamScreen> {
         debugPrint('No se pudo guardar examen cloud: $cloudError');
       }
     } catch (error) {
+      debugPrint('No se pudo generar el examen: $error');
       if (!mounted) return;
 
       setState(() {
-        errorMessage = 'Error: $error';
+        errorMessage =
+            'Booky no pudo preparar el examen esta vez. Podemos intentarlo otra vez.';
       });
     } finally {
       if (mounted) {
@@ -506,11 +503,6 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
     );
   }
 
-
-
-
-
-
   String get currentExamVersion {
     if (questions.isEmpty) return '';
     return questions.first['exam_version']?.toString() ?? '';
@@ -641,7 +633,6 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
       }
     }
   }
-
 
   Future<void> generateRubricFromExam() async {
     if (questions.isEmpty) return;
@@ -853,7 +844,6 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
     );
   }
 
-
   Future<void> exportExamAnswerKeyToPdf() async {
     if (!const PlanGuardService().canExportPdf) {
       showUpgradeRequired(
@@ -889,7 +879,6 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
     );
   }
 
-
   bool isWrittenQuestion(Map<String, dynamic> item) {
     final options = getOptions(item);
     if (options.isNotEmpty) return false;
@@ -910,8 +899,7 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
   }
 
   void finishWrittenQuestion() {
-    selectedAnswers[currentIndex] =
-        writtenAnswers[currentIndex]?.trim() ?? '';
+    selectedAnswers[currentIndex] = writtenAnswers[currentIndex]?.trim() ?? '';
 
     if (currentIndex >= questions.length - 1) {
       setState(() {
@@ -1035,7 +1023,8 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
               Tooltip(
                 message: 'Clave docente PDF',
                 child: IconButton(
-                  onPressed: questions.isEmpty ? null : exportExamAnswerKeyToPdf,
+                  onPressed:
+                      questions.isEmpty ? null : exportExamAnswerKeyToPdf,
                   icon: const Icon(
                     Icons.key_rounded,
                     color: Colors.white,
@@ -1055,7 +1044,8 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
               Tooltip(
                 message: 'Crear versión B/C/D',
                 child: IconButton(
-                  onPressed: questions.isEmpty ? null : generateAlternateExamVersion,
+                  onPressed:
+                      questions.isEmpty ? null : generateAlternateExamVersion,
                   icon: const Icon(
                     Icons.copy_all_rounded,
                     color: Colors.white,
@@ -1137,7 +1127,8 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
                   maxLines: 10,
                   decoration: const InputDecoration(
                     labelText: 'Respuesta del estudiante',
-                    hintText: 'Escribe aquí tu análisis, explicación o respuesta.',
+                    hintText:
+                        'Escribe aquí tu análisis, explicación o respuesta.',
                     border: OutlineInputBorder(),
                   ),
                   onChanged: saveWrittenAnswer,
@@ -1358,16 +1349,13 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
       return const SizedBox.shrink();
     }
 
-    final objectiveCount = questions
-        .where((item) => getOptions(item).isNotEmpty)
-        .length;
+    final objectiveCount =
+        questions.where((item) => getOptions(item).isNotEmpty).length;
     final writtenCount = questions.length - objectiveCount;
-    final percent = objectiveCount == 0
-        ? 0
-        : ((score / objectiveCount) * 100).round();
-    final obtained = objectiveCount == 0
-        ? 0
-        : (score / objectiveCount) * examTotalPoints;
+    final percent =
+        objectiveCount == 0 ? 0 : ((score / objectiveCount) * 100).round();
+    final obtained =
+        objectiveCount == 0 ? 0 : (score / objectiveCount) * examTotalPoints;
     final maxPoints = examTotalPoints;
 
     return SectionCard(
@@ -1389,9 +1377,7 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
           ),
           const SizedBox(height: 10),
           Text(
-            objectiveCount == 0
-                ? 'Pendiente'
-                : '$score / $objectiveCount',
+            objectiveCount == 0 ? 'Pendiente' : '$score / $objectiveCount',
             style: const TextStyle(
               color: AppTheme.textPrimary,
               fontSize: 38,
@@ -1409,9 +1395,7 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
           ),
           const SizedBox(height: 6),
           Text(
-            objectiveCount == 0
-                ? 'Evaluación docente requerida'
-                : '$percent%',
+            objectiveCount == 0 ? 'Evaluación docente requerida' : '$percent%',
             style: const TextStyle(
               color: AppTheme.textMuted,
               fontSize: 18,

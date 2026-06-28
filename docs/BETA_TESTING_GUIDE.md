@@ -113,6 +113,36 @@ puede recorrer AudioBook, actividades, Booky y progreso sin perder el contexto.
 - Revisa indicadores y alertas institucionales.
 - Confirma que ninguna accion intenta pagos o sincronizacion cloud real.
 
+## QA Visual Integral
+
+Realiza este recorrido en desktop y en un viewport mobile antes de aprobar una
+version candidata:
+
+- [ ] Dashboard: el siguiente paso y la accion principal se entienden sin
+  conocer la arquitectura interna.
+- [ ] AudioBook: carga, estado vacio, controles y actividades no se recortan ni
+  desbordan.
+- [ ] Voice Tutor: sugerencias, campo de texto, microfono y recuperacion se leen
+  con claridad.
+- [ ] Student Flow: AudioBook, quiz, flashcards, Booky y progreso conservan el
+  contexto al navegar.
+- [ ] Teacher Flow: curso, unidad, planificacion, recursos, rubrica y examen
+  muestran siempre el proximo paso.
+- [ ] Accessibility: labels, foco, contraste, escalado de texto y preferencias
+  funcionan sin depender solo del color.
+- [ ] Responsive: no hay overflow horizontal, contenido cortado ni botones fuera
+  de pantalla con teclado abierto.
+- [ ] Booky: orienta con lenguaje amable y nunca usa mensajes punitivos como
+  `Error`, `Incorrecto`, `Fallaste` o `No entendiste`.
+- [ ] Free: comunica el valor de probar StudyBook AI antes que sus limites.
+- [ ] Student: comunica audiolibros, quizzes, flashcards y tutoria inteligente.
+- [ ] Teacher: comunica clases, rubricas, examenes y recursos en menos tiempo.
+- [ ] Institution: solo muestra `Proximamente para instituciones, colegios y
+  universidades.` y no domina la experiencia v1.0.
+
+Resultado esperado: todas las pantallas criticas presentan carga, vacio, error
+y recuperacion de forma humana, accesible y consistente en ambos anchos.
+
 ## Reportar Bugs
 
 Usa `Beta y lanzamiento > Enviar feedback` e incluye:

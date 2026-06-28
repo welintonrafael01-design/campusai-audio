@@ -111,10 +111,12 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
         debugPrint('No se pudo guardar flashcards cloud: $cloudError');
       }
     } catch (error) {
+      debugPrint('No se pudieron generar las flashcards: $error');
       if (!mounted) return;
 
       setState(() {
-        errorMessage = 'Error: $error';
+        errorMessage =
+            'Booky no pudo preparar las flashcards esta vez. Podemos intentarlo otra vez.';
       });
     } finally {
       if (mounted) {

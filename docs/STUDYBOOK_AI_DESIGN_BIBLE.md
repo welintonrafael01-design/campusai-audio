@@ -229,6 +229,29 @@ Cuando el recurso esté aprobado:
 5. Mantener proporciones, zona segura y expresión consistentes.
 6. No usar poses infantiles, decorativas o sin relación con la acción.
 
+## Visual QA Rules for v1.0
+
+- Revisar cada pantalla crítica en desktop y móvil, incluido el estado con
+  teclado abierto cuando haya formularios.
+- Mantener una acción principal visible; las acciones secundarias deben agruparse
+  sin competir con ella.
+- Usar loaders con contexto, estados vacíos que expliquen el siguiente paso y
+  errores recuperables sin exponer excepciones técnicas.
+- Evitar `Sin datos` y `No disponible` como mensajes aislados. Explicar qué falta
+  y cómo puede avanzar la persona.
+- Booky orienta, acompaña y propone recuperación. Nunca culpa ni usa lenguaje
+  punitivo.
+- Los estados se comunican mediante texto o icono además del color y anuncian
+  cambios importantes con semántica accesible.
+- Los controles deben conservar áreas táctiles cómodas, foco visible, wrapping y
+  contraste razonable al escalar el texto.
+- Free, Student y Teacher comunican su valor con lenguaje humano. Institution se
+  limita a: "Próximamente para instituciones, colegios y universidades."
+- No aprobar una pantalla con overflow, contenido recortado, loader sin contexto,
+  acciones duplicadas o un callejón sin salida.
+- Registrar cualquier validación visual no ejecutada; la revisión de código y
+  `flutter analyze` no sustituyen una prueba interactiva.
+
 ## Criterio de revisión
 
 Una experiencia está alineada cuando el estudiante entiende qué puede hacer,

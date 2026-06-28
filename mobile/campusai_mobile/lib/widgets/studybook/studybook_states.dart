@@ -20,35 +20,38 @@ class StudyBookEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Icon(
-          Icons.auto_stories_rounded,
-          color: AppTheme.accent,
-          size: 30,
-        ),
-        const SizedBox(height: 10),
-        Text(
-          title,
-          style: const TextStyle(
-            color: AppTheme.textPrimary,
-            fontWeight: FontWeight.w900,
+    return Semantics(
+      container: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.auto_stories_rounded,
+            color: AppTheme.accent,
+            size: 30,
           ),
-        ),
-        const SizedBox(height: 5),
-        Text(
-          message,
-          style: const TextStyle(color: AppTheme.textMuted, height: 1.4),
-        ),
-        if (onAction != null && actionLabel.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          StudyBookSecondaryButton(
-            label: actionLabel,
-            onPressed: onAction,
+          const SizedBox(height: 10),
+          Text(
+            title,
+            style: const TextStyle(
+              color: AppTheme.textPrimary,
+              fontWeight: FontWeight.w900,
+            ),
           ),
+          const SizedBox(height: 5),
+          Text(
+            message,
+            style: const TextStyle(color: AppTheme.textMuted, height: 1.4),
+          ),
+          if (onAction != null && actionLabel.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            StudyBookSecondaryButton(
+              label: actionLabel,
+              onPressed: onAction,
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }
@@ -63,19 +66,26 @@ class StudyBookLoadingState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: PremiumSectionCard(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 14),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: AppTheme.textMuted),
+    return Semantics(
+      container: true,
+      liveRegion: true,
+      label: message,
+      child: ExcludeSemantics(
+        child: Center(
+          child: PremiumSectionCard(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 14),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: AppTheme.textMuted),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

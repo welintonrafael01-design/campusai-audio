@@ -478,7 +478,7 @@ class _UnitWorkspaceScreenState extends State<UnitWorkspaceScreen> {
         label: 'Resumen',
         value: safeText(guide['summary']).isNotEmpty
             ? safeText(guide['summary'])
-            : 'No disponible',
+            : 'Aún no se ha generado.',
       ),
       _SummaryBlock(
         title: 'Conceptos clave',
@@ -936,7 +936,7 @@ class _SummaryBlock extends StatelessWidget {
   const _SummaryBlock({
     required this.title,
     required this.items,
-    this.emptyText = 'No disponible.',
+    this.emptyText = 'Aún no se ha generado contenido para esta sección.',
   });
 
   @override

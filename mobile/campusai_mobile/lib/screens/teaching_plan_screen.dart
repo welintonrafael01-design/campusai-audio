@@ -15,6 +15,7 @@ import '../theme/app_theme.dart';
 import '../widgets/accessible_tip_card.dart';
 import '../widgets/section_card.dart';
 import '../widgets/studybook/booky_card.dart';
+import '../widgets/studybook/studybook_states.dart';
 
 const int _unitQuestionBankQuestionCount = 20;
 const int _unitExamQuestionCount = 10;
@@ -75,6 +76,7 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
   Map<String, dynamic> plan = {};
   bool isExportingPdf = false;
   bool isExportingDocx = false;
+  bool isLoadingPlan = false;
   bool isGeneratingCurriculumIntelligence = false;
   final Set<String> generatingQuestionBankUnitIds = {};
   final Set<String> generatingExamUnitIds = {};
@@ -87,27 +89,34 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
   void initState() {
     super.initState();
     plan = Map<String, dynamic>.from(widget.initialPlan);
+    isLoadingPlan = plan.isEmpty;
     if (plan.isEmpty) {
       loadSavedPlan();
     }
   }
 
   Future<void> loadSavedPlan() async {
-    final result = await StudyResultService.getResult(
-      documentId: widget.documentId,
-      type: 'teaching_plan',
-    );
-
-    if (result == null || !mounted) return;
-
     try {
+      final result = await StudyResultService.getResult(
+        documentId: widget.documentId,
+        type: 'teaching_plan',
+      );
+
+      if (result == null || !mounted) return;
+
       final decoded = jsonDecode(result.content);
       if (decoded is Map<String, dynamic>) {
         setState(() => plan = decoded);
       } else if (decoded is Map) {
         setState(() => plan = Map<String, dynamic>.from(decoded));
       }
-    } catch (_) {}
+    } catch (error) {
+      debugPrint('No se pudo cargar la planificación docente: $error');
+    } finally {
+      if (mounted) {
+        setState(() => isLoadingPlan = false);
+      }
+    }
   }
 
   String get title => plan['title']?.toString() ?? 'Planificación docente';
@@ -2297,6 +2306,8 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
           topic: topic,
         );
       } catch (analysisError) {
+        debugPrint(
+            'No se pudo completar el análisis IA de la unidad: $analysisError');
         reportPayload = buildLocalAssessmentReportPayload(
           academicMetadata: academicMetadata,
           topic: topic,
@@ -2307,7 +2318,7 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
           rubric: rubric,
           studyGuide: studyGuide,
           analysisWarning:
-              'No se pudo completar el análisis IA: $analysisError',
+              'El análisis avanzado no estuvo disponible. Se preparó un reporte local con los recursos de la unidad.',
         );
       }
 
@@ -2407,178 +2418,195 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(22),
-        children: [
-          SectionCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      body: isLoadingPlan
+          ? const StudyBookLoadingState(
+              message: 'Booky está preparando tu planificación...',
+            )
+          : ListView(
+              padding: const EdgeInsets.all(22),
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontSize: 26,
-                    fontWeight: FontWeight.w900,
+                SectionCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      if (subject.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'Asignatura: $subject',
+                          style: const TextStyle(
+                            color: AppTheme.textMuted,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                      if (generalObjective.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          generalObjective,
+                          style: const TextStyle(
+                            color: AppTheme.textMuted,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 18),
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: [
+                          FilledButton.icon(
+                            onPressed: plan.isEmpty || isExportingDocx
+                                ? null
+                                : exportDocx,
+                            icon: isExportingDocx
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.description_rounded),
+                            label: Text(isExportingDocx
+                                ? 'Exportando Word...'
+                                : 'Exportar Word'),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: plan.isEmpty || isExportingPdf
+                                ? null
+                                : exportPdf,
+                            icon: isExportingPdf
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.picture_as_pdf_rounded),
+                            label: Text(isExportingPdf
+                                ? 'Generando PDF...'
+                                : 'Exportar PDF'),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: plan.isEmpty ||
+                                    isGeneratingCurriculumIntelligence
+                                ? null
+                                : generateCurriculumIntelligence,
+                            icon: isGeneratingCurriculumIntelligence
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.auto_graph_rounded),
+                            label: Text(isGeneratingCurriculumIntelligence
+                                ? 'Analizando...'
+                                : 'Revisar cobertura'),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: () => context.goNamed('dashboard'),
+                            icon: const Icon(Icons.arrow_back_rounded),
+                            label: const Text('Volver al Dashboard'),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                if (subject.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    'Asignatura: $subject',
-                    style: const TextStyle(
-                      color: AppTheme.textMuted,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-                if (generalObjective.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    generalObjective,
-                    style: const TextStyle(
-                      color: AppTheme.textMuted,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 18),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    FilledButton.icon(
-                      onPressed:
-                          plan.isEmpty || isExportingDocx ? null : exportDocx,
-                      icon: isExportingDocx
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.description_rounded),
-                      label: Text(isExportingDocx
-                          ? 'Exportando Word...'
-                          : 'Exportar Word'),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed:
-                          plan.isEmpty || isExportingPdf ? null : exportPdf,
-                      icon: isExportingPdf
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.picture_as_pdf_rounded),
-                      label: Text(
-                          isExportingPdf ? 'Generando PDF...' : 'Exportar PDF'),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed:
-                          plan.isEmpty || isGeneratingCurriculumIntelligence
-                              ? null
-                              : generateCurriculumIntelligence,
-                      icon: isGeneratingCurriculumIntelligence
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.auto_graph_rounded),
-                      label: Text(isGeneratingCurriculumIntelligence
-                          ? 'Analizando...'
-                          : 'Revisar cobertura'),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: () => context.goNamed('dashboard'),
-                      icon: const Icon(Icons.arrow_back_rounded),
-                      label: const Text('Volver al Dashboard'),
-                    ),
+                const SizedBox(height: 16),
+                const BookyCard(
+                  title: 'Ya analicé tu contenido.',
+                  message:
+                      'Abre una unidad para editarla o genera sus recursos. También puedo crear la rúbrica. ¿Quieres preparar un examen?',
+                ),
+                const SizedBox(height: 16),
+                const AccessibleTipCard(
+                  title: 'Enseñanza accesible',
+                  tips: [
+                    'Booky también puede generar versiones accesibles del contenido.',
                   ],
                 ),
+                const SizedBox(height: 20),
+                if (competencies.isNotEmpty)
+                  _ListSection(title: 'Competencias', items: competencies),
+                if (methodology.isNotEmpty)
+                  _TextSection(title: 'Metodología', text: methodology),
+                if (resources.isNotEmpty)
+                  _ListSection(title: 'Recursos', items: resources),
+                if (evaluationStrategy.isNotEmpty)
+                  _TextSection(
+                      title: 'Estrategia de evaluación',
+                      text: evaluationStrategy),
+                if (weeks.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Unidades y próximos pasos',
+                    style: TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  ...weeks.asMap().entries.map(
+                    (entry) {
+                      final index = entry.key;
+                      final week = entry.value;
+                      final unitId = unitIdForWeek(week, index);
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: _WeekCard(
+                          week: week,
+                          isGeneratingQuestionBank:
+                              generatingQuestionBankUnitIds.contains(unitId),
+                          isGeneratingExam:
+                              generatingExamUnitIds.contains(unitId),
+                          isGeneratingRubric:
+                              generatingRubricUnitIds.contains(unitId),
+                          isGeneratingStudyGuide:
+                              generatingStudyGuideUnitIds.contains(unitId),
+                          isGeneratingTeachingResources:
+                              generatingTeachingResourcesUnitIds
+                                  .contains(unitId),
+                          isGeneratingAssessmentReport:
+                              generatingAssessmentReportUnitIds
+                                  .contains(unitId),
+                          onGenerateQuestionBank: generateQuestionBankForUnit,
+                          onGenerateExam: generateExamForUnit,
+                          onGenerateRubric: generateRubricForUnit,
+                          onGenerateStudyGuide: generateStudyGuideForUnit,
+                          onGenerateTeachingResources:
+                              generateTeachingResourcesForUnit,
+                          onGenerateAssessmentReport:
+                              generateAssessmentReportForUnit,
+                          onOpenUnit: (week) => openUnitWorkspace(week, index),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+                if (recommendations.isNotEmpty)
+                  _ListSection(
+                      title: 'Recomendaciones', items: recommendations),
+                if (plan.isEmpty)
+                  const SectionCard(
+                    child: StudyBookEmptyState(
+                      title: 'Tu planificación aparecerá aquí',
+                      message:
+                          'Vuelve a tu curso y genera una planificación para comenzar a preparar la clase.',
+                    ),
+                  ),
               ],
             ),
-          ),
-          const SizedBox(height: 16),
-          const BookyCard(
-            title: 'Ya analicé tu contenido.',
-            message:
-                'Abre una unidad para editarla o genera sus recursos. También puedo crear la rúbrica. ¿Quieres preparar un examen?',
-          ),
-          const SizedBox(height: 16),
-          const AccessibleTipCard(
-            title: 'Enseñanza accesible',
-            tips: [
-              'Booky también puede generar versiones accesibles del contenido.',
-            ],
-          ),
-          const SizedBox(height: 20),
-          if (competencies.isNotEmpty)
-            _ListSection(title: 'Competencias', items: competencies),
-          if (methodology.isNotEmpty)
-            _TextSection(title: 'Metodología', text: methodology),
-          if (resources.isNotEmpty)
-            _ListSection(title: 'Recursos', items: resources),
-          if (evaluationStrategy.isNotEmpty)
-            _TextSection(
-                title: 'Estrategia de evaluación', text: evaluationStrategy),
-          if (weeks.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            const Text(
-              'Unidades y próximos pasos',
-              style: TextStyle(
-                color: AppTheme.textPrimary,
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 14),
-            ...weeks.asMap().entries.map(
-              (entry) {
-                final index = entry.key;
-                final week = entry.value;
-                final unitId = unitIdForWeek(week, index);
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 14),
-                  child: _WeekCard(
-                    week: week,
-                    isGeneratingQuestionBank:
-                        generatingQuestionBankUnitIds.contains(unitId),
-                    isGeneratingExam: generatingExamUnitIds.contains(unitId),
-                    isGeneratingRubric:
-                        generatingRubricUnitIds.contains(unitId),
-                    isGeneratingStudyGuide:
-                        generatingStudyGuideUnitIds.contains(unitId),
-                    isGeneratingTeachingResources:
-                        generatingTeachingResourcesUnitIds.contains(unitId),
-                    isGeneratingAssessmentReport:
-                        generatingAssessmentReportUnitIds.contains(unitId),
-                    onGenerateQuestionBank: generateQuestionBankForUnit,
-                    onGenerateExam: generateExamForUnit,
-                    onGenerateRubric: generateRubricForUnit,
-                    onGenerateStudyGuide: generateStudyGuideForUnit,
-                    onGenerateTeachingResources:
-                        generateTeachingResourcesForUnit,
-                    onGenerateAssessmentReport: generateAssessmentReportForUnit,
-                    onOpenUnit: (week) => openUnitWorkspace(week, index),
-                  ),
-                );
-              },
-            ),
-          ],
-          if (recommendations.isNotEmpty)
-            _ListSection(title: 'Recomendaciones', items: recommendations),
-          if (plan.isEmpty)
-            const SectionCard(
-              child: Text(
-                'No hay planificación para mostrar.',
-                style: TextStyle(color: AppTheme.textMuted),
-              ),
-            ),
-        ],
-      ),
     );
   }
 }

@@ -77,11 +77,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   String _dashboardUserName() {
     final metadata = AuthService.currentUser?.userMetadata ?? {};
-    final fullName = (metadata['full_name'] ??
-            metadata['name'] ??
-            metadata['display_name'])
-        ?.toString()
-        .trim();
+    final fullName =
+        (metadata['full_name'] ?? metadata['name'] ?? metadata['display_name'])
+            ?.toString()
+            .trim();
 
     if (fullName != null && fullName.isNotEmpty) {
       return fullName.split(' ').first;
@@ -107,12 +106,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         .split(RegExp(r'\s+'))
         .where((part) => part.trim().isNotEmpty)
         .map((part) {
-          final clean = part.trim();
-          return clean[0].toUpperCase() + clean.substring(1).toLowerCase();
-        })
-        .join(' ');
+      final clean = part.trim();
+      return clean[0].toUpperCase() + clean.substring(1).toLowerCase();
+    }).join(' ');
   }
-
 
   @override
   void initState() {
@@ -927,10 +924,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       await loadHistory();
       await loadRecentDocuments();
     } catch (error) {
+      debugPrint('No se pudo procesar el documento: $error');
       if (!mounted) return;
 
       setState(() {
-        errorMessage = 'Error: $error';
+        errorMessage =
+            'Booky no pudo procesar el documento esta vez. Podemos intentarlo otra vez.';
       });
     } finally {
       if (mounted) {
@@ -944,7 +943,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       }
     }
   }
-
 
   Future<int?> pickTeachingPlanWeeks() async {
     int selectedWeeks = 4;
@@ -1024,7 +1022,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     customController.dispose();
     return result;
   }
-
 
   Future<bool> confirmRegenerateTeachingPlan() async {
     final result = await showDialog<bool>(
@@ -1192,9 +1189,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       }
     }
   }
-
-
-
 
   Future<bool> confirmRegenerateRubric() async {
     final result = await showDialog<bool>(
@@ -1539,7 +1533,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
   }
 
-
   Future<void> generateAudio() async {
     if (summary.trim().isEmpty || isGeneratingAudio) return;
 
@@ -1569,10 +1562,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         );
       }
     } catch (error) {
+      debugPrint('No se pudo generar el audio: $error');
       if (!mounted) return;
 
       setState(() {
-        errorMessage = '${l10n.audioGenerationErrorPrefix}: $error';
+        errorMessage =
+            'Booky no pudo preparar el audio esta vez. Podemos intentarlo otra vez.';
       });
     } finally {
       if (mounted) {
@@ -1595,10 +1590,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         isPlaying = audioService.isPlaying;
       });
     } catch (error) {
+      debugPrint('No se pudo reproducir el audio: $error');
       if (!mounted) return;
 
       setState(() {
-        errorMessage = '${l10n.audioPlaybackErrorPrefix}: $error';
+        errorMessage =
+            'El audio no se pudo reproducir esta vez. Probemos nuevamente.';
       });
     }
   }
@@ -1625,10 +1622,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         isPlaying = audioService.isPlaying;
       });
     } catch (error) {
+      debugPrint('No se pudo reiniciar el audio: $error');
       if (!mounted) return;
 
       setState(() {
-        errorMessage = '${l10n.audioReplayErrorPrefix}: $error';
+        errorMessage =
+            'El audio no pudo volver al inicio. Probemos nuevamente.';
       });
     }
   }
