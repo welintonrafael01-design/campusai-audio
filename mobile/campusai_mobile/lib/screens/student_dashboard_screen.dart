@@ -21,6 +21,7 @@ import '../services/launch/onboarding_flow_service.dart';
 import '../services/launch/onboarding_readiness_service.dart';
 import '../services/launch/user_feedback_service.dart';
 import '../services/marketplace/marketplace_models.dart';
+import '../services/plan_guard_service.dart';
 import '../services/student_dashboard_controller.dart';
 import '../theme/app_theme.dart';
 import '../widgets/accessibility_card.dart';
@@ -56,6 +57,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
       const AccessibilityPreferencesService();
   final accessibilityContentService = const AccessibilityContentService();
   final ftueService = const FtueService();
+  final planGuardService = const PlanGuardService();
 
   bool isLoading = true;
   bool isRefreshing = false;
@@ -616,6 +618,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     final showFtue = ftueSteps.isNotEmpty &&
         !ftueProgress.dismissed &&
         !ftueProgress.isComplete(ftueSteps.length);
+    final isFreePlan = planCode(planGuardService.currentPlan) == 'free';
 
     return Scaffold(
       appBar: AppBar(
@@ -753,6 +756,10 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                             onTutor: () => context.goNamed('voiceTutor'),
                             onProgress: scrollToProgress,
                           ),
+                          if (isFreePlan) ...[
+                            const SizedBox(height: 18),
+                            const _FreePlanNote(),
+                          ],
                           const SizedBox(height: 18),
                           AccessibilityCard(
                             preferences: accessibilityPreferences,
@@ -781,54 +788,73 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                             child: const _DashboardSectionLabel(
                               title: 'Progreso y logros',
                               subtitle:
-                                  'Celebra lo que avanzaste y descubre tu próximo hito.',
+                                  'Mira lo que ya lograste y descubre tu próximo paso.',
                             ),
                           ),
                           const SizedBox(height: 12),
-                          _MetricsGrid(analytics: analytics),
-                          const SizedBox(height: 18),
-                          _ResponsivePair(
-                            left: XpCard(xp: gamificationProfile.xp),
-                            right: CurrentLevelWidget(
-                              level: gamificationProfile.level,
+                          if (analytics.sessions <= 0)
+                            PremiumSectionCard(
+                              child: StudyBookEmptyState(
+                                title: 'Tu progreso comienza aquí',
+                                message:
+                                    'Completa tu primera sesión para que Booky pueda mostrar tu progreso.',
+                                actionLabel:
+                                    'Crea tu primer AudioBook con Booky',
+                                onAction: () => context.goNamed(
+                                  'audioBookStudio',
+                                  extra: const {
+                                    'sourceMode': 'solo',
+                                    'sourceType': 'text',
+                                  },
+                                ),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 18),
-                          _ResponsivePair(
-                            left: NextLevelWidget(
-                              level: gamificationProfile.level,
+                          if (analytics.sessions > 0) ...[
+                            _MetricsGrid(analytics: analytics),
+                            const SizedBox(height: 18),
+                            _ResponsivePair(
+                              left: XpCard(xp: gamificationProfile.xp),
+                              right: CurrentLevelWidget(
+                                level: gamificationProfile.level,
+                              ),
                             ),
-                            right: MissionCard(
-                              missions: gamificationProfile.missions,
+                            const SizedBox(height: 18),
+                            _ResponsivePair(
+                              left: NextLevelWidget(
+                                level: gamificationProfile.level,
+                              ),
+                              right: MissionCard(
+                                missions: gamificationProfile.missions,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 18),
-                          _ResponsivePair(
-                            left: AchievementGrid(
-                              achievements: gamificationProfile.achievements,
+                            const SizedBox(height: 18),
+                            _ResponsivePair(
+                              left: AchievementGrid(
+                                achievements: gamificationProfile.achievements,
+                              ),
+                              right: CoinWalletWidget(
+                                wallet: gamificationProfile.wallet,
+                              ),
                             ),
-                            right: CoinWalletWidget(
-                              wallet: gamificationProfile.wallet,
+                            const SizedBox(height: 18),
+                            _ResponsivePair(
+                              left: _StreakCard(streak: streak),
+                              right: _RecommendationsCard(
+                                recommendations: recommendations,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 18),
-                          _ResponsivePair(
-                            left: _StreakCard(streak: streak),
-                            right: _RecommendationsCard(
-                              recommendations: recommendations,
+                            const SizedBox(height: 18),
+                            _ResponsivePair(
+                              left: _AchievementsCard(
+                                achievements: achievements,
+                              ),
+                              right: _StudentIntelligenceCard(
+                                intelligence: intelligence,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 18),
-                          _ResponsivePair(
-                            left: _AchievementsCard(
-                              achievements: achievements,
-                            ),
-                            right: _StudentIntelligenceCard(
-                              intelligence: intelligence,
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          _RecentSessionsCard(sessions: recentSessions),
+                            const SizedBox(height: 18),
+                            _RecentSessionsCard(sessions: recentSessions),
+                          ],
                           const SizedBox(height: 24),
                           const _DashboardSectionLabel(
                             title: 'Recursos recomendados',
@@ -1158,7 +1184,9 @@ class _PrimaryActionsCard extends StatelessWidget {
             runSpacing: 10,
             children: [
               StudyBookPrimaryButton(
-                label: hasProgress ? 'Continuar AudioBook' : 'Crear contenido',
+                label: hasProgress
+                    ? 'Continúa donde te quedaste'
+                    : 'Crea tu primer AudioBook con Booky',
                 icon:
                     hasProgress ? Icons.play_arrow_rounded : Icons.add_rounded,
                 onPressed: hasProgress ? onContinue : onCreate,
@@ -1187,6 +1215,35 @@ class _PrimaryActionsCard extends StatelessWidget {
   }
 }
 
+class _FreePlanNote extends StatelessWidget {
+  const _FreePlanNote();
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      container: true,
+      label:
+          'Estás probando StudyBook AI gratis. Puedes crear tu primer recurso y descubrir cómo Booky te ayuda.',
+      child: const PremiumSectionCard(
+        padding: EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.favorite_outline_rounded, color: AppTheme.accent),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Estás probando StudyBook AI gratis. Puedes crear tu primer recurso y descubrir cómo Booky te ayuda.',
+                style: TextStyle(color: AppTheme.textMuted, height: 1.4),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ContinueLearningCard extends StatelessWidget {
   final ContinueLearningItem item;
   final VoidCallback? onContinue;
@@ -1206,7 +1263,7 @@ class _ContinueLearningCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _SectionTitle(
-                  title: 'Continuar aprendiendo',
+                  title: 'Continúa donde te quedaste',
                   icon: Icons.play_circle_fill_rounded,
                   color: AppTheme.accent,
                 ),
@@ -1245,7 +1302,7 @@ class _ContinueLearningCard extends StatelessWidget {
                     ElevatedButton.icon(
                       onPressed: onContinue,
                       icon: const Icon(Icons.arrow_forward_rounded),
-                      label: const Text('Continuar AudioBook'),
+                      label: const Text('Continuar capítulo'),
                     ),
                   ],
                 ),
@@ -1255,7 +1312,7 @@ class _ContinueLearningCard extends StatelessWidget {
               title: 'Tu primera experiencia está por comenzar',
               message:
                   'Sube tu primer documento y Booky lo convertirá en conocimiento.',
-              actionLabel: 'Crear mi primer AudioBook',
+              actionLabel: 'Crea tu primer AudioBook con Booky',
               onAction: onCreate,
             ),
     );
@@ -1281,37 +1338,37 @@ class _MetricsGrid extends StatelessWidget {
       childAspectRatio: isMobile ? 1.12 : 1.85,
       children: [
         _MetricCard(
-          title: 'Tiempo estudiado',
+          title: 'Minutos que dedicaste',
           value: '${analytics.studyMinutes} min',
           icon: Icons.schedule_rounded,
           color: AppTheme.primary,
         ),
         _MetricCard(
-          title: 'Sesiones',
+          title: 'Sesiones completadas',
           value: '${analytics.sessions}',
           icon: Icons.bolt_rounded,
           color: AppTheme.accent,
         ),
         _MetricCard(
-          title: 'Capítulos completados',
+          title: 'Capítulos terminados',
           value: '${analytics.completedChapters}',
           icon: Icons.menu_book_rounded,
           color: AppTheme.success,
         ),
         _MetricCard(
-          title: 'Dominio promedio',
+          title: 'Dominio que construyes',
           value: '${analytics.masteryPercentage}%',
           icon: Icons.insights_rounded,
           color: AppTheme.secondary,
         ),
         _MetricCard(
-          title: 'Quiz completados',
+          title: 'Quiz realizados',
           value: '${analytics.quizCompleted}',
           icon: Icons.quiz_rounded,
           color: AppTheme.warning,
         ),
         _MetricCard(
-          title: 'Flashcards estudiadas',
+          title: 'Flashcards repasadas',
           value: '${analytics.flashcardsStudied}',
           icon: Icons.style_rounded,
           color: AppTheme.danger,

@@ -547,6 +547,7 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
                                     'Usa el micrófono si prefieres preguntar con tu voz.',
                                     'Pídeme una explicación simple o paso a paso.',
                                     'Puedo leer mi respuesta en voz alta.',
+                                    'Cuando termines, tu progreso se actualizará automáticamente si hay sesión activa.',
                                   ],
                                 ),
                                 const SizedBox(height: 16),
@@ -560,7 +561,6 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
                                 if (messages.isNotEmpty) ...[
                                   _QuickActions(
                                     context: voiceContext,
-                                    fallbackSuggestion: proactiveSuggestion,
                                     isBusy: isSending,
                                     onAction: sendMessage,
                                   ),
@@ -760,7 +760,6 @@ class _ProactiveOpening extends StatelessWidget {
 
 class _QuickActions extends StatelessWidget {
   final VoiceContext context;
-  final String fallbackSuggestion;
   final bool isBusy;
   final Future<void> Function({
     String? text,
@@ -770,27 +769,32 @@ class _QuickActions extends StatelessWidget {
 
   const _QuickActions({
     required this.context,
-    required this.fallbackSuggestion,
     required this.isBusy,
     required this.onAction,
   });
 
   @override
   Widget build(BuildContext context) {
-    final nextAction = this.context.nextBestAction.trim().isNotEmpty
-        ? this.context.nextBestAction.trim()
-        : fallbackSuggestion.trim();
+    final chapter = this.context.chapterTitle.trim().isEmpty
+        ? 'este contenido'
+        : this.context.chapterTitle.trim();
     return SectionCard(
       child: Wrap(
         spacing: 10,
         runSpacing: 10,
         children: [
           _ActionButton(
-            label: 'Empecemos',
-            mode: 'general',
-            text: nextAction.isEmpty
-                ? 'Ayúdame a elegir el mejor punto para empezar hoy.'
-                : 'Ayúdame a comenzar con esta acción: $nextAction.',
+            label: 'Repasar capítulo',
+            mode: 'review',
+            text:
+                'Ayúdame a repasar $chapter. Empieza por las ideas más importantes.',
+            isBusy: isBusy,
+            onAction: onAction,
+          ),
+          _ActionButton(
+            label: 'Hazme un quiz corto',
+            mode: 'quiz',
+            text: 'Hazme un quiz corto sobre $chapter, una pregunta a la vez.',
             isBusy: isBusy,
             onAction: onAction,
           ),
@@ -798,15 +802,15 @@ class _QuickActions extends StatelessWidget {
             label: 'Explícalo simple',
             mode: 'explain',
             text:
-                'Explícame este tema con palabras sencillas, frases cortas y un ejemplo claro.',
+                'Explícame $chapter con palabras sencillas, pasos cortos y un ejemplo claro.',
             isBusy: isBusy,
             onAction: onAction,
           ),
           _ActionButton(
-            label: 'Paso a paso',
+            label: 'Resume lo importante',
             mode: 'explain',
             text:
-                'Explícame este tema paso a paso. Detente después de cada parte importante.',
+                'Resume las ideas más importantes de $chapter en una lista breve.',
             isBusy: isBusy,
             onAction: onAction,
           ),
@@ -814,16 +818,8 @@ class _QuickActions extends StatelessWidget {
             label: 'Léelo en voz alta',
             mode: 'explain',
             text:
-                'Prepara un resumen breve y claro de este tema para escucharlo en voz alta.',
+                'Prepara un resumen breve y claro de $chapter para escucharlo en voz alta.',
             autoGenerateAudio: true,
-            isBusy: isBusy,
-            onAction: onAction,
-          ),
-          _ActionButton(
-            label: 'Hazme preguntas cortas',
-            mode: 'quiz',
-            text:
-                'Hazme preguntas cortas, una a la vez, para comprobar lo que aprendí.',
             isBusy: isBusy,
             onAction: onAction,
           ),

@@ -46,13 +46,36 @@ volver a abrir el AudioBook.
 ## Probar Voice Tutor
 
 - Verifica que la sugerencia inicial no se envie automaticamente.
-- Prueba Empecemos, Explicame, Hazme un quiz, Repasar debilidad y Plan de hoy.
+- Prueba Repasar capitulo, Hazme un quiz corto, Explicalo simple, Resume lo
+  importante y Leelo en voz alta.
 - Envia una pregunta escrita.
 - Prueba un turno de microfono, detener y cancelar.
 - Genera y reproduce audio de una respuesta.
 - Verifica fallback legible si backend o TTS no estan disponibles.
 
 Resultado esperado: no hay doble envio y el contexto se mantiene resumido.
+
+## Student Learning Flow
+
+Valida el recorrido completo sin saltar directamente entre herramientas:
+
+- [ ] Abrir `Mi Aprendizaje` desde el Dashboard.
+- [ ] Probar el flujo sin contenido y usar `Crea tu primer AudioBook con Booky`.
+- [ ] Pegar contenido no sensible y crear el primer AudioBook.
+- [ ] Escuchar un capitulo, pausar y continuar donde se dejo.
+- [ ] Abrir `Ver resumen` y confirmar contenido legible.
+- [ ] Generar flashcards y mini quiz desde el capitulo.
+- [ ] Repasar al menos una flashcard.
+- [ ] Responder el mini quiz y verificar feedback comprensible.
+- [ ] Usar `Preguntale a Booky sobre este tema` sin envio automatico previo.
+- [ ] Probar Tutor IA por texto y por voz.
+- [ ] Volver con `Ver progreso` y confirmar la sesion registrada.
+- [ ] Revisar el estado vacio de progreso con una cuenta nueva.
+- [ ] Activar preferencia de audio, lenguaje simple o quiz paso a paso.
+- [ ] Verificar el mensaje amable para cuenta Free sin bloqueo agresivo.
+
+Resultado esperado: el estudiante entiende siempre cual es el siguiente paso y
+puede recorrer AudioBook, actividades, Booky y progreso sin perder el contexto.
 
 ## Probar CampusAI Y Acciones
 

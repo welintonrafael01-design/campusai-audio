@@ -731,6 +731,9 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
     final masteryCheck = learningPack['mastery_check'] is Map
         ? Map<String, dynamic>.from(learningPack['mastery_check'] as Map)
         : <String, dynamic>{};
+    final masteryRecommendation = cleanText(masteryCheck['recommendation']);
+    final needsBookySupport = intFrom(masteryCheck['initial_score']) < 70 ||
+        masteryRecommendation.isNotEmpty;
     final revealedFlashcards = <int>{};
 
     showModalBottomSheet<void>(
@@ -902,6 +905,28 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
                               ),
                             ),
                           ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      AccessibleTipCard(
+                        title: 'Sigue aprendiendo con Booky',
+                        tips: [
+                          if (needsBookySupport)
+                            'Booky puede explicarte este punto paso a paso.'
+                          else
+                            'Booky puede ayudarte a reforzar lo que acabas de practicar.',
+                          'Puedes pedir una explicación simple o un quiz corto.',
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          openVoiceTutorForChapter(chapter);
+                        },
+                        icon: const Icon(Icons.chat_bubble_outline_rounded),
+                        label: const Text(
+                          'Pregúntale a Booky sobre este tema',
                         ),
                       ),
                     ],
@@ -1380,6 +1405,7 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
                 chapter,
                 startWithVoice: true,
               ),
+              onProgress: () => context.goNamed('studentDashboard'),
               stringListFrom: stringListFrom,
               cleanText: cleanText,
               intFrom: intFrom,
@@ -1928,6 +1954,7 @@ class _AudioBookResult extends StatelessWidget {
   final ValueChanged<Map<String, dynamic>> onTranscript;
   final ValueChanged<Map<String, dynamic>> onTutor;
   final ValueChanged<Map<String, dynamic>> onVoiceTutor;
+  final VoidCallback onProgress;
   final List<String> Function(dynamic raw) stringListFrom;
   final String Function(dynamic value) cleanText;
   final int Function(dynamic value) intFrom;
@@ -1961,6 +1988,7 @@ class _AudioBookResult extends StatelessWidget {
     required this.onTranscript,
     required this.onTutor,
     required this.onVoiceTutor,
+    required this.onProgress,
     required this.stringListFrom,
     required this.cleanText,
     required this.intFrom,
@@ -2090,6 +2118,7 @@ class _AudioBookResult extends StatelessWidget {
                 onTranscript: () => onTranscript(chapter),
                 onTutor: () => onTutor(chapter),
                 onVoiceTutor: () => onVoiceTutor(chapter),
+                onProgress: onProgress,
                 stringListFrom: stringListFrom,
                 cleanText: cleanText,
                 intFrom: intFrom,
@@ -2240,6 +2269,7 @@ class _AudioBookChapterCard extends StatelessWidget {
   final VoidCallback onTranscript;
   final VoidCallback onTutor;
   final VoidCallback onVoiceTutor;
+  final VoidCallback onProgress;
   final List<String> Function(dynamic raw) stringListFrom;
   final String Function(dynamic value) cleanText;
   final int Function(dynamic value) intFrom;
@@ -2262,6 +2292,7 @@ class _AudioBookChapterCard extends StatelessWidget {
     required this.onTranscript,
     required this.onTutor,
     required this.onVoiceTutor,
+    required this.onProgress,
     required this.stringListFrom,
     required this.cleanText,
     required this.intFrom,
@@ -2362,8 +2393,8 @@ class _AudioBookChapterCard extends StatelessWidget {
                 ),
                 label: Text(
                   currentPositionSeconds > 0
-                      ? 'Continuar escuchando'
-                      : 'Escuchar',
+                      ? 'Continuar capítulo'
+                      : 'Escuchar capítulo',
                 ),
               ),
               OutlinedButton.icon(
@@ -2397,7 +2428,7 @@ class _AudioBookChapterCard extends StatelessWidget {
                   label: Text(
                     isGeneratingLearningPack
                         ? 'Generando actividades...'
-                        : 'Generar actividades para recordar mejor',
+                        : 'Generar flashcards y mini quiz',
                   ),
                 ),
               if (hasLearningPack && !hasFlashcards && !hasMiniQuiz)
@@ -2421,7 +2452,7 @@ class _AudioBookChapterCard extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: onTranscript,
                 icon: const Icon(Icons.article_rounded),
-                label: const Text('Ver transcripción'),
+                label: const Text('Ver resumen'),
               ),
               OutlinedButton.icon(
                 onPressed: onTutor,
@@ -2432,6 +2463,11 @@ class _AudioBookChapterCard extends StatelessWidget {
                 onPressed: onVoiceTutor,
                 icon: const Icon(Icons.record_voice_over_rounded),
                 label: const Text('Preguntar por voz'),
+              ),
+              OutlinedButton.icon(
+                onPressed: onProgress,
+                icon: const Icon(Icons.insights_rounded),
+                label: const Text('Ver progreso'),
               ),
             ],
           ),
