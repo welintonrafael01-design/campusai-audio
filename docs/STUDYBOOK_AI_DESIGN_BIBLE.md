@@ -170,6 +170,27 @@ El dashboard v1.0 debe contar una historia breve y accionable. Su orden es:
 - Verificar móvil y escritorio sin recortes, desbordes ni cambios de layout al
   cargar.
 
+## Accessibility & Inclusive Learning
+
+La accesibilidad es un pilar de StudyBook AI v1.0 junto a Free, Student y
+Teacher. Booky comunica el principio: "No todos aprendemos igual. Yo puedo
+ayudarte a estudiar de la forma que mejor funcione para ti."
+
+### Reglas inclusivas
+
+- Ofrecer audio, texto y práctica como rutas equivalentes de aprendizaje.
+- Mostrar estado mediante texto o icono además de color.
+- Usar `Semantics` en controles y componentes reutilizables cuando sea seguro.
+- Mantener labels visibles y específicos en botones y switches.
+- Permitir explicaciones simples, pasos cortos y preguntas breves.
+- Evitar lenguaje punitivo y ofrecer siempre una recuperación clara.
+- Guardar preferencias localmente y pedir consentimiento antes de sincronizar.
+- Validar teclado, lector de pantalla, escalado de texto y responsive.
+
+Los componentes oficiales son `AccessibilityCard`,
+`AccessibilityToggleTile`, `AccessibleEmptyState` y `AccessibleTipCard`. Las
+preferencias y límites de v1.0 se detallan en `docs/ACCESSIBILITY_V1.md`.
+
 ## Recurso visual oficial de Booky
 
 Hasta recibir el arte oficial, Booky usa `Icons.auto_stories_rounded`. El código

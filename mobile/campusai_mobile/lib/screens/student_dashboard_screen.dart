@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../layout/responsive_layout.dart';
+import '../services/accessibility/accessibility_content_service.dart';
+import '../services/accessibility/accessibility_models.dart';
+import '../services/accessibility/accessibility_preferences_service.dart';
 import '../services/autonomous_ai/autonomous_action_executor.dart';
 import '../services/autonomous_ai/autonomous_action_models.dart';
 import '../services/campus_intelligence/campus_intelligence_models.dart';
@@ -18,6 +21,8 @@ import '../services/launch/user_feedback_service.dart';
 import '../services/marketplace/marketplace_models.dart';
 import '../services/student_dashboard_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/accessibility_card.dart';
+import '../widgets/accessibility_toggle_tile.dart';
 import '../widgets/beta_launch_card.dart';
 import '../widgets/enterprise_dashboard_widgets.dart';
 import '../widgets/enterprise4_dashboard_widgets.dart';
@@ -43,6 +48,9 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   final feedbackService = const UserFeedbackService();
   final onboardingReadinessService = const OnboardingReadinessService();
   final onboardingFlowService = const OnboardingFlowService();
+  final accessibilityPreferencesService =
+      const AccessibilityPreferencesService();
+  final accessibilityContentService = const AccessibilityContentService();
 
   bool isLoading = true;
   bool isRefreshing = false;
@@ -78,6 +86,8 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   AutonomousActionPlan autonomousActionPlan = AutonomousActionPlan.empty();
   LaunchReadinessReport launchReport = LaunchReadinessReport.empty();
   List<Map<String, dynamic>> recentSessions = [];
+  AccessibilityPreferences accessibilityPreferences =
+      AccessibilityPreferences.defaults();
 
   @override
   void initState() {
@@ -101,6 +111,8 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     try {
       final loaded = await dashboardController.load(refresh: refresh);
       final loadedLaunchReport = await launchReadinessService.buildReport();
+      final loadedAccessibilityPreferences =
+          await accessibilityPreferencesService.load();
 
       if (!mounted) return;
 
@@ -129,6 +141,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         autonomousActionPlan = loaded.autonomousActionPlan;
         launchReport = loadedLaunchReport;
         recentSessions = loaded.recentSessions;
+        accessibilityPreferences = loadedAccessibilityPreferences;
         isLoading = false;
         isRefreshing = false;
         isLaunchLoading = false;
@@ -391,6 +404,161 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     setState(() => launchReport = updated);
   }
 
+  Future<void> openAccessibilityPreferences() async {
+    var draft = accessibilityPreferences;
+    final selected = await showModalBottomSheet<AccessibilityPreferences>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            void update(AccessibilityPreferences value) {
+              setSheetState(() => draft = value);
+            }
+
+            return SafeArea(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  22,
+                  8,
+                  22,
+                  24 + MediaQuery.viewInsetsOf(context).bottom,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'Aprende a tu manera',
+                        style: TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'No todos aprendemos igual. Booky puede adaptar tu experiencia a lo que mejor funcione para ti.',
+                        style: TextStyle(
+                          color: AppTheme.textMuted,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      AccessibilityToggleTile(
+                        title: 'Preferir audio',
+                        description:
+                            'Prioriza opciones para escuchar el contenido.',
+                        value: draft.preferAudio,
+                        icon: Icons.headphones_rounded,
+                        onChanged: (value) =>
+                            update(draft.copyWith(preferAudio: value)),
+                      ),
+                      AccessibilityToggleTile(
+                        title: 'Texto grande',
+                        description:
+                            'Registra tu preferencia por contenido más legible.',
+                        value: draft.largeText,
+                        icon: Icons.text_increase_rounded,
+                        onChanged: (value) =>
+                            update(draft.copyWith(largeText: value)),
+                      ),
+                      AccessibilityToggleTile(
+                        title: 'Lenguaje simple',
+                        description:
+                            'Pide explicaciones breves y fáciles de seguir.',
+                        value: draft.simpleLanguage,
+                        icon: Icons.short_text_rounded,
+                        onChanged: (value) =>
+                            update(draft.copyWith(simpleLanguage: value)),
+                      ),
+                      AccessibilityToggleTile(
+                        title: 'Alto contraste',
+                        description:
+                            'Registra tu preferencia por mayor contraste visual.',
+                        value: draft.highContrast,
+                        icon: Icons.contrast_rounded,
+                        onChanged: (value) =>
+                            update(draft.copyWith(highContrast: value)),
+                      ),
+                      AccessibilityToggleTile(
+                        title: 'Reducir animaciones',
+                        description:
+                            'Prefiere transiciones más tranquilas y predecibles.',
+                        value: draft.reduceMotion,
+                        icon: Icons.motion_photos_off_rounded,
+                        onChanged: (value) =>
+                            update(draft.copyWith(reduceMotion: value)),
+                      ),
+                      AccessibilityToggleTile(
+                        title: 'Quiz paso a paso',
+                        description: 'Presenta una pregunta a la vez.',
+                        value: draft.stepByStepQuiz,
+                        icon: Icons.checklist_rounded,
+                        onChanged: (value) =>
+                            update(draft.copyWith(stepByStepQuiz: value)),
+                      ),
+                      AccessibilityToggleTile(
+                        title: 'Navegación simplificada',
+                        description:
+                            'Prioriza las acciones esenciales de aprendizaje.',
+                        value: draft.simplifiedNavigation,
+                        icon: Icons.route_rounded,
+                        onChanged: (value) => update(
+                          draft.copyWith(simplifiedNavigation: value),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.of(sheetContext).pop(),
+                            child: const Text('Cancelar'),
+                          ),
+                          const SizedBox(width: 10),
+                          FilledButton.icon(
+                            onPressed: () => Navigator.of(sheetContext).pop(
+                              draft.copyWith(updatedAt: DateTime.now()),
+                            ),
+                            icon: const Icon(Icons.check_rounded),
+                            label: const Text('Guardar preferencias'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+    if (selected == null) return;
+
+    final saved = await accessibilityPreferencesService.save(selected);
+    if (saved) {
+      await accessibilityContentService.buildAndSaveProfile(selected);
+    }
+    if (!mounted) return;
+
+    if (saved) {
+      setState(() => accessibilityPreferences = selected);
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          saved
+              ? 'Tus preferencias quedaron listas.'
+              : 'Booky no pudo guardar los cambios esta vez. Probemos de nuevo.',
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isMobile = ResponsiveLayout.isMobile(context);
@@ -517,6 +685,11 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                             ),
                             onTutor: () => context.goNamed('voiceTutor'),
                             onProgress: scrollToProgress,
+                          ),
+                          const SizedBox(height: 18),
+                          AccessibilityCard(
+                            preferences: accessibilityPreferences,
+                            onAdjust: openAccessibilityPreferences,
                           ),
                           const SizedBox(height: 18),
                           _SmartStudyPlanCard(

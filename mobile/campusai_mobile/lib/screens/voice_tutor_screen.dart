@@ -14,6 +14,7 @@ import '../services/voice_intelligence/voice_models.dart';
 import '../services/voice_intelligence/voice_session_service.dart';
 import '../services/voice_intelligence/voice_tts_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/accessible_tip_card.dart';
 import '../widgets/section_card.dart';
 import '../widgets/studybook/booky_card.dart';
 import '../widgets/studybook/studybook_states.dart';
@@ -499,7 +500,16 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
                               children: [
                                 const BookyCard(
                                   message:
-                                      'Pregúntame lo que quieras repasar. Estoy aquí para ayudarte.',
+                                      'No todos aprendemos igual. Puedo ayudarte a estudiar de la forma que mejor funcione para ti.',
+                                ),
+                                const SizedBox(height: 16),
+                                const AccessibleTipCard(
+                                  title: 'También puedes aprender con apoyo',
+                                  tips: [
+                                    'Usa el micrófono si prefieres preguntar con tu voz.',
+                                    'Pídeme una explicación simple o paso a paso.',
+                                    'Puedo leer mi respuesta en voz alta.',
+                                  ],
                                 ),
                                 const SizedBox(height: 16),
                                 _ContextHeader(context: voiceContext),
@@ -712,7 +722,11 @@ class _QuickActions extends StatelessWidget {
   final VoiceContext context;
   final String fallbackSuggestion;
   final bool isBusy;
-  final Future<void> Function({String? text, String mode}) onAction;
+  final Future<void> Function({
+    String? text,
+    String mode,
+    bool autoGenerateAudio,
+  }) onAction;
 
   const _QuickActions({
     required this.context,
@@ -726,12 +740,6 @@ class _QuickActions extends StatelessWidget {
     final nextAction = this.context.nextBestAction.trim().isNotEmpty
         ? this.context.nextBestAction.trim()
         : fallbackSuggestion.trim();
-    final weakness = this.context.campusWeaknesses.isEmpty
-        ? 'mi principal dificultad'
-        : this.context.campusWeaknesses.first;
-    final plan = this.context.priorityNextAction.trim().isNotEmpty
-        ? this.context.priorityNextAction.trim()
-        : this.context.smartStudyPlanSummary.trim();
     return SectionCard(
       child: Wrap(
         spacing: 10,
@@ -747,32 +755,35 @@ class _QuickActions extends StatelessWidget {
             onAction: onAction,
           ),
           _ActionButton(
-            label: 'Explícame',
+            label: 'Explícalo simple',
             mode: 'explain',
-            text: 'Explícame este tema paso a paso con un ejemplo claro.',
+            text:
+                'Explícame este tema con palabras sencillas, frases cortas y un ejemplo claro.',
             isBusy: isBusy,
             onAction: onAction,
           ),
           _ActionButton(
-            label: 'Hazme un quiz',
+            label: 'Paso a paso',
+            mode: 'explain',
+            text:
+                'Explícame este tema paso a paso. Detente después de cada parte importante.',
+            isBusy: isBusy,
+            onAction: onAction,
+          ),
+          _ActionButton(
+            label: 'Léelo en voz alta',
+            mode: 'explain',
+            text:
+                'Prepara un resumen breve y claro de este tema para escucharlo en voz alta.',
+            autoGenerateAudio: true,
+            isBusy: isBusy,
+            onAction: onAction,
+          ),
+          _ActionButton(
+            label: 'Hazme preguntas cortas',
             mode: 'quiz',
-            text: 'Hazme un quiz breve para comprobar lo que aprendí.',
-            isBusy: isBusy,
-            onAction: onAction,
-          ),
-          _ActionButton(
-            label: 'Repasar debilidad',
-            mode: 'review',
-            text: 'Ayúdame a repasar esta debilidad: $weakness.',
-            isBusy: isBusy,
-            onAction: onAction,
-          ),
-          _ActionButton(
-            label: 'Plan de hoy',
-            mode: 'general',
-            text: plan.isEmpty
-                ? 'Ayúdame a organizar un plan breve para estudiar hoy.'
-                : 'Ayúdame a ejecutar este plan de hoy: $plan.',
+            text:
+                'Hazme preguntas cortas, una a la vez, para comprobar lo que aprendí.',
             isBusy: isBusy,
             onAction: onAction,
           ),
@@ -787,7 +798,12 @@ class _ActionButton extends StatelessWidget {
   final String mode;
   final String text;
   final bool isBusy;
-  final Future<void> Function({String? text, String mode}) onAction;
+  final bool autoGenerateAudio;
+  final Future<void> Function({
+    String? text,
+    String mode,
+    bool autoGenerateAudio,
+  }) onAction;
 
   const _ActionButton({
     required this.label,
@@ -795,12 +811,19 @@ class _ActionButton extends StatelessWidget {
     required this.text,
     required this.isBusy,
     required this.onAction,
+    this.autoGenerateAudio = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return OutlinedButton(
-      onPressed: isBusy ? null : () => onAction(text: text, mode: mode),
+      onPressed: isBusy
+          ? null
+          : () => onAction(
+                text: text,
+                mode: mode,
+                autoGenerateAudio: autoGenerateAudio,
+              ),
       child: Text(label),
     );
   }

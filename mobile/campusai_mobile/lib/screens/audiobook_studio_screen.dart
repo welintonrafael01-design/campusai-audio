@@ -10,6 +10,7 @@ import '../services/audiobook_progress_service.dart';
 import '../services/audiobook_service.dart';
 import '../services/learning_engine/learning_progress_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/accessible_tip_card.dart';
 import '../widgets/section_card.dart';
 import '../widgets/studybook/booky_card.dart';
 import '../widgets/studybook/studybook_states.dart';
@@ -1183,6 +1184,15 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
             title: 'Booky convierte contenido en aprendizaje',
             message:
                 'Puedo convertir este contenido en un audiolibro inteligente y acompañarte durante el repaso.',
+          ),
+          const SizedBox(height: 18),
+          const AccessibleTipCard(
+            title: 'Aprende a tu manera',
+            tips: [
+              'Escucha el contenido si prefieres aprender en audio.',
+              'Booky puede convertir este capítulo en resumen simple.',
+              'Puedes estudiar con quiz paso a paso.',
+            ],
           ),
           const SizedBox(height: 18),
           if (continueResult != null)
