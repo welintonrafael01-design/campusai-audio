@@ -6,6 +6,7 @@ import '../../layout/responsive_layout.dart';
 import '../../services/plan_guard_service.dart';
 import '../../theme/app_theme.dart';
 import '../section_card.dart';
+import '../studybook/booky_card.dart';
 
 class DashboardEducatorCenter extends StatelessWidget {
   final bool hasActiveDocument;
@@ -154,7 +155,7 @@ class DashboardEducatorCenter extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Centro Educator',
+          'Teacher Studio',
           style: TextStyle(
             color: AppTheme.textPrimary,
             fontSize: isMobile ? 24 : 28,
@@ -163,13 +164,36 @@ class DashboardEducatorCenter extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         const Text(
-          'Herramientas avanzadas para docentes, formadores y creadores de contenido académico.',
+          'De tu contenido a una clase lista para enseñar.',
           style: TextStyle(
             color: AppTheme.textMuted,
             height: 1.4,
           ),
         ),
         const SizedBox(height: 18),
+        BookyCard(
+          title: 'Hoy puedes preparar tu próxima clase.',
+          message: hasActiveDocument
+              ? 'Ya analicé tu contenido. Puedo generar la planificación, crear la rúbrica, preparar un examen o revisar los recursos.'
+              : 'Empieza por crear un curso y añadir el material que quieres convertir en una clase.',
+          primaryLabel:
+              hasActiveDocument ? 'Generar planificación' : 'Crear curso',
+          secondaryLabel: 'Crear rúbrica',
+          onPrimary: hasActiveDocument
+              ? openTeachingPlan
+              : () => context.goNamed('courses'),
+          onSecondary: hasActiveDocument ? openRubric : null,
+        ),
+        const SizedBox(height: 18),
+        const Text(
+          'Herramientas para preparar tu clase',
+          style: TextStyle(
+            color: AppTheme.textPrimary,
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 12),
         GridView.count(
           crossAxisCount: isMobile ? 1 : 5,
           shrinkWrap: true,

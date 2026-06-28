@@ -10,7 +10,9 @@ import '../services/export_service.dart';
 import '../services/study_result_service.dart';
 import '../models/study_result.dart';
 import '../theme/app_theme.dart';
+import '../widgets/accessible_tip_card.dart';
 import '../widgets/section_card.dart';
+import '../widgets/studybook/booky_card.dart';
 
 class CoursesScreen extends StatefulWidget {
   const CoursesScreen({super.key});
@@ -26,6 +28,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
   CourseRecord? editingCourse;
 
   final nameController = TextEditingController();
+  final nameFocusNode = FocusNode();
   final codeController = TextEditingController();
   final sectionController = TextEditingController();
   final periodController = TextEditingController();
@@ -39,6 +42,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
   @override
   void dispose() {
     nameController.dispose();
+    nameFocusNode.dispose();
     codeController.dispose();
     sectionController.dispose();
     periodController.dispose();
@@ -110,8 +114,6 @@ class _CoursesScreenState extends State<CoursesScreen> {
       ),
     );
   }
-
-
 
   CourseDocument? documentForCourse(CourseRecord course) {
     return courseDocuments
@@ -206,7 +208,6 @@ class _CoursesScreenState extends State<CoursesScreen> {
     await CourseDocumentService.deleteDocumentForCourse(course.id);
     await loadCourses();
   }
-
 
   Future<int?> pickTeachingPlanWeeks() async {
     int selectedWeeks = 4;
@@ -787,10 +788,6 @@ class _CoursesScreenState extends State<CoursesScreen> {
     }
   }
 
-
-
-
-
   Future<Map<String, dynamic>?> pickExamOptions() async {
     int selectedCount = 10;
     int totalPoints = 100;
@@ -804,9 +801,8 @@ class _CoursesScreenState extends State<CoursesScreen> {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            final pointsPerQuestion = selectedCount <= 0
-                ? 0
-                : totalPoints / selectedCount;
+            final pointsPerQuestion =
+                selectedCount <= 0 ? 0 : totalPoints / selectedCount;
 
             return AlertDialog(
               title: const Text('Configurar examen IA'),
@@ -958,7 +954,8 @@ class _CoursesScreenState extends State<CoursesScreen> {
                         maxLines: 4,
                         decoration: const InputDecoration(
                           labelText: 'Objetivo de evaluación',
-                          hintText: 'Ej.: Evaluar la identificación de los elementos esenciales del contrato mercantil.',
+                          hintText:
+                              'Ej.: Evaluar la identificación de los elementos esenciales del contrato mercantil.',
                           border: OutlineInputBorder(),
                         ),
                         onChanged: (value) => examObjective = value.trim(),
@@ -1109,9 +1106,8 @@ class _CoursesScreenState extends State<CoursesScreen> {
 
       final limitedQuestions = questions.take(count).toList();
 
-      final pointsPerQuestion = limitedQuestions.isEmpty
-          ? 0
-          : totalPoints / limitedQuestions.length;
+      final pointsPerQuestion =
+          limitedQuestions.isEmpty ? 0 : totalPoints / limitedQuestions.length;
 
       final enrichedQuestions = limitedQuestions.map((item) {
         return {
@@ -1181,7 +1177,6 @@ class _CoursesScreenState extends State<CoursesScreen> {
     }
   }
 
-
   Future<Map<String, dynamic>?> pickQuestionBankOptions() async {
     int selectedCount = 50;
     String programTopic = '';
@@ -1221,7 +1216,8 @@ class _CoursesScreenState extends State<CoursesScreen> {
                         maxLines: 3,
                         decoration: const InputDecoration(
                           labelText: 'Objetivo de aprendizaje',
-                          hintText: 'Ej.: Analizar los elementos esenciales de los contratos mercantiles.',
+                          hintText:
+                              'Ej.: Analizar los elementos esenciales de los contratos mercantiles.',
                           border: OutlineInputBorder(),
                         ),
                         onChanged: (value) => learningObjective = value.trim(),
@@ -1232,7 +1228,8 @@ class _CoursesScreenState extends State<CoursesScreen> {
                         maxLines: 3,
                         decoration: const InputDecoration(
                           labelText: 'Competencia',
-                          hintText: 'Ej.: Interpretar y aplicar la normativa comercial vigente.',
+                          hintText:
+                              'Ej.: Interpretar y aplicar la normativa comercial vigente.',
                           border: OutlineInputBorder(),
                         ),
                         onChanged: (value) => competency = value.trim(),
@@ -1528,7 +1525,6 @@ class _CoursesScreenState extends State<CoursesScreen> {
     periodController.clear();
   }
 
-
   List<Map<String, dynamic>> get exportRows {
     return courses.map((course) {
       return {
@@ -1633,6 +1629,22 @@ class _CoursesScreenState extends State<CoursesScreen> {
             ),
           ),
           const SizedBox(height: 20),
+          BookyCard(
+            title: 'Hoy puedes preparar tu próxima clase.',
+            message: courses.isEmpty
+                ? 'Crea tu primer curso. Después añade el material y yo te ayudaré con la planificación.'
+                : 'Elige un curso y sigue el próximo paso: añadir material, planificar o crear recursos.',
+            primaryLabel: courses.isEmpty ? 'Crear curso' : 'Añadir otro curso',
+            onPrimary: nameFocusNode.requestFocus,
+          ),
+          const SizedBox(height: 16),
+          const AccessibleTipCard(
+            title: 'Una clase para todos',
+            tips: [
+              'Booky también puede generar versiones accesibles del contenido.',
+            ],
+          ),
+          const SizedBox(height: 20),
           SectionCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1654,6 +1666,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
                       width: 280,
                       child: TextField(
                         controller: nameController,
+                        focusNode: nameFocusNode,
                         decoration: const InputDecoration(
                           labelText: 'Nombre del curso',
                           hintText: 'Derecho Empresarial',
@@ -1740,138 +1753,152 @@ class _CoursesScreenState extends State<CoursesScreen> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                      Row(
-                        children: [
-                          Icon(
-                            course.id == activeCourseId
-                                ? Icons.check_circle_rounded
-                                : Icons.school_rounded,
-                            color: course.id == activeCourseId
-                                ? AppTheme.success
-                                : AppTheme.accent,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              course.displayName,
-                              style: const TextStyle(
-                                color: AppTheme.textPrimary,
-                                fontSize: 19,
-                                fontWeight: FontWeight.w900,
+                          Row(
+                            children: [
+                              Icon(
+                                course.id == activeCourseId
+                                    ? Icons.check_circle_rounded
+                                    : Icons.school_rounded,
+                                color: course.id == activeCourseId
+                                    ? AppTheme.success
+                                    : AppTheme.accent,
                               ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  course.displayName,
+                                  style: const TextStyle(
+                                    color: AppTheme.textPrimary,
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: 'Editar',
+                                onPressed: () => editCourse(course),
+                                icon: const Icon(Icons.edit_rounded),
+                              ),
+                              IconButton(
+                                tooltip: 'Eliminar',
+                                onPressed: () => deleteCourse(course),
+                                icon: const Icon(Icons.delete_outline_rounded),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            program == null
+                                ? 'Siguiente paso: añade el material del curso para preparar la planificación y los recursos.'
+                                : 'Ya analicé tu contenido. Puedo generar la planificación, la rúbrica y el examen.',
+                            style: const TextStyle(color: AppTheme.textMuted),
+                          ),
+                          if (program != null) ...[
+                            const SizedBox(height: 10),
+                            Chip(
+                              avatar: const Icon(Icons.picture_as_pdf_rounded,
+                                  size: 18),
+                              label: Text('Programa: ${program.fileName}'),
                             ),
+                          ],
+                          const SizedBox(height: 14),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              FilledButton.icon(
+                                onPressed: () => selectCourse(course),
+                                icon: const Icon(Icons.check_circle_rounded),
+                                label: Text(
+                                  course.id == activeCourseId
+                                      ? 'Curso activo'
+                                      : 'Usar este curso',
+                                ),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () =>
+                                    openCourseRoute(course, 'students'),
+                                icon: const Icon(Icons.groups_rounded),
+                                label: const Text('Estudiantes'),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () =>
+                                    openCourseRoute(course, 'attendance'),
+                                icon: const Icon(Icons.event_available_rounded),
+                                label: const Text('Asistencia'),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () => openCourseRoute(
+                                    course, 'assessment-weights'),
+                                icon: const Icon(Icons.percent_rounded),
+                                label: const Text('Ponderaciones'),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () =>
+                                    openCourseRoute(course, 'gradebook'),
+                                icon: const Icon(Icons.fact_check_rounded),
+                                label: const Text('Calificaciones'),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () => openCourseRoute(
+                                    course, 'academic-dashboard'),
+                                icon: const Icon(Icons.analytics_rounded),
+                                label: const Text('Seguimiento'),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () =>
+                                    openCourseRoute(course, 'final-report'),
+                                icon:
+                                    const Icon(Icons.workspace_premium_rounded),
+                                label: const Text('Acta Final'),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: program == null
+                                    ? null
+                                    : () => generateCourseTeachingPlan(
+                                        course, program),
+                                icon: const Icon(Icons.calendar_month_rounded),
+                                label: const Text('Crear planificación'),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: program == null
+                                    ? null
+                                    : () =>
+                                        generateCourseRubric(course, program),
+                                icon: const Icon(Icons.fact_check_rounded),
+                                label: const Text('Crear rúbrica'),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: program == null
+                                    ? null
+                                    : () => generateCourseExam(course, program),
+                                icon: const Icon(Icons.quiz_rounded),
+                                label: const Text('Crear examen'),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: program == null
+                                    ? null
+                                    : () => generateCourseQuestionBank(
+                                        course, program),
+                                icon: const Icon(Icons.help_center_rounded),
+                                label: const Text('Banco de preguntas'),
+                              ),
+                              OutlinedButton.icon(
+                                onPressed: () => uploadProgramForCourse(course),
+                                icon: const Icon(Icons.menu_book_rounded),
+                                label: Text(program == null
+                                    ? 'Añadir material'
+                                    : 'Cambiar material'),
+                              ),
+                              if (program != null)
+                                OutlinedButton.icon(
+                                  onPressed: () =>
+                                      removeProgramForCourse(course),
+                                  icon: const Icon(Icons.link_off_rounded),
+                                  label: const Text('Quitar programa'),
+                                ),
+                            ],
                           ),
-                          IconButton(
-                            tooltip: 'Editar',
-                            onPressed: () => editCourse(course),
-                            icon: const Icon(Icons.edit_rounded),
-                          ),
-                          IconButton(
-                            tooltip: 'Eliminar',
-                            onPressed: () => deleteCourse(course),
-                            icon: const Icon(Icons.delete_outline_rounded),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        course.id == activeCourseId
-                            ? 'Curso activo para el Centro Educator'
-                            : 'Selecciona este curso para trabajar estudiantes, asistencia, calificaciones y reportes.',
-                        style: const TextStyle(color: AppTheme.textMuted),
-                      ),
-                      if (program != null) ...[
-                        const SizedBox(height: 10),
-                        Chip(
-                          avatar: const Icon(Icons.picture_as_pdf_rounded, size: 18),
-                          label: Text('Programa: ${program.fileName}'),
-                        ),
-                      ],
-                      const SizedBox(height: 14),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          FilledButton.icon(
-                            onPressed: () => selectCourse(course),
-                            icon: const Icon(Icons.check_circle_rounded),
-                            label: Text(
-                              course.id == activeCourseId
-                                  ? 'Activo'
-                                  : 'Activar',
-                            ),
-                          ),
-                          OutlinedButton.icon(
-                            onPressed: () => openCourseRoute(course, 'students'),
-                            icon: const Icon(Icons.groups_rounded),
-                            label: const Text('Estudiantes'),
-                          ),
-                          OutlinedButton.icon(
-                            onPressed: () => openCourseRoute(course, 'attendance'),
-                            icon: const Icon(Icons.event_available_rounded),
-                            label: const Text('Asistencia'),
-                          ),
-                          OutlinedButton.icon(
-                            onPressed: () => openCourseRoute(course, 'assessment-weights'),
-                            icon: const Icon(Icons.percent_rounded),
-                            label: const Text('Ponderaciones'),
-                          ),
-                          OutlinedButton.icon(
-                            onPressed: () => openCourseRoute(course, 'gradebook'),
-                            icon: const Icon(Icons.fact_check_rounded),
-                            label: const Text('Calificaciones'),
-                          ),
-                          OutlinedButton.icon(
-                            onPressed: () => openCourseRoute(course, 'academic-dashboard'),
-                            icon: const Icon(Icons.analytics_rounded),
-                            label: const Text('Dashboard'),
-                          ),
-                          OutlinedButton.icon(
-                            onPressed: () => openCourseRoute(course, 'final-report'),
-                            icon: const Icon(Icons.workspace_premium_rounded),
-                            label: const Text('Acta Final'),
-                          ),
-                          OutlinedButton.icon(
-                            onPressed: program == null
-                                ? null
-                                : () => generateCourseTeachingPlan(course, program),
-                            icon: const Icon(Icons.calendar_month_rounded),
-                            label: const Text('Planificación IA'),
-                          ),
-                          OutlinedButton.icon(
-                            onPressed: program == null
-                                ? null
-                                : () => generateCourseRubric(course, program),
-                            icon: const Icon(Icons.fact_check_rounded),
-                            label: const Text('Rúbrica IA'),
-                          ),
-                          OutlinedButton.icon(
-                            onPressed: program == null
-                                ? null
-                                : () => generateCourseExam(course, program),
-                            icon: const Icon(Icons.quiz_rounded),
-                            label: const Text('Examen IA'),
-                          ),
-                          OutlinedButton.icon(
-                            onPressed: program == null
-                                ? null
-                                : () => generateCourseQuestionBank(course, program),
-                            icon: const Icon(Icons.help_center_rounded),
-                            label: const Text('Banco IA'),
-                          ),
-                          OutlinedButton.icon(
-                            onPressed: () => uploadProgramForCourse(course),
-                            icon: const Icon(Icons.menu_book_rounded),
-                            label: Text(program == null ? 'Subir programa' : 'Cambiar programa'),
-                          ),
-                          if (program != null)
-                            OutlinedButton.icon(
-                              onPressed: () => removeProgramForCourse(course),
-                              icon: const Icon(Icons.link_off_rounded),
-                              label: const Text('Quitar programa'),
-                            ),
-                        ],
-                      ),
                         ],
                       );
                     },

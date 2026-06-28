@@ -12,7 +12,9 @@ import '../services/api_service.dart';
 import '../services/export_service.dart';
 import '../services/study_result_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/accessible_tip_card.dart';
 import '../widgets/section_card.dart';
+import '../widgets/studybook/booky_card.dart';
 
 const int _unitQuestionBankQuestionCount = 20;
 const int _unitExamQuestionCount = 10;
@@ -2486,7 +2488,7 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
                           : const Icon(Icons.auto_graph_rounded),
                       label: Text(isGeneratingCurriculumIntelligence
                           ? 'Analizando...'
-                          : 'Analizar curso'),
+                          : 'Revisar cobertura'),
                     ),
                     OutlinedButton.icon(
                       onPressed: () => context.goNamed('dashboard'),
@@ -2497,6 +2499,19 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 16),
+          const BookyCard(
+            title: 'Ya analicé tu contenido.',
+            message:
+                'Abre una unidad para editarla o genera sus recursos. También puedo crear la rúbrica. ¿Quieres preparar un examen?',
+          ),
+          const SizedBox(height: 16),
+          const AccessibleTipCard(
+            title: 'Enseñanza accesible',
+            tips: [
+              'Booky también puede generar versiones accesibles del contenido.',
+            ],
           ),
           const SizedBox(height: 20),
           if (competencies.isNotEmpty)
@@ -2511,7 +2526,7 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
           if (weeks.isNotEmpty) ...[
             const SizedBox(height: 8),
             const Text(
-              'Cronograma semanal',
+              'Unidades y próximos pasos',
               style: TextStyle(
                 color: AppTheme.textPrimary,
                 fontSize: 24,
@@ -2730,6 +2745,15 @@ class _WeekCard extends StatelessWidget {
         .length;
     final progress =
         generatedResourcesCount / _resourceStatusDefinitions.length;
+    final nextStep = !_truthy(resourcesStatus['question_bank'])
+        ? 'Siguiente paso: crea el banco de preguntas para esta unidad.'
+        : !_truthy(resourcesStatus['rubric'])
+            ? 'También puedo crear la rúbrica de esta unidad.'
+            : !_truthy(resourcesStatus['exam'])
+                ? '¿Quieres preparar un examen para esta unidad?'
+                : !_truthy(resourcesStatus['teaching_resources'])
+                    ? 'Genera materiales que puedan enriquecer tu clase.'
+                    : 'La unidad está lista. Revisa los recursos y exporta cuando quieras.';
 
     return SectionCard(
       child: Column(
@@ -2753,6 +2777,14 @@ class _WeekCard extends StatelessWidget {
           const SizedBox(height: 8),
           LinearProgressIndicator(value: progress.clamp(0.0, 1.0).toDouble()),
           const SizedBox(height: 12),
+          Text(
+            nextStep,
+            style: const TextStyle(
+              color: AppTheme.textSecondary,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 12),
           if (objectives.isNotEmpty)
             _InlineList(title: 'Objetivos', items: objectives),
           if (contents.isNotEmpty)
@@ -2769,7 +2801,7 @@ class _WeekCard extends StatelessWidget {
           const Divider(),
           const SizedBox(height: 10),
           const Text(
-            'Gestor de recursos de la unidad',
+            'Recursos para preparar la clase',
             style: TextStyle(
               color: AppTheme.textPrimary,
               fontWeight: FontWeight.w900,
@@ -2777,7 +2809,7 @@ class _WeekCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Genera materiales conectados a esta unidad para mantener el curso organizado.',
+            'Estos materiales pueden enriquecer tu clase y mantener cada actividad conectada a la unidad.',
             style: TextStyle(
               color: AppTheme.textMuted,
               height: 1.35,
@@ -2818,8 +2850,9 @@ class _WeekCard extends StatelessWidget {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.inventory_2_rounded),
-                label: Text(
-                    isGeneratingQuestionBank ? 'Generando...' : 'Banco IA'),
+                label: Text(isGeneratingQuestionBank
+                    ? 'Generando...'
+                    : 'Banco de preguntas'),
               ),
               OutlinedButton.icon(
                 onPressed: isGeneratingExam
@@ -2834,7 +2867,7 @@ class _WeekCard extends StatelessWidget {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.assignment_rounded),
-                label: Text(isGeneratingExam ? 'Generando...' : 'Examen IA'),
+                label: Text(isGeneratingExam ? 'Generando...' : 'Crear examen'),
               ),
               OutlinedButton.icon(
                 onPressed: isGeneratingRubric
@@ -2849,7 +2882,8 @@ class _WeekCard extends StatelessWidget {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.fact_check_rounded),
-                label: Text(isGeneratingRubric ? 'Generando...' : 'Rúbrica IA'),
+                label:
+                    Text(isGeneratingRubric ? 'Generando...' : 'Crear rúbrica'),
               ),
               OutlinedButton.icon(
                 onPressed: isGeneratingStudyGuide
@@ -2864,8 +2898,9 @@ class _WeekCard extends StatelessWidget {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.menu_book_rounded),
-                label:
-                    Text(isGeneratingStudyGuide ? 'Generando...' : 'Guía IA'),
+                label: Text(isGeneratingStudyGuide
+                    ? 'Generando...'
+                    : 'Guía de estudio'),
               ),
               OutlinedButton.icon(
                 onPressed: isGeneratingTeachingResources
@@ -2882,7 +2917,7 @@ class _WeekCard extends StatelessWidget {
                     : const Icon(Icons.school_rounded),
                 label: Text(isGeneratingTeachingResources
                     ? 'Generando...'
-                    : 'Recursos IA'),
+                    : 'Generar recursos'),
               ),
               OutlinedButton.icon(
                 onPressed: isGeneratingAssessmentReport
@@ -2899,7 +2934,7 @@ class _WeekCard extends StatelessWidget {
                     : const Icon(Icons.insights_rounded),
                 label: Text(isGeneratingAssessmentReport
                     ? 'Generando...'
-                    : 'Reporte IA'),
+                    : 'Revisar calidad'),
               ),
             ],
           ),

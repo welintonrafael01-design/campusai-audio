@@ -42,12 +42,10 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
           .toList();
 
       parsed.sort((a, b) {
-        final aDate = a['created_at']?.toString() ??
-            a['createdAt']?.toString() ??
-            '';
-        final bDate = b['created_at']?.toString() ??
-            b['createdAt']?.toString() ??
-            '';
+        final aDate =
+            a['created_at']?.toString() ?? a['createdAt']?.toString() ?? '';
+        final bDate =
+            b['created_at']?.toString() ?? b['createdAt']?.toString() ?? '';
         return bDate.compareTo(aDate);
       });
 
@@ -67,14 +65,20 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
     final raw = item['content'] ?? item['result'] ?? item['payload'];
 
     if (raw is List) {
-      return raw.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+      return raw
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
     }
 
     if (raw is String) {
       try {
         final decoded = jsonDecode(raw);
         if (decoded is List) {
-          return decoded.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+          return decoded
+              .whereType<Map>()
+              .map((e) => Map<String, dynamic>.from(e))
+              .toList();
         }
       } catch (_) {}
     }
@@ -82,9 +86,14 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
     return [];
   }
 
-  String examTitle(Map<String, dynamic> item, List<Map<String, dynamic>> questions) {
+  String examTitle(
+      Map<String, dynamic> item, List<Map<String, dynamic>> questions) {
     if (questions.isNotEmpty) {
-      final courseName = questions.first['course_display_name']?.toString().trim().isNotEmpty == true
+      final courseName = questions.first['course_display_name']
+                  ?.toString()
+                  .trim()
+                  .isNotEmpty ==
+              true
           ? questions.first['course_display_name']!.toString().trim()
           : questions.first['course_name']?.toString().trim() ?? '';
       final topic = questions.first['exam_topic']?.toString().trim() ?? '';
@@ -109,7 +118,8 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
         'Examen guardado';
   }
 
-  String examSubtitle(Map<String, dynamic> item, List<Map<String, dynamic>> questions) {
+  String examSubtitle(
+      Map<String, dynamic> item, List<Map<String, dynamic>> questions) {
     final date = createdAt(item);
 
     if (questions.isEmpty) {
@@ -117,9 +127,10 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
     }
 
     final first = questions.first;
-    final courseName = first['course_display_name']?.toString().trim().isNotEmpty == true
-        ? first['course_display_name']!.toString().trim()
-        : first['course_name']?.toString().trim() ?? '';
+    final courseName =
+        first['course_display_name']?.toString().trim().isNotEmpty == true
+            ? first['course_display_name']!.toString().trim()
+            : first['course_name']?.toString().trim() ?? '';
     final source = first['exam_source']?.toString().trim() ?? '';
     final bloom = first['bloom_level']?.toString().trim() ?? '';
 
@@ -135,9 +146,8 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
   }
 
   String createdAt(Map<String, dynamic> item) {
-    final raw = item['created_at']?.toString() ??
-        item['createdAt']?.toString() ??
-        '';
+    final raw =
+        item['created_at']?.toString() ?? item['createdAt']?.toString() ?? '';
 
     if (raw.isEmpty) return '';
 
@@ -251,24 +261,34 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
     );
   }
 
-  List<Map<String, dynamic>> parseQuestionListFromBank(Map<String, dynamic> bank) {
+  List<Map<String, dynamic>> parseQuestionListFromBank(
+      Map<String, dynamic> bank) {
     final raw = bank['content'] ?? bank['questions'] ?? bank['payload'];
 
     if (raw is List) {
-      return raw.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList();
+      return raw
+          .whereType<Map>()
+          .map((item) => Map<String, dynamic>.from(item))
+          .toList();
     }
 
     if (raw is String) {
       try {
         final decoded = jsonDecode(raw);
         if (decoded is List) {
-          return decoded.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList();
+          return decoded
+              .whereType<Map>()
+              .map((item) => Map<String, dynamic>.from(item))
+              .toList();
         }
 
         if (decoded is Map && decoded['content'] is String) {
           final contentDecoded = jsonDecode(decoded['content'].toString());
           if (contentDecoded is List) {
-            return contentDecoded.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList();
+            return contentDecoded
+                .whereType<Map>()
+                .map((item) => Map<String, dynamic>.from(item))
+                .toList();
           }
         }
       } catch (_) {}
@@ -278,7 +298,10 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
       try {
         final decoded = jsonDecode(raw['content'].toString());
         if (decoded is List) {
-          return decoded.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList();
+          return decoded
+              .whereType<Map>()
+              .map((item) => Map<String, dynamic>.from(item))
+              .toList();
         }
       } catch (_) {}
     }
@@ -290,9 +313,10 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
     final questions = parseQuestionListFromBank(bank);
     if (questions.isNotEmpty) {
       final first = questions.first;
-      final course = first['course_display_name']?.toString().trim().isNotEmpty == true
-          ? first['course_display_name']!.toString().trim()
-          : first['course_name']?.toString().trim() ?? '';
+      final course =
+          first['course_display_name']?.toString().trim().isNotEmpty == true
+              ? first['course_display_name']!.toString().trim()
+              : first['course_name']?.toString().trim() ?? '';
       final topic = first['program_topic']?.toString().trim() ??
           first['exam_topic']?.toString().trim() ??
           '';
@@ -312,14 +336,17 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getStringList(EducatorSyncService.questionBanksKey) ?? [];
 
-    return raw.map((item) {
-      try {
-        final decoded = jsonDecode(item);
-        if (decoded is Map<String, dynamic>) return decoded;
-        if (decoded is Map) return Map<String, dynamic>.from(decoded);
-      } catch (_) {}
-      return null;
-    }).whereType<Map<String, dynamic>>().toList();
+    return raw
+        .map((item) {
+          try {
+            final decoded = jsonDecode(item);
+            if (decoded is Map<String, dynamic>) return decoded;
+            if (decoded is Map) return Map<String, dynamic>.from(decoded);
+          } catch (_) {}
+          return null;
+        })
+        .whereType<Map<String, dynamic>>()
+        .toList();
   }
 
   Future<void> createMultiBankExam() async {
@@ -330,7 +357,8 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
     if (banks.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('No hay bancos guardados para crear un examen multi-banco.'),
+          content:
+              Text('No hay bancos guardados para crear un examen multi-banco.'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -361,7 +389,9 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
                           border: OutlineInputBorder(),
                         ),
                         onChanged: (value) {
-                          examTitle = value.trim().isEmpty ? 'Examen multi-banco' : value.trim();
+                          examTitle = value.trim().isEmpty
+                              ? 'Examen multi-banco'
+                              : value.trim();
                         },
                       ),
                       const SizedBox(height: 14),
@@ -390,11 +420,13 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
                               });
                             },
                             title: Text(bankTitle(bank)),
-                            subtitle: Text('${questions.length} preguntas disponibles · Tomar ${counts[id]}'),
+                            subtitle: Text(
+                                '${questions.length} preguntas disponibles · Tomar ${counts[id]}'),
                             secondary: DropdownButton<int>(
                               value: counts[id],
                               items: [5, 10, 15, 20, 25, 30]
-                                  .where((count) => count <= max(1, questions.length))
+                                  .where((count) =>
+                                      count <= max(1, questions.length))
                                   .map((count) => DropdownMenuItem<int>(
                                         value: count,
                                         child: Text('$count'),
@@ -419,7 +451,8 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
                           return ChoiceChip(
                             label: Text('Versión $item'),
                             selected: version == item,
-                            onSelected: (_) => setDialogState(() => version = item),
+                            onSelected: (_) =>
+                                setDialogState(() => version = item),
                           );
                         }).toList(),
                       ),
@@ -455,7 +488,8 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
 
     if (options == null) return;
 
-    final chosenIds = (options['selectedIds'] as List).map((item) => item.toString()).toSet();
+    final chosenIds =
+        (options['selectedIds'] as List).map((item) => item.toString()).toSet();
     final chosenCounts = Map<String, int>.from(options['counts'] as Map);
     final title = options['examTitle']?.toString() ?? 'Examen multi-banco';
     final selectedVersion = options['version']?.toString() ?? 'A';
@@ -643,6 +677,14 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
+                                  const SizedBox(height: 6),
+                                  const Text(
+                                    'Siguiente paso: revisa las preguntas antes de publicar, guardar el banco o compartir.',
+                                    style: TextStyle(
+                                      color: AppTheme.textSecondary,
+                                      height: 1.35,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -653,11 +695,12 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
                                 FilledButton.icon(
                                   onPressed: () => openExam(item),
                                   icon: const Icon(Icons.open_in_new_rounded),
-                                  label: const Text('Abrir'),
+                                  label: const Text('Revisar preguntas'),
                                 ),
                                 OutlinedButton.icon(
                                   onPressed: () => deleteExam(item),
-                                  icon: const Icon(Icons.delete_outline_rounded),
+                                  icon:
+                                      const Icon(Icons.delete_outline_rounded),
                                   label: const Text('Eliminar'),
                                 ),
                               ],

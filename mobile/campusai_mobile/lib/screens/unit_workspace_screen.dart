@@ -6,6 +6,7 @@ import '../services/academic_engine/academic_metadata_builder.dart';
 import '../services/academic_engine/academic_unit_resource_manager.dart';
 import '../services/study_result_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/accessible_tip_card.dart';
 import '../widgets/section_card.dart';
 
 class UnitWorkspaceScreen extends StatefulWidget {
@@ -703,7 +704,28 @@ class _UnitWorkspaceScreenState extends State<UnitWorkspaceScreen> {
             ),
             const SizedBox(height: 18),
             const Text(
-              'Recursos principales',
+              'Estos materiales pueden enriquecer tu clase.',
+              style: TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Revisa lo que ya está disponible y vuelve a la planificación para crear lo que falta.',
+              style: TextStyle(color: AppTheme.textMuted, height: 1.35),
+            ),
+            const SizedBox(height: 14),
+            const AccessibleTipCard(
+              title: 'Accesibilidad para esta unidad',
+              tips: [
+                'Booky también puede generar versiones accesibles del contenido.',
+              ],
+            ),
+            const SizedBox(height: 18),
+            const Text(
+              'Materiales relacionados',
               style: TextStyle(
                 color: AppTheme.textPrimary,
                 fontSize: 22,
@@ -836,7 +858,7 @@ class _ResourceCard extends StatelessWidget {
           Text(
             available
                 ? definition.description
-                : 'Genera este recurso desde la planificación.',
+                : 'Vuelve a la planificación para crear este material con Booky.',
             style: const TextStyle(color: AppTheme.textMuted, height: 1.35),
           ),
           const SizedBox(height: 12),

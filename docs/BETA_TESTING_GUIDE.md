@@ -31,6 +31,27 @@ acciones y no muestra errores visibles.
 Resultado esperado: cada recurso conserva metadata de unidad/curso y persiste
 tras recargar.
 
+## Teacher Productivity Flow
+
+Valida la preparacion de una clase como un recorrido continuo:
+
+- [ ] Abrir Teacher Studio y revisar la recomendacion de Booky.
+- [ ] Crear un curso con nombre, codigo, seccion y periodo.
+- [ ] Seleccionar el curso y confirmar el siguiente paso visible.
+- [ ] Anadir el material o programa del curso.
+- [ ] Generar la planificacion docente.
+- [ ] Abrir una unidad y revisar sus materiales relacionados.
+- [ ] Generar banco de preguntas y recursos para la clase.
+- [ ] Crear la rubrica de la unidad.
+- [ ] Crear el examen y revisar sus preguntas.
+- [ ] Exportar la planificacion en PDF y Word.
+- [ ] Revisar el recordatorio de version accesible del contenido.
+- [ ] Abrir Seguimiento y confirmar que conserva el curso activo.
+
+Resultado esperado: el profesor siempre ve el siguiente paso desde curso hasta
+unidad, recursos, evaluacion, exportacion y seguimiento, sin perder metadata ni
+duplicar artefactos.
+
 ## Probar AudioBook
 
 - Genera un AudioBook desde texto no sensible.
