@@ -31,7 +31,7 @@ class BetaLaunchCard extends StatelessWidget {
               SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Beta y lanzamiento',
+                  'Ayúdanos a mejorar StudyBook AI',
                   style: TextStyle(
                     color: AppTheme.textPrimary,
                     fontSize: 18,
@@ -46,14 +46,14 @@ class BetaLaunchCard extends StatelessWidget {
             const LinearProgressIndicator()
           else if (!hasReport)
             const Text(
-              'La evaluación de lanzamiento estará disponible al actualizar.',
+              'Actualiza el panel para consultar el estado de esta experiencia.',
               style: TextStyle(color: AppTheme.textMuted),
             )
           else ...[
             Text(
               report.readyForClosedBeta
-                  ? 'StudyBook AI está preparado para beta cerrada.'
-                  : 'Aún quedan verificaciones antes de abrir la beta.',
+                  ? 'La experiencia está preparada para seguir creciendo contigo.'
+                  : 'Estamos terminando algunos detalles antes del lanzamiento.',
               style: const TextStyle(
                 color: AppTheme.textPrimary,
                 fontWeight: FontWeight.w800,
@@ -66,8 +66,8 @@ class BetaLaunchCard extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                Chip(label: Text('Readiness ${report.score}%')),
-                Chip(label: Text('${report.feedbackCount} feedback')),
+                Chip(label: Text('Preparación ${report.score}%')),
+                Chip(label: Text('${report.feedbackCount} aportes')),
                 Chip(
                   label: Text(
                     'Onboarding ${report.onboardingProgress}%',

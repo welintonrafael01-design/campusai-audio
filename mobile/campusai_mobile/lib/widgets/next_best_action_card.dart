@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../services/autonomous_ai/autonomous_action_models.dart';
 import '../theme/app_theme.dart';
-import 'section_card.dart';
+import 'studybook/premium_section_card.dart';
 
 /// Presents the highest-priority RC3 action without generating new data.
 class NextBestActionCard extends StatelessWidget {
@@ -25,21 +25,21 @@ class NextBestActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final current = action;
     if (current == null) {
-      return SectionCard(
+      return PremiumSectionCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const _Title(),
             const SizedBox(height: 12),
             const Text(
-              'Completa una sesión para que CampusAI prepare tu siguiente paso.',
+              'Empieza con una sesión breve y Booky preparará una recomendación a tu medida.',
               style: TextStyle(color: AppTheme.textMuted, height: 1.4),
             ),
             const SizedBox(height: 14),
             OutlinedButton.icon(
               onPressed: onSecondary,
               icon: const Icon(Icons.record_voice_over_rounded),
-              label: const Text('Hablar con Tutor IA'),
+              label: const Text('Preguntar a Booky'),
             ),
           ],
         ),
@@ -52,7 +52,7 @@ class NextBestActionCard extends StatelessWidget {
       AutonomousActionPriority.normal => AppTheme.accent,
       AutonomousActionPriority.low => AppTheme.textMuted,
     };
-    return SectionCard(
+    return PremiumSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -97,8 +97,8 @@ class NextBestActionCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             isProcessing
-                ? 'Preparando tu siguiente paso...'
-                : 'Lista para comenzar',
+                ? 'Booky está preparando tu siguiente paso...'
+                : 'Listo para comenzar cuando tú quieras',
             style: TextStyle(
               color: isProcessing ? AppTheme.warning : AppTheme.success,
               fontWeight: FontWeight.w700,
@@ -123,7 +123,7 @@ class NextBestActionCard extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: isProcessing ? null : onSecondary,
                 icon: const Icon(Icons.record_voice_over_rounded),
-                label: const Text('Consultar al Tutor'),
+                label: const Text('Preguntar a Booky'),
               ),
             ],
           ),

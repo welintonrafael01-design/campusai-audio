@@ -113,6 +113,34 @@ dashboard principal.
 - El estado de carga se resuelve una vez y no se recalcula en `build()`.
 - Los datos avanzados son secundarios frente al próximo paso del estudiante.
 
+## Dashboard Excellence
+
+El dashboard v1.0 debe contar una historia breve y accionable. Su orden es:
+
+1. Saludo y orientación de Booky.
+2. Resumen del día.
+3. Siguiente mejor acción.
+4. Continuar aprendiendo.
+5. Acciones principales de AudioBook, Booky, creación y progreso.
+6. Plan y acciones inteligentes.
+7. Progreso, logros y recursos recomendados.
+8. Capacidades avanzadas bajo demanda.
+9. Instituciones y lanzamiento como información secundaria.
+
+### Reglas finales
+
+- Booky orienta primero; los indicadores explican después.
+- La primera pantalla visible ofrece un siguiente paso, no un reporte técnico.
+- Si no hay contenido, mostrar: "Sube tu primer documento y Booky lo
+  convertirá en conocimiento."
+- Las acciones principales deben ser visibles, familiares y consistentes.
+- El refresh conserva el contenido anterior y evita cargas duplicadas.
+- Analítica avanzada y beta permanecen accesibles, pero colapsadas inicialmente.
+- La experiencia institucional se comunica como futuro y nunca domina el foco
+  Student, Free o Teacher.
+- Los estados vacíos explican qué ocurrirá al avanzar; no muestran mensajes como
+  "Sin datos" o "No disponible".
+
 ### Voice Tutor
 
 - Se presenta como "Tutor IA con Booky".

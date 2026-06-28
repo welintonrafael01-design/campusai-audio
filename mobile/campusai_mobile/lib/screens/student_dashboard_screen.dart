@@ -26,6 +26,7 @@ import '../widgets/onboarding_step_card.dart';
 import '../widgets/section_card.dart';
 import '../widgets/studybook/booky_card.dart';
 import '../widgets/studybook/premium_section_card.dart';
+import '../widgets/studybook/studybook_buttons.dart';
 import '../widgets/studybook/studybook_states.dart';
 
 class StudentDashboardScreen extends StatefulWidget {
@@ -46,8 +47,10 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   bool isLoading = true;
   bool isRefreshing = false;
   bool isLaunchLoading = true;
+  bool isDashboardLoadInFlight = false;
   String errorMessage = '';
   final Set<String> processingActionIds = {};
+  final progressSectionKey = GlobalKey();
 
   LearningAnalytics analytics = LearningAnalytics.empty;
   ContinueLearningItem continueLearning = ContinueLearningItem.empty;
@@ -83,6 +86,8 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   }
 
   Future<void> loadStudentDashboard({bool refresh = false}) async {
+    if (isDashboardLoadInFlight) return;
+    isDashboardLoadInFlight = true;
     setState(() {
       if (refresh) {
         isRefreshing = true;
@@ -128,7 +133,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         isRefreshing = false;
         isLaunchLoading = false;
       });
-    } catch (error) {
+    } catch (_) {
       if (!mounted) return;
 
       setState(() {
@@ -137,23 +142,45 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         isRefreshing = false;
         isLaunchLoading = false;
       });
+    } finally {
+      isDashboardLoadInFlight = false;
     }
   }
 
   String intelligentDayMessage(List<AutonomousAction> pendingActions) {
     if (pendingActions.isNotEmpty) {
-      return 'Hoy tu mejor siguiente paso es ${pendingActions.first.title.toLowerCase()}.';
+      return 'Si tienes poco tiempo, empieza por ${pendingActions.first.title.toLowerCase()}.';
     }
     if (continueLearning.hasProgress) {
-      return 'Hoy conviene continuar con ${continueLearning.audiobookTitle}.';
+      return 'Retoma ${continueLearning.audiobookTitle} y conserva tu ritmo.';
     }
     if (smartStudyPlan.suggestedMinutes > 0) {
-      return 'Puedes avanzar ${smartStudyPlan.suggestedMinutes} minutos hoy para mantener tu progreso.';
+      return 'Con ${smartStudyPlan.suggestedMinutes} minutos puedes dar un paso importante hoy.';
     }
     if (analytics.sessions <= 0) {
-      return 'Bienvenido. Completa una sesión para activar recomendaciones personalizadas.';
+      return 'Hoy podemos dar el primer paso y crear una ruta a tu medida.';
     }
-    return 'Tu progreso está al día. Elige una actividad breve para seguir avanzando.';
+    return 'Vas al día. Elige una actividad breve y sigamos avanzando.';
+  }
+
+  String bookyGuidanceMessage(AutonomousAction? nextBestAction) {
+    if (nextBestAction != null) {
+      return 'Hoy podemos avanzar juntos. Te preparé una ruta sencilla y ${nextBestAction.title.toLowerCase()} es un buen comienzo.';
+    }
+    if (continueLearning.hasProgress) {
+      return 'Tu AudioBook está listo para continuar. Cuando quieras, también puedo ayudarte como Tutor IA.';
+    }
+    return 'Sube tu primer documento y lo convertiré en una experiencia clara para aprender mejor.';
+  }
+
+  void scrollToProgress() {
+    final progressContext = progressSectionKey.currentContext;
+    if (progressContext == null) return;
+    Scrollable.ensureVisible(
+      progressContext,
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   Future<void> executeAutonomousAction(AutonomousAction action) async {
@@ -372,7 +399,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     final remainingActions = pendingActions.skip(1).toList();
     final dayDetail = nextBestAction?.reason ??
         (analytics.sessions <= 0 && !continueLearning.hasProgress
-            ? 'Genera un AudioBook o habla con el Tutor IA para comenzar.'
+            ? 'Crea tu primer AudioBook o pregúntale a Booky para comenzar.'
             : campusSnapshot.recommendedNextAction);
 
     return Scaffold(
@@ -421,42 +448,13 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                             ),
                           ],
                           const SizedBox(height: 18),
+                          BookyCard(
+                            message: bookyGuidanceMessage(nextBestAction),
+                          ),
+                          const SizedBox(height: 18),
                           _IntelligentDayCard(
                             message: intelligentDayMessage(pendingActions),
                             detail: dayDetail,
-                          ),
-                          const SizedBox(height: 18),
-                          _ContinueLearningCard(
-                            item: continueLearning,
-                            onContinue: continueLearning.hasProgress
-                                ? () => context.goNamed(
-                                      'audioBookStudio',
-                                      extra: {
-                                        'sourceMode': 'solo',
-                                        'sourceType': 'text',
-                                      },
-                                    )
-                                : null,
-                          ),
-                          const SizedBox(height: 18),
-                          BookyCard(
-                            message:
-                                'Hoy podemos transformar contenido en aprendizaje escuchable o repasar juntos.',
-                            primaryLabel: 'Crear AudioBook',
-                            secondaryLabel: 'Hablar con Booky',
-                            onPrimary: () => context.goNamed(
-                              'audioBookStudio',
-                              extra: const {
-                                'sourceMode': 'solo',
-                                'sourceType': 'text',
-                              },
-                            ),
-                            onSecondary: () => context.goNamed('voiceTutor'),
-                          ),
-                          const SizedBox(height: 18),
-                          _SmartStudyPlanCard(
-                            plan: smartStudyPlan,
-                            schedule: adaptiveSchedule,
                           ),
                           const SizedBox(height: 18),
                           NextBestActionCard(
@@ -479,18 +477,72 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                                 : () => dismissAutonomousAction(nextBestAction),
                           ),
                           const SizedBox(height: 18),
-                          _AutonomousActionsCard(
-                            actions: remainingActions,
-                            processingActionIds: processingActionIds,
-                            onExecute: executeAutonomousAction,
-                            onDismiss: dismissAutonomousAction,
+                          _ContinueLearningCard(
+                            item: continueLearning,
+                            onContinue: continueLearning.hasProgress
+                                ? () => context.goNamed(
+                                      'audioBookStudio',
+                                      extra: {
+                                        'sourceMode': 'solo',
+                                        'sourceType': 'text',
+                                      },
+                                    )
+                                : null,
+                            onCreate: () => context.goNamed(
+                              'audioBookStudio',
+                              extra: const {
+                                'sourceMode': 'solo',
+                                'sourceType': 'text',
+                              },
+                            ),
                           ),
                           const SizedBox(height: 18),
-                          _SmartAlertsCard(history: notificationHistory),
+                          _PrimaryActionsCard(
+                            hasProgress: continueLearning.hasProgress,
+                            onContinue: continueLearning.hasProgress
+                                ? () => context.goNamed(
+                                      'audioBookStudio',
+                                      extra: const {
+                                        'sourceMode': 'solo',
+                                        'sourceType': 'text',
+                                      },
+                                    )
+                                : null,
+                            onCreate: () => context.goNamed(
+                              'audioBookStudio',
+                              extra: const {
+                                'sourceMode': 'solo',
+                                'sourceType': 'text',
+                              },
+                            ),
+                            onTutor: () => context.goNamed('voiceTutor'),
+                            onProgress: scrollToProgress,
+                          ),
+                          const SizedBox(height: 18),
+                          _SmartStudyPlanCard(
+                            plan: smartStudyPlan,
+                            schedule: adaptiveSchedule,
+                          ),
+                          const SizedBox(height: 18),
+                          _ResponsivePair(
+                            left: _AutonomousActionsCard(
+                              actions: remainingActions,
+                              processingActionIds: processingActionIds,
+                              onExecute: executeAutonomousAction,
+                              onDismiss: dismissAutonomousAction,
+                            ),
+                            right: _SmartAlertsCard(
+                              history: notificationHistory,
+                            ),
+                          ),
                           const SizedBox(height: 24),
-                          const _DashboardSectionLabel(
-                            title: 'Progreso y logros',
-                            subtitle: 'Tu avance, constancia y próximos hitos.',
+                          KeyedSubtree(
+                            key: progressSectionKey,
+                            child: const _DashboardSectionLabel(
+                              title: 'Progreso y logros',
+                              subtitle:
+                                  'Celebra lo que avanzaste y descubre tu próximo hito.',
+                            ),
                           ),
                           const SizedBox(height: 12),
                           _MetricsGrid(analytics: analytics),
@@ -556,59 +608,68 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                             ),
                           ),
                           const SizedBox(height: 24),
-                          const _DashboardSectionLabel(
-                            title: 'Analítica y contexto',
+                          _DashboardExpansionSection(
+                            title: 'Profundizar en mi progreso',
                             subtitle:
-                                'Indicadores avanzados para comprender tu evolución.',
-                          ),
-                          const SizedBox(height: 12),
-                          _ResponsivePair(
-                            left: _CampusIntelligenceCard(
-                              snapshot: campusSnapshot,
-                            ),
-                            right: _EnterpriseAnalyticsCard(
-                              analytics: enterpriseAnalytics,
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          _CampusTrendsCard(
-                            trends: campusTrends,
-                            latestSnapshot: campusSnapshot,
-                          ),
-                          const SizedBox(height: 18),
-                          _ResponsivePair(
-                            left:
-                                KnowledgeMapWidget(knowledgeMap: knowledgeMap),
-                            right: LearningRoadmapWidget(
-                              roadmap: learningRoadmap,
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          _ResponsivePair(
-                            left: DigitalTwinWidget(twin: digitalTwin),
-                            right: StudyHealthWidget(
-                              twin: digitalTwin,
-                              productivity: productivity,
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          _ResponsivePair(
-                            left: FocusScoreWidget(focus: productivity.focus),
-                            right:
-                                ProductivityWidget(productivity: productivity),
-                          ),
-                          const SizedBox(height: 18),
-                          _ResponsivePair(
-                            left: GoalTrackerWidget(goals: studyGoals),
-                            right: SuccessPredictionWidget(
-                              prediction: successPrediction,
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          _ResponsivePair(
-                            left:
-                                RiskMeterWidget(prediction: successPrediction),
-                            right: SmartTimelineWidget(items: smartTimeline),
+                                'Indicadores avanzados disponibles cuando quieras explorar más.',
+                            icon: Icons.insights_rounded,
+                            children: [
+                              _ResponsivePair(
+                                left: _CampusIntelligenceCard(
+                                  snapshot: campusSnapshot,
+                                ),
+                                right: _EnterpriseAnalyticsCard(
+                                  analytics: enterpriseAnalytics,
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+                              _CampusTrendsCard(
+                                trends: campusTrends,
+                                latestSnapshot: campusSnapshot,
+                              ),
+                              const SizedBox(height: 18),
+                              _ResponsivePair(
+                                left: KnowledgeMapWidget(
+                                  knowledgeMap: knowledgeMap,
+                                ),
+                                right: LearningRoadmapWidget(
+                                  roadmap: learningRoadmap,
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+                              _ResponsivePair(
+                                left: DigitalTwinWidget(twin: digitalTwin),
+                                right: StudyHealthWidget(
+                                  twin: digitalTwin,
+                                  productivity: productivity,
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+                              _ResponsivePair(
+                                left: FocusScoreWidget(
+                                  focus: productivity.focus,
+                                ),
+                                right: ProductivityWidget(
+                                  productivity: productivity,
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+                              _ResponsivePair(
+                                left: GoalTrackerWidget(goals: studyGoals),
+                                right: SuccessPredictionWidget(
+                                  prediction: successPrediction,
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+                              _ResponsivePair(
+                                left: RiskMeterWidget(
+                                  prediction: successPrediction,
+                                ),
+                                right: SmartTimelineWidget(
+                                  items: smartTimeline,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 24),
                           const PremiumSectionCard(
@@ -646,11 +707,19 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                             ),
                           ),
                           const SizedBox(height: 18),
-                          BetaLaunchCard(
-                            report: launchReport,
-                            isLoading: isLaunchLoading,
-                            onFeedback: openBetaFeedback,
-                            onOnboarding: openOnboardingGuide,
+                          _DashboardExpansionSection(
+                            title: 'Beta y lanzamiento',
+                            subtitle:
+                                'Comparte tu experiencia o vuelve a consultar la guía inicial.',
+                            icon: Icons.rocket_launch_outlined,
+                            children: [
+                              BetaLaunchCard(
+                                report: launchReport,
+                                isLoading: isLaunchLoading,
+                                onFeedback: openBetaFeedback,
+                                onOnboarding: openOnboardingGuide,
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -703,7 +772,7 @@ class _IntelligentDayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SectionCard(
+    return PremiumSectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -764,18 +833,134 @@ class _DashboardSectionLabel extends StatelessWidget {
   }
 }
 
-class _ContinueLearningCard extends StatelessWidget {
-  final ContinueLearningItem item;
-  final VoidCallback? onContinue;
+class _DashboardExpansionSection extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final List<Widget> children;
 
-  const _ContinueLearningCard({
-    required this.item,
-    required this.onContinue,
+  const _DashboardExpansionSection({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.children,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SectionCard(
+    final border = BorderSide(
+      color: Colors.white.withValues(alpha: .08),
+    );
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        leading: Icon(icon, color: AppTheme.accent),
+        title: Text(
+          title,
+          style: const TextStyle(
+            color: AppTheme.textPrimary,
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(color: AppTheme.textMuted, height: 1.35),
+        ),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+        childrenPadding: const EdgeInsets.only(top: 12),
+        expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
+        collapsedShape: Border(top: border, bottom: border),
+        shape: Border(top: border, bottom: border),
+        children: children,
+      ),
+    );
+  }
+}
+
+class _PrimaryActionsCard extends StatelessWidget {
+  final bool hasProgress;
+  final VoidCallback? onContinue;
+  final VoidCallback onCreate;
+  final VoidCallback onTutor;
+  final VoidCallback onProgress;
+
+  const _PrimaryActionsCard({
+    required this.hasProgress,
+    required this.onContinue,
+    required this.onCreate,
+    required this.onTutor,
+    required this.onProgress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return PremiumSectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Tu espacio de aprendizaje',
+            style: TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 5),
+          const Text(
+            'Elige cómo quieres avanzar ahora.',
+            style: TextStyle(color: AppTheme.textMuted),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              StudyBookPrimaryButton(
+                label: hasProgress ? 'Continuar AudioBook' : 'Crear contenido',
+                icon:
+                    hasProgress ? Icons.play_arrow_rounded : Icons.add_rounded,
+                onPressed: hasProgress ? onContinue : onCreate,
+              ),
+              StudyBookSecondaryButton(
+                label: 'Preguntar a Booky',
+                icon: Icons.chat_bubble_outline_rounded,
+                onPressed: onTutor,
+              ),
+              if (hasProgress)
+                StudyBookSecondaryButton(
+                  label: 'Crear contenido',
+                  icon: Icons.add_rounded,
+                  onPressed: onCreate,
+                ),
+              StudyBookSecondaryButton(
+                label: 'Ver progreso',
+                icon: Icons.insights_rounded,
+                onPressed: onProgress,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ContinueLearningCard extends StatelessWidget {
+  final ContinueLearningItem item;
+  final VoidCallback? onContinue;
+  final VoidCallback onCreate;
+
+  const _ContinueLearningCard({
+    required this.item,
+    required this.onContinue,
+    required this.onCreate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return PremiumSectionCard(
       child: item.hasProgress
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -820,17 +1005,18 @@ class _ContinueLearningCard extends StatelessWidget {
                     ElevatedButton.icon(
                       onPressed: onContinue,
                       icon: const Icon(Icons.arrow_forward_rounded),
-                      label: const Text('Continuar'),
+                      label: const Text('Continuar AudioBook'),
                     ),
                   ],
                 ),
               ],
             )
-          : const _EmptyState(
-              icon: Icons.auto_stories_rounded,
-              title: 'Continuar aprendiendo',
+          : StudyBookEmptyState(
+              title: 'Tu primera experiencia está por comenzar',
               message:
-                  'Genera tu primer AudioBook para activar recomendaciones inteligentes.',
+                  'Sube tu primer documento y Booky lo convertirá en conocimiento.',
+              actionLabel: 'Crear mi primer AudioBook',
+              onAction: onCreate,
             ),
     );
   }
@@ -1137,7 +1323,7 @@ class _SmartStudyPlanCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _SectionTitle(
-            title: 'Plan Inteligente',
+            title: 'Tu plan inteligente',
             icon: Icons.event_note_rounded,
             color: AppTheme.accent,
           ),
@@ -1203,7 +1389,7 @@ class _SmartAlertsCard extends StatelessWidget {
           const SizedBox(height: 10),
           if (history.items.isEmpty)
             const Text(
-              'No hay alertas prioritarias por ahora.',
+              'Todo está en orden por ahora. Te avisaremos cuando algo necesite tu atención.',
               style: TextStyle(color: AppTheme.textMuted),
             )
           else
@@ -1250,7 +1436,7 @@ class _AutonomousActionsCard extends StatelessWidget {
           const SizedBox(height: 10),
           if (visibleActions.isEmpty)
             const Text(
-              'No hay más acciones pendientes. Sigue tu plan o consulta al Tutor IA.',
+              'Tu ruta está al día. Cuando quieras, Booky puede ayudarte a elegir el próximo paso.',
               style: TextStyle(color: AppTheme.textMuted),
             )
           else
@@ -1378,7 +1564,7 @@ class _RecommendedResourcesCard extends StatelessWidget {
           const SizedBox(height: 10),
           if (items.isEmpty)
             const Text(
-              'Completa una sesión para recibir recursos relacionados con tus áreas débiles.',
+              'Booky te recomendará recursos después de conocer mejor tu forma de aprender.',
               style: TextStyle(color: AppTheme.textMuted),
             )
           else
@@ -1499,7 +1685,7 @@ class _RecommendationsCard extends StatelessWidget {
           const SizedBox(height: 12),
           if (recommendations.isEmpty)
             const Text(
-              'No hay recomendaciones pendientes.',
+              'Booky preparará nuevas recomendaciones a medida que avances.',
               style: TextStyle(color: AppTheme.textMuted),
             )
           else
@@ -1864,33 +2050,6 @@ class _ChipGroup extends StatelessWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String message;
-
-  const _EmptyState({
-    required this.icon,
-    required this.title,
-    required this.message,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _SectionTitle(title: title, icon: icon, color: AppTheme.accent),
-        const SizedBox(height: 12),
-        Text(
-          message,
-          style: const TextStyle(color: AppTheme.textMuted),
-        ),
-      ],
-    );
-  }
-}
-
 class _ErrorCard extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
@@ -1961,7 +2120,7 @@ int _intFrom(dynamic value) {
 
 String _feedbackCategoryLabel(FeedbackCategory category) {
   return switch (category) {
-    FeedbackCategory.bug => 'Error o bloqueo',
+    FeedbackCategory.bug => 'Algo no funcionó',
     FeedbackCategory.ux => 'Experiencia de usuario',
     FeedbackCategory.performance => 'Rendimiento',
     FeedbackCategory.content => 'Contenido',
