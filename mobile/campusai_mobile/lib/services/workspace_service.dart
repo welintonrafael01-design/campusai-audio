@@ -1,16 +1,14 @@
 import 'dart:convert';
 
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../models/workspace_model.dart';
+import 'security/user_scoped_storage.dart';
 
 class WorkspaceService {
   static const String _key = 'ai_workspaces';
   static const int _maxWorkspaces = 20;
 
   static Future<List<WorkspaceModel>> getWorkspaces() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_key);
+    final raw = await UserScopedStorage.getString(_key);
 
     if (raw == null || raw.isEmpty) return [];
 
@@ -33,7 +31,6 @@ class WorkspaceService {
   static Future<void> saveWorkspace(
     WorkspaceModel workspace,
   ) async {
-    final prefs = await SharedPreferences.getInstance();
     final current = await getWorkspaces();
 
     final updated = [
@@ -43,7 +40,7 @@ class WorkspaceService {
       ),
     ].take(_maxWorkspaces).toList();
 
-    await prefs.setString(
+    await UserScopedStorage.setString(
       _key,
       jsonEncode(
         updated.map((item) => item.toJson()).toList(),
@@ -60,13 +57,12 @@ class WorkspaceService {
   static Future<void> removeWorkspace(
     String workspaceId,
   ) async {
-    final prefs = await SharedPreferences.getInstance();
     final current = await getWorkspaces();
 
     final updated =
         current.where((item) => item.workspaceId != workspaceId).toList();
 
-    await prefs.setString(
+    await UserScopedStorage.setString(
       _key,
       jsonEncode(
         updated.map((item) => item.toJson()).toList(),
@@ -75,7 +71,6 @@ class WorkspaceService {
   }
 
   static Future<void> clearWorkspaces() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_key);
+    await UserScopedStorage.remove(_key);
   }
 }

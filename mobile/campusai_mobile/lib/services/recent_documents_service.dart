@@ -1,16 +1,14 @@
 import 'dart:convert';
 
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../models/recent_document_model.dart';
+import 'security/user_scoped_storage.dart';
 
 class RecentDocumentsService {
   static const String _key = 'recent_documents';
   static const int _maxItems = 20;
 
   static Future<List<RecentDocumentModel>> getDocuments() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_key);
+    final raw = await UserScopedStorage.getString(_key);
 
     if (raw == null || raw.isEmpty) return [];
 
@@ -29,8 +27,6 @@ class RecentDocumentsService {
   }
 
   static Future<void> saveDocument(RecentDocumentModel document) async {
-    final prefs = await SharedPreferences.getInstance();
-
     final current = await getDocuments();
 
     final updated = [
@@ -42,15 +38,13 @@ class RecentDocumentsService {
 
     final encoded = updated.map((item) => item.toJson()).toList();
 
-    await prefs.setString(
+    await UserScopedStorage.setString(
       _key,
       jsonEncode(encoded),
     );
   }
 
   static Future<void> removeDocument(String documentId) async {
-    final prefs = await SharedPreferences.getInstance();
-
     final current = await getDocuments();
 
     final updated = current
@@ -59,14 +53,13 @@ class RecentDocumentsService {
 
     final encoded = updated.map((item) => item.toJson()).toList();
 
-    await prefs.setString(
+    await UserScopedStorage.setString(
       _key,
       jsonEncode(encoded),
     );
   }
 
   static Future<void> clearDocuments() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_key);
+    await UserScopedStorage.remove(_key);
   }
 }

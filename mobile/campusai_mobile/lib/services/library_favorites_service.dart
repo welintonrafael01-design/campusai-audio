@@ -1,4 +1,4 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'security/user_scoped_storage.dart';
 
 class LibraryFavoritesService {
   static const String _key = 'studybook_library_favorites';
@@ -6,8 +6,7 @@ class LibraryFavoritesService {
   const LibraryFavoritesService();
 
   Future<Set<String>> getFavorites() async {
-    final prefs = await SharedPreferences.getInstance();
-    return (prefs.getStringList(_key) ?? []).toSet();
+    return (await UserScopedStorage.getStringList(_key)).toSet();
   }
 
   Future<bool> isFavorite(String documentId) async {
@@ -20,7 +19,6 @@ class LibraryFavoritesService {
 
     if (cleanDocumentId.isEmpty) return;
 
-    final prefs = await SharedPreferences.getInstance();
     final favorites = await getFavorites();
 
     if (favorites.contains(cleanDocumentId)) {
@@ -29,15 +27,14 @@ class LibraryFavoritesService {
       favorites.add(cleanDocumentId);
     }
 
-    await prefs.setStringList(_key, favorites.toList());
+    await UserScopedStorage.setStringList(_key, favorites.toList());
   }
 
   Future<void> removeFavorite(String documentId) async {
-    final prefs = await SharedPreferences.getInstance();
     final favorites = await getFavorites();
 
     favorites.remove(documentId);
 
-    await prefs.setStringList(_key, favorites.toList());
+    await UserScopedStorage.setStringList(_key, favorites.toList());
   }
 }

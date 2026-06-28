@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api_service.dart';
 import 'auth_service.dart';
+import 'security/user_scoped_storage.dart';
 
 class EducatorSyncService {
   const EducatorSyncService();
@@ -14,6 +15,9 @@ class EducatorSyncService {
   static const String attendanceKey = 'studybook_attendance_entries';
   static const String gradebookKey = 'studybook_gradebook_entries';
   static const String questionBanksKey = 'studybook_question_banks';
+
+  static String scopedKey(String key) => UserScopedStorage.key(key);
+
 
   static Future<Map<String, dynamic>> getSnapshot() async {
     if (!AuthService.isLoggedIn) {
@@ -49,19 +53,19 @@ class EducatorSyncService {
 
     final payload = {
       'courses': _decodeStringList(
-        prefs.getStringList(coursesKey) ?? const [],
+        prefs.getStringList(scopedKey(coursesKey)) ?? const [],
       ),
       'students': _decodeStringList(
-        prefs.getStringList(studentsKey) ?? const [],
+        prefs.getStringList(scopedKey(studentsKey)) ?? const [],
       ),
       'attendance': _decodeStringList(
-        prefs.getStringList(attendanceKey) ?? const [],
+        prefs.getStringList(scopedKey(attendanceKey)) ?? const [],
       ),
       'gradebook': _decodeStringList(
-        prefs.getStringList(gradebookKey) ?? const [],
+        prefs.getStringList(scopedKey(gradebookKey)) ?? const [],
       ),
       'question_banks': _decodeStringList(
-        prefs.getStringList(questionBanksKey) ?? const [],
+        prefs.getStringList(scopedKey(questionBanksKey)) ?? const [],
       ),
     };
 
@@ -84,27 +88,27 @@ class EducatorSyncService {
 
       await _saveListIfNotEmpty(
         prefs: prefs,
-        key: coursesKey,
+        key: scopedKey(coursesKey),
         value: snapshot['courses'],
       );
       await _saveListIfNotEmpty(
         prefs: prefs,
-        key: studentsKey,
+        key: scopedKey(studentsKey),
         value: snapshot['students'],
       );
       await _saveListIfNotEmpty(
         prefs: prefs,
-        key: attendanceKey,
+        key: scopedKey(attendanceKey),
         value: snapshot['attendance'],
       );
       await _saveListIfNotEmpty(
         prefs: prefs,
-        key: gradebookKey,
+        key: scopedKey(gradebookKey),
         value: snapshot['gradebook'],
       );
       await _saveListIfNotEmpty(
         prefs: prefs,
-        key: questionBanksKey,
+        key: scopedKey(questionBanksKey),
         value: snapshot['question_banks'],
       );
     } catch (_) {

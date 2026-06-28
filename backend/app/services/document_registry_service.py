@@ -59,6 +59,11 @@ def register_document_file(
     storage_bucket: str | None = None,
     storage_path: str | None = None,
 ) -> dict:
+    if not user_id or not str(user_id).strip():
+        raise ValueError(
+            "user_id es requerido para registrar documentos reales.",
+        )
+
     registry = _read_registry()
 
     record = {
@@ -105,7 +110,12 @@ def require_document_owner(
 
     owner_id = record.get("user_id")
 
-    if owner_id and owner_id != user_id:
+    if not owner_id:
+        raise PermissionError(
+            "El documento no tiene propietario asignado.",
+        )
+
+    if owner_id != user_id:
         raise PermissionError(
             "No tienes permiso para acceder a este documento.",
         )
@@ -126,6 +136,6 @@ def is_document_owner(
     owner_id = record.get("user_id")
 
     if not owner_id:
-        return True
+        return False
 
     return owner_id == user_id

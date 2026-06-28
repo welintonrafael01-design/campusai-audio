@@ -4,12 +4,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/study_result.dart';
 import 'educator_sync_service.dart';
+import 'security/user_scoped_storage.dart';
 
 class StudyResultService {
-  static const String _key = 'study_results';
+  static String _buildBaseKey(String documentId, String type) {
+    return '\${_key}_\${documentId.trim()}_\${type.trim()}';
+  }
 
-  static String _buildKey(String documentId, String type) {
-    return '${_key}_${documentId}_$type';
+  static String _buildScopedKey(String documentId, String type) {
+    return UserScopedStorage.key(_buildBaseKey(documentId, type));
   }
 
   static Future<void> saveResult(StudyResult result) async {
@@ -18,13 +21,13 @@ class StudyResultService {
     final prefs = await SharedPreferences.getInstance();
 
     await prefs.setString(
-      _buildKey(result.documentId, result.type),
+      _buildScopedKey(result.documentId, result.type),
       jsonEncode(result.toJson()),
     );
 
     if (result.type == 'question_bank') {
       final current =
-          prefs.getStringList(EducatorSyncService.questionBanksKey) ?? [];
+          prefs.getStringList(EducatorSyncService.scopedKey(EducatorSyncService.questionBanksKey)) ?? [];
       final asJson = result.toJson();
       asJson['id'] = result.documentId;
       asJson['documentId'] = result.documentId;
@@ -44,7 +47,7 @@ class StudyResultService {
           .toList();
 
       updated.insert(0, jsonEncode(asJson));
-      await prefs.setStringList(EducatorSyncService.questionBanksKey, updated);
+      await prefs.setStringList(EducatorSyncService.scopedKey(EducatorSyncService.questionBanksKey), updated);
       await EducatorSyncService.syncAfterLocalWrite();
     }
   }
@@ -56,7 +59,7 @@ class StudyResultService {
     final prefs = await SharedPreferences.getInstance();
 
     final raw = prefs.getString(
-      _buildKey(documentId, type),
+      _buildScopedKey(documentId, type),
     );
 
     if (raw == null || raw.trim().isEmpty) {
@@ -79,11 +82,12 @@ class StudyResultService {
 
   static Future<List<StudyResult>> getResultsByType(String type) async {
     final prefs = await SharedPreferences.getInstance();
-    final suffix = '_$type';
+    final suffix = '_\${type.trim()}_\${UserScopedStorage.currentUserScope}';
+    final prefix = '\${_key}_';
     final results = <StudyResult>[];
 
     for (final key in prefs.getKeys()) {
-      if (!key.startsWith('${_key}_') || !key.endsWith(suffix)) continue;
+      if (!key.startsWith(prefix) || !key.endsWith(suffix)) continue;
 
       final raw = prefs.getString(key);
       if (raw == null || raw.trim().isEmpty) continue;
@@ -115,7 +119,7 @@ class StudyResultService {
     final prefs = await SharedPreferences.getInstance();
 
     await prefs.remove(
-      _buildKey(documentId, type),
+      _buildScopedKey(documentId, type),
     );
   }
 }

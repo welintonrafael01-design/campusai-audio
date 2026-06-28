@@ -1,43 +1,38 @@
 import 'dart:convert';
 
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../models/chat_message_model.dart';
+import 'security/user_scoped_storage.dart';
 
 class ChatHistoryService {
-  static const String _chatPrefix = 'chat_history_';
-
-  // =========================
-  // SAVE CHAT
-  // =========================
+  static String _keyForDocument(String documentId) {
+    return '\${_chatPrefix}_\${documentId.trim()}';
+  }
 
   static Future<void> saveMessages({
     required String documentId,
     required List<ChatMessageModel> messages,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
+    final cleanDocumentId = documentId.trim();
+    if (cleanDocumentId.isEmpty) return;
 
     final encoded = messages.map((message) {
       return message.toMap();
     }).toList();
 
-    await prefs.setString(
-      '$_chatPrefix$documentId',
+    await UserScopedStorage.setString(
+      _keyForDocument(cleanDocumentId),
       jsonEncode(encoded),
     );
   }
 
-  // =========================
-  // LOAD CHAT
-  // =========================
-
   static Future<List<ChatMessageModel>> loadMessages({
     required String documentId,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
+    final cleanDocumentId = documentId.trim();
+    if (cleanDocumentId.isEmpty) return [];
 
-    final raw = prefs.getString(
-      '$_chatPrefix$documentId',
+    final raw = await UserScopedStorage.getString(
+      _keyForDocument(cleanDocumentId),
     );
 
     if (raw == null || raw.isEmpty) {
@@ -56,8 +51,7 @@ class ChatHistoryService {
             ? rawCitations
                 .whereType<Map>()
                 .map(
-                  (citation) =>
-                      ChatCitationModel.fromMap(
+                  (citation) => ChatCitationModel.fromMap(
                     Map<String, dynamic>.from(citation),
                   ),
                 )
@@ -80,17 +74,14 @@ class ChatHistoryService {
     }
   }
 
-  // =========================
-  // CLEAR CHAT
-  // =========================
-
   static Future<void> clearChat({
     required String documentId,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
+    final cleanDocumentId = documentId.trim();
+    if (cleanDocumentId.isEmpty) return;
 
-    await prefs.remove(
-      '$_chatPrefix$documentId',
+    await UserScopedStorage.remove(
+      _keyForDocument(cleanDocumentId),
     );
   }
 }

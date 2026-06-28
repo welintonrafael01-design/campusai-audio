@@ -1,8 +1,7 @@
 import 'dart:convert';
 
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../models/audiobook_history.dart';
+import 'security/user_scoped_storage.dart';
 
 class AudiobookLibraryService {
   static const String _key = 'studybook_audiobook_library';
@@ -11,8 +10,7 @@ class AudiobookLibraryService {
   const AudiobookLibraryService();
 
   Future<List<AudiobookHistory>> getAudiobooks() async {
-    final prefs = await SharedPreferences.getInstance();
-    final rawData = prefs.getStringList(_key) ?? [];
+    final rawData = await UserScopedStorage.getStringList(_key);
 
     return rawData
         .map(_decode)
@@ -67,15 +65,13 @@ class AudiobookLibraryService {
   }
 
   Future<void> _save(List<AudiobookHistory> items) async {
-    final prefs = await SharedPreferences.getInstance();
-
     final encoded = items
         .where((item) => item.isValid)
         .take(_maxItems)
         .map((item) => jsonEncode(item.toJson()))
         .toList();
 
-    await prefs.setStringList(_key, encoded);
+    await UserScopedStorage.setStringList(_key, encoded);
   }
 
   AudiobookHistory? _decode(String rawData) {

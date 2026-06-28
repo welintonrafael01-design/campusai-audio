@@ -16,7 +16,11 @@ def create_document(
 ):
     client = get_supabase_admin_client()
 
+    if not user_id or not str(user_id).strip():
+        raise ValueError("user_id es requerido para crear documentos cloud.")
+
     payload = {
+        "user_id": user_id,
         "document_id": document_id,
         "document_name": filename,
         "filename": filename,
@@ -106,6 +110,7 @@ def get_document_download_url(
         .table("documents")
         .select("*")
         .eq("document_id", document_id)
+        .eq("user_id", user_id)
         .not_.is_("storage_path", "null")
         .limit(1)
         .execute()

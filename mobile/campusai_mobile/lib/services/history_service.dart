@@ -66,7 +66,7 @@ class HistoryService {
 
   static Future<DocumentHistory?> getActiveDocument() async {
     final prefs = await SharedPreferences.getInstance();
-    final rawDocument = prefs.getString(_activeDocumentKey);
+    final rawDocument = prefs.getString(_scopedActiveDocumentKey);
 
     if (rawDocument == null || rawDocument.trim().isEmpty) {
       return null;
