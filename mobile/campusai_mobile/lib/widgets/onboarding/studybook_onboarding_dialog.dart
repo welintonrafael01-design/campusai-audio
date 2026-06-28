@@ -21,11 +21,11 @@ class _StudyBookOnboardingDialogState
 
   String get welcomeText {
     return '''
-Bienvenido a StudyBook AI. Esta aplicación convierte tus documentos PDF en una experiencia inteligente de estudio y audiolibro.
+Hola, soy Booky, tu Chief Learning Companion en StudyBook AI. Te ayudo a transformar cualquier contenido en conocimiento.
 
-Puedes subir un documento, generar resúmenes, hacer preguntas a la inteligencia artificial, escuchar el contenido en audio, crear flashcards y preparar exámenes automáticos.
+Puedes subir un documento, escucharlo como AudioBook, crear flashcards, practicar y preguntarme lo que necesites mientras estudias.
 
-Para comenzar, sube tu primer PDF y deja que StudyBook AI lo analice por ti.
+Para comenzar, sube tu primer contenido. Lee menos. Aprende más.
 ''';
   }
 
@@ -67,14 +67,12 @@ Para comenzar, sube tu primer PDF y deja que StudyBook AI lo analice por ti.
             audioUrl: fullAudioUrl,
             title: 'Bienvenida a StudyBook AI',
           );
-    } catch (error) {
+    } catch (_) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'No se pudo reproducir la bienvenida: $error',
-          ),
+        const SnackBar(
+          content: Text('Booky no pudo reproducir la bienvenida esta vez.'),
         ),
       );
     } finally {
@@ -105,7 +103,7 @@ Para comenzar, sube tu primer PDF y deja que StudyBook AI lo analice por ti.
               borderRadius: BorderRadius.circular(18),
             ),
             child: const Icon(
-              Icons.auto_awesome_rounded,
+              Icons.auto_stories_rounded,
               color: Colors.white,
               size: 28,
             ),
@@ -113,7 +111,7 @@ Para comenzar, sube tu primer PDF y deja que StudyBook AI lo analice por ti.
           const SizedBox(width: 14),
           const Expanded(
             child: Text(
-              'Bienvenido a StudyBook AI',
+              'Booky te da la bienvenida',
               style: TextStyle(
                 color: AppTheme.textPrimary,
                 fontWeight: FontWeight.w900,
@@ -129,7 +127,7 @@ Para comenzar, sube tu primer PDF y deja que StudyBook AI lo analice por ti.
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              'Transforma cualquier PDF en una experiencia inteligente de estudio y audiolibro.',
+              'Hola, soy Booky. Te ayudaré a transformar contenido en conocimiento.',
               style: TextStyle(
                 color: AppTheme.textSecondary,
                 height: 1.45,

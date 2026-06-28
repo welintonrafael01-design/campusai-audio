@@ -10,8 +10,9 @@ import '../services/audiobook_progress_service.dart';
 import '../services/audiobook_service.dart';
 import '../services/learning_engine/learning_progress_service.dart';
 import '../theme/app_theme.dart';
-import '../widgets/launch_empty_state.dart';
 import '../widgets/section_card.dart';
+import '../widgets/studybook/booky_card.dart';
+import '../widgets/studybook/studybook_states.dart';
 
 class AudioBookStudioScreen extends StatefulWidget {
   final String sourceMode;
@@ -185,12 +186,14 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
           behavior: SnackBarBehavior.floating,
         ),
       );
-    } catch (error) {
+    } catch (_) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('No se pudo generar el Audio Libro: $error'),
+        const SnackBar(
+          content: Text(
+            'Booky no pudo generar el AudioBook esta vez. Probemos de nuevo.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -1152,12 +1155,12 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Convierte tus documentos o temas en audio libros educativos.',
+                  'Convierte este contenido en aprendizaje escuchable.',
                   style: TextStyle(color: AppTheme.textMuted, height: 1.4),
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  'Escucha, practica y consulta al Tutor IA desde cada capítulo.',
+                  'Booky te acompaña con audio, actividades y práctica.',
                   style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
                 ),
                 const SizedBox(height: 16),
@@ -1174,6 +1177,12 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
                 ),
               ],
             ),
+          ),
+          const SizedBox(height: 18),
+          const BookyCard(
+            title: 'Booky convierte contenido en aprendizaje',
+            message:
+                'Puedo convertir este contenido en un audiolibro inteligente y acompañarte durante el repaso.',
           ),
           const SizedBox(height: 18),
           if (continueResult != null)
@@ -1305,11 +1314,8 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
           ),
           const SizedBox(height: 18),
           if (isGenerating)
-            const SectionCard(
-              child: Text(
-                'Generando audio libro...',
-                style: TextStyle(color: AppTheme.textMuted),
-              ),
+            const StudyBookLoadingState(
+              message: 'Booky está creando tu AudioBook...',
             )
           else if (selectedAudioBook.isNotEmpty)
             _AudioBookResult(
@@ -1396,11 +1402,10 @@ class _SavedAudioBooksSection extends StatelessWidget {
           if (isLoading)
             const LinearProgressIndicator()
           else if (savedAudioBooks.isEmpty)
-            const LaunchEmptyState(
-              title: 'Crea tu primer AudioBook',
+            const StudyBookEmptyState(
+              title: 'Sube tu primer contenido',
               message:
-                  'Escribe un tema arriba para activar audio, actividades y recomendaciones.',
-              icon: Icons.headphones_outlined,
+                  'Yo te ayudo a transformarlo en conocimiento y aprendizaje escuchable.',
             )
           else
             ...savedAudioBooks.map(
@@ -2249,14 +2254,14 @@ class _AudioBookChapterCard extends StatelessWidget {
     final audioState = isGeneratingAudio
         ? 'Generando audio'
         : hasAudioError
-            ? 'Error al generar audio'
+            ? 'Probemos otra vez con el audio'
             : hasAudio
                 ? 'Audio listo'
                 : 'Sin audio';
     final learningState = isGeneratingLearningPack
         ? 'Generando actividades'
         : hasLearningPackError
-            ? 'Error al generar actividades'
+            ? 'Probemos otra vez con las actividades'
             : hasLearningPack
                 ? 'Actividades listas'
                 : 'Sin actividades';
@@ -2361,7 +2366,7 @@ class _AudioBookChapterCard extends StatelessWidget {
                   label: Text(
                     isGeneratingLearningPack
                         ? 'Generando actividades...'
-                        : 'Generar actividades',
+                        : 'Generar actividades para recordar mejor',
                   ),
                 ),
               if (hasLearningPack && !hasFlashcards && !hasMiniQuiz)
@@ -2390,7 +2395,7 @@ class _AudioBookChapterCard extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: onTutor,
                 icon: const Icon(Icons.chat_bubble_outline_rounded),
-                label: const Text('Preguntar al Tutor IA'),
+                label: const Text('Preguntarle a Booky'),
               ),
               OutlinedButton.icon(
                 onPressed: onVoiceTutor,
@@ -2561,7 +2566,7 @@ class _QuizQuestionTile extends StatelessWidget {
           ),
           if (answered) ...[
             Text(
-              isCorrect ? 'Correcto' : 'Incorrecto',
+              isCorrect ? 'Correcto' : 'Sigue practicando',
               style: TextStyle(
                 color: isCorrect ? AppTheme.success : AppTheme.warning,
                 fontWeight: FontWeight.w900,

@@ -14,8 +14,9 @@ import '../services/voice_intelligence/voice_models.dart';
 import '../services/voice_intelligence/voice_session_service.dart';
 import '../services/voice_intelligence/voice_tts_service.dart';
 import '../theme/app_theme.dart';
-import '../widgets/launch_empty_state.dart';
 import '../widgets/section_card.dart';
+import '../widgets/studybook/booky_card.dart';
+import '../widgets/studybook/studybook_states.dart';
 
 class VoiceTutorScreen extends StatefulWidget {
   final String audiobookId;
@@ -391,9 +392,7 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
 
     if (state.status == VoiceConversationService.error) {
       _showSnackBar(
-        state.errorMessage.trim().isEmpty
-            ? 'No se pudo iniciar el micrófono.'
-            : state.errorMessage,
+        'Probemos otra vez. Revisa el micrófono e inténtalo de nuevo.',
       );
       return;
     }
@@ -479,11 +478,13 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tutor IA'),
+        title: const Text('Tutor IA con Booky'),
       ),
       body: SafeArea(
         child: isLoading
-            ? const _TutorLoadingState()
+            ? const StudyBookLoadingState(
+                message: 'Booky está preparando tu contexto...',
+              )
             : Column(
                 children: [
                   Expanded(
@@ -496,6 +497,11 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                const BookyCard(
+                                  message:
+                                      'Pregúntame lo que quieras repasar. Estoy aquí para ayudarte.',
+                                ),
+                                const SizedBox(height: 16),
                                 _ContextHeader(context: voiceContext),
                                 const SizedBox(height: 16),
                                 _ProactiveOpening(
@@ -624,30 +630,6 @@ class _ContextHeader extends StatelessWidget {
             ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _TutorLoadingState extends StatelessWidget {
-  const _TutorLoadingState();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text(
-              'Preparando tu contexto de aprendizaje...',
-              style: TextStyle(color: AppTheme.textMuted),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -901,12 +883,12 @@ class _VoiceInputPanel extends StatelessWidget {
                       isDenied
                           ? 'Activa el permiso del micrófono para preguntar por voz.'
                           : isError
-                              ? state.errorMessage
+                              ? 'Probemos otra vez. Revisa el micrófono e inténtalo de nuevo.'
                               : isSpeaking
-                                  ? 'El Tutor IA está reproduciendo su respuesta.'
+                                  ? 'Booky está reproduciendo su respuesta.'
                                   : isThinking
-                                      ? 'El Tutor IA está preparando una respuesta.'
-                                      : 'Micrófono por turnos: habla, detén y el tutor responderá con audio.',
+                                      ? 'Booky está preparando una respuesta.'
+                                      : 'Habla, detén el micrófono y Booky te responderá con audio.',
                       style: const TextStyle(
                         color: AppTheme.textMuted,
                         height: 1.35,
@@ -990,7 +972,7 @@ class _VoiceInputPanel extends StatelessWidget {
       case VoiceConversationService.denied:
         return 'Permiso denegado';
       case VoiceConversationService.error:
-        return 'Error';
+        return 'Probemos de nuevo';
       default:
         return 'Listo';
     }
@@ -1018,11 +1000,10 @@ class _MessageList extends StatelessWidget {
   Widget build(BuildContext context) {
     if (messages.isEmpty) {
       return const SectionCard(
-        child: LaunchEmptyState(
+        child: StudyBookEmptyState(
           title: 'Tu conversación está lista',
           message:
-              'Elige una sugerencia o escribe qué tema quieres comprender mejor.',
-          icon: Icons.chat_bubble_outline_rounded,
+              'Elige una sugerencia o cuéntale a Booky qué quieres comprender mejor.',
         ),
       );
     }

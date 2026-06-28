@@ -9,7 +9,6 @@ import '../services/campus_intelligence/enterprise_intelligence_models.dart'
     hide LearningRecommendation;
 import '../services/enterprise_notifications/enterprise_notification_center.dart';
 import '../services/gamification/gamification_models.dart' hide Achievement;
-import '../services/institution/institution_models.dart';
 import '../services/learning_engine/learning_models.dart';
 import '../services/launch/launch_models.dart';
 import '../services/launch/launch_readiness_service.dart';
@@ -17,7 +16,6 @@ import '../services/launch/onboarding_flow_service.dart';
 import '../services/launch/onboarding_readiness_service.dart';
 import '../services/launch/user_feedback_service.dart';
 import '../services/marketplace/marketplace_models.dart';
-import '../services/release_candidate/rc_models.dart';
 import '../services/student_dashboard_controller.dart';
 import '../theme/app_theme.dart';
 import '../widgets/beta_launch_card.dart';
@@ -26,6 +24,9 @@ import '../widgets/enterprise4_dashboard_widgets.dart';
 import '../widgets/next_best_action_card.dart';
 import '../widgets/onboarding_step_card.dart';
 import '../widgets/section_card.dart';
+import '../widgets/studybook/booky_card.dart';
+import '../widgets/studybook/premium_section_card.dart';
+import '../widgets/studybook/studybook_states.dart';
 
 class StudentDashboardScreen extends StatefulWidget {
   const StudentDashboardScreen({super.key});
@@ -70,11 +71,9 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   List<StudentTimelineItem> smartTimeline = [];
   GamificationProfile gamificationProfile = GamificationProfile.empty();
   List<MarketplaceItem> marketplaceSuggestions = [];
-  InstitutionDashboard institutionDashboard = InstitutionDashboard.empty();
   NotificationHistory notificationHistory = const NotificationHistory();
   AutonomousActionPlan autonomousActionPlan = AutonomousActionPlan.empty();
   LaunchReadinessReport launchReport = LaunchReadinessReport.empty();
-  ReleaseCandidateReport? rcReport;
   List<Map<String, dynamic>> recentSessions = [];
 
   @override
@@ -121,11 +120,9 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         smartTimeline = loaded.smartTimeline;
         gamificationProfile = loaded.gamificationProfile;
         marketplaceSuggestions = loaded.marketplaceSuggestions;
-        institutionDashboard = loaded.institutionDashboard;
         notificationHistory = loaded.notificationHistory;
         autonomousActionPlan = loaded.autonomousActionPlan;
         launchReport = loadedLaunchReport;
-        rcReport = loaded.rcReport;
         recentSessions = loaded.recentSessions;
         isLoading = false;
         isRefreshing = false;
@@ -400,7 +397,9 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
       ),
       body: SafeArea(
         child: isLoading
-            ? const _DashboardLoadingState()
+            ? const StudyBookLoadingState(
+                message: 'Booky está preparando tu día inteligente...',
+              )
             : RefreshIndicator(
                 onRefresh: () => loadStudentDashboard(refresh: true),
                 child: SingleChildScrollView(
@@ -438,6 +437,21 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                                       },
                                     )
                                 : null,
+                          ),
+                          const SizedBox(height: 18),
+                          BookyCard(
+                            message:
+                                'Hoy podemos transformar contenido en aprendizaje escuchable o repasar juntos.',
+                            primaryLabel: 'Crear AudioBook',
+                            secondaryLabel: 'Hablar con Booky',
+                            onPrimary: () => context.goNamed(
+                              'audioBookStudio',
+                              extra: const {
+                                'sourceMode': 'solo',
+                                'sourceType': 'text',
+                              },
+                            ),
+                            onSecondary: () => context.goNamed('voiceTutor'),
                           ),
                           const SizedBox(height: 18),
                           _SmartStudyPlanCard(
@@ -523,18 +537,6 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                           ),
                           const SizedBox(height: 18),
                           _RecentSessionsCard(sessions: recentSessions),
-                          const SizedBox(height: 18),
-                          _TutorCtaCard(
-                            actionTitle: nextBestAction?.title ?? '',
-                            onOpen: () => context.goNamed(
-                              'voiceTutor',
-                              extra: {
-                                'title': 'Tutor IA',
-                                'suggested_prompt':
-                                    nextBestAction?.reason ?? '',
-                              },
-                            ),
-                          ),
                           const SizedBox(height: 24),
                           const _DashboardSectionLabel(
                             title: 'Recursos recomendados',
@@ -609,31 +611,38 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                             right: SmartTimelineWidget(items: smartTimeline),
                           ),
                           const SizedBox(height: 24),
-                          const _DashboardSectionLabel(
-                            title: 'Estado Enterprise',
-                            subtitle:
-                                'Indicadores secundarios de plataforma e institución.',
-                          ),
-                          const SizedBox(height: 12),
-                          _ResponsivePair(
-                            left: rcReport == null
-                                ? CreatorProfileWidget(
-                                    author: const MarketplaceAuthor(
-                                      name: 'StudyBook AI',
-                                    ),
-                                  )
-                                : _RcStatusCard(report: rcReport!),
-                            right: InstitutionHealthWidget(
-                              metrics: institutionDashboard.metrics,
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          _ResponsivePair(
-                            left: InstitutionAlertsWidget(
-                              alerts: institutionDashboard.alerts,
-                            ),
-                            right: InstitutionKpisWidget(
-                              metrics: institutionDashboard.metrics,
+                          const PremiumSectionCard(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.apartment_rounded,
+                                  color: AppTheme.textMuted,
+                                ),
+                                SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Próximamente para instituciones, colegios y universidades.',
+                                        style: TextStyle(
+                                          color: AppTheme.textPrimary,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                      SizedBox(height: 5),
+                                      Text(
+                                        'La versión 1.0 está enfocada en estudiantes y docentes.',
+                                        style: TextStyle(
+                                          color: AppTheme.textMuted,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(height: 18),
@@ -674,7 +683,7 @@ class _Header extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         const Text(
-          'Un plan claro para avanzar a tu ritmo.',
+          'Lee menos. Aprende más.',
           style: TextStyle(
             color: AppTheme.textMuted,
             fontSize: 16,
@@ -682,30 +691,6 @@ class _Header extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _DashboardLoadingState extends StatelessWidget {
-  const _DashboardLoadingState();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text(
-              'Preparando tu día inteligente...',
-              style: TextStyle(color: AppTheme.textMuted),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -775,61 +760,6 @@ class _DashboardSectionLabel extends StatelessWidget {
         const SizedBox(height: 4),
         Text(subtitle, style: const TextStyle(color: AppTheme.textMuted)),
       ],
-    );
-  }
-}
-
-class _TutorCtaCard extends StatelessWidget {
-  final String actionTitle;
-  final VoidCallback onOpen;
-
-  const _TutorCtaCard({required this.actionTitle, required this.onOpen});
-
-  @override
-  Widget build(BuildContext context) {
-    return SectionCard(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(
-            Icons.record_voice_over_rounded,
-            color: AppTheme.accent,
-            size: 30,
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Tutor IA',
-                  style: TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  actionTitle.trim().isEmpty
-                      ? 'Habla con el Tutor IA para recibir orientación personalizada.'
-                      : 'Pídele ayuda para avanzar con: $actionTitle.',
-                  style: const TextStyle(
-                    color: AppTheme.textMuted,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                FilledButton.icon(
-                  onPressed: onOpen,
-                  icon: const Icon(Icons.chat_bubble_outline_rounded),
-                  label: const Text('Abrir Tutor IA'),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -1460,39 +1390,6 @@ class _RecommendedResourcesCard extends StatelessWidget {
                     : item.description,
                 icon: Icons.menu_book_rounded,
               ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RcStatusCard extends StatelessWidget {
-  final ReleaseCandidateReport report;
-
-  const _RcStatusCard({required this.report});
-
-  @override
-  Widget build(BuildContext context) {
-    final passedGates = report.qualityGates.where((gate) => gate.passed).length;
-    final openRisks = report.risks
-        .where((risk) => risk.severity.toLowerCase() != 'low')
-        .length;
-    return SectionCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _SectionTitle(
-            title: 'Estado RC1',
-            icon: Icons.verified_outlined,
-            color: AppTheme.success,
-          ),
-          const SizedBox(height: 14),
-          _InfoRow(label: 'Readiness', value: '${report.score}%'),
-          _InfoRow(
-            label: 'Quality gates',
-            value: '$passedGates/${report.qualityGates.length}',
-          ),
-          _InfoRow(label: 'Riesgos abiertos', value: '$openRisks'),
         ],
       ),
     );
