@@ -1,11 +1,11 @@
 import 'dart:convert';
-import 'dart:html' as html;
 
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'assessment_weight_service.dart';
 import 'educator_sync_service.dart';
 import 'student_roster_service.dart';
+import 'platform_file_service.dart';
 
 class GradebookEntry {
   final String id;
@@ -559,39 +559,20 @@ class GradebookService {
       );
     }
 
-    final blob = html.Blob(
-      [utf8.encode(buffer.toString())],
-      'text/csv;charset=utf-8',
+    await PlatformFileService.saveTextFile(
+      filename: 'studybook_libro_calificaciones.csv',
+      content: buffer.toString(),
+      dialogTitle: 'Exportar libro de calificaciones',
     );
-
-    final url = html.Url.createObjectUrlFromBlob(blob);
-
-    html.AnchorElement(href: url)
-      ..setAttribute('download', 'studybook_libro_calificaciones.csv')
-      ..click();
-
-    html.Url.revokeObjectUrl(url);
   }
 
   static Future<int> importGradesCsvFromUser({
     required String courseId,
     required String courseName,
   }) async {
-    final upload = html.FileUploadInputElement()
-      ..accept = '.csv,text/csv'
-      ..click();
+    final content = await PlatformFileService.pickTextFile();
 
-    await upload.onChange.first;
-
-    final file = upload.files?.first;
-    if (file == null) return 0;
-
-    final reader = html.FileReader();
-    reader.readAsText(file);
-
-    await reader.onLoad.first;
-
-    final content = reader.result?.toString() ?? '';
+    if (content == null) return 0;
     final rows = content
         .split(RegExp(r'\r?\n'))
         .map((line) => line.trim())

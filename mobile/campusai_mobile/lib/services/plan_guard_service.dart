@@ -1,6 +1,5 @@
-import 'dart:html' as html;
-
 import '../config/app_plans.dart';
+import 'local_storage_service.dart';
 
 class PlanGuardService {
   const PlanGuardService();
@@ -11,16 +10,17 @@ class PlanGuardService {
       'studybook_ai_subscription_status';
 
   CampusPlan get currentPlan {
-    final storedPlan = html.window.localStorage[_planStorageKey];
+    final storedPlan = LocalStorageService.getString(_planStorageKey);
     return planFromCode(storedPlan);
   }
 
   String get currentPlanSource {
-    return html.window.localStorage[_planSourceStorageKey] ?? 'local';
+    return LocalStorageService.getString(_planSourceStorageKey) ?? 'local';
   }
 
   String get currentSubscriptionStatus {
-    return html.window.localStorage[_subscriptionStatusStorageKey] ?? 'free';
+    return LocalStorageService.getString(_subscriptionStatusStorageKey) ??
+        'free';
   }
 
   bool get isSyncedFromSupabase {
@@ -49,17 +49,27 @@ class PlanGuardService {
     String source = 'local_test',
     String subscriptionStatus = 'active',
   }) {
-    html.window.localStorage[_planStorageKey] = planCodeFromCampusPlan(plan);
-    html.window.localStorage[_planSourceStorageKey] = source;
-    html.window.localStorage[_subscriptionStatusStorageKey] =
-        subscriptionStatus;
+    LocalStorageService.setString(
+      _planStorageKey,
+      planCodeFromCampusPlan(plan),
+    );
+    LocalStorageService.setString(_planSourceStorageKey, source);
+    LocalStorageService.setString(
+      _subscriptionStatusStorageKey,
+      subscriptionStatus,
+    );
   }
 
   void resetToFree() {
-    html.window.localStorage[_planStorageKey] =
-        planCodeFromCampusPlan(CampusPlan.free);
-    html.window.localStorage[_planSourceStorageKey] = 'local';
-    html.window.localStorage[_subscriptionStatusStorageKey] = 'free';
+    LocalStorageService.setString(
+      _planStorageKey,
+      planCodeFromCampusPlan(CampusPlan.free),
+    );
+    LocalStorageService.setString(_planSourceStorageKey, 'local');
+    LocalStorageService.setString(
+      _subscriptionStatusStorageKey,
+      'free',
+    );
   }
 
   bool canGenerateFlashcards(int requestedAmount) {
@@ -79,7 +89,8 @@ class PlanGuardService {
     required int requested,
     required int allowed,
   }) {
-    return 'Tu plan actual permite $allowed en "$featureName". Solicitaste $requested.';
+    return 'Tu plan actual permite $allowed en "$featureName". '
+        'Solicitaste $requested.';
   }
 }
 

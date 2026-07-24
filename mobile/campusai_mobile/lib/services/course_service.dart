@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:html' as html;
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'educator_sync_service.dart';
+import 'platform_file_service.dart';
 
 class CourseRecord {
   final String id;
@@ -123,8 +123,6 @@ class CourseService {
     await prefs.setString(_activeKey, courseId);
   }
 
-
-
   static Future<void> exportCsv() async {
     final courses = await getCourses();
 
@@ -137,18 +135,11 @@ class CourseService {
       );
     }
 
-    final blob = html.Blob(
-      [utf8.encode(buffer.toString())],
-      'text/csv;charset=utf-8',
+    await PlatformFileService.saveTextFile(
+      filename: 'studybook_cursos.csv',
+      content: buffer.toString(),
+      dialogTitle: 'Exportar cursos',
     );
-
-    final url = html.Url.createObjectUrlFromBlob(blob);
-
-    html.AnchorElement(href: url)
-      ..setAttribute('download', 'studybook_cursos.csv')
-      ..click();
-
-    html.Url.revokeObjectUrl(url);
   }
 
   static String _csv(String value) {
@@ -159,15 +150,15 @@ class CourseService {
   static String inferCourseCode(String courseName) {
     final text = courseName.trim();
 
-    final codeMatch = RegExp(r'\b[A-Z]{2,5}\s*-?\s*\d{2,6}\b')
-        .firstMatch(text.toUpperCase());
+    final codeMatch =
+        RegExp(r'\b[A-Z]{2,5}\s*-?\s*\d{2,6}\b').firstMatch(text.toUpperCase());
 
     if (codeMatch != null) {
       return codeMatch.group(0)!.replaceAll(RegExp(r'\s+|-'), '');
     }
 
-    final compactMatch = RegExp(r'\b[A-Z]{2,5}\d{2,6}\b')
-        .firstMatch(text.toUpperCase());
+    final compactMatch =
+        RegExp(r'\b[A-Z]{2,5}\d{2,6}\b').firstMatch(text.toUpperCase());
 
     if (compactMatch != null) {
       return compactMatch.group(0)!;
@@ -199,9 +190,8 @@ class CourseService {
   static CourseRecord buildCourseFromName(String courseName) {
     final clean = courseName.trim();
     final detectedCode = inferCourseCode(clean);
-    final code = detectedCode.isNotEmpty
-        ? detectedCode
-        : buildAutoCourseCode(clean);
+    final code =
+        detectedCode.isNotEmpty ? detectedCode : buildAutoCourseCode(clean);
 
     return CourseRecord(
       id: buildId(clean, section: code),
@@ -210,15 +200,16 @@ class CourseService {
     );
   }
 
-  static String buildId(String name, {String section = '', String period = ''}) {
+  static String buildId(String name,
+      {String section = '', String period = ''}) {
     final raw = '$name $section $period'.toLowerCase().trim();
 
     final clean = raw.replaceAll(RegExp(r'[^a-z0-9]+'), '_');
 
-    return clean.replaceAll(RegExp(r'_+'), '_').replaceAll(RegExp(r'^_|_$'), '');
+    return clean
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_|_$'), '');
   }
-
-
 
   static Future<void> ensureCoursesFromNames(List<String> courseNames) async {
     // Desactivado por arquitectura:

@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:html' as html;
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:http/http.dart' as http;
 
@@ -53,7 +53,15 @@ class BillingService {
       throw Exception('El servidor no devolvió la URL de checkout.');
     }
 
-    html.window.location.href = checkoutUrl;
+    final uri = Uri.parse(checkoutUrl);
+    final launched = await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    );
+
+    if (!launched) {
+      throw StateError('No se pudo abrir el checkout de pago.');
+    }
   }
 
   Future<Map<String, dynamic>> refreshSubscriptionFromServer() async {
@@ -125,6 +133,14 @@ class BillingService {
       throw Exception('El servidor no devolvió la URL del portal.');
     }
 
-    html.window.location.href = portalUrl;
+    final uri = Uri.parse(portalUrl);
+    final launched = await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    );
+
+    if (!launched) {
+      throw StateError('No se pudo abrir el portal de facturación.');
+    }
   }
 }

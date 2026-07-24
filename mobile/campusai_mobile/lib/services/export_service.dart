@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'dart:html' as html;
 
 import 'package:http/http.dart' as http;
 
 import 'api_service.dart';
 import 'auth_service.dart';
+import 'platform_file_service.dart';
 
 class ExportService {
   static Future<void> exportTextToPdf({
@@ -31,20 +31,11 @@ class ExportService {
       );
     }
 
-    final blob = html.Blob(
-      [response.bodyBytes],
-      'application/pdf',
+    await PlatformFileService.saveBinaryFile(
+      filename: '${_safeFileName(title)}.pdf',
+      bytes: response.bodyBytes,
+      dialogTitle: 'Guardar PDF',
     );
-
-    final url = html.Url.createObjectUrlFromBlob(blob);
-
-    html.AnchorElement(href: url)
-      ..setAttribute(
-        'download',
-        '${_safeFileName(title)}.pdf',
-      )
-      ..click();
-    html.Url.revokeObjectUrl(url);
   }
 
   static Future<void> exportTextToDocx({
@@ -71,21 +62,11 @@ class ExportService {
       );
     }
 
-    final blob = html.Blob(
-      [response.bodyBytes],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    await PlatformFileService.saveBinaryFile(
+      filename: '${_safeFileName(title)}.docx',
+      bytes: response.bodyBytes,
+      dialogTitle: 'Guardar documento Word',
     );
-
-    final url = html.Url.createObjectUrlFromBlob(blob);
-
-    html.AnchorElement(href: url)
-      ..setAttribute(
-        'download',
-        '${_safeFileName(title)}.docx',
-      )
-      ..click();
-
-    html.Url.revokeObjectUrl(url);
   }
 
   static Future<void> exportTextToPptx({
@@ -112,21 +93,11 @@ class ExportService {
       );
     }
 
-    final blob = html.Blob(
-      [response.bodyBytes],
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    await PlatformFileService.saveBinaryFile(
+      filename: '${_safeFileName(title)}.pptx',
+      bytes: response.bodyBytes,
+      dialogTitle: 'Guardar presentación',
     );
-
-    final url = html.Url.createObjectUrlFromBlob(blob);
-
-    html.AnchorElement(href: url)
-      ..setAttribute(
-        'download',
-        '${_safeFileName(title)}.pptx',
-      )
-      ..click();
-
-    html.Url.revokeObjectUrl(url);
   }
 
   static Future<void> exportRowsToXlsx({
@@ -153,21 +124,11 @@ class ExportService {
       );
     }
 
-    final blob = html.Blob(
-      [response.bodyBytes],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    await PlatformFileService.saveBinaryFile(
+      filename: '${_safeFileName(title)}.xlsx',
+      bytes: response.bodyBytes,
+      dialogTitle: 'Guardar archivo Excel',
     );
-
-    final url = html.Url.createObjectUrlFromBlob(blob);
-
-    html.AnchorElement(href: url)
-      ..setAttribute(
-        'download',
-        '${_safeFileName(title)}.xlsx',
-      )
-      ..click();
-
-    html.Url.revokeObjectUrl(url);
   }
 
   static Future<void> exportFinalReportToPdf({
@@ -198,18 +159,11 @@ class ExportService {
       );
     }
 
-    final blob = html.Blob(
-      [response.bodyBytes],
-      'application/pdf',
+    await PlatformFileService.saveBinaryFile(
+      filename: '${_safeFileName(title)}_acta_final.pdf',
+      bytes: response.bodyBytes,
+      dialogTitle: 'Guardar acta final',
     );
-
-    final url = html.Url.createObjectUrlFromBlob(blob);
-
-    html.window.open(url, '_blank');
-
-    Future.delayed(const Duration(minutes: 2), () {
-      html.Url.revokeObjectUrl(url);
-    });
   }
 
   static Future<void> exportTeachingPlanToPdf({
@@ -236,18 +190,11 @@ class ExportService {
       );
     }
 
-    final blob = html.Blob(
-      [response.bodyBytes],
-      'application/pdf',
+    await PlatformFileService.saveBinaryFile(
+      filename: '${_safeFileName(title)}_planificacion.pdf',
+      bytes: response.bodyBytes,
+      dialogTitle: 'Guardar planificación',
     );
-
-    final url = html.Url.createObjectUrlFromBlob(blob);
-
-    html.window.open(url, '_blank');
-
-    Future.delayed(const Duration(minutes: 2), () {
-      html.Url.revokeObjectUrl(url);
-    });
   }
 
   static Future<void> exportRubricToPdf({
@@ -280,17 +227,11 @@ class ExportService {
       );
     }
 
-    final blob = html.Blob(
-      [response.bodyBytes],
-      'application/pdf',
+    await PlatformFileService.saveBinaryFile(
+      filename: '${_safeFileName(title)}_rubrica.pdf',
+      bytes: response.bodyBytes,
+      dialogTitle: 'Guardar rúbrica',
     );
-
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    html.window.open(url, '_blank');
-
-    Future.delayed(const Duration(minutes: 2), () {
-      html.Url.revokeObjectUrl(url);
-    });
   }
 
   static Future<void> exportExamToPdf({
@@ -319,17 +260,11 @@ class ExportService {
       );
     }
 
-    final blob = html.Blob(
-      [response.bodyBytes],
-      'application/pdf',
+    await PlatformFileService.saveBinaryFile(
+      filename: '${_safeFileName(title)}_examen.pdf',
+      bytes: response.bodyBytes,
+      dialogTitle: 'Guardar examen',
     );
-
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    html.window.open(url, '_blank');
-
-    Future.delayed(const Duration(minutes: 2), () {
-      html.Url.revokeObjectUrl(url);
-    });
   }
 
   static Future<void> exportCertificateToPdf({
@@ -362,13 +297,11 @@ class ExportService {
       throw Exception('No se pudo exportar certificado PDF: ${response.body}');
     }
 
-    final blob = html.Blob([response.bodyBytes], 'application/pdf');
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    html.window.open(url, '_blank');
-
-    Future.delayed(const Duration(minutes: 2), () {
-      html.Url.revokeObjectUrl(url);
-    });
+    await PlatformFileService.saveBinaryFile(
+      filename: '${_safeFileName(studentName)}_certificado.pdf',
+      bytes: response.bodyBytes,
+      dialogTitle: 'Guardar certificado',
+    );
   }
 
   static Future<void> exportAcademicBadgeToPdf({
@@ -402,13 +335,11 @@ class ExportService {
           'No se pudo exportar insignia académica PDF: ${response.body}');
     }
 
-    final blob = html.Blob([response.bodyBytes], 'application/pdf');
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    html.window.open(url, '_blank');
-
-    Future.delayed(const Duration(minutes: 2), () {
-      html.Url.revokeObjectUrl(url);
-    });
+    await PlatformFileService.saveBinaryFile(
+      filename: '${_safeFileName(studentName)}_insignia.pdf',
+      bytes: response.bodyBytes,
+      dialogTitle: 'Guardar insignia académica',
+    );
   }
 
   static Future<void> exportStudentTranscriptToPdf({
@@ -452,13 +383,11 @@ class ExportService {
           'No se pudo exportar expediente académico PDF: ${response.body}');
     }
 
-    final blob = html.Blob([response.bodyBytes], 'application/pdf');
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    html.window.open(url, '_blank');
-
-    Future.delayed(const Duration(minutes: 2), () {
-      html.Url.revokeObjectUrl(url);
-    });
+    await PlatformFileService.saveBinaryFile(
+      filename: '${_safeFileName(studentName)}_expediente.pdf',
+      bytes: response.bodyBytes,
+      dialogTitle: 'Guardar expediente académico',
+    );
   }
 
   static String _safeFileName(String title) {

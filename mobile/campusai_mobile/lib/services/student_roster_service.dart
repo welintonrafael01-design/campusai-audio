@@ -1,9 +1,9 @@
 import 'dart:convert';
-import 'dart:html' as html;
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'educator_sync_service.dart';
 import 'course_service.dart';
+import 'platform_file_service.dart';
 
 class StudentRecord {
   final String id;
@@ -35,12 +35,12 @@ class StudentRecord {
 
   factory StudentRecord.fromJson(Map<String, dynamic> json) {
     return StudentRecord(
-      id: json['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      id: json['id']?.toString() ??
+          DateTime.now().millisecondsSinceEpoch.toString(),
       name: json['name']?.toString() ?? '',
       course: json['course']?.toString() ?? '',
-      courseId: json['courseId']?.toString() ??
-          json['course_id']?.toString() ??
-          '',
+      courseId:
+          json['courseId']?.toString() ?? json['course_id']?.toString() ?? '',
       email: json['email']?.toString() ?? '',
       studentCode: json['studentCode']?.toString() ??
           json['student_code']?.toString() ??
@@ -121,20 +121,12 @@ class StudentRosterService {
       );
     }
 
-    final blob = html.Blob(
-      [utf8.encode(buffer.toString())],
-      'text/csv;charset=utf-8',
+    await PlatformFileService.saveTextFile(
+      filename: 'studybook_estudiantes.csv',
+      content: buffer.toString(),
+      dialogTitle: 'Exportar estudiantes',
     );
-
-    final url = html.Url.createObjectUrlFromBlob(blob);
-
-    html.AnchorElement(href: url)
-      ..setAttribute('download', 'studybook_estudiantes.csv')
-      ..click();
-
-    html.Url.revokeObjectUrl(url);
   }
-
 
   static Future<void> exportCsvForStudents({
     required List<StudentRecord> students,
@@ -149,36 +141,17 @@ class StudentRosterService {
       );
     }
 
-    final blob = html.Blob(
-      [utf8.encode(buffer.toString())],
-      'text/csv;charset=utf-8',
+    await PlatformFileService.saveTextFile(
+      filename: filename,
+      content: buffer.toString(),
+      dialogTitle: 'Exportar estudiantes del curso',
     );
-
-    final url = html.Url.createObjectUrlFromBlob(blob);
-
-    html.AnchorElement(href: url)
-      ..setAttribute('download', filename)
-      ..click();
-
-    html.Url.revokeObjectUrl(url);
   }
 
   static Future<List<StudentRecord>> importCsvFromUser() async {
-    final upload = html.FileUploadInputElement()
-      ..accept = '.csv,text/csv'
-      ..click();
+    final content = await PlatformFileService.pickTextFile();
 
-    await upload.onChange.first;
-
-    final file = upload.files?.first;
-    if (file == null) return [];
-
-    final reader = html.FileReader();
-    reader.readAsText(file);
-
-    await reader.onLoad.first;
-
-    final content = reader.result?.toString() ?? '';
+    if (content == null) return [];
     final rows = content
         .split(RegExp(r'\r?\n'))
         .map((line) => line.trim())

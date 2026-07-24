@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'dart:html' as html;
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'educator_sync_service.dart';
 
 import 'student_roster_service.dart';
+import 'platform_file_service.dart';
 
 class AttendanceEntry {
   final String id;
@@ -49,9 +49,8 @@ class AttendanceEntry {
       studentId: json['studentId']?.toString() ?? '',
       studentName: json['studentName']?.toString() ?? '',
       course: json['course']?.toString() ?? '',
-      courseId: json['courseId']?.toString() ??
-          json['course_id']?.toString() ??
-          '',
+      courseId:
+          json['courseId']?.toString() ?? json['course_id']?.toString() ?? '',
       date: json['date']?.toString() ?? '',
       status: json['status']?.toString() ?? '',
       note: json['note']?.toString() ?? '',
@@ -93,9 +92,8 @@ class AttendanceService {
   }) async {
     final current = await getEntries();
 
-    final entryKeys = entries
-        .map((item) => '${item.courseId}::${item.studentId}')
-        .toSet();
+    final entryKeys =
+        entries.map((item) => '${item.courseId}::${item.studentId}').toSet();
 
     current.removeWhere(
       (item) =>
@@ -147,37 +145,17 @@ class AttendanceService {
       );
     }
 
-    final blob = html.Blob(
-      [utf8.encode(buffer.toString())],
-      'text/csv;charset=utf-8',
+    await PlatformFileService.saveTextFile(
+      filename: 'studybook_asistencia.csv',
+      content: buffer.toString(),
+      dialogTitle: 'Exportar asistencia',
     );
-
-    final url = html.Url.createObjectUrlFromBlob(blob);
-
-    html.AnchorElement(href: url)
-      ..setAttribute('download', 'studybook_asistencia.csv')
-      ..click();
-
-    html.Url.revokeObjectUrl(url);
   }
 
-
   static Future<int> importAttendanceCsvFromUser() async {
-    final upload = html.FileUploadInputElement()
-      ..accept = '.csv,text/csv'
-      ..click();
+    final content = await PlatformFileService.pickTextFile();
 
-    await upload.onChange.first;
-
-    final file = upload.files?.first;
-    if (file == null) return 0;
-
-    final reader = html.FileReader();
-    reader.readAsText(file);
-
-    await reader.onLoad.first;
-
-    final content = reader.result?.toString() ?? '';
+    if (content == null) return 0;
     final rows = content
         .split(RegExp(r'\r?\n'))
         .map((line) => line.trim())
@@ -215,7 +193,8 @@ class AttendanceService {
 
       if (name.isEmpty) continue;
 
-      final studentId = '${name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}_${course.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}';
+      final studentId =
+          '${name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}_${course.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}';
 
       importedStudents.add(
         StudentRecord(
@@ -262,9 +241,7 @@ class AttendanceService {
 
     for (final entry in importedEntries) {
       mergedEntries.removeWhere(
-        (item) =>
-            item.studentId == entry.studentId &&
-            item.date == entry.date,
+        (item) => item.studentId == entry.studentId && item.date == entry.date,
       );
       mergedEntries.add(entry);
     }

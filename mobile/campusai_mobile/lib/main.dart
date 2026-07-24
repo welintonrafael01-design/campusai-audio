@@ -8,9 +8,12 @@ import 'providers/locale_provider.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 import 'l10n/app_localizations.dart';
+import 'services/local_storage_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await LocalStorageService.initialize();
 
   const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');

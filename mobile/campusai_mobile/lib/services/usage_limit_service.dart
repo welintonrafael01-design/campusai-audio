@@ -1,5 +1,4 @@
-import 'dart:html' as html;
-
+import 'local_storage_service.dart';
 import 'plan_guard_service.dart';
 
 class UsageLimitService {
@@ -18,13 +17,13 @@ class UsageLimitService {
 
   int getPdfUploadsToday() {
     final today = _todayKey();
-    final storedDate = html.window.localStorage[_pdfUploadDateKey];
+    final storedDate = LocalStorageService.getString(_pdfUploadDateKey);
 
     if (storedDate != today) {
       return 0;
     }
 
-    final rawCount = html.window.localStorage[_pdfUploadCountKey];
+    final rawCount = LocalStorageService.getString(_pdfUploadCountKey);
 
     return int.tryParse(rawCount ?? '0') ?? 0;
   }
@@ -39,24 +38,29 @@ class UsageLimitService {
 
   void registerPdfUpload() {
     final today = _todayKey();
-    final storedDate = html.window.localStorage[_pdfUploadDateKey];
+    final storedDate = LocalStorageService.getString(_pdfUploadDateKey);
 
     if (storedDate != today) {
-      html.window.localStorage[_pdfUploadDateKey] = today;
-      html.window.localStorage[_pdfUploadCountKey] = '1';
+      LocalStorageService.setString(_pdfUploadDateKey, today);
+      LocalStorageService.setString(_pdfUploadCountKey, '1');
       return;
     }
 
     final currentCount = getPdfUploadsToday();
-    html.window.localStorage[_pdfUploadCountKey] = '${currentCount + 1}';
+
+    LocalStorageService.setString(
+      _pdfUploadCountKey,
+      '${currentCount + 1}',
+    );
   }
 
   String pdfUploadLimitMessage() {
-    return 'Tu plan actual permite $maxPdfUploadsPerDay PDFs por día. Ya alcanzaste el límite de hoy.';
+    return 'Tu plan actual permite $maxPdfUploadsPerDay PDFs por día. '
+        'Ya alcanzaste el límite de hoy.';
   }
 
   void resetPdfUploadsToday() {
-    html.window.localStorage.remove(_pdfUploadDateKey);
-    html.window.localStorage.remove(_pdfUploadCountKey);
+    LocalStorageService.remove(_pdfUploadDateKey);
+    LocalStorageService.remove(_pdfUploadCountKey);
   }
 }

@@ -1,4 +1,4 @@
-import 'dart:html' as html;
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -393,10 +393,15 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         documentId: document.documentId,
       );
 
-      html.window.open(
-        signedUrl,
-        '_blank',
+      final uri = Uri.parse(signedUrl);
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
       );
+
+      if (!launched) {
+        throw StateError('No se pudo abrir el PDF.');
+      }
     } catch (error) {
       if (!mounted) return;
 
