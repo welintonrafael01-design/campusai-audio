@@ -9,6 +9,7 @@ import '../models/document_history.dart';
 import '../models/recent_document_model.dart';
 import '../models/study_result.dart';
 import '../models/workspace_model.dart';
+import '../controllers/document_upload_controller.dart';
 import '../providers/document_provider.dart';
 import '../services/api_service.dart';
 import '../services/cloud_api_service.dart';
@@ -36,6 +37,10 @@ class DashboardScreen extends ConsumerStatefulWidget {
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   final AudioPlayerService audioService = AudioPlayerService();
+  final DocumentUploadController uploadController = DocumentUploadController();
+  final ValueNotifier<String> uploadStatusMessage = ValueNotifier<String>(
+    'Subiendo documento...',
+  );
 
   bool isLoading = false;
   bool isPlaying = false;
@@ -88,6 +93,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   @override
   void dispose() {
+    uploadStatusMessage.dispose();
     audioService.dispose();
     super.dispose();
   }
@@ -802,7 +808,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     if (!mounted) return;
 
     setState(() {
-      isLoading = true;
       isPlaying = false;
       documentId = '';
       summary = '';
@@ -813,33 +818,76 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       totalDuration = Duration.zero;
     });
 
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) {
-        return const AlertDialog(
-          title: Text('Procesando documento'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              LinearProgressIndicator(),
-              SizedBox(height: 18),
-              Text(
-                'StudyBook AI está subiendo el PDF, extrayendo texto, creando el resumen y preparando el chat con IA.',
-              ),
-              SizedBox(height: 10),
-              Text(
-                'Esto puede tardar entre 10 y 60 segundos según el tamaño del archivo.',
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-        );
+    var progressDialogOpen = false;
+
+    void showProgressDialogIfNeeded() {
+      if (progressDialogOpen || !mounted) return;
+
+      progressDialogOpen = true;
+
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) {
+          return AlertDialog(
+            title: const Text('Preparando documento'),
+            content: ValueListenableBuilder<String>(
+              valueListenable: uploadStatusMessage,
+              builder: (context, message, _) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const LinearProgressIndicator(),
+                    const SizedBox(height: 18),
+                    Text(message),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Booky está dejando listo el contenido para usarlo con IA.',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                );
+              },
+            ),
+          );
+        },
+      );
+    }
+
+    final result = await uploadController.pickAndUploadPdf(
+      onStatusChanged: (status, message) {
+        if (!mounted) return;
+
+        uploadStatusMessage.value = message;
+
+        if (status == DocumentUploadStatus.selected ||
+            status == DocumentUploadStatus.uploading ||
+            status == DocumentUploadStatus.processing ||
+            status == DocumentUploadStatus.success) {
+          showProgressDialogIfNeeded();
+          setState(() {
+            isLoading = true;
+            errorMessage = '';
+          });
+        }
       },
     );
 
+    if (result.isCancelled) {
+      if (!mounted) return;
+
+      setState(() {
+        isLoading = false;
+      });
+      return;
+    }
+
     try {
-      final data = await ApiService.uploadPdf();
+      if (!result.isSuccess) {
+        throw Exception(result.message);
+      }
+
+      final data = result.data;
       debugPrint('UPLOAD RESPONSE: $data');
 
       final document = DocumentHistory(
@@ -881,11 +929,136 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
       setState(() {
         errorMessage =
-            'Booky no pudo procesar el documento esta vez. Podemos intentarlo otra vez.';
+            'Booky no pudo procesar el documento esta vez. ${result.canRetry ? 'Puedes reintentarlo.' : 'Revisa el archivo e intenta de nuevo.'}';
+      });
+
+      if (result.canRetry) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.message),
+            action: SnackBarAction(
+              label: 'Reintentar',
+              onPressed: retryUploadPdf,
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        if (progressDialogOpen && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> retryUploadPdf() async {
+    if (!mounted) return;
+
+    var progressDialogOpen = false;
+
+    void showProgressDialogIfNeeded() {
+      if (progressDialogOpen || !mounted) return;
+
+      progressDialogOpen = true;
+
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) {
+          return AlertDialog(
+            title: const Text('Reintentando documento'),
+            content: ValueListenableBuilder<String>(
+              valueListenable: uploadStatusMessage,
+              builder: (context, message, _) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const LinearProgressIndicator(),
+                    const SizedBox(height: 18),
+                    Text(message),
+                  ],
+                );
+              },
+            ),
+          );
+        },
+      );
+    }
+
+    final result = await uploadController.retryLastUpload(
+      onStatusChanged: (status, message) {
+        if (!mounted) return;
+
+        uploadStatusMessage.value = message;
+
+        if (status == DocumentUploadStatus.selected ||
+            status == DocumentUploadStatus.uploading ||
+            status == DocumentUploadStatus.processing ||
+            status == DocumentUploadStatus.success) {
+          showProgressDialogIfNeeded();
+          setState(() {
+            isLoading = true;
+            errorMessage = '';
+          });
+        }
+      },
+    );
+
+    try {
+      if (!result.isSuccess) {
+        throw Exception(result.message);
+      }
+
+      final data = result.data;
+      final document = DocumentHistory(
+        documentId: data['document_id'] ?? '',
+        fileName: data['file_name'] ??
+            data['filename'] ??
+            l10n.defaultPdfDocumentName,
+        summary: data['ai_summary'] ?? l10n.summaryNotReceived,
+        audioUrl: data['audio_url'] ?? '',
+        createdAt: DateTime.now().toIso8601String(),
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        documentId = document.documentId;
+        summary = document.summary;
+        audioUrl = document.audioUrl;
+        fileName = document.fileName;
+      });
+
+      await HistoryService.saveDocument(document);
+      await HistoryService.saveActiveDocument(document);
+      await RecentDocumentsService.saveDocument(
+        RecentDocumentModel(
+          documentId: document.documentId,
+          fileName: document.fileName,
+          summary: document.summary,
+          audioUrl: document.audioUrl,
+          lastOpenedAt: DateTime.now(),
+        ),
+      );
+      await ref.read(activeDocumentProvider.notifier).setDocument(document);
+      await loadHistory();
+      await loadRecentDocuments();
+    } catch (error) {
+      debugPrint('No se pudo reintentar el documento: $error');
+      if (!mounted) return;
+
+      setState(() {
+        errorMessage =
+            'Booky no pudo procesar el documento esta vez. Puedes intentarlo de nuevo.';
       });
     } finally {
       if (mounted) {
-        if (Navigator.of(context).canPop()) {
+        if (progressDialogOpen && Navigator.of(context).canPop()) {
           Navigator.of(context).pop();
         }
 

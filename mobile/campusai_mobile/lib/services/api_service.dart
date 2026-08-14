@@ -4,11 +4,13 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../config/app_environment.dart';
 import 'usage_limit_service.dart';
 import 'auth_service.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:8000';
+  static String get baseUrl => AppEnvironment.apiBaseUrl;
 
   static const String cloudBaseUrl = '';
 
@@ -92,6 +94,12 @@ class ApiService {
   // =========================
 
   static Future<Map<String, dynamic>> uploadPdf() async {
+    final file = await pickPdfFile();
+
+    return uploadPdfFile(file);
+  }
+
+  static Future<Map<String, dynamic>> uploadPdfFile(PlatformFile file) async {
     AuthService.requireAccessToken;
 
     const usageLimitService = UsageLimitService();
@@ -101,8 +109,6 @@ class ApiService {
         usageLimitService.pdfUploadLimitMessage(),
       );
     }
-
-    final file = await pickPdfFile();
 
     final language = await getCurrentLanguageCode();
 
@@ -283,9 +289,8 @@ class ApiService {
           body: jsonEncode({
             'message_id': messageId.trim(),
             'text': cleanText,
-            'voice_profile': voiceProfile.trim().isEmpty
-                ? 'standard'
-                : voiceProfile.trim(),
+            'voice_profile':
+                voiceProfile.trim().isEmpty ? 'standard' : voiceProfile.trim(),
             'language': language.trim().isEmpty ? 'es' : language.trim(),
           }),
         )

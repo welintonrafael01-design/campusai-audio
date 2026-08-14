@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app.analytics.usage_summary import get_usage_summary
-from app.security.admin_auth import require_admin_key
+from app.security.admin_auth import require_admin_user
 
 
 router = APIRouter(
@@ -10,6 +10,6 @@ router = APIRouter(
 )
 
 
-@router.get("/summary", dependencies=[Depends(require_admin_key)])
+@router.get("/summary", dependencies=[Depends(require_admin_user)])
 async def analytics_summary():
     return get_usage_summary()

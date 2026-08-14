@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../theme/app_theme.dart';
 import '../config/app_plans.dart';
+import '../services/access_control_service.dart';
 import '../services/plan_guard_service.dart';
 
 class Sidebar extends StatelessWidget {
@@ -16,7 +17,8 @@ class Sidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final plan = const PlanGuardService().currentPlan;
-    final showTeacherStudio = plan == CampusPlan.teacher;
+    final access = const AccessControlService();
+    final showTeacherStudio = access.hasTeacherTools;
 
     return Container(
       width: 280,
@@ -76,26 +78,28 @@ class Sidebar extends StatelessWidget {
           _SidebarItem(
             title: 'Aprendizaje',
             icon: Icons.auto_stories_rounded,
-            selected: currentRoute == '/student-dashboard',
+            selected: currentRoute == '/learning' ||
+                currentRoute == '/student-dashboard',
             onTap: () {
-              context.go('/student-dashboard');
+              context.go('/learning');
             },
           ),
           if (showTeacherStudio)
             _SidebarItem(
               title: 'Teacher Studio',
               icon: Icons.school_rounded,
-              selected: currentRoute == '/courses',
+              selected:
+                  currentRoute == '/teacher' || currentRoute == '/courses',
               onTap: () {
-                context.go('/courses');
+                context.go('/teacher');
               },
             ),
           _SidebarItem(
             title: 'Cuenta',
             icon: Icons.account_circle_rounded,
-            selected: currentRoute == '/settings',
+            selected: currentRoute == '/account' || currentRoute == '/settings',
             onTap: () {
-              context.go('/settings');
+              context.go('/account');
             },
           ),
           const Spacer(),

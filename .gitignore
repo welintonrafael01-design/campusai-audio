@@ -45,8 +45,13 @@ backend/logs/
 *.log
 
 # Local backups/temp
+*.bak
 *.bak_*
 *~
+tmp/
+temp/
+qa-artifacts/
+screenshots/
 
 # Temporary backend uploads
 backend/app/uploads/

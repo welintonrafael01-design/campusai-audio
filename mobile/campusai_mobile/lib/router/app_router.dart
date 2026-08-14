@@ -31,9 +31,14 @@ import '../screens/unit_workspace_screen.dart';
 import '../screens/audiobook_studio_screen.dart';
 import '../screens/voice_tutor_screen.dart';
 import '../screens/reset_password_screen.dart';
+import '../services/access_control_service.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/auth',
+  redirect: (context, state) {
+    final path = state.uri.path;
+    return const AccessControlService().redirectForPath(path);
+  },
   routes: [
     GoRoute(
       path: '/student-transcript',
@@ -131,6 +136,36 @@ final appRouter = GoRouter(
         return _buildPage(
           state: state,
           child: const StudentDashboardScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/learning',
+      name: 'learning',
+      pageBuilder: (context, state) {
+        return _buildPage(
+          state: state,
+          child: const StudentDashboardScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/teacher',
+      name: 'teacher',
+      pageBuilder: (context, state) {
+        return _buildPage(
+          state: state,
+          child: const CoursesScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/account',
+      name: 'account',
+      pageBuilder: (context, state) {
+        return _buildPage(
+          state: state,
+          child: const SettingsScreen(),
         );
       },
     ),
