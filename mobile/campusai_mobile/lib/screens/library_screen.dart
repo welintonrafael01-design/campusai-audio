@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/document_history.dart';
 import '../models/audiobook_history.dart';
+import '../models/study_result.dart';
 import '../providers/audio_provider.dart';
 import '../services/history_service.dart';
 import '../services/api_service.dart';
@@ -15,10 +18,9 @@ import '../services/library_favorites_service.dart';
 import '../services/chat_history_service.dart';
 import '../services/study_result_service.dart';
 import '../theme/app_theme.dart';
-import '../widgets/sidebar.dart';
-import '../layout/responsive_layout.dart';
 import '../widgets/section_card.dart';
 import '../widgets/mini_player.dart';
+import '../widgets/studybook_app_shell.dart';
 import '../widgets/studybook/studybook_states.dart';
 
 enum LibrarySortOption {
@@ -36,12 +38,11 @@ enum LibrarySourceFilter {
 
 enum LibraryCategory {
   all,
-  favorites,
   documents,
+  generated,
   audiobooks,
   chats,
-  flashcards,
-  exams,
+  favorites,
 }
 
 class LibraryScreen extends ConsumerStatefulWidget {
@@ -58,8 +59,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   final Set<String> cloudAudiobookIds = {};
   final Set<String> favoriteDocumentIds = {};
   List<_LibraryChatItem> savedChats = [];
-  List<_LibraryStudyItem> savedFlashcards = [];
-  List<_LibraryStudyItem> savedExams = [];
+  List<_LibraryGeneratedItem> generatedItems = [];
   LibraryCategory selectedCategory = LibraryCategory.all;
   LibrarySourceFilter selectedSourceFilter = LibrarySourceFilter.all;
   LibrarySortOption selectedSortOption = LibrarySortOption.newest;
@@ -193,8 +193,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     ];
 
     final chats = <_LibraryChatItem>[];
-    final flashcards = <_LibraryStudyItem>[];
-    final exams = <_LibraryStudyItem>[];
+    final generated = <_LibraryGeneratedItem>[];
+    final documentsById = {
+      for (final document in items) document.documentId: document,
+    };
 
     for (final document in items) {
       final messages = await ChatHistoryService.loadMessages(
@@ -214,34 +216,41 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         );
       }
 
-      final flashcardResult = await StudyResultService.getResult(
-        documentId: document.documentId,
-        type: 'flashcards',
-      );
-
-      if (flashcardResult != null) {
-        flashcards.add(
-          _LibraryStudyItem(
-            document: document,
-            content: flashcardResult.content,
-            createdAt: flashcardResult.createdAt,
+      if (document.hasSummary) {
+        generated.add(
+          _LibraryGeneratedItem.fromSummary(
+            document,
+            isCloud: loadedCloudDocumentIds.contains(document.documentId),
           ),
         );
       }
+    }
 
-      final examResult = await StudyResultService.getResult(
-        documentId: document.documentId,
-        type: 'exam',
-      );
+    for (final type in const [
+      'flashcards',
+      'exam',
+      'question_bank',
+      'rubric',
+      'study_guide',
+    ]) {
+      final results = await StudyResultService.getResultsByType(type);
 
-      if (examResult != null) {
-        exams.add(
-          _LibraryStudyItem(
-            document: document,
-            content: examResult.content,
-            createdAt: examResult.createdAt,
-          ),
+      for (final result in results) {
+        final item = _LibraryGeneratedItem.fromStudyResult(
+          result,
+          documentsById: documentsById,
+          cloudDocumentIds: loadedCloudDocumentIds,
         );
+
+        if (generated.any(
+          (current) =>
+              current.documentId == item.documentId &&
+              current.type == item.type,
+        )) {
+          continue;
+        }
+
+        generated.add(item);
       }
     }
 
@@ -260,8 +269,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         ..clear()
         ..addAll(loadedFavorites);
       savedChats = chats;
-      savedFlashcards = flashcards;
-      savedExams = exams;
+      generatedItems = generated;
       isLoading = false;
     });
   }
@@ -520,6 +528,58 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     }
   }
 
+  Future<void> openGeneratedResource(_LibraryGeneratedItem item) async {
+    switch (item.type) {
+      case 'flashcards':
+        context.go('/flashcards/${item.documentId}');
+        return;
+      case 'exam':
+        context.go('/exam/${item.documentId}');
+        return;
+      case 'question_bank':
+        context.go('/question-bank/${item.documentId}');
+        return;
+      case 'rubric':
+        context.go('/rubric/${item.documentId}');
+        return;
+    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppTheme.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        title: Text(
+          item.title,
+          style: const TextStyle(
+            color: AppTheme.textPrimary,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        content: SizedBox(
+          width: 560,
+          child: SingleChildScrollView(
+            child: Text(
+              item.preview.isEmpty ? item.subtitle : item.preview,
+              style: const TextStyle(
+                color: AppTheme.textMuted,
+                height: 1.45,
+              ),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cerrar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> generateAudiobook(DocumentHistory document) async {
     final text = document.cleanSummary;
 
@@ -684,40 +744,36 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       LibraryCategory.all => filteredDocuments.length +
           filteredAudiobooks.length +
           filteredChats.length +
-          filteredFlashcards.length +
-          filteredExams.length,
+          filteredGeneratedItems.length,
+      LibraryCategory.documents => filteredDocuments.length,
+      LibraryCategory.generated => filteredGeneratedItems.length,
+      LibraryCategory.audiobooks => filteredAudiobooks.length,
+      LibraryCategory.chats => filteredChats.length,
       LibraryCategory.favorites => filteredDocuments
           .where((item) => favoriteDocumentIds.contains(item.documentId))
           .length,
-      LibraryCategory.documents => filteredDocuments.length,
-      LibraryCategory.audiobooks => filteredAudiobooks.length,
-      LibraryCategory.chats => filteredChats.length,
-      LibraryCategory.flashcards => filteredFlashcards.length,
-      LibraryCategory.exams => filteredExams.length,
     };
   }
 
   String categoryLabel(LibraryCategory category) {
     return switch (category) {
       LibraryCategory.all => 'Todo',
-      LibraryCategory.favorites => 'Favoritos',
       LibraryCategory.documents => 'Documentos',
-      LibraryCategory.audiobooks => 'Audiolibros',
+      LibraryCategory.generated => 'Generados',
+      LibraryCategory.audiobooks => 'AudioBooks',
       LibraryCategory.chats => 'Chats',
-      LibraryCategory.flashcards => 'Flashcards',
-      LibraryCategory.exams => 'Exámenes',
+      LibraryCategory.favorites => 'Favoritos',
     };
   }
 
   IconData categoryIcon(LibraryCategory category) {
     return switch (category) {
       LibraryCategory.all => Icons.dashboard_customize_rounded,
-      LibraryCategory.favorites => Icons.star_rounded,
       LibraryCategory.documents => Icons.picture_as_pdf_rounded,
+      LibraryCategory.generated => Icons.auto_awesome_rounded,
       LibraryCategory.audiobooks => Icons.headphones_rounded,
       LibraryCategory.chats => Icons.chat_bubble_rounded,
-      LibraryCategory.flashcards => Icons.style_rounded,
-      LibraryCategory.exams => Icons.quiz_rounded,
+      LibraryCategory.favorites => Icons.star_rounded,
     };
   }
 
@@ -779,33 +835,19 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                 ),
               )
               .length +
-          savedFlashcards
+          generatedItems
               .where(
-                (item) => accept(
-                  isCloudDocumentId(item.document.documentId),
-                ),
-              )
-              .length +
-          savedExams
-              .where(
-                (item) => accept(
-                  isCloudDocumentId(item.document.documentId),
-                ),
+                (item) => accept(item.isCloud),
               )
               .length;
     }
 
     return switch (selectedCategory) {
       LibraryCategory.all => countAll(),
-      LibraryCategory.favorites => documents
-          .where(
-            (item) =>
-                favoriteDocumentIds.contains(item.documentId) &&
-                accept(isCloudDocument(item)),
-          )
-          .length,
       LibraryCategory.documents =>
         documents.where((item) => accept(isCloudDocument(item))).length,
+      LibraryCategory.generated =>
+        generatedItems.where((item) => accept(item.isCloud)).length,
       LibraryCategory.audiobooks =>
         audiobooks.where((item) => accept(isCloudAudiobook(item))).length,
       LibraryCategory.chats => savedChats
@@ -815,18 +857,11 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             ),
           )
           .length,
-      LibraryCategory.flashcards => savedFlashcards
+      LibraryCategory.favorites => documents
           .where(
-            (item) => accept(
-              isCloudDocumentId(item.document.documentId),
-            ),
-          )
-          .length,
-      LibraryCategory.exams => savedExams
-          .where(
-            (item) => accept(
-              isCloudDocumentId(item.document.documentId),
-            ),
+            (item) =>
+                favoriteDocumentIds.contains(item.documentId) &&
+                accept(isCloudDocument(item)),
           )
           .length,
     };
@@ -1074,40 +1109,20 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     );
   }
 
-  List<_LibraryStudyItem> get filteredFlashcards {
-    final items = savedFlashcards
+  List<_LibraryGeneratedItem> get filteredGeneratedItems {
+    final items = generatedItems
         .where(
           (item) =>
-              matchesSource(
-                isCloud: isCloudDocumentId(item.document.documentId),
-              ) &&
-              (matchesSearch(item.document.fileName) ||
+              matchesSource(isCloud: item.isCloud) &&
+              (matchesSearch(item.title) ||
+                  matchesSearch(item.subtitle) ||
                   matchesSearch(item.preview)),
         )
         .toList();
 
-    return sortItems<_LibraryStudyItem>(
+    return sortItems<_LibraryGeneratedItem>(
       items: items,
-      name: (item) => item.document.fileName,
-      date: (item) => item.createdAt,
-    );
-  }
-
-  List<_LibraryStudyItem> get filteredExams {
-    final items = savedExams
-        .where(
-          (item) =>
-              matchesSource(
-                isCloud: isCloudDocumentId(item.document.documentId),
-              ) &&
-              (matchesSearch(item.document.fileName) ||
-                  matchesSearch(item.preview)),
-        )
-        .toList();
-
-    return sortItems<_LibraryStudyItem>(
-      items: items,
-      name: (item) => item.document.fileName,
+      name: (item) => item.title,
       date: (item) => item.createdAt,
     );
   }
@@ -1276,18 +1291,12 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       return buildEmptyState();
     }
 
-    final documentsToRender = sortItems<DocumentHistory>(
-      items: filteredDocuments,
-      name: (item) => item.fileName,
-      date: (item) => item.createdAt,
-    );
-
     return Column(
       children: [
         _LibrarySummary(
           totalDocuments: documents.length,
           audioCount: audiobooks.length,
-          summaryCount: documents.where((item) => item.hasSummary).length,
+          generatedCount: generatedItems.length,
         ),
         const SizedBox(height: 18),
         buildCategoryTabs(),
@@ -1327,6 +1336,22 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             ),
           ),
         ],
+        if (shouldShowCategory(LibraryCategory.generated) &&
+            filteredGeneratedItems.isNotEmpty) ...[
+          const SizedBox(height: 18),
+          _SavedGeneratedSection(
+            items: filteredGeneratedItems,
+            onOpen: openGeneratedResource,
+          ),
+        ],
+        if (shouldShowCategory(LibraryCategory.chats) &&
+            filteredChats.isNotEmpty) ...[
+          const SizedBox(height: 18),
+          _SavedChatsSection(
+            chats: filteredChats,
+            onOpenChat: openChat,
+          ),
+        ],
         if (shouldShowCategory(LibraryCategory.audiobooks) &&
             filteredAudiobooks.isNotEmpty) ...[
           const SizedBox(height: 18),
@@ -1349,49 +1374,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             },
           ),
         ],
-        if (shouldShowCategory(LibraryCategory.chats) &&
-            filteredChats.isNotEmpty) ...[
-          const SizedBox(height: 18),
-          _SavedChatsSection(
-            chats: filteredChats,
-            onOpenChat: openChat,
-          ),
-        ],
-        if (shouldShowCategory(LibraryCategory.flashcards) &&
-            filteredFlashcards.isNotEmpty) ...[
-          const SizedBox(height: 18),
-          _SavedStudySection(
-            icon: Icons.style_rounded,
-            title: 'Flashcards guardadas',
-            subtitle: 'Repasa tarjetas generadas desde tus documentos.',
-            items: filteredFlashcards,
-            actionLabel: 'Abrir flashcards',
-            onOpen: (document) {
-              openFlashcards(document);
-            },
-          ),
-        ],
-        if (shouldShowCategory(LibraryCategory.exams) &&
-            filteredExams.isNotEmpty) ...[
-          const SizedBox(height: 18),
-          _SavedStudySection(
-            icon: Icons.quiz_rounded,
-            title: 'Exámenes guardados',
-            subtitle: 'Accede a exámenes generados previamente.',
-            items: filteredExams,
-            actionLabel: 'Abrir examen',
-            onOpen: (document) {
-              openExam(document);
-            },
-          ),
-        ],
         if ((shouldShowCategory(LibraryCategory.documents) ||
                 selectedCategory == LibraryCategory.favorites ||
                 selectedCategory == LibraryCategory.all) &&
             filteredDocuments.isNotEmpty &&
             sourceFilterCount(selectedSourceFilter) > 0) ...[
           const SizedBox(height: 18),
-          ...documentsToRender.asMap().entries.map(
+          ...filteredDocuments.asMap().entries.map(
             (entry) {
               final index = entry.key;
               final document = entry.value;
@@ -1474,76 +1463,14 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final content = buildBody();
-
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      drawer: const Drawer(
-        backgroundColor: AppTheme.surface,
-        child: Sidebar(currentRoute: '/library'),
-      ),
-      bottomNavigationBar: const MiniPlayer(),
-      body: SafeArea(
-        child: ResponsiveLayout(
-          mobile: Builder(
-            builder: (context) {
-              return Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          tooltip: 'Menú',
-                          onPressed: () {
-                            Scaffold.of(context).openDrawer();
-                          },
-                          icon: const Icon(
-                            Icons.menu_rounded,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        const Expanded(
-                          child: Text(
-                            'Biblioteca',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: AppTheme.textPrimary,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(child: content),
-                ],
-              );
-            },
-          ),
-          tablet: Row(
-            children: [
-              const Sidebar(currentRoute: '/library'),
-              Expanded(child: content),
-            ],
-          ),
-          desktop: Row(
-            children: [
-              const Sidebar(currentRoute: '/library'),
-              Expanded(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1080),
-                    child: content,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+    return StudyBookAppShell(
+      currentRoute: '/library',
+      maxContentWidth: 1080,
+      child: Column(
+        children: [
+          Expanded(child: buildBody()),
+          const MiniPlayer(),
+        ],
       ),
     );
   }
@@ -1552,12 +1479,12 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 class _LibrarySummary extends StatelessWidget {
   final int totalDocuments;
   final int audioCount;
-  final int summaryCount;
+  final int generatedCount;
 
   const _LibrarySummary({
     required this.totalDocuments,
     required this.audioCount,
-    required this.summaryCount,
+    required this.generatedCount,
   });
 
   @override
@@ -1574,9 +1501,9 @@ class _LibrarySummary extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           child: _LibraryMetric(
-            icon: Icons.summarize_rounded,
-            label: 'Resúmenes',
-            value: summaryCount.toString(),
+            icon: Icons.auto_awesome_rounded,
+            label: 'Generados',
+            value: generatedCount.toString(),
           ),
         ),
         const SizedBox(width: 12),
@@ -1647,16 +1574,122 @@ class _LibraryChatItem {
   });
 }
 
-class _LibraryStudyItem {
-  final DocumentHistory document;
+class _LibraryGeneratedItem {
+  final String documentId;
+  final String sourceDocumentId;
+  final String type;
+  final String title;
+  final String subtitle;
   final String content;
   final String createdAt;
+  final bool isCloud;
 
-  const _LibraryStudyItem({
-    required this.document,
+  const _LibraryGeneratedItem({
+    required this.documentId,
+    required this.sourceDocumentId,
+    required this.type,
+    required this.title,
+    required this.subtitle,
     required this.content,
     required this.createdAt,
+    required this.isCloud,
   });
+
+  factory _LibraryGeneratedItem.fromSummary(
+    DocumentHistory document, {
+    required bool isCloud,
+  }) {
+    return _LibraryGeneratedItem(
+      documentId: document.documentId,
+      sourceDocumentId: document.documentId,
+      type: 'summary',
+      title: 'Resumen - ${document.fileName}',
+      subtitle: document.fileName,
+      content: document.cleanSummary,
+      createdAt: document.createdAt,
+      isCloud: isCloud,
+    );
+  }
+
+  factory _LibraryGeneratedItem.fromStudyResult(
+    StudyResult result, {
+    required Map<String, DocumentHistory> documentsById,
+    required Set<String> cloudDocumentIds,
+  }) {
+    final decoded = _decode(result.content);
+    final metadata = _firstMetadataMap(decoded);
+    final sourceDocumentId =
+        _firstText(metadata, const ['source_document_id', 'sourceDocumentId']);
+    final document = documentsById[sourceDocumentId] ??
+        documentsById[result.documentId] ??
+        documentsById[result.documentId
+            .replaceAll(RegExp(r'_question_bank$'), '')
+            .replaceAll(RegExp(r'_unit_exam$'), '')
+            .replaceAll(RegExp(r'_rubric$'), '')
+            .replaceAll(RegExp(r'_study_guide$'), '')];
+    final topic = _firstText(
+      metadata,
+      const [
+        'unit_topic',
+        'program_topic',
+        'exam_topic',
+        'topic',
+        'course_name',
+      ],
+    );
+    final fallbackName = document?.fileName ?? topic;
+
+    return _LibraryGeneratedItem(
+      documentId: result.documentId,
+      sourceDocumentId: sourceDocumentId.isEmpty
+          ? document?.documentId ?? result.documentId
+          : sourceDocumentId,
+      type: result.type,
+      title: _titleFor(result.type, metadata, fallbackName),
+      subtitle: _subtitleFor(result.type, metadata, fallbackName),
+      content: result.content,
+      createdAt: result.createdAt,
+      isCloud: sourceDocumentId.isNotEmpty
+          ? cloudDocumentIds.contains(sourceDocumentId)
+          : cloudDocumentIds.contains(document?.documentId ?? ''),
+    );
+  }
+
+  IconData get icon {
+    return switch (type) {
+      'summary' => Icons.summarize_rounded,
+      'flashcards' => Icons.style_rounded,
+      'exam' => Icons.quiz_rounded,
+      'question_bank' => Icons.fact_check_rounded,
+      'rubric' => Icons.assignment_turned_in_rounded,
+      'study_guide' => Icons.menu_book_rounded,
+      _ => Icons.auto_awesome_rounded,
+    };
+  }
+
+  String get typeLabel {
+    return switch (type) {
+      'summary' => 'Resumen',
+      'flashcards' => 'Flashcards',
+      'exam' => 'Examen',
+      'question_bank' => 'Banco',
+      'rubric' => 'Rúbrica',
+      'study_guide' => 'Guía',
+      _ => 'Generado',
+    };
+  }
+
+  String get actionLabel {
+    return switch (type) {
+      'summary' => 'Leer resumen',
+      'flashcards' => 'Abrir flashcards',
+      'exam' => 'Abrir examen',
+      'question_bank' => 'Abrir banco',
+      'rubric' => 'Abrir rúbrica',
+      'study_guide' => 'Ver guía',
+      _ => 'Abrir',
+    };
+  }
 
   String get preview {
     final cleanContent = content
@@ -1666,9 +1699,97 @@ class _LibraryStudyItem {
         .replaceAll('**', '')
         .replaceAll('__', '')
         .replaceAll('*', '')
+        .replaceAll(RegExp(r'[\{\}\[\]"]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
 
     return cleanContent;
+  }
+
+  static dynamic _decode(String content) {
+    try {
+      return jsonDecode(content);
+    } catch (_) {
+      return content;
+    }
+  }
+
+  static Map<String, dynamic> _firstMetadataMap(dynamic decoded) {
+    if (decoded is Map<String, dynamic>) return decoded;
+    if (decoded is Map) return Map<String, dynamic>.from(decoded);
+
+    if (decoded is List && decoded.isNotEmpty) {
+      final first = decoded.first;
+      if (first is Map<String, dynamic>) return first;
+      if (first is Map) return Map<String, dynamic>.from(first);
+    }
+
+    return {};
+  }
+
+  static String _firstText(
+    Map<String, dynamic> metadata,
+    List<String> keys,
+  ) {
+    for (final key in keys) {
+      final value = metadata[key]?.toString().trim() ?? '';
+      if (value.isNotEmpty) return value;
+    }
+
+    return '';
+  }
+
+  static String _titleFor(
+    String type,
+    Map<String, dynamic> metadata,
+    String fallbackName,
+  ) {
+    final explicit = _firstText(
+      metadata,
+      const [
+        'title',
+        'exam_title',
+        'rubric_title',
+        'guide_title',
+        'bank_title',
+      ],
+    );
+
+    if (explicit.isNotEmpty) return explicit;
+
+    final cleanFallback =
+        fallbackName.trim().isEmpty ? 'material' : fallbackName.trim();
+
+    return switch (type) {
+      'flashcards' => 'Flashcards - $cleanFallback',
+      'exam' => 'Examen - $cleanFallback',
+      'question_bank' => 'Banco de preguntas - $cleanFallback',
+      'rubric' => 'Rúbrica - $cleanFallback',
+      'study_guide' => 'Guía de estudio - $cleanFallback',
+      _ => 'Recurso generado - $cleanFallback',
+    };
+  }
+
+  static String _subtitleFor(
+    String type,
+    Map<String, dynamic> metadata,
+    String fallbackName,
+  ) {
+    final unit = _firstText(metadata, const ['unit_topic', 'program_topic']);
+    final course = _firstText(
+      metadata,
+      const ['course_display_name', 'course_name', 'course_code'],
+    );
+    final parts = [
+      if (unit.isNotEmpty) unit,
+      if (course.isNotEmpty) course,
+      if (unit.isEmpty && course.isEmpty && fallbackName.trim().isNotEmpty)
+        fallbackName.trim(),
+    ];
+
+    if (parts.isEmpty) return 'Recurso académico generado';
+
+    return parts.join(' · ');
   }
 }
 
@@ -1790,20 +1911,12 @@ class _SavedChatTile extends StatelessWidget {
   }
 }
 
-class _SavedStudySection extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final List<_LibraryStudyItem> items;
-  final String actionLabel;
-  final void Function(DocumentHistory document) onOpen;
+class _SavedGeneratedSection extends StatelessWidget {
+  final List<_LibraryGeneratedItem> items;
+  final void Function(_LibraryGeneratedItem item) onOpen;
 
-  const _SavedStudySection({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
+  const _SavedGeneratedSection({
     required this.items,
-    required this.actionLabel,
     required this.onOpen,
   });
 
@@ -1813,16 +1926,16 @@ class _SavedStudySection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
               Icon(
-                icon,
+                Icons.auto_awesome_rounded,
                 color: AppTheme.accent,
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Text(
-                title,
-                style: const TextStyle(
+                'Recursos generados',
+                style: TextStyle(
                   color: AppTheme.textPrimary,
                   fontWeight: FontWeight.w900,
                   fontSize: 18,
@@ -1831,18 +1944,17 @@ class _SavedStudySection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          Text(
-            subtitle,
-            style: const TextStyle(
+          const Text(
+            'Resúmenes, flashcards, exámenes, bancos, rúbricas y guías listos para reutilizar.',
+            style: TextStyle(
               color: AppTheme.textMuted,
               height: 1.4,
             ),
           ),
           const SizedBox(height: 16),
           ...items.map(
-            (item) => _SavedStudyTile(
+            (item) => _SavedGeneratedTile(
               item: item,
-              actionLabel: actionLabel,
               onOpen: onOpen,
             ),
           ),
@@ -1852,14 +1964,12 @@ class _SavedStudySection extends StatelessWidget {
   }
 }
 
-class _SavedStudyTile extends StatelessWidget {
-  final _LibraryStudyItem item;
-  final String actionLabel;
-  final void Function(DocumentHistory document) onOpen;
+class _SavedGeneratedTile extends StatelessWidget {
+  final _LibraryGeneratedItem item;
+  final void Function(_LibraryGeneratedItem item) onOpen;
 
-  const _SavedStudyTile({
+  const _SavedGeneratedTile({
     required this.item,
-    required this.actionLabel,
     required this.onOpen,
   });
 
@@ -1875,43 +1985,140 @@ class _SavedStudyTile extends StatelessWidget {
           color: Colors.white.withValues(alpha: 0.06),
         ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.library_books_rounded,
-            color: AppTheme.success,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.document.fileName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+          Row(
+            children: [
+              Icon(
+                item.icon,
+                color: AppTheme.success,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppTheme.textPrimary,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      item.subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppTheme.textMuted,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  item.typeLabel,
                   style: const TextStyle(
-                    color: AppTheme.textPrimary,
+                    color: AppTheme.accent,
+                    fontSize: 11,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  item.preview,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppTheme.textMuted,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          OutlinedButton.icon(
-            onPressed: () => onOpen(item.document),
-            icon: const Icon(Icons.open_in_new_rounded),
-            label: Text(actionLabel),
+          if (item.preview.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              item.preview,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: AppTheme.textMuted,
+                height: 1.35,
+                fontSize: 12,
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              OutlinedButton.icon(
+                onPressed: () => onOpen(item),
+                icon: const Icon(Icons.open_in_new_rounded),
+                label: Text(item.actionLabel),
+              ),
+              _LibraryPill(
+                icon: item.isCloud
+                    ? Icons.cloud_done_rounded
+                    : Icons.computer_rounded,
+                label: item.isCloud ? 'Cloud' : 'Local',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LibraryPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _LibraryPill({
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 7,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.06),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            color: AppTheme.textMuted,
+            size: 14,
+          ),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: const TextStyle(
+              color: AppTheme.textMuted,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ],
       ),
