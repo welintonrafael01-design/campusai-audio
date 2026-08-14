@@ -37,6 +37,7 @@ import '../widgets/studybook/booky_card.dart';
 import '../widgets/studybook/premium_section_card.dart';
 import '../widgets/studybook/studybook_buttons.dart';
 import '../widgets/studybook/studybook_states.dart';
+import '../widgets/studybook_app_shell.dart';
 import '../widgets/time_to_value_card.dart';
 
 class StudentDashboardScreen extends StatefulWidget {
@@ -620,401 +621,405 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         !ftueProgress.isComplete(ftueSteps.length);
     final isFreePlan = planCode(planGuardService.currentPlan) == 'free';
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mi Aprendizaje'),
-        actions: [
-          if (isRefreshing)
-            const Padding(
-              padding: EdgeInsets.all(14),
-              child: SizedBox.square(
-                dimension: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
+    return StudyBookAppShell(
+      currentRoute: '/learning',
+      maxContentWidth: 1180,
+      child: isLoading
+          ? const StudyBookLoadingState(
+              message: 'Booky está preparando tu día inteligente...',
             )
-          else
-            IconButton(
-              tooltip: 'Actualizar panel',
-              onPressed: () => loadStudentDashboard(refresh: true),
-              icon: const Icon(Icons.refresh_rounded),
-            ),
-        ],
-      ),
-      body: SafeArea(
-        child: isLoading
-            ? const StudyBookLoadingState(
-                message: 'Booky está preparando tu día inteligente...',
-              )
-            : RefreshIndicator(
-                onRefresh: () => loadStudentDashboard(refresh: true),
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.all(isMobile ? 16 : 24),
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 1180),
-                      child: Column(
+          : RefreshIndicator(
+              onRefresh: () => loadStudentDashboard(refresh: true),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.all(isMobile ? 16 : 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _Header(
+                      isMobile: isMobile,
+                      isRefreshing: isRefreshing,
+                      onRefresh: () => loadStudentDashboard(refresh: true),
+                    ),
+                    if (errorMessage.isNotEmpty) ...[
+                      const SizedBox(height: 18),
+                      _ErrorCard(
+                        message: errorMessage,
+                        onRetry: () => loadStudentDashboard(refresh: true),
+                      ),
+                    ],
+                    const SizedBox(height: 18),
+                    BookyCard(
+                      message: bookyGuidanceMessage(nextBestAction),
+                    ),
+                    if (showFtue) ...[
+                      const SizedBox(height: 18),
+                      if (ftueProgress.completedStepIds.isEmpty)
+                        FtueQuickStartCard(
+                          progress: ftueProgress,
+                          steps: ftueSteps,
+                          onOpenStep: openFtueStep,
+                          onDismiss: dismissFtue,
+                        )
+                      else if (nextFirstStep != null)
+                        TimeToValueCard(
+                          nextStep: nextFirstStep,
+                          completionPercentage:
+                              ftueProgress.completionPercentage(
+                            ftueSteps.length,
+                          ),
+                          onContinue: () => openFtueStep(nextFirstStep),
+                          onDismiss: dismissFtue,
+                        ),
+                    ],
+                    const SizedBox(height: 18),
+                    _IntelligentDayCard(
+                      message: intelligentDayMessage(pendingActions),
+                      detail: dayDetail,
+                    ),
+                    const SizedBox(height: 18),
+                    NextBestActionCard(
+                      action: nextBestAction,
+                      isProcessing: nextBestAction != null &&
+                          processingActionIds.contains(nextBestAction.id),
+                      onPrimary: nextBestAction == null
+                          ? () => context.goNamed('voiceTutor')
+                          : () => executeAutonomousAction(nextBestAction),
+                      onSecondary: () => context.goNamed(
+                        'voiceTutor',
+                        extra: {
+                          'title': nextBestAction?.title ?? 'Tutor IA',
+                          'suggested_prompt': nextBestAction?.reason ?? '',
+                        },
+                      ),
+                      onDismiss: nextBestAction == null
+                          ? null
+                          : () => dismissAutonomousAction(nextBestAction),
+                    ),
+                    const SizedBox(height: 18),
+                    _ContinueLearningCard(
+                      item: continueLearning,
+                      onContinue: continueLearning.hasProgress
+                          ? () => context.goNamed(
+                                'audioBookStudio',
+                                extra: {
+                                  'sourceMode': 'solo',
+                                  'sourceType': 'text',
+                                },
+                              )
+                          : null,
+                      onCreate: () => context.goNamed(
+                        'audioBookStudio',
+                        extra: const {
+                          'sourceMode': 'solo',
+                          'sourceType': 'text',
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    _PrimaryActionsCard(
+                      hasProgress: continueLearning.hasProgress,
+                      onContinue: continueLearning.hasProgress
+                          ? () => context.goNamed(
+                                'audioBookStudio',
+                                extra: const {
+                                  'sourceMode': 'solo',
+                                  'sourceType': 'text',
+                                },
+                              )
+                          : null,
+                      onCreate: () => context.goNamed(
+                        'audioBookStudio',
+                        extra: const {
+                          'sourceMode': 'solo',
+                          'sourceType': 'text',
+                        },
+                      ),
+                      onTutor: () => context.goNamed('voiceTutor'),
+                      onProgress: scrollToProgress,
+                    ),
+                    if (isFreePlan) ...[
+                      const SizedBox(height: 18),
+                      const _FreePlanNote(),
+                    ],
+                    const SizedBox(height: 18),
+                    AccessibilityCard(
+                      preferences: accessibilityPreferences,
+                      onAdjust: openAccessibilityPreferences,
+                    ),
+                    const SizedBox(height: 18),
+                    _SmartStudyPlanCard(
+                      plan: smartStudyPlan,
+                      schedule: adaptiveSchedule,
+                    ),
+                    const SizedBox(height: 18),
+                    _ResponsivePair(
+                      left: _AutonomousActionsCard(
+                        actions: remainingActions,
+                        processingActionIds: processingActionIds,
+                        onExecute: executeAutonomousAction,
+                        onDismiss: dismissAutonomousAction,
+                      ),
+                      right: _SmartAlertsCard(
+                        history: notificationHistory,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    KeyedSubtree(
+                      key: progressSectionKey,
+                      child: const _DashboardSectionLabel(
+                        title: 'Progreso y logros',
+                        subtitle:
+                            'Mira lo que ya lograste y descubre tu próximo paso.',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    if (analytics.sessions <= 0)
+                      PremiumSectionCard(
+                        child: StudyBookEmptyState(
+                          title: 'Tu progreso comienza aquí',
+                          message:
+                              'Completa tu primera sesión para que Booky pueda mostrar tu progreso.',
+                          actionLabel: 'Crea tu primer AudioBook con Booky',
+                          onAction: () => context.goNamed(
+                            'audioBookStudio',
+                            extra: const {
+                              'sourceMode': 'solo',
+                              'sourceType': 'text',
+                            },
+                          ),
+                        ),
+                      ),
+                    if (analytics.sessions > 0) ...[
+                      _MetricsGrid(analytics: analytics),
+                      const SizedBox(height: 18),
+                      _ResponsivePair(
+                        left: XpCard(xp: gamificationProfile.xp),
+                        right: CurrentLevelWidget(
+                          level: gamificationProfile.level,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      _ResponsivePair(
+                        left: NextLevelWidget(
+                          level: gamificationProfile.level,
+                        ),
+                        right: MissionCard(
+                          missions: gamificationProfile.missions,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      _ResponsivePair(
+                        left: AchievementGrid(
+                          achievements: gamificationProfile.achievements,
+                        ),
+                        right: CoinWalletWidget(
+                          wallet: gamificationProfile.wallet,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      _ResponsivePair(
+                        left: _StreakCard(streak: streak),
+                        right: _RecommendationsCard(
+                          recommendations: recommendations,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      _ResponsivePair(
+                        left: _AchievementsCard(
+                          achievements: achievements,
+                        ),
+                        right: _StudentIntelligenceCard(
+                          intelligence: intelligence,
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      _RecentSessionsCard(sessions: recentSessions),
+                    ],
+                    const SizedBox(height: 24),
+                    const _DashboardSectionLabel(
+                      title: 'Recursos recomendados',
+                      subtitle:
+                          'Materiales reales para reforzar tus áreas débiles.',
+                    ),
+                    const SizedBox(height: 12),
+                    _ResponsivePair(
+                      left: _RecommendedResourcesCard(
+                        items: marketplaceSuggestions,
+                      ),
+                      right: CreatorProfileWidget(
+                        author: marketplaceSuggestions.isEmpty
+                            ? const MarketplaceAuthor(name: 'StudyBook AI')
+                            : marketplaceSuggestions.first.author,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    _DashboardExpansionSection(
+                      title: 'Profundizar en mi progreso',
+                      subtitle:
+                          'Indicadores avanzados disponibles cuando quieras explorar más.',
+                      icon: Icons.insights_rounded,
+                      children: [
+                        _ResponsivePair(
+                          left: _CampusIntelligenceCard(
+                            snapshot: campusSnapshot,
+                          ),
+                          right: _EnterpriseAnalyticsCard(
+                            analytics: enterpriseAnalytics,
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        _CampusTrendsCard(
+                          trends: campusTrends,
+                          latestSnapshot: campusSnapshot,
+                        ),
+                        const SizedBox(height: 18),
+                        _ResponsivePair(
+                          left: KnowledgeMapWidget(
+                            knowledgeMap: knowledgeMap,
+                          ),
+                          right: LearningRoadmapWidget(
+                            roadmap: learningRoadmap,
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        _ResponsivePair(
+                          left: DigitalTwinWidget(twin: digitalTwin),
+                          right: StudyHealthWidget(
+                            twin: digitalTwin,
+                            productivity: productivity,
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        _ResponsivePair(
+                          left: FocusScoreWidget(
+                            focus: productivity.focus,
+                          ),
+                          right: ProductivityWidget(
+                            productivity: productivity,
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        _ResponsivePair(
+                          left: GoalTrackerWidget(goals: studyGoals),
+                          right: SuccessPredictionWidget(
+                            prediction: successPrediction,
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+                        _ResponsivePair(
+                          left: RiskMeterWidget(
+                            prediction: successPrediction,
+                          ),
+                          right: SmartTimelineWidget(
+                            items: smartTimeline,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    const PremiumSectionCard(
+                      child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _Header(isMobile: isMobile),
-                          if (errorMessage.isNotEmpty) ...[
-                            const SizedBox(height: 18),
-                            _ErrorCard(
-                              message: errorMessage,
-                              onRetry: () =>
-                                  loadStudentDashboard(refresh: true),
-                            ),
-                          ],
-                          const SizedBox(height: 18),
-                          BookyCard(
-                            message: bookyGuidanceMessage(nextBestAction),
+                          Icon(
+                            Icons.apartment_rounded,
+                            color: AppTheme.textMuted,
                           ),
-                          if (showFtue) ...[
-                            const SizedBox(height: 18),
-                            if (ftueProgress.completedStepIds.isEmpty)
-                              FtueQuickStartCard(
-                                progress: ftueProgress,
-                                steps: ftueSteps,
-                                onOpenStep: openFtueStep,
-                                onDismiss: dismissFtue,
-                              )
-                            else if (nextFirstStep != null)
-                              TimeToValueCard(
-                                nextStep: nextFirstStep,
-                                completionPercentage:
-                                    ftueProgress.completionPercentage(
-                                  ftueSteps.length,
-                                ),
-                                onContinue: () => openFtueStep(nextFirstStep),
-                                onDismiss: dismissFtue,
-                              ),
-                          ],
-                          const SizedBox(height: 18),
-                          _IntelligentDayCard(
-                            message: intelligentDayMessage(pendingActions),
-                            detail: dayDetail,
-                          ),
-                          const SizedBox(height: 18),
-                          NextBestActionCard(
-                            action: nextBestAction,
-                            isProcessing: nextBestAction != null &&
-                                processingActionIds.contains(nextBestAction.id),
-                            onPrimary: nextBestAction == null
-                                ? () => context.goNamed('voiceTutor')
-                                : () => executeAutonomousAction(nextBestAction),
-                            onSecondary: () => context.goNamed(
-                              'voiceTutor',
-                              extra: {
-                                'title': nextBestAction?.title ?? 'Tutor IA',
-                                'suggested_prompt':
-                                    nextBestAction?.reason ?? '',
-                              },
-                            ),
-                            onDismiss: nextBestAction == null
-                                ? null
-                                : () => dismissAutonomousAction(nextBestAction),
-                          ),
-                          const SizedBox(height: 18),
-                          _ContinueLearningCard(
-                            item: continueLearning,
-                            onContinue: continueLearning.hasProgress
-                                ? () => context.goNamed(
-                                      'audioBookStudio',
-                                      extra: {
-                                        'sourceMode': 'solo',
-                                        'sourceType': 'text',
-                                      },
-                                    )
-                                : null,
-                            onCreate: () => context.goNamed(
-                              'audioBookStudio',
-                              extra: const {
-                                'sourceMode': 'solo',
-                                'sourceType': 'text',
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          _PrimaryActionsCard(
-                            hasProgress: continueLearning.hasProgress,
-                            onContinue: continueLearning.hasProgress
-                                ? () => context.goNamed(
-                                      'audioBookStudio',
-                                      extra: const {
-                                        'sourceMode': 'solo',
-                                        'sourceType': 'text',
-                                      },
-                                    )
-                                : null,
-                            onCreate: () => context.goNamed(
-                              'audioBookStudio',
-                              extra: const {
-                                'sourceMode': 'solo',
-                                'sourceType': 'text',
-                              },
-                            ),
-                            onTutor: () => context.goNamed('voiceTutor'),
-                            onProgress: scrollToProgress,
-                          ),
-                          if (isFreePlan) ...[
-                            const SizedBox(height: 18),
-                            const _FreePlanNote(),
-                          ],
-                          const SizedBox(height: 18),
-                          AccessibilityCard(
-                            preferences: accessibilityPreferences,
-                            onAdjust: openAccessibilityPreferences,
-                          ),
-                          const SizedBox(height: 18),
-                          _SmartStudyPlanCard(
-                            plan: smartStudyPlan,
-                            schedule: adaptiveSchedule,
-                          ),
-                          const SizedBox(height: 18),
-                          _ResponsivePair(
-                            left: _AutonomousActionsCard(
-                              actions: remainingActions,
-                              processingActionIds: processingActionIds,
-                              onExecute: executeAutonomousAction,
-                              onDismiss: dismissAutonomousAction,
-                            ),
-                            right: _SmartAlertsCard(
-                              history: notificationHistory,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          KeyedSubtree(
-                            key: progressSectionKey,
-                            child: const _DashboardSectionLabel(
-                              title: 'Progreso y logros',
-                              subtitle:
-                                  'Mira lo que ya lograste y descubre tu próximo paso.',
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          if (analytics.sessions <= 0)
-                            PremiumSectionCard(
-                              child: StudyBookEmptyState(
-                                title: 'Tu progreso comienza aquí',
-                                message:
-                                    'Completa tu primera sesión para que Booky pueda mostrar tu progreso.',
-                                actionLabel:
-                                    'Crea tu primer AudioBook con Booky',
-                                onAction: () => context.goNamed(
-                                  'audioBookStudio',
-                                  extra: const {
-                                    'sourceMode': 'solo',
-                                    'sourceType': 'text',
-                                  },
-                                ),
-                              ),
-                            ),
-                          if (analytics.sessions > 0) ...[
-                            _MetricsGrid(analytics: analytics),
-                            const SizedBox(height: 18),
-                            _ResponsivePair(
-                              left: XpCard(xp: gamificationProfile.xp),
-                              right: CurrentLevelWidget(
-                                level: gamificationProfile.level,
-                              ),
-                            ),
-                            const SizedBox(height: 18),
-                            _ResponsivePair(
-                              left: NextLevelWidget(
-                                level: gamificationProfile.level,
-                              ),
-                              right: MissionCard(
-                                missions: gamificationProfile.missions,
-                              ),
-                            ),
-                            const SizedBox(height: 18),
-                            _ResponsivePair(
-                              left: AchievementGrid(
-                                achievements: gamificationProfile.achievements,
-                              ),
-                              right: CoinWalletWidget(
-                                wallet: gamificationProfile.wallet,
-                              ),
-                            ),
-                            const SizedBox(height: 18),
-                            _ResponsivePair(
-                              left: _StreakCard(streak: streak),
-                              right: _RecommendationsCard(
-                                recommendations: recommendations,
-                              ),
-                            ),
-                            const SizedBox(height: 18),
-                            _ResponsivePair(
-                              left: _AchievementsCard(
-                                achievements: achievements,
-                              ),
-                              right: _StudentIntelligenceCard(
-                                intelligence: intelligence,
-                              ),
-                            ),
-                            const SizedBox(height: 18),
-                            _RecentSessionsCard(sessions: recentSessions),
-                          ],
-                          const SizedBox(height: 24),
-                          const _DashboardSectionLabel(
-                            title: 'Recursos recomendados',
-                            subtitle:
-                                'Materiales reales para reforzar tus áreas débiles.',
-                          ),
-                          const SizedBox(height: 12),
-                          _ResponsivePair(
-                            left: _RecommendedResourcesCard(
-                              items: marketplaceSuggestions,
-                            ),
-                            right: CreatorProfileWidget(
-                              author: marketplaceSuggestions.isEmpty
-                                  ? const MarketplaceAuthor(
-                                      name: 'StudyBook AI')
-                                  : marketplaceSuggestions.first.author,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          _DashboardExpansionSection(
-                            title: 'Profundizar en mi progreso',
-                            subtitle:
-                                'Indicadores avanzados disponibles cuando quieras explorar más.',
-                            icon: Icons.insights_rounded,
-                            children: [
-                              _ResponsivePair(
-                                left: _CampusIntelligenceCard(
-                                  snapshot: campusSnapshot,
-                                ),
-                                right: _EnterpriseAnalyticsCard(
-                                  analytics: enterpriseAnalytics,
-                                ),
-                              ),
-                              const SizedBox(height: 18),
-                              _CampusTrendsCard(
-                                trends: campusTrends,
-                                latestSnapshot: campusSnapshot,
-                              ),
-                              const SizedBox(height: 18),
-                              _ResponsivePair(
-                                left: KnowledgeMapWidget(
-                                  knowledgeMap: knowledgeMap,
-                                ),
-                                right: LearningRoadmapWidget(
-                                  roadmap: learningRoadmap,
-                                ),
-                              ),
-                              const SizedBox(height: 18),
-                              _ResponsivePair(
-                                left: DigitalTwinWidget(twin: digitalTwin),
-                                right: StudyHealthWidget(
-                                  twin: digitalTwin,
-                                  productivity: productivity,
-                                ),
-                              ),
-                              const SizedBox(height: 18),
-                              _ResponsivePair(
-                                left: FocusScoreWidget(
-                                  focus: productivity.focus,
-                                ),
-                                right: ProductivityWidget(
-                                  productivity: productivity,
-                                ),
-                              ),
-                              const SizedBox(height: 18),
-                              _ResponsivePair(
-                                left: GoalTrackerWidget(goals: studyGoals),
-                                right: SuccessPredictionWidget(
-                                  prediction: successPrediction,
-                                ),
-                              ),
-                              const SizedBox(height: 18),
-                              _ResponsivePair(
-                                left: RiskMeterWidget(
-                                  prediction: successPrediction,
-                                ),
-                                right: SmartTimelineWidget(
-                                  items: smartTimeline,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-                          const PremiumSectionCard(
-                            child: Row(
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(
-                                  Icons.apartment_rounded,
-                                  color: AppTheme.textMuted,
+                                Text(
+                                  'Próximamente para instituciones, colegios y universidades.',
+                                  style: TextStyle(
+                                    color: AppTheme.textPrimary,
+                                    fontWeight: FontWeight.w900,
+                                  ),
                                 ),
-                                SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Próximamente para instituciones, colegios y universidades.',
-                                        style: TextStyle(
-                                          color: AppTheme.textPrimary,
-                                          fontWeight: FontWeight.w900,
-                                        ),
-                                      ),
-                                      SizedBox(height: 5),
-                                      Text(
-                                        'La versión 1.0 está enfocada en estudiantes y docentes.',
-                                        style: TextStyle(
-                                          color: AppTheme.textMuted,
-                                        ),
-                                      ),
-                                    ],
+                                SizedBox(height: 5),
+                                Text(
+                                  'La versión 1.0 está enfocada en estudiantes y docentes.',
+                                  style: TextStyle(
+                                    color: AppTheme.textMuted,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 18),
-                          _DashboardExpansionSection(
-                            title: 'Beta y lanzamiento',
-                            subtitle:
-                                'Comparte tu experiencia o vuelve a consultar la guía inicial.',
-                            icon: Icons.rocket_launch_outlined,
-                            children: [
-                              BetaLaunchCard(
-                                report: launchReport,
-                                isLoading: isLaunchLoading,
-                                onFeedback: openBetaFeedback,
-                                onOnboarding: openOnboardingGuide,
-                              ),
-                            ],
-                          ),
                         ],
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 18),
+                    _DashboardExpansionSection(
+                      title: 'Beta y lanzamiento',
+                      subtitle:
+                          'Comparte tu experiencia o vuelve a consultar la guía inicial.',
+                      icon: Icons.rocket_launch_outlined,
+                      children: [
+                        BetaLaunchCard(
+                          report: launchReport,
+                          isLoading: isLaunchLoading,
+                          onFeedback: openBetaFeedback,
+                          onOnboarding: openOnboardingGuide,
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-      ),
+            ),
     );
   }
 }
 
 class _Header extends StatelessWidget {
   final bool isMobile;
+  final bool isRefreshing;
+  final VoidCallback onRefresh;
 
-  const _Header({required this.isMobile});
+  const _Header({
+    required this.isMobile,
+    required this.isRefreshing,
+    required this.onRefresh,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Mi Aprendizaje',
-          style: TextStyle(
-            color: AppTheme.textPrimary,
-            fontSize: isMobile ? 30 : 42,
-            fontWeight: FontWeight.w900,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Mi Aprendizaje',
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: isMobile ? 30 : 42,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+            if (isRefreshing)
+              const Padding(
+                padding: EdgeInsets.all(10),
+                child: SizedBox.square(
+                  dimension: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              )
+            else
+              IconButton(
+                tooltip: 'Actualizar aprendizaje',
+                onPressed: onRefresh,
+                icon: const Icon(
+                  Icons.refresh_rounded,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 8),
         const Text(
