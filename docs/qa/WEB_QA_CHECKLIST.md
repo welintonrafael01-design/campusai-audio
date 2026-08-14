@@ -1,6 +1,6 @@
 # Web QA Checklist
 
-Status: DRAFT.
+Status: READY FOR MANUAL QA.
 
 - Login/logout.
 - `/dashboard` requires auth.
@@ -11,4 +11,8 @@ Status: DRAFT.
 - `/admin` redirects for non-admin.
 - `/teacher` redirects for non-teacher.
 - AI tools remain visible and named consistently.
-
+- No duplicate `Audio Libro` / `Audiolibro` labels in active UI.
+- `/learning` renders inside the shared app shell.
+- `/teacher` renders inside the shared app shell for teacher-capable users.
+- `/account` and `/plans` render inside the shared app shell.
+- Production web build succeeds.
