@@ -11,35 +11,21 @@ import '../models/study_result.dart';
 import '../models/workspace_model.dart';
 import '../providers/document_provider.dart';
 import '../services/api_service.dart';
-import '../services/auth_service.dart';
 import '../services/cloud_api_service.dart';
 import '../services/audio_player_service.dart';
 import '../services/history_service.dart';
 import '../services/onboarding_service.dart';
-import '../services/plan_guard_service.dart';
 import '../services/recent_documents_service.dart';
 import '../services/subscription_service.dart';
 import '../services/study_result_service.dart';
 import '../services/workspace_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_fade_slide.dart';
-import '../widgets/dashboard/dashboard_hero.dart';
-import '../widgets/dashboard/dashboard_stats.dart';
-import '../widgets/dashboard/dashboard_academic_activity.dart';
 import '../widgets/dashboard/dashboard_tools.dart';
-import '../widgets/dashboard/dashboard_educator_center.dart';
-import '../widgets/dashboard/history_list.dart';
-import '../widgets/dashboard/recent_documents_panel.dart';
-import '../widgets/dashboard/workspaces_panel.dart';
-import '../widgets/dashboard/cloud_chats_panel.dart';
-import '../widgets/mini_player.dart';
 import '../widgets/onboarding/studybook_onboarding_dialog.dart';
 import '../widgets/sidebar.dart';
-import '../widgets/search/semantic_search_panel.dart';
-import '../widgets/dashboard/modules/dashboard_audio_section.dart';
 import '../widgets/dashboard/modules/dashboard_error_card.dart';
 import '../widgets/dashboard/modules/dashboard_processing_card.dart';
-import '../widgets/dashboard/modules/dashboard_summary_section.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -74,42 +60,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   bool get hasActiveDocument => documentId.trim().isNotEmpty;
 
   AppLocalizations get l10n => AppLocalizations.of(context);
-
-  String _dashboardUserName() {
-    final metadata = AuthService.currentUser?.userMetadata ?? {};
-    final fullName =
-        (metadata['full_name'] ?? metadata['name'] ?? metadata['display_name'])
-            ?.toString()
-            .trim();
-
-    if (fullName != null && fullName.isNotEmpty) {
-      return fullName.split(' ').first;
-    }
-
-    final email = AuthService.currentUser?.email?.trim() ?? '';
-
-    if (email.toLowerCase().startsWith('welintonrafael01')) {
-      return 'Welinton';
-    }
-
-    if (email.toLowerCase().startsWith('cruzgeraldoc24')) {
-      return 'Cruz';
-    }
-
-    final rawName = email.split('@').first.replaceAll('.', ' ').trim();
-
-    if (rawName.isEmpty) {
-      return 'Estudiante';
-    }
-
-    return rawName
-        .split(RegExp(r'\s+'))
-        .where((part) => part.trim().isNotEmpty)
-        .map((part) {
-      final clean = part.trim();
-      return clean[0].toUpperCase() + clean.substring(1).toLowerCase();
-    }).join(' ');
-  }
 
   @override
   void initState() {
@@ -849,6 +799,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Future<void> uploadPdf() async {
     await audioService.reset();
 
+    if (!mounted) return;
+
     setState(() {
       isLoading = true;
       isPlaying = false;
@@ -1094,6 +1046,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final weeks = await pickTeachingPlanWeeks();
 
     if (weeks == null) return;
+    if (!mounted) return;
 
     setState(() => isGeneratingQuestionBank = true);
 
@@ -1434,6 +1387,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final rubricOptions = await pickRubricOptions();
 
     if (rubricOptions == null) return;
+    if (!mounted) return;
 
     setState(() => isGeneratingQuestionBank = true);
 
@@ -1847,6 +1801,137 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
+  void openSummarySheet() {
+    if (!hasActiveDocument) {
+      showNoActiveDocumentMessage();
+      return;
+    }
+
+    final cleanSummary = cleanMarkdown(summary);
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppTheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (sheetContext) {
+        final bottomPadding = MediaQuery.of(sheetContext).viewInsets.bottom;
+
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(22, 22, 22, 22 + bottomPadding),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 520),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primary.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(
+                          Icons.summarize_rounded,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Text(
+                          'Resumen del documento',
+                          style: TextStyle(
+                            color: AppTheme.textPrimary,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    fileName.isEmpty ? l10n.activeDocument : fileName,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: AppTheme.textMuted),
+                  ),
+                  const SizedBox(height: 18),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: Text(
+                        cleanSummary.isEmpty
+                            ? 'Aún no hay resumen disponible. Puedes abrir el chat para analizar este documento con Booky.'
+                            : cleanSummary,
+                        style: const TextStyle(
+                          color: AppTheme.textPrimary,
+                          height: 1.55,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      FilledButton.icon(
+                        onPressed: () {
+                          Navigator.of(sheetContext).pop();
+                          openChatScreen();
+                        },
+                        icon: const Icon(Icons.chat_bubble_rounded),
+                        label: const Text('Abrir chat'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: cleanSummary.isEmpty
+                            ? null
+                            : () {
+                                Navigator.of(sheetContext).pop();
+                                generateAudio();
+                              },
+                        icon: const Icon(Icons.volume_up_rounded),
+                        label: const Text('Escuchar resumen'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void openAudioBookStudio() {
+    context.pushNamed(
+      'audioBookStudio',
+      extra: {
+        'sourceMode': hasActiveDocument ? 'document' : 'solo',
+        'sourceType': hasActiveDocument ? 'document' : 'text',
+        'sourceDocumentId': documentId,
+        'initialTitle': fileName,
+        'initialText': summary,
+      },
+    );
+  }
+
+  void openVoiceTutorScreen() {
+    context.pushNamed(
+      'voiceTutor',
+      extra: {
+        'documentId': documentId,
+        'title': fileName.isEmpty ? 'Voice Tutor' : fileName,
+      },
+    );
+  }
+
   Future<void> generateQuestionBank() async {
     if (isGeneratingQuestionBank) return;
 
@@ -1974,151 +2059,63 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     required String effectiveFileName,
   }) {
     final isMobile = ResponsiveLayout.isMobile(context);
+    final visibleRecentDocuments = recentDocuments.take(3).toList();
 
     return ListView(
       padding: EdgeInsets.all(isMobile ? 16 : 22),
       children: [
         AnimatedFadeSlide(
-          child: DashboardHero(
-            documentCount: history.length,
+          child: _AiFirstHeader(
             hasActiveDocument: effectiveHasActiveDocument,
-            userName: _dashboardUserName(),
-            planName: const PlanGuardService().currentPlanName,
-            activeFileName: effectiveFileName,
-            onContinueStudy: openChatScreen,
             onUploadPdf: uploadPdf,
+            onOpenLibrary: () => context.goNamed('library'),
           ),
         ),
-        const SizedBox(height: 18),
+        SizedBox(height: isMobile ? 16 : 18),
         AnimatedFadeSlide(
-          delay: const Duration(milliseconds: 80),
-          child: DashboardStats(
-            documentCount: history.length,
+          delay: const Duration(milliseconds: 70),
+          child: _ActiveDocumentCard(
             hasActiveDocument: effectiveHasActiveDocument,
+            fileName: effectiveFileName,
+            onUploadPdf: uploadPdf,
+            onOpenLibrary: () => context.goNamed('library'),
+            onOpenChat: openChatScreen,
           ),
         ),
-        SizedBox(height: isMobile ? 22 : 28),
+        SizedBox(height: isMobile ? 20 : 24),
         AnimatedFadeSlide(
           delay: const Duration(milliseconds: 120),
-          child: DashboardAcademicActivity(
-            workspaceCount: workspaces.length,
-            workspaceDocumentCount: workspaces.fold<int>(
-              0,
-              (total, workspace) => total + workspace.documents.length,
-            ),
-          ),
-        ),
-        SizedBox(height: isMobile ? 22 : 28),
-        AnimatedFadeSlide(
-          delay: const Duration(milliseconds: 150),
-          child: DashboardEducatorCenter(
-            hasActiveDocument: effectiveHasActiveDocument,
-            openExam: openExamScreen,
-            openFlashcards: openFlashcardsScreen,
-            openQuestionBank: generateQuestionBank,
-            openRubric: generateRubric,
-            openTeachingPlan: generateTeachingPlan,
-          ),
-        ),
-        SizedBox(height: isMobile ? 22 : 28),
-        AnimatedFadeSlide(
-          delay: const Duration(milliseconds: 190),
           child: DashboardTools(
             isLoading: isLoading,
             hasActiveDocument: effectiveHasActiveDocument,
-            uploadPdf: uploadPdf,
             openChat: openChatScreen,
-            openExam: openExamScreen,
+            openSummary: openSummarySheet,
+            openAudiobook: openAudioBookStudio,
+            openVoiceTutor: openVoiceTutorScreen,
             openFlashcards: openFlashcardsScreen,
-            openAudiobook: generateAudio,
+            openQuiz: openExamScreen,
+            openQuestionBank: generateQuestionBank,
+            openExam: openExamScreen,
           ),
         ),
-        const SizedBox(height: 22),
+        const SizedBox(height: 18),
         DashboardErrorCard(
           errorMessage: errorMessage,
         ),
-        if (errorMessage.isNotEmpty) const SizedBox(height: 20),
+        if (errorMessage.isNotEmpty) const SizedBox(height: 18),
         if (isLoading) ...[
           const DashboardProcessingCard(),
-          const SizedBox(height: 24),
-        ],
-        if (!isLoading) ...[
-          DashboardSummarySection(
-            summary: summary,
-            onListenSummary: generateAudio,
-            onVoiceChat: openChatScreen,
-            isGeneratingAudio: isGeneratingAudio,
-          ),
-          if (summary.isNotEmpty) const SizedBox(height: 24),
-          DashboardAudioSection(
-            fileName: fileName,
-            fullAudioUrl: fullAudioUrl,
-            isPlaying: isPlaying,
-            isGeneratingAudio: isGeneratingAudio,
-            hasSummary: summary.trim().isNotEmpty,
-            currentPosition: currentPosition,
-            totalDuration: totalDuration,
-            onGenerateAudio: generateAudio,
-            onPlayPause: isPlaying ? pauseAudio : playAudio,
-            onReplay: replayAudio,
-            onSeek: (value) {
-              audioService.seek(
-                Duration(seconds: value.toInt()),
-              );
-            },
-          ),
-          if (fullAudioUrl.isNotEmpty) const SizedBox(height: 28),
+          const SizedBox(height: 18),
         ],
         AnimatedFadeSlide(
-          delay: const Duration(milliseconds: 240),
-          child: SemanticSearchPanel(
-            onOpenDocument: openSemanticSearchDocument,
+          delay: const Duration(milliseconds: 170),
+          child: _RecentMiniList(
+            documents: visibleRecentDocuments,
+            onOpenDocument: openRecentDocument,
+            onOpenLibrary: () => context.goNamed('library'),
           ),
         ),
-        const SizedBox(height: 24),
-        AnimatedFadeSlide(
-          delay: const Duration(milliseconds: 280),
-          child: WorkspacesPanel(
-            workspaces: workspaces,
-            onCreateWorkspace: createWorkspace,
-            onOpenWorkspace: openWorkspace,
-            onWorkspaceFlashcards: openWorkspaceFlashcards,
-            onWorkspaceExam: openWorkspaceExam,
-            onOpenChat: openCloudChat,
-            onAddDocuments: addDocumentsToWorkspace,
-            onRenameWorkspace: renameWorkspace,
-            onRemoveDocument: removeDocumentFromWorkspace,
-            onDeleteWorkspace: deleteWorkspace,
-          ),
-        ),
-        const SizedBox(height: 24),
-        AnimatedFadeSlide(
-          delay: const Duration(milliseconds: 320),
-          child: RecentDocumentsPanel(
-            documents: recentDocuments,
-            onOpen: openRecentDocument,
-            onDelete: deleteRecentDocument,
-          ),
-        ),
-        const SizedBox(height: 24),
-        AnimatedFadeSlide(
-          delay: const Duration(milliseconds: 340),
-          child: CloudChatsPanel(
-            onOpenChat: openCloudChat,
-          ),
-        ),
-        const SizedBox(height: 24),
-        AnimatedFadeSlide(
-          delay: const Duration(milliseconds: 360),
-          child: HistoryList(
-            history: history,
-            clearHistory: clearAllHistory,
-            loadDocument: loadHistoryItem,
-            deleteDocument: deleteHistoryItem,
-          ),
-        ),
-        const SizedBox(height: 24),
-        const MiniPlayer(),
+        const SizedBox(height: 18),
       ],
     );
   }
@@ -2201,6 +2198,345 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AiFirstHeader extends StatelessWidget {
+  final bool hasActiveDocument;
+  final VoidCallback onUploadPdf;
+  final VoidCallback onOpenLibrary;
+
+  const _AiFirstHeader({
+    required this.hasActiveDocument,
+    required this.onUploadPdf,
+    required this.onOpenLibrary,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = ResponsiveLayout.isMobile(context);
+
+    return Container(
+      padding: EdgeInsets.all(isMobile ? 22 : 30),
+      decoration: BoxDecoration(
+        gradient: AppTheme.mainGradient,
+        borderRadius: BorderRadius.circular(isMobile ? 24 : 30),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primary.withValues(alpha: 0.20),
+            blurRadius: 30,
+            offset: const Offset(0, 18),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: const Text(
+              'StudyBook AI',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            hasActiveDocument
+                ? '¿Qué quieres hacer con IA?'
+                : 'Sube un PDF y Booky lo convierte en aprendizaje.',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: isMobile ? 28 : 38,
+              fontWeight: FontWeight.w900,
+              height: 1.05,
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Chat, resumen, AudioBook, Voice Tutor, flashcards y evaluaciones en un solo lugar.',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 22),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              FilledButton.icon(
+                onPressed: onUploadPdf,
+                icon: const Icon(Icons.upload_file_rounded),
+                label: const Text('Subir PDF'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppTheme.primary,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 14,
+                  ),
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: onOpenLibrary,
+                icon: const Icon(Icons.folder_open_rounded),
+                label: const Text('Seleccionar documento'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: BorderSide(
+                    color: Colors.white.withValues(alpha: 0.70),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActiveDocumentCard extends StatelessWidget {
+  final bool hasActiveDocument;
+  final String fileName;
+  final VoidCallback onUploadPdf;
+  final VoidCallback onOpenLibrary;
+  final VoidCallback onOpenChat;
+
+  const _ActiveDocumentCard({
+    required this.hasActiveDocument,
+    required this.fileName,
+    required this.onUploadPdf,
+    required this.onOpenLibrary,
+    required this.onOpenChat,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: (hasActiveDocument ? AppTheme.success : AppTheme.accent)
+                  .withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Icon(
+              hasActiveDocument
+                  ? Icons.description_rounded
+                  : Icons.upload_file_rounded,
+              color: hasActiveDocument ? AppTheme.success : AppTheme.accent,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Documento activo',
+                  style: TextStyle(
+                    color: AppTheme.textMuted,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  hasActiveDocument
+                      ? (fileName.isEmpty ? 'Documento listo' : fileName)
+                      : 'Ningún documento seleccionado',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  hasActiveDocument
+                      ? 'Listo para chat, resumen, audio y práctica.'
+                      : 'Sube un PDF o elige uno de tu biblioteca para empezar.',
+                  style: const TextStyle(
+                    color: AppTheme.textMuted,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    if (hasActiveDocument)
+                      FilledButton.icon(
+                        onPressed: onOpenChat,
+                        icon: const Icon(Icons.chat_bubble_rounded),
+                        label: const Text('Abrir chat'),
+                      )
+                    else
+                      FilledButton.icon(
+                        onPressed: onUploadPdf,
+                        icon: const Icon(Icons.upload_file_rounded),
+                        label: const Text('Subir PDF'),
+                      ),
+                    OutlinedButton.icon(
+                      onPressed: onOpenLibrary,
+                      icon: const Icon(Icons.swap_horiz_rounded),
+                      label: Text(
+                        hasActiveDocument
+                            ? 'Cambiar documento'
+                            : 'Abrir Biblioteca',
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RecentMiniList extends StatelessWidget {
+  final List<RecentDocumentModel> documents;
+  final ValueChanged<RecentDocumentModel> onOpenDocument;
+  final VoidCallback onOpenLibrary;
+
+  const _RecentMiniList({
+    required this.documents,
+    required this.onOpenDocument,
+    required this.onOpenLibrary,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Recientes',
+                  style: TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: onOpenLibrary,
+                child: const Text('Ver Biblioteca'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (documents.isEmpty)
+            const Text(
+              'Tus últimos documentos aparecerán aquí.',
+              style: TextStyle(color: AppTheme.textMuted),
+            )
+          else
+            ...documents.map(
+              (document) => _RecentMiniTile(
+                document: document,
+                onTap: () => onOpenDocument(document),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RecentMiniTile extends StatelessWidget {
+  final RecentDocumentModel document;
+  final VoidCallback onTap;
+
+  const _RecentMiniTile({
+    required this.document,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Material(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(18),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.description_rounded,
+                  color: AppTheme.accent,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    document.fileName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(
+                  Icons.arrow_forward_rounded,
+                  color: AppTheme.textMuted,
+                  size: 18,
+                ),
+              ],
+            ),
           ),
         ),
       ),

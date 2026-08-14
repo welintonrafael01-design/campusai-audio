@@ -1,0 +1,79 @@
+{
+  "project": "StudyBook AI",
+  "repository": "/Users/welintonmejia/Desktop/campusai-audio",
+  "branch": "fix/android-platform-compat-838084d",
+  "audit_date": "2026-08-13",
+  "counts": {
+    "screens": 29,
+    "routes": 30,
+    "dart_services": 185,
+    "widgets": 54,
+    "providers": 5,
+    "backend_endpoints": 80,
+    "flutter_tests": 1,
+    "backend_test_sources": 0
+  },
+  "routes": [
+    {"path": "/auth", "screen": "AuthScreen", "classification": "public_core", "decision": "reuse"},
+    {"path": "/reset-password", "screen": "ResetPasswordScreen", "classification": "public_core", "decision": "reuse"},
+    {"path": "/verify/:certificateId", "screen": "CertificateVerifyScreen", "classification": "public_core", "decision": "reuse"},
+    {"path": "/dashboard", "screen": "DashboardScreen", "classification": "private_core", "decision": "refactor"},
+    {"path": "/library", "screen": "LibraryScreen", "classification": "private_core", "decision": "rebuild_ui"},
+    {"path": "/student-dashboard", "screen": "StudentDashboardScreen", "classification": "learning", "decision": "refactor"},
+    {"path": "/audiobook-studio", "screen": "AudioBookStudioScreen", "classification": "ai_core", "decision": "refactor"},
+    {"path": "/voice-tutor", "screen": "VoiceTutorScreen", "classification": "ai_core", "decision": "reuse_with_qa"},
+    {"path": "/chat/:documentId", "screen": "ChatScreen", "classification": "ai_core", "decision": "reuse_with_fix"},
+    {"path": "/exam/:documentId", "screen": "ExamScreen", "classification": "ai_core", "decision": "reuse_with_ux_fix"},
+    {"path": "/flashcards/:documentId", "screen": "FlashcardsScreen", "classification": "ai_core", "decision": "reuse"},
+    {"path": "/question-bank/:documentId", "screen": "QuestionBankScreen", "classification": "ai_core_teacher", "decision": "reuse"},
+    {"path": "/rubric/:documentId", "screen": "RubricScreen", "classification": "teacher_core", "decision": "reuse"},
+    {"path": "/teaching-plan/:documentId", "screen": "TeachingPlanScreen", "classification": "teacher_core", "decision": "refactor"},
+    {"path": "/courses", "screen": "CoursesScreen", "classification": "teacher_core", "decision": "reuse_as_teacher_entry_now"},
+    {"path": "/students", "screen": "StudentsScreen", "classification": "teacher_core", "decision": "reuse"},
+    {"path": "/attendance", "screen": "AttendanceScreen", "classification": "teacher_core", "decision": "reuse"},
+    {"path": "/gradebook", "screen": "GradebookScreen", "classification": "teacher_core", "decision": "reuse_with_cloud_plan"},
+    {"path": "/saved-exams", "screen": "SavedExamsScreen", "classification": "teacher_core", "decision": "reuse"},
+    {"path": "/final-report", "screen": "FinalReportScreen", "classification": "teacher_advanced", "decision": "reuse_with_fix"},
+    {"path": "/assessment-weights", "screen": "AssessmentWeightsScreen", "classification": "teacher_advanced", "decision": "hide_initially"},
+    {"path": "/academic-dashboard", "screen": "AcademicDashboardScreen", "classification": "teacher_advanced", "decision": "hide"},
+    {"path": "/academic-recognition", "screen": "AcademicRecognitionScreen", "classification": "teacher_advanced", "decision": "hide"},
+    {"path": "/unit-workspace", "screen": "UnitWorkspaceScreen", "classification": "teacher_advanced", "decision": "hide_contextual"},
+    {"path": "/student-profile", "screen": "StudentProfileScreen", "classification": "teacher_advanced", "decision": "merge_later"},
+    {"path": "/student-transcript", "screen": "StudentTranscriptScreen", "classification": "teacher_advanced", "decision": "hide_contextual"},
+    {"path": "/plans", "screen": "PlansScreen", "classification": "account_billing", "decision": "move_to_account"},
+    {"path": "/settings", "screen": "SettingsScreen", "classification": "account_core", "decision": "reuse"},
+    {"path": "/admin", "screen": "AdminAnalyticsScreen", "classification": "admin", "decision": "hide_rebuild_guard"},
+    {"path": "/admin/financial-dashboard", "screen": "FinancialDashboardScreen", "classification": "admin_billing", "decision": "hide_guard"}
+  ],
+  "ai_features": [
+    {"name": "Chat", "status": "WORKING", "decision": "KEEP"},
+    {"name": "Resumir", "status": "WORKING_COUPLED_TO_UPLOAD", "decision": "KEEP_WITH_FIX"},
+    {"name": "AudioBook", "status": "WORKING_COMPLEX", "decision": "KEEP_REFACTOR"},
+    {"name": "Voice Tutor", "status": "PARTIAL", "decision": "KEEP_WITH_QA"},
+    {"name": "Flashcards", "status": "WORKING", "decision": "KEEP"},
+    {"name": "Quiz", "status": "WORKING", "decision": "KEEP"},
+    {"name": "Banco de preguntas", "status": "WORKING", "decision": "KEEP"},
+    {"name": "Generar examen", "status": "WORKING", "decision": "KEEP"},
+    {"name": "Rúbricas", "status": "WORKING", "decision": "TEACHER_CORE"},
+    {"name": "Planificación", "status": "WORKING", "decision": "TEACHER_CORE"},
+    {"name": "Study Guide", "status": "WORKING", "decision": "TEACHER_ADVANCED"},
+    {"name": "Semantic Search", "status": "PARTIAL", "decision": "HIDE"},
+    {"name": "Workspace AI", "status": "EXPERIMENTAL", "decision": "HIDE"},
+    {"name": "Autonomous Agents", "status": "EXPERIMENTAL", "decision": "HIDE"}
+  ],
+  "security_findings": [
+    {"severity": "CRITICAL", "finding": "ADMIN_API_KEY referenced by Flutter analytics_service.dart"},
+    {"severity": "CRITICAL", "finding": "No global GoRouter auth/role/plan guard"},
+    {"severity": "HIGH", "finding": "ApiService.baseUrl hardcoded to http://localhost:8000"},
+    {"severity": "HIGH", "finding": "Local PlanGuardService can drive UI entitlements"},
+    {"severity": "HIGH", "finding": "backend .env and backups present in tree"}
+  ],
+  "upload_regression": {
+    "root_cause": "DashboardScreen.uploadPdf shows modal/loading before FilePicker selection; cancel/platform picker failure can feel like no action, and error messaging is generic.",
+    "affected_files": [
+      "mobile/campusai_mobile/lib/screens/dashboard_screen.dart",
+      "mobile/campusai_mobile/lib/services/api_service.dart"
+    ],
+    "recommendation": "Pick file first, then set loading and show progress; distinguish cancel from failure; add upload controller."
+  }
+}

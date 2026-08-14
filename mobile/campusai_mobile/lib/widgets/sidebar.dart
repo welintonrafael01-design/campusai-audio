@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 import '../config/app_plans.dart';
 import '../services/plan_guard_service.dart';
@@ -16,7 +15,8 @@ class Sidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
+    final plan = const PlanGuardService().currentPlan;
+    final showTeacherStudio = plan == CampusPlan.teacher;
 
     return Container(
       width: 280,
@@ -58,8 +58,8 @@ class Sidebar extends StatelessWidget {
           ),
           const SizedBox(height: 40),
           _SidebarItem(
-            title: l10n.dashboard,
-            icon: Icons.dashboard_rounded,
+            title: 'Inicio',
+            icon: Icons.home_rounded,
             selected: currentRoute == '/dashboard',
             onTap: () {
               context.go('/dashboard');
@@ -74,23 +74,24 @@ class Sidebar extends StatelessWidget {
             },
           ),
           _SidebarItem(
-            title: 'Planes',
-            icon: Icons.workspace_premium_rounded,
-            selected: currentRoute == '/plans',
+            title: 'Aprendizaje',
+            icon: Icons.auto_stories_rounded,
+            selected: currentRoute == '/student-dashboard',
             onTap: () {
-              context.go('/plans');
+              context.go('/student-dashboard');
             },
           ),
+          if (showTeacherStudio)
+            _SidebarItem(
+              title: 'Teacher Studio',
+              icon: Icons.school_rounded,
+              selected: currentRoute == '/courses',
+              onTap: () {
+                context.go('/courses');
+              },
+            ),
           _SidebarItem(
-            title: 'Finanzas',
-            icon: Icons.query_stats_rounded,
-            selected: currentRoute == '/admin/financial-dashboard',
-            onTap: () {
-              context.go('/admin/financial-dashboard');
-            },
-          ),
-          _SidebarItem(
-            title: 'Mi Cuenta',
+            title: 'Cuenta',
             icon: Icons.account_circle_rounded,
             selected: currentRoute == '/settings',
             onTap: () {
@@ -100,8 +101,6 @@ class Sidebar extends StatelessWidget {
           const Spacer(),
           Builder(
             builder: (context) {
-              final plan = const PlanGuardService().currentPlan;
-
               final title = switch (plan) {
                 CampusPlan.free => 'Cuenta Free',
                 CampusPlan.student => 'Cuenta Student',
