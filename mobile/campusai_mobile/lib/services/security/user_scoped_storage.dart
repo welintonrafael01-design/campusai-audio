@@ -4,7 +4,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class UserScopedStorage {
   const UserScopedStorage._();
 
+  static String? _debugUserScopeOverride;
+
   static String get currentUserScope {
+    final override = _debugUserScopeOverride?.trim();
+    if (override != null && override.isNotEmpty) return override;
+
     try {
       final user = Supabase.instance.client.auth.currentUser;
       final id = user?.id.trim();
@@ -44,5 +49,9 @@ class UserScopedStorage {
   static Future<void> remove(String baseKey) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(key(baseKey));
+  }
+
+  static void debugSetUserScopeForTesting(String? scope) {
+    _debugUserScopeOverride = scope;
   }
 }

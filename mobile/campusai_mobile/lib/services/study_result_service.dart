@@ -7,12 +7,22 @@ import 'educator_sync_service.dart';
 import 'security/user_scoped_storage.dart';
 
 class StudyResultService {
+  static const String _key = 'study_result';
+
   static String _buildBaseKey(String documentId, String type) {
-    return '\${_key}_\${documentId.trim()}_\${type.trim()}';
+    return '${_key}_${documentId.trim()}_${type.trim()}';
+  }
+
+  static String _buildLegacyBaseKey(String documentId, String type) {
+    return r'${_key}_${documentId.trim()}_${type.trim()}';
   }
 
   static String _buildScopedKey(String documentId, String type) {
     return UserScopedStorage.key(_buildBaseKey(documentId, type));
+  }
+
+  static String _buildLegacyScopedKey(String documentId, String type) {
+    return UserScopedStorage.key(_buildLegacyBaseKey(documentId, type));
   }
 
   static Future<void> saveResult(StudyResult result) async {
@@ -26,8 +36,9 @@ class StudyResultService {
     );
 
     if (result.type == 'question_bank') {
-      final current =
-          prefs.getStringList(EducatorSyncService.scopedKey(EducatorSyncService.questionBanksKey)) ?? [];
+      final current = prefs.getStringList(EducatorSyncService.scopedKey(
+              EducatorSyncService.questionBanksKey)) ??
+          [];
       final asJson = result.toJson();
       asJson['id'] = result.documentId;
       asJson['documentId'] = result.documentId;
@@ -47,7 +58,9 @@ class StudyResultService {
           .toList();
 
       updated.insert(0, jsonEncode(asJson));
-      await prefs.setStringList(EducatorSyncService.scopedKey(EducatorSyncService.questionBanksKey), updated);
+      await prefs.setStringList(
+          EducatorSyncService.scopedKey(EducatorSyncService.questionBanksKey),
+          updated);
       await EducatorSyncService.syncAfterLocalWrite();
     }
   }
@@ -59,8 +72,11 @@ class StudyResultService {
     final prefs = await SharedPreferences.getInstance();
 
     final raw = prefs.getString(
-      _buildScopedKey(documentId, type),
-    );
+          _buildScopedKey(documentId, type),
+        ) ??
+        prefs.getString(
+          _buildLegacyScopedKey(documentId, type),
+        );
 
     if (raw == null || raw.trim().isEmpty) {
       return null;
@@ -71,7 +87,11 @@ class StudyResultService {
 
       if (decoded is Map<String, dynamic>) {
         final result = StudyResult.fromJson(decoded);
-        return result.isValid ? result : null;
+        return result.isValid &&
+                result.documentId == documentId &&
+                result.type == type
+            ? result
+            : null;
       }
 
       return null;
@@ -82,12 +102,18 @@ class StudyResultService {
 
   static Future<List<StudyResult>> getResultsByType(String type) async {
     final prefs = await SharedPreferences.getInstance();
-    final suffix = '_\${type.trim()}_\${UserScopedStorage.currentUserScope}';
-    final prefix = '\${_key}_';
+    final suffix = '_${type.trim()}_${UserScopedStorage.currentUserScope}';
+    final legacySuffix = '_${UserScopedStorage.currentUserScope}';
+    final prefix = '${_key}_';
+    final legacyPrefix = r'${_key}_';
     final results = <StudyResult>[];
 
     for (final key in prefs.getKeys()) {
-      if (!key.startsWith(prefix) || !key.endsWith(suffix)) continue;
+      final isCurrentKey = key.startsWith(prefix) && key.endsWith(suffix);
+      final isLegacyKey =
+          key.startsWith(legacyPrefix) && key.endsWith(legacySuffix);
+
+      if (!isCurrentKey && !isLegacyKey) continue;
 
       final raw = prefs.getString(key);
       if (raw == null || raw.trim().isEmpty) continue;
@@ -120,6 +146,9 @@ class StudyResultService {
 
     await prefs.remove(
       _buildScopedKey(documentId, type),
+    );
+    await prefs.remove(
+      _buildLegacyScopedKey(documentId, type),
     );
   }
 }
