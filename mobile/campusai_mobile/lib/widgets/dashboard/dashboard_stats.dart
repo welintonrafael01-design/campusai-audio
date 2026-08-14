@@ -85,7 +85,8 @@ class DashboardStats extends StatelessWidget {
     final currentPlanName = AppPlans.planNames[currentPlan] ?? 'Free';
 
     final usageFuture = ApiService.getUsageSummary();
-    final flashcardsFuture = CloudApiService.getStudyResults(type: 'flashcards');
+    final flashcardsFuture =
+        CloudApiService.getStudyResults(type: 'flashcards');
     final examsFuture = CloudApiService.getStudyResults(type: 'exam');
     final audiobooksFuture = CloudApiService.getAudiobooks();
 
@@ -138,8 +139,10 @@ class DashboardStats extends StatelessWidget {
 
     return _DashboardMetrics(
       planName: planName,
-      audiobooksCount: audiobooksTotal > 0 ? audiobooksTotal : audiobooks.length,
-      flashcardsCount: flashcardsTotal > 0 ? flashcardsTotal : flashcards.length,
+      audiobooksCount:
+          audiobooksTotal > 0 ? audiobooksTotal : audiobooks.length,
+      flashcardsCount:
+          flashcardsTotal > 0 ? flashcardsTotal : flashcards.length,
       examsCount: examsTotal > 0 ? examsTotal : exams.length,
       pdfUsage: pdfUsage,
       chatUsage: chatUsage,
@@ -195,7 +198,8 @@ class DashboardStats extends StatelessWidget {
             _StatCard(
               title: 'Plan actual',
               value: metrics.planName,
-              subtitle: isPremium ? 'Funciones premium activas' : 'Plan inicial',
+              subtitle:
+                  isPremium ? 'Funciones premium activas' : 'Plan inicial',
               icon: Icons.workspace_premium_rounded,
               color: isPremium ? AppTheme.accent : AppTheme.textMuted,
             ),
@@ -211,7 +215,7 @@ class DashboardStats extends StatelessWidget {
               color: AppTheme.primary,
             ),
             _StatCard(
-              title: 'Audiolibros',
+              title: 'AudioBooks',
               value: metrics.audiobooksCount.toString(),
               subtitle: 'Generados desde tus PDFs',
               icon: Icons.headphones_rounded,

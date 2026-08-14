@@ -110,7 +110,7 @@ class DashboardHero extends StatelessWidget {
                               Text(
                                 hasActiveDocument && activeDoc.isNotEmpty
                                     ? 'Continúa estudiando: $activeDoc'
-                                    : 'Convierte tus PDFs en resúmenes, audiolibros, flashcards, exámenes y conversaciones inteligentes.',
+                                    : 'Convierte tus PDFs en resúmenes, AudioBooks, flashcards, exámenes y conversaciones inteligentes.',
                                 maxLines: isMobile ? 3 : 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
@@ -133,7 +133,8 @@ class DashboardHero extends StatelessWidget {
                   Wrap(
                     spacing: 10,
                     runSpacing: 10,
-                    alignment: isMobile ? WrapAlignment.start : WrapAlignment.end,
+                    alignment:
+                        isMobile ? WrapAlignment.start : WrapAlignment.end,
                     children: [
                       FilledButton.icon(
                         onPressed:
@@ -161,8 +162,7 @@ class DashboardHero extends StatelessWidget {
                         tooltip: 'Mi Cuenta',
                         onPressed: () => context.pushNamed('settings'),
                         style: IconButton.styleFrom(
-                          backgroundColor:
-                              Colors.white.withValues(alpha: 0.16),
+                          backgroundColor: Colors.white.withValues(alpha: 0.16),
                         ),
                         icon: const Icon(
                           Icons.account_circle_rounded,

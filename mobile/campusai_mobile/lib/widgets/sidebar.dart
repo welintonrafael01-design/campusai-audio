@@ -117,7 +117,7 @@ class Sidebar extends StatelessWidget {
                 CampusPlan.free =>
                   'Prueba StudyBook AI y descubre cómo Booky puede ayudarte.',
                 CampusPlan.student =>
-                  'Convierte contenido en audiolibros, quizzes, flashcards y tutoría inteligente.',
+                  'Convierte contenido en AudioBooks, quizzes, flashcards y tutoría inteligente.',
                 CampusPlan.accessibility =>
                   'Aprende a tu manera con audio, lectura y explicaciones simples.',
                 CampusPlan.teacher =>

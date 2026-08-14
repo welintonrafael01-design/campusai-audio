@@ -184,7 +184,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         );
       }
     } catch (error) {
-      debugPrint('No se pudo cargar audiolibros cloud: $error');
+      debugPrint('No se pudo cargar AudioBooks cloud: $error');
     }
 
     final savedAudiobooks = [
@@ -318,7 +318,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         title: const Text('Eliminar documento'),
         content: Text(
           'Se eliminará "${document.fileName}" de la biblioteca. '
-          'También se limpiarán audiolibros, chats, flashcards y exámenes asociados.',
+          'También se limpiarán AudioBooks, chats, flashcards y exámenes asociados.',
         ),
         actions: [
           TextButton(
@@ -367,7 +367,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         documentId: document.documentId,
       );
     } catch (cloudError) {
-      debugPrint('No se pudo eliminar audiolibro cloud: $cloudError');
+      debugPrint('No se pudo eliminar AudioBook cloud: $cloudError');
     }
 
     try {
@@ -587,7 +587,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Este documento no tiene resumen suficiente para crear un audiolibro.',
+            'Este documento no tiene resumen suficiente para crear un AudioBook.',
           ),
           behavior: SnackBarBehavior.floating,
         ),
@@ -637,7 +637,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           chapters: audiobookHistory.chapters,
         );
       } catch (cloudError) {
-        debugPrint('No se pudo guardar audiolibro cloud: $cloudError');
+        debugPrint('No se pudo guardar AudioBook cloud: $cloudError');
       }
 
       await loadLibrary();
@@ -669,7 +669,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Reproduciendo capítulo del audiolibro...'),
+                  content: Text('Reproduciendo capítulo del AudioBook...'),
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -697,7 +697,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'No se pudo crear el audiolibro: $error',
+            'No se pudo crear el AudioBook: $error',
           ),
           behavior: SnackBarBehavior.floating,
         ),
@@ -719,7 +719,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         documentId: documentId,
       );
     } catch (cloudError) {
-      debugPrint('No se pudo eliminar audiolibro cloud: $cloudError');
+      debugPrint('No se pudo eliminar AudioBook cloud: $cloudError');
     }
 
     await loadLibrary();
@@ -728,7 +728,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Audiolibro eliminado de la biblioteca.'),
+        content: Text('AudioBook eliminado de la biblioteca.'),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -1260,7 +1260,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Sube tu primer PDF para comenzar a crear resúmenes, audiolibros, flashcards y exámenes.',
+            'Sube tu primer PDF para comenzar a crear resúmenes, AudioBooks, flashcards y exámenes.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AppTheme.textMuted,
@@ -1446,7 +1446,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
               ),
               SizedBox(height: 8),
               Text(
-                'Organiza tus documentos, chats, audiolibros, flashcards y exámenes en un solo lugar.',
+                'Organiza tus documentos, chats, AudioBooks, flashcards y exámenes en un solo lugar.',
                 style: TextStyle(
                   color: Colors.white,
                   height: 1.4,
@@ -2156,7 +2156,7 @@ class _SavedAudiobooksSection extends StatelessWidget {
               ),
               SizedBox(width: 10),
               Text(
-                'Audiolibros guardados',
+                'AudioBooks guardados',
                 style: TextStyle(
                   color: AppTheme.textPrimary,
                   fontWeight: FontWeight.w900,
@@ -2167,7 +2167,7 @@ class _SavedAudiobooksSection extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Escucha tus audiolibros generados sin volver a procesarlos.',
+            'Escucha tus AudioBooks generados sin volver a procesarlos.',
             style: TextStyle(
               color: AppTheme.textMuted,
               height: 1.4,
@@ -2273,7 +2273,7 @@ class _SavedAudiobookTile extends StatelessWidget {
                 ),
               ),
               IconButton(
-                tooltip: 'Eliminar audiolibro',
+                tooltip: 'Eliminar AudioBook',
                 onPressed: () async {
                   await onDeleteAudiobook(audiobook.documentId);
                 },
@@ -2308,7 +2308,7 @@ class _SavedAudiobookTile extends StatelessWidget {
                   label: Text(
                     hasMultipleChapters
                         ? 'Escuchar desde inicio'
-                        : 'Escuchar audiolibro',
+                        : 'Escuchar AudioBook',
                   ),
                 ),
               if (hasMultipleChapters)
@@ -2488,7 +2488,7 @@ class _DocumentLibraryCard extends StatelessWidget {
                       ? 'Creando...'
                       : document.hasAudio
                           ? 'Escuchar'
-                          : 'Crear audiolibro',
+                          : 'Crear AudioBook',
                 ),
               ),
               OutlinedButton.icon(
@@ -2548,7 +2548,7 @@ class _AudiobookChaptersDialog extends StatelessWidget {
           const SizedBox(width: 12),
           const Expanded(
             child: Text(
-              'Audiolibro generado',
+              'AudioBook generado',
               style: TextStyle(
                 color: AppTheme.textPrimary,
                 fontWeight: FontWeight.w900,

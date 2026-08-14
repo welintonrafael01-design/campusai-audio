@@ -486,7 +486,7 @@ class SettingsScreen extends ConsumerWidget {
                   value: limits.maxExamQuestionsPerPdf.toString(),
                 ),
                 _PlanLimitRow(
-                  label: 'Audiolibros y voz',
+                  label: 'AudioBooks y voz',
                   value: limits.canUseVoiceOnboarding ? 'Incluido' : 'Premium',
                 ),
                 _PlanLimitRow(
@@ -582,7 +582,7 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   const _PremiumUnlockRow(
-                    text: 'Audiolibros y respuestas en audio',
+                    text: 'AudioBooks y respuestas en audio',
                   ),
                   const _PremiumUnlockRow(
                     text: 'Modo voz para preguntar sin escribir',
@@ -641,7 +641,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                     _ProgressChip(
                       icon: Icons.headphones_rounded,
-                      label: 'Audiolibros',
+                      label: 'AudioBooks',
                       value:
                           currentPlan == CampusPlan.free ? 'Premium' : 'Activo',
                     ),

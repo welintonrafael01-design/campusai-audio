@@ -202,7 +202,7 @@ class _PlansScreenState extends State<PlansScreen> {
           '200 flashcards por PDF',
           '100 preguntas de examen por PDF',
           '60 minutos de audio al mes',
-          'Audiolibros y resumen en audio',
+          'AudioBooks y resumen en audio',
           'Modo voz y lectura asistida',
           'Exportar PDF y DOCX',
           'Banco de preguntas para estudiar',
@@ -293,6 +293,7 @@ class _PlansScreenState extends State<PlansScreen> {
       ),
     ];
   }
+
   @override
   Widget build(BuildContext context) {
     final current = const PlanGuardService().currentPlan;
@@ -419,7 +420,7 @@ class _PlansHero extends StatelessWidget {
           ),
           SizedBox(height: 8),
           Text(
-            'Convierte tus PDFs en resúmenes, audiolibros, flashcards, exámenes y conversaciones inteligentes.',
+            'Convierte tus PDFs en resúmenes, AudioBooks, flashcards, exámenes y conversaciones inteligentes.',
             style: TextStyle(
               color: Colors.white,
               height: 1.4,

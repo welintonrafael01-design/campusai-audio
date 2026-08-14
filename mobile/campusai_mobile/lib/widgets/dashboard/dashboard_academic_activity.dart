@@ -45,8 +45,7 @@ class DashboardAcademicActivity extends StatelessWidget {
         final exports = _intFromMap(totals, 'exports_generated');
         final audiobooks = _intFromMap(totals, 'audiobooks_generated');
 
-        final generatedResources =
-            flashcards + exams + exports + audiobooks;
+        final generatedResources = flashcards + exams + exports + audiobooks;
 
         final cards = [
           _ActivityCard(
@@ -58,7 +57,7 @@ class DashboardAcademicActivity extends StatelessWidget {
               'Chats IA: $chats',
               'Flashcards: $flashcards',
               'Exámenes: $exams',
-              'Audiolibros: $audiobooks',
+              'AudioBooks: $audiobooks',
               'Exportaciones: $exports',
             ],
           ),

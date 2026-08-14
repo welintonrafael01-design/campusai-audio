@@ -77,7 +77,7 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
     titleController.text = widget.initialTitle.trim().isNotEmpty
         ? widget.initialTitle.trim()
         : widget.unitTopic.trim().isNotEmpty
-            ? 'Audio Libro - ${widget.unitTopic.trim()}'
+            ? 'AudioBook - ${widget.unitTopic.trim()}'
             : '';
     textController.text = widget.initialText;
     loadSavedAudioBooks();
@@ -137,7 +137,7 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content:
-              Text('Escribe contenido académico para generar el Audio Libro.'),
+              Text('Escribe contenido académico para generar el AudioBook.'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -186,7 +186,7 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Audio Libro generado y guardado.'),
+          content: Text('AudioBook generado y guardado.'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -1168,7 +1168,7 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Audio Libro'),
+        title: const Text('AudioBook'),
       ),
       body: ListView(
         padding: const EdgeInsets.all(22),
@@ -1178,7 +1178,7 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Audio Libro',
+                  'AudioBook',
                   style: TextStyle(
                     color: AppTheme.textPrimary,
                     fontSize: 26,
@@ -1228,7 +1228,7 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
             const BookyCard(
               title: 'Booky convierte contenido en aprendizaje',
               message:
-                  'Puedo convertir este contenido en un audiolibro inteligente y acompañarte durante el repaso.',
+                  'Puedo convertir este contenido en un AudioBook inteligente y acompañarte durante el repaso.',
             ),
           const SizedBox(height: 18),
           const AccessibleTipCard(
@@ -1335,7 +1335,7 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
                   label: Text(
                     isGenerating
                         ? 'Generando audio libro...'
-                        : 'Generar Audio Libro',
+                        : 'Generar AudioBook',
                   ),
                 ),
               ],
@@ -1448,7 +1448,7 @@ class _SavedAudioBooksSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Mis Audio Libros',
+            'Mis AudioBooks',
             style: TextStyle(
               color: AppTheme.textPrimary,
               fontSize: 20,
@@ -1598,7 +1598,7 @@ class _ContinueListeningSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final title = cleanText(audiobook['title']).isNotEmpty
         ? cleanText(audiobook['title'])
-        : 'Audio Libro';
+        : 'AudioBook';
     final completion = intFrom(progress['completion_percentage']);
 
     return SectionCard(
@@ -2018,7 +2018,7 @@ class _AudioBookResult extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                title.isEmpty ? 'Audio Libro' : title,
+                title.isEmpty ? 'AudioBook' : title,
                 style: const TextStyle(
                   color: AppTheme.textPrimary,
                   fontSize: 22,
