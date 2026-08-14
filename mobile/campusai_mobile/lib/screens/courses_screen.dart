@@ -13,6 +13,7 @@ import '../theme/app_theme.dart';
 import '../widgets/accessible_tip_card.dart';
 import '../widgets/section_card.dart';
 import '../widgets/studybook/booky_card.dart';
+import '../widgets/studybook_app_shell.dart';
 
 class CoursesScreen extends StatefulWidget {
   const CoursesScreen({super.key});
@@ -1569,45 +1570,48 @@ class _CoursesScreenState extends State<CoursesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mis Cursos'),
-        actions: [
-          IconButton(
-            tooltip: 'Exportar PDF',
-            onPressed: courses.isEmpty ? null : exportPdf,
-            icon: const Icon(Icons.picture_as_pdf_rounded),
-          ),
-          IconButton(
-            tooltip: 'Exportar Excel',
-            onPressed: courses.isEmpty ? null : exportExcel,
-            icon: const Icon(Icons.grid_on_rounded),
-          ),
-          IconButton(
-            tooltip: 'Exportar CSV',
-            onPressed: courses.isEmpty ? null : exportCsv,
-            icon: const Icon(Icons.download_rounded),
-          ),
-        ],
-      ),
-      body: ListView(
+    return StudyBookAppShell(
+      currentRoute: '/teacher',
+      maxContentWidth: 1180,
+      child: ListView(
         padding: const EdgeInsets.all(22),
         children: [
           SectionCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Mis Cursos',
-                  style: TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontSize: 26,
-                    fontWeight: FontWeight.w900,
-                  ),
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Teacher Studio',
+                        style: TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Exportar PDF',
+                      onPressed: courses.isEmpty ? null : exportPdf,
+                      icon: const Icon(Icons.picture_as_pdf_rounded),
+                    ),
+                    IconButton(
+                      tooltip: 'Exportar Excel',
+                      onPressed: courses.isEmpty ? null : exportExcel,
+                      icon: const Icon(Icons.grid_on_rounded),
+                    ),
+                    IconButton(
+                      tooltip: 'Exportar CSV',
+                      onPressed: courses.isEmpty ? null : exportCsv,
+                      icon: const Icon(Icons.download_rounded),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Crea, edita y selecciona el curso activo para el Centro Educator.',
+                  'De tu curso a una clase lista: programa, planificación, rúbrica, examen y seguimiento.',
                   style: TextStyle(
                     color: AppTheme.textMuted,
                     height: 1.4,
@@ -1632,8 +1636,8 @@ class _CoursesScreenState extends State<CoursesScreen> {
           BookyCard(
             title: 'Hoy puedes preparar tu próxima clase.',
             message: courses.isEmpty
-                ? 'Crea tu primer curso. Después añade el material y yo te ayudaré con la planificación.'
-                : 'Elige un curso y sigue el próximo paso: añadir material, planificar o crear recursos.',
+                ? 'Crea tu primer curso. Después sube el programa de clase y yo te ayudaré con la planificación.'
+                : 'Elige un curso y sigue el próximo paso: subir programa, planificar o crear recursos.',
             primaryLabel: courses.isEmpty ? 'Crear curso' : 'Añadir otro curso',
             onPrimary: nameFocusNode.requestFocus,
           ),
@@ -1789,7 +1793,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
                           const SizedBox(height: 6),
                           Text(
                             program == null
-                                ? 'Siguiente paso: añade el material del curso para preparar la planificación y los recursos.'
+                                ? 'Siguiente paso: sube el programa de clase para preparar la planificación y los recursos.'
                                 : 'Ya analicé tu contenido. Puedo generar la planificación, la rúbrica y el examen.',
                             style: const TextStyle(color: AppTheme.textMuted),
                           ),
@@ -1887,8 +1891,8 @@ class _CoursesScreenState extends State<CoursesScreen> {
                                 onPressed: () => uploadProgramForCourse(course),
                                 icon: const Icon(Icons.menu_book_rounded),
                                 label: Text(program == null
-                                    ? 'Añadir material'
-                                    : 'Cambiar material'),
+                                    ? 'Subir programa de clase'
+                                    : 'Cambiar programa de clase'),
                               ),
                               if (program != null)
                                 OutlinedButton.icon(

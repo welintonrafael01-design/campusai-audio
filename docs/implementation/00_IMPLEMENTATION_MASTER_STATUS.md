@@ -8,7 +8,7 @@
 | 3 Biblioteca | COMPLETE | phase commit | `studybook-v1-phase-3` | `flutter analyze`, `flutter test` | generated study guides open as in-library preview until a dedicated route exists; `flutter analyze` has 4 historical infos in `courses_screen.dart` | Phase 4 |
 | 4 AI Tools | COMPLETE | phase commit | `studybook-v1-phase-4` | `flutter analyze`, `flutter test` | no new AI engines added; `flutter analyze` has 4 historical infos in `courses_screen.dart` | Phase 5 |
 | 5 Aprendizaje | COMPLETE | phase commit | `studybook-v1-phase-5` | `flutter analyze`, `flutter test` | advanced analytics remain collapsed; `flutter analyze` has 4 historical infos in `courses_screen.dart` | Phase 6 |
-| 6 Teacher Studio | NOT_STARTED | pending | pending | pending | none | after Phase 5 |
+| 6 Teacher Studio | COMPLETE | phase commit | `studybook-v1-phase-6` | `flutter analyze`, `flutter test` | teacher generation logic unchanged; `flutter analyze` has 4 historical infos in `courses_screen.dart` | Phase 7 |
 | 7 Cuenta / Planes | NOT_STARTED | pending | pending | pending | none | after Phase 6 |
 | 8 Security / Data | NOT_STARTED | pending | pending | pending | none | after Phase 7 |
 | 9 Performance | NOT_STARTED | pending | pending | pending | none | after Phase 8 |
