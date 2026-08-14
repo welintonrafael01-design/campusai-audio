@@ -6,6 +6,7 @@ import '../l10n/app_localizations.dart';
 import '../services/billing_service.dart';
 import '../services/plan_guard_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/studybook_app_shell.dart';
 
 class PlansScreen extends StatefulWidget {
   const PlansScreen({super.key});
@@ -299,12 +300,10 @@ class _PlansScreenState extends State<PlansScreen> {
     final current = const PlanGuardService().currentPlan;
     final checkoutMessage = _checkoutMessage();
 
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        title: const Text('Planes StudyBook AI'),
-      ),
-      body: ListView(
+    return StudyBookAppShell(
+      currentRoute: '/account',
+      maxContentWidth: 1180,
+      child: ListView(
         padding: const EdgeInsets.fromLTRB(22, 34, 22, 22),
         children: [
           if (checkoutMessage != null) ...[

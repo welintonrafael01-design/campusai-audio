@@ -14,6 +14,7 @@ import '../services/plan_guard_service.dart';
 import '../services/subscription_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
+import '../widgets/studybook_app_shell.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -357,11 +358,10 @@ class SettingsScreen extends ConsumerWidget {
 
     final friendlySource = planSource == 'supabase' ? 'Sincronizado' : 'Local';
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mi Cuenta'),
-      ),
-      body: ListView(
+    return StudyBookAppShell(
+      currentRoute: '/account',
+      maxContentWidth: 1080,
+      child: ListView(
         padding: const EdgeInsets.all(22),
         children: [
           Text(
