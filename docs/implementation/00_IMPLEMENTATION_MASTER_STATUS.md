@@ -11,5 +11,5 @@
 | 6 Teacher Studio | COMPLETE | phase commit | `studybook-v1-phase-6` | `flutter analyze`, `flutter test` | teacher generation logic unchanged; `flutter analyze` has 4 historical infos in `courses_screen.dart` | Phase 7 |
 | 7 Cuenta / Planes | COMPLETE | phase commit | `studybook-v1-phase-7` | `flutter analyze`, `flutter test` | billing logic unchanged; `flutter analyze` has 4 historical infos in `courses_screen.dart` | Phase 8 |
 | 8 Security / Data | COMPLETE | phase commit | `studybook-v1-phase-8` | `flutter analyze`, `flutter test`, backend tests | legacy StudyResult key fallback retained for compatibility; `flutter analyze` has 4 historical infos in `courses_screen.dart` | Phase 9 |
-| 9 Performance | NOT_STARTED | pending | pending | pending | none | after Phase 8 |
+| 9 Performance | COMPLETE | phase commit | `studybook-v1-phase-9` | `flutter analyze`, `flutter test` | broader large-screen profiling remains manual RC work; `flutter analyze` has 4 historical infos in `courses_screen.dart` | Phase 10 |
 | 10 QA / RC | NOT_STARTED | pending | pending | pending | none | after Phase 9 |

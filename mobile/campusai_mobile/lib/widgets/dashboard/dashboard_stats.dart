@@ -8,7 +8,7 @@ import '../../services/plan_guard_service.dart';
 import '../../theme/app_theme.dart';
 import '../section_card.dart';
 
-class DashboardStats extends StatelessWidget {
+class DashboardStats extends StatefulWidget {
   final int documentCount;
   final bool hasActiveDocument;
 
@@ -17,6 +17,29 @@ class DashboardStats extends StatelessWidget {
     required this.documentCount,
     required this.hasActiveDocument,
   });
+
+  @override
+  State<DashboardStats> createState() => _DashboardStatsState();
+}
+
+class _DashboardStatsState extends State<DashboardStats> {
+  late Future<_DashboardMetrics> metricsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    metricsFuture = _loadMetrics();
+  }
+
+  @override
+  void didUpdateWidget(covariant DashboardStats oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.documentCount != widget.documentCount ||
+        oldWidget.hasActiveDocument != widget.hasActiveDocument) {
+      metricsFuture = _loadMetrics();
+    }
+  }
 
   String _usedLimit(
     Map<String, dynamic> usage,
@@ -169,7 +192,7 @@ class DashboardStats extends StatelessWidget {
     final currentPlanName = AppPlans.planNames[currentPlan] ?? 'Free';
 
     return FutureBuilder<_DashboardMetrics>(
-      future: _loadMetrics(),
+      future: metricsFuture,
       builder: (context, snapshot) {
         final metrics = snapshot.data ??
             _DashboardMetrics(
@@ -179,7 +202,7 @@ class DashboardStats extends StatelessWidget {
               examsCount: 0,
               pdfUsage: '-',
               chatUsage: '-',
-              pdfTotal: documentCount,
+              pdfTotal: widget.documentCount,
               chatTotal: 0,
               exportsTotal: 0,
               currentPlan: currentPlan,
@@ -207,8 +230,8 @@ class DashboardStats extends StatelessWidget {
               title: 'Documentos',
               value: metrics.pdfTotal > 0
                   ? metrics.pdfTotal.toString()
-                  : documentCount.toString(),
-              subtitle: (metrics.pdfTotal > 0 || documentCount > 0)
+                  : widget.documentCount.toString(),
+              subtitle: (metrics.pdfTotal > 0 || widget.documentCount > 0)
                   ? 'PDFs procesados en total'
                   : 'Sube tu primer PDF',
               icon: Icons.picture_as_pdf_rounded,
