@@ -52,6 +52,7 @@ tmp/
 temp/
 qa-artifacts/
 screenshots/
+QA/runs/
 
 # Temporary backend uploads
 backend/app/uploads/
