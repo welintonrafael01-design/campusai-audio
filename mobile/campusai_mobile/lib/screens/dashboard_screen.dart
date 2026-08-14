@@ -24,9 +24,9 @@ import '../theme/app_theme.dart';
 import '../widgets/animated_fade_slide.dart';
 import '../widgets/dashboard/dashboard_tools.dart';
 import '../widgets/onboarding/studybook_onboarding_dialog.dart';
-import '../widgets/sidebar.dart';
 import '../widgets/dashboard/modules/dashboard_error_card.dart';
 import '../widgets/dashboard/modules/dashboard_processing_card.dart';
+import '../widgets/studybook_app_shell.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -2306,74 +2306,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       effectiveFileName: effectiveFileName,
     );
 
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      drawer: const Drawer(
-        backgroundColor: AppTheme.surface,
-        child: Sidebar(currentRoute: '/dashboard'),
-      ),
-      body: SafeArea(
-        child: ResponsiveLayout(
-          mobile: Builder(
-            builder: (context) {
-              return Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          tooltip: 'Menú',
-                          onPressed: () {
-                            Scaffold.of(context).openDrawer();
-                          },
-                          icon: const Icon(
-                            Icons.menu_rounded,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        const Expanded(
-                          child: Text(
-                            'StudyBook AI',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: AppTheme.textPrimary,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(child: dashboardContent),
-                ],
-              );
-            },
-          ),
-          tablet: Row(
-            children: [
-              const Sidebar(currentRoute: '/dashboard'),
-              Expanded(child: dashboardContent),
-            ],
-          ),
-          desktop: Row(
-            children: [
-              const Sidebar(currentRoute: '/dashboard'),
-              Expanded(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 980),
-                    child: dashboardContent,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+    return StudyBookAppShell(
+      currentRoute: '/dashboard',
+      maxContentWidth: 980,
+      child: dashboardContent,
     );
   }
 }
