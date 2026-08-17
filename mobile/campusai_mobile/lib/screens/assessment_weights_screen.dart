@@ -125,8 +125,7 @@ class _AssessmentWeightsScreenState extends State<AssessmentWeightsScreen> {
     final course = activeCourse;
     if (course == null) return;
 
-    final updated = [...weights]
-      ..removeWhere(
+    final updated = [...weights]..removeWhere(
         (item) => item.name == weight.name && item.weight == weight.weight,
       );
 

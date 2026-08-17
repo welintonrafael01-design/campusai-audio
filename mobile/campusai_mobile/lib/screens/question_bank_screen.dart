@@ -61,7 +61,6 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
     } catch (_) {}
   }
 
-
   String get sourceDocumentId {
     if (questions.isNotEmpty) {
       final raw = questions.first['source_document_id'];
@@ -176,7 +175,6 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
         '';
   }
 
-
   int maxQuestionsForExamType(String type) {
     final clean = type.toLowerCase();
 
@@ -224,9 +222,8 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
               selectedCount = maxAllowed;
             }
 
-            final pointsPerQuestion = selectedCount <= 0
-                ? 0
-                : totalPoints / selectedCount;
+            final pointsPerQuestion =
+                selectedCount <= 0 ? 0 : totalPoints / selectedCount;
 
             return AlertDialog(
               title: const Text('Crear examen desde banco'),
@@ -277,7 +274,8 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
                         children: [5, 10, 15, 20, 25, 30].map((count) {
                           final available = questions.length;
                           final maxAllowed = maxQuestionsForExamType(examType);
-                          final disabled = count > available || count > maxAllowed;
+                          final disabled =
+                              count > available || count > maxAllowed;
 
                           return ChoiceChip(
                             label: Text('$count preguntas'),
@@ -326,7 +324,8 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children: ['Básico', 'Intermedio', 'Avanzado'].map((item) {
+                        children:
+                            ['Básico', 'Intermedio', 'Avanzado'].map((item) {
                           return ChoiceChip(
                             label: Text(item),
                             selected: difficulty == item,
@@ -429,7 +428,8 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
                         maxLines: 4,
                         decoration: const InputDecoration(
                           labelText: 'Objetivo de evaluación',
-                          hintText: 'Ej.: Evaluar la aplicación práctica de los conceptos principales.',
+                          hintText:
+                              'Ej.: Evaluar la aplicación práctica de los conceptos principales.',
                           border: OutlineInputBorder(),
                         ),
                         onChanged: (value) => examObjective = value.trim(),
@@ -472,10 +472,7 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
   bool matchesExamType(Map<String, dynamic> item, String examType) {
     if (examType == 'Mixto') return true;
 
-    final type = (item['question_type'] ??
-            item['tipo'] ??
-            item['type'] ??
-            '')
+    final type = (item['question_type'] ?? item['tipo'] ?? item['type'] ?? '')
         .toString()
         .toLowerCase();
 
@@ -533,7 +530,8 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('No se pudo generar preguntas compatibles con el tipo seleccionado.'),
+            content: Text(
+                'No se pudo generar preguntas compatibles con el tipo seleccionado.'),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -547,7 +545,8 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
       selected.shuffle(Random());
     }
 
-    final pointsPerQuestion = selected.isEmpty ? 0 : totalPoints / selected.length;
+    final pointsPerQuestion =
+        selected.isEmpty ? 0 : totalPoints / selected.length;
 
     final enriched = selected.map((item) {
       return {

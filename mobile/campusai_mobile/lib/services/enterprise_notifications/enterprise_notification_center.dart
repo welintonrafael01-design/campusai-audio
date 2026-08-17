@@ -198,7 +198,10 @@ class EnterpriseNotificationCenter {
               createdAt: now),
       ];
       final prioritized = NotificationHistory(
-        items: NotificationScheduler().prioritize(NotificationHistory(items: items)).take(3).toList(),
+        items: NotificationScheduler()
+            .prioritize(NotificationHistory(items: items))
+            .take(3)
+            .toList(),
       );
       await repository.save(
           documentId: 'enterprise_notification_history_latest',

@@ -47,7 +47,8 @@ class CourseDocumentService {
               return CourseDocument.fromJson(decoded);
             }
             if (decoded is Map) {
-              return CourseDocument.fromJson(Map<String, dynamic>.from(decoded));
+              return CourseDocument.fromJson(
+                  Map<String, dynamic>.from(decoded));
             }
           } catch (_) {}
           return null;

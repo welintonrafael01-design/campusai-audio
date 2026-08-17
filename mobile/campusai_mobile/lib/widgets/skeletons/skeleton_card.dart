@@ -15,12 +15,10 @@ class SkeletonCard extends StatefulWidget {
   });
 
   @override
-  State<SkeletonCard> createState() =>
-      _SkeletonCardState();
+  State<SkeletonCard> createState() => _SkeletonCardState();
 }
 
-class _SkeletonCardState
-    extends State<SkeletonCard>
+class _SkeletonCardState extends State<SkeletonCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController controller;
 
@@ -30,8 +28,7 @@ class _SkeletonCardState
 
     controller = AnimationController(
       vsync: this,
-      duration:
-          const Duration(milliseconds: 1400),
+      duration: const Duration(milliseconds: 1400),
     )..repeat(reverse: true);
   }
 
@@ -46,8 +43,7 @@ class _SkeletonCardState
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
-        final opacity =
-            0.35 + (controller.value * 0.30);
+        final opacity = 0.35 + (controller.value * 0.30);
 
         return Opacity(
           opacity: opacity,
@@ -63,12 +59,9 @@ class _SkeletonCardState
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius:
-                  widget.borderRadius ??
-                  BorderRadius.circular(22),
+              borderRadius: widget.borderRadius ?? BorderRadius.circular(22),
               border: Border.all(
-                color: Colors.white
-                    .withValues(
+                color: Colors.white.withValues(
                   alpha: 0.05,
                 ),
               ),

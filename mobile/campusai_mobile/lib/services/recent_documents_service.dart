@@ -47,9 +47,8 @@ class RecentDocumentsService {
   static Future<void> removeDocument(String documentId) async {
     final current = await getDocuments();
 
-    final updated = current
-        .where((item) => item.documentId != documentId)
-        .toList();
+    final updated =
+        current.where((item) => item.documentId != documentId).toList();
 
     final encoded = updated.map((item) => item.toJson()).toList();
 

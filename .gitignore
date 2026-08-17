@@ -53,6 +53,8 @@ temp/
 qa-artifacts/
 screenshots/
 QA/runs/
+QA/automated/runs/
+QA/automated/screenshots/
 
 # Temporary backend uploads
 backend/app/uploads/

@@ -24,6 +24,7 @@ Reason: automated build/test baseline is healthy, but required manual gates are 
 | Backend compileall | PASS |
 | Android debug APK | PASS |
 | Android release APK | PASS |
+| Integration tests | PARTIAL, 3 passed and 6 blocked by missing QA credentials / fixture harness |
 | Secret review | PARTIAL, no `.env` tracked; tracked virtualenv requires cleanup |
 
 ## Release Gates
@@ -53,7 +54,7 @@ Reason: automated build/test baseline is healthy, but required manual gates are 
 3. Validate Stripe test-mode checkout and webhook using backend test credentials.
 4. Capture accessibility evidence for text scaling, screen reader and keyboard navigation.
 5. Run performance smoke on startup, Home, Library with 20+ documents, AudioBook and Teacher Studio.
-6. Decide whether the format-check P2 must be fixed before RC2.
+6. Provide QA credentials via `dart-define` and run the full authenticated integration suite.
 7. Plan tracked `backend/.venv` cleanup in a dedicated repository hygiene commit.
 
 ## Tag Decision

@@ -155,7 +155,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
     updated.removeWhere(
       (item) =>
           item.id == student.id ||
-          (item.name.toLowerCase().trim() == student.name.toLowerCase().trim() &&
+          (item.name.toLowerCase().trim() ==
+                  student.name.toLowerCase().trim() &&
               item.courseId == student.courseId),
     );
 
@@ -188,20 +189,16 @@ class _StudentsScreenState extends State<StudentsScreen> {
     context.goNamed(
       'student-profile',
       extra: {
-        'studentCode': student.studentCode.isNotEmpty
-            ? student.studentCode
-            : student.id,
+        'studentCode':
+            student.studentCode.isNotEmpty ? student.studentCode : student.id,
         'studentName': student.name,
-        'courseId': student.courseId.isNotEmpty
-            ? student.courseId
-            : (course?.id ?? ''),
-        'courseName': student.course.isNotEmpty
-            ? student.course
-            : (course?.name ?? ''),
+        'courseId':
+            student.courseId.isNotEmpty ? student.courseId : (course?.id ?? ''),
+        'courseName':
+            student.course.isNotEmpty ? student.course : (course?.name ?? ''),
       },
     );
   }
-
 
   List<Map<String, dynamic>> get exportRows {
     return filteredStudents.map((student) {
@@ -213,7 +210,6 @@ class _StudentsScreenState extends State<StudentsScreen> {
       };
     }).toList();
   }
-
 
   Future<void> importCsv() async {
     final course = activeCourse;
@@ -234,8 +230,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
     final updated = current.map((student) {
       final isImported = imported.any(
         (item) =>
-            item.name.toLowerCase().trim() ==
-            student.name.toLowerCase().trim(),
+            item.name.toLowerCase().trim() == student.name.toLowerCase().trim(),
       );
 
       if (!isImported) return student;
@@ -381,7 +376,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
 
   Future<void> exportExcel() async {
     final course = activeCourse;
-    final title = 'estudiantes_${course?.code.isNotEmpty == true ? course!.code : 'curso'}';
+    final title =
+        'estudiantes_${course?.code.isNotEmpty == true ? course!.code : 'curso'}';
 
     await ExportService.exportRowsToXlsx(
       title: title,
@@ -405,7 +401,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
     }
 
     await ExportService.exportTextToPdf(
-      title: 'estudiantes_${course?.code.isNotEmpty == true ? course!.code : 'curso'}',
+      title:
+          'estudiantes_${course?.code.isNotEmpty == true ? course!.code : 'curso'}',
       content: buffer.toString(),
     );
   }
@@ -420,7 +417,8 @@ class _StudentsScreenState extends State<StudentsScreen> {
 
     await StudentRosterService.exportCsvForStudents(
       students: filteredStudents,
-      filename: 'studybook_estudiantes_${safeCourse.isEmpty ? 'curso' : safeCourse}.csv',
+      filename:
+          'studybook_estudiantes_${safeCourse.isEmpty ? 'curso' : safeCourse}.csv',
     );
   }
 

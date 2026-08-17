@@ -13,12 +13,10 @@ class AnimatedFadeSlide extends StatefulWidget {
   });
 
   @override
-  State<AnimatedFadeSlide> createState() =>
-      _AnimatedFadeSlideState();
+  State<AnimatedFadeSlide> createState() => _AnimatedFadeSlideState();
 }
 
-class _AnimatedFadeSlideState
-    extends State<AnimatedFadeSlide>
+class _AnimatedFadeSlideState extends State<AnimatedFadeSlide>
     with SingleTickerProviderStateMixin {
   late final AnimationController controller;
 
@@ -32,8 +30,7 @@ class _AnimatedFadeSlideState
 
     controller = AnimationController(
       vsync: this,
-      duration:
-          const Duration(milliseconds: 650),
+      duration: const Duration(milliseconds: 650),
     );
 
     fadeAnimation = CurvedAnimation(

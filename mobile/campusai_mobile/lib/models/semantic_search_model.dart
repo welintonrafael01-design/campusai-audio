@@ -15,15 +15,10 @@ class SemanticSearchModel {
     Map<String, dynamic> map,
   ) {
     return SemanticSearchModel(
-      documentId:
-          map['document_id'] ?? '',
-      chunkIndex:
-          map['chunk_index'] ?? 0,
-      distance:
-          (map['distance'] ?? 0)
-              .toDouble(),
-      preview:
-          map['preview'] ?? '',
+      documentId: map['document_id'] ?? '',
+      chunkIndex: map['chunk_index'] ?? 0,
+      distance: (map['distance'] ?? 0).toDouble(),
+      preview: map['preview'] ?? '',
     );
   }
 }

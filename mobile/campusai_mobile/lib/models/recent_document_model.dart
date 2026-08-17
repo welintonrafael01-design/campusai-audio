@@ -45,8 +45,8 @@ class RecentDocumentModel {
       fileName: json['fileName'] ?? 'Documento',
       summary: json['summary'] ?? '',
       audioUrl: json['audioUrl'] ?? '',
-      lastOpenedAt: DateTime.tryParse(json['lastOpenedAt'] ?? '') ??
-          DateTime.now(),
+      lastOpenedAt:
+          DateTime.tryParse(json['lastOpenedAt'] ?? '') ?? DateTime.now(),
     );
   }
 }

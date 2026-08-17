@@ -85,7 +85,8 @@ class MarketplaceService {
     final audiobookResults = await audiobookService.getAudioBooks();
     for (final result in audiobookResults.take(20)) {
       final audiobook = audiobookService.decodeAudioBook(result);
-      final audiobookId = _field(audiobook, ['audiobook_id', 'id', 'document_id']);
+      final audiobookId =
+          _field(audiobook, ['audiobook_id', 'id', 'document_id']);
       final title = _field(audiobook, ['title', 'name'], 'AudioBook');
       final chapters = audiobook['chapters'];
       if (chapters is! List) continue;

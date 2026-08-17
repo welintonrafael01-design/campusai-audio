@@ -18,7 +18,6 @@ class EducatorSyncService {
 
   static String scopedKey(String key) => UserScopedStorage.key(key);
 
-
   static Future<Map<String, dynamic>> getSnapshot() async {
     if (!AuthService.isLoggedIn) {
       return {};

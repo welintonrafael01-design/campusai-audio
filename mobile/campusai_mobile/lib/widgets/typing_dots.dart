@@ -37,8 +37,7 @@ class _TypingDotsState extends State<TypingDots>
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: List.generate(3, (index) {
-            final value =
-                (controller.value + (index * 0.2)) % 1.0;
+            final value = (controller.value + (index * 0.2)) % 1.0;
 
             final scale = 0.65 + (value < 0.5 ? value : 1 - value) * 0.7;
 

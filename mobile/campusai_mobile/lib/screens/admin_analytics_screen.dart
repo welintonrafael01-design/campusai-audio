@@ -193,8 +193,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
       statusIcon = Icons.warning_rounded;
     } else if (avgDuration > 5) {
       statusTitle = 'Rendimiento moderado';
-      statusMessage =
-          'El tiempo promedio de respuesta está algo elevado.';
+      statusMessage = 'El tiempo promedio de respuesta está algo elevado.';
       statusIcon = Icons.speed_rounded;
     }
 
@@ -425,8 +424,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
     final errorsCount = _asInt(data?['errors']);
     final healthScore = _asInt(data?['health_score']);
     final routesCount = (data?['requests_by_path'] as Map?)?.length ?? 0;
-    final averageDuration =
-        _durationLabel(data?['average_duration_seconds']);
+    final averageDuration = _durationLabel(data?['average_duration_seconds']);
 
     return LayoutBuilder(
       builder: (context, constraints) {

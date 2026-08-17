@@ -42,9 +42,7 @@ class CitationChips extends StatelessWidget {
       runSpacing: 10,
       children: citations.map((citation) {
         final preview =
-            citation.highlight?.trim() ??
-            citation.preview?.trim() ??
-            '';
+            citation.highlight?.trim() ?? citation.preview?.trim() ?? '';
 
         final rawCitation =
             '[FUENTE document=${citation.documentId} chunk=${citation.chunkIndex}]';
@@ -89,8 +87,7 @@ class CitationChips extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '${relevanceLabel(citation)} · Chunk ${citation.chunkIndex}',
@@ -104,9 +101,7 @@ class CitationChips extends StatelessWidget {
                       ),
                       const SizedBox(height: 5),
                       Text(
-                        preview.isEmpty
-                            ? 'Abrir fragmento citado'
-                            : preview,
+                        preview.isEmpty ? 'Abrir fragmento citado' : preview,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(

@@ -46,7 +46,8 @@ class AssessmentWeightService {
               return AssessmentWeight.fromJson(decoded);
             }
             if (decoded is Map) {
-              return AssessmentWeight.fromJson(Map<String, dynamic>.from(decoded));
+              return AssessmentWeight.fromJson(
+                  Map<String, dynamic>.from(decoded));
             }
           } catch (_) {}
           return null;

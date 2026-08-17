@@ -4,22 +4,17 @@ import '../models/document_history.dart';
 import '../services/history_service.dart';
 
 final activeDocumentProvider =
-    StateNotifierProvider<
-      ActiveDocumentNotifier,
-      DocumentHistory?
-    >(
+    StateNotifierProvider<ActiveDocumentNotifier, DocumentHistory?>(
   (ref) => ActiveDocumentNotifier(),
 );
 
-class ActiveDocumentNotifier
-    extends StateNotifier<DocumentHistory?> {
+class ActiveDocumentNotifier extends StateNotifier<DocumentHistory?> {
   ActiveDocumentNotifier() : super(null) {
     loadActiveDocument();
   }
 
   Future<void> loadActiveDocument() async {
-    final document =
-        await HistoryService.getActiveDocument();
+    final document = await HistoryService.getActiveDocument();
 
     state = document;
   }
@@ -40,21 +35,15 @@ class ActiveDocumentNotifier
     state = null;
   }
 
-  bool get hasDocument =>
-      state != null &&
-      state!.documentId.trim().isNotEmpty;
+  bool get hasDocument => state != null && state!.documentId.trim().isNotEmpty;
 }
 
 final activeWorkspaceProvider =
-    StateNotifierProvider<
-      ActiveWorkspaceNotifier,
-      List<String>
-    >(
+    StateNotifierProvider<ActiveWorkspaceNotifier, List<String>>(
   (ref) => ActiveWorkspaceNotifier(),
 );
 
-class ActiveWorkspaceNotifier
-    extends StateNotifier<List<String>> {
+class ActiveWorkspaceNotifier extends StateNotifier<List<String>> {
   ActiveWorkspaceNotifier() : super([]);
 
   void setWorkspaceDocuments(
@@ -70,15 +59,12 @@ class ActiveWorkspaceNotifier
   void removeDocument(
     String documentId,
   ) {
-    state = state
-        .where((item) => item != documentId)
-        .toList();
+    state = state.where((item) => item != documentId).toList();
   }
 
   void clearWorkspace() {
     state = [];
   }
 
-  bool get hasWorkspace =>
-      state.length > 1;
+  bool get hasWorkspace => state.length > 1;
 }

@@ -117,7 +117,9 @@ class LearningProgressService {
 
     final mergedCompetencies = {
       ..._stringList(current['competencies']),
-      ...competencies.map((item) => item.trim()).where((item) => item.isNotEmpty),
+      ...competencies
+          .map((item) => item.trim())
+          .where((item) => item.isNotEmpty),
     }.toList();
 
     final updated = {
@@ -205,7 +207,8 @@ class LearningProgressService {
       'quiz_total': quizTotal,
       'flashcards_viewed': flashcardsViewed < 0 ? 0 : flashcardsViewed,
       'started_at': DateTime.now()
-          .subtract(Duration(seconds: durationSeconds < 0 ? 0 : durationSeconds))
+          .subtract(
+              Duration(seconds: durationSeconds < 0 ? 0 : durationSeconds))
           .toIso8601String(),
       'ended_at': DateTime.now().toIso8601String(),
     };
@@ -269,21 +272,24 @@ class LearningProgressService {
   }) {
     final recommendations = <String>[];
 
-    final weakResults = quizResults
-        .where((item) => _intFrom(item['percentage']) < 70)
-        .toList();
+    final weakResults =
+        quizResults.where((item) => _intFrom(item['percentage']) < 70).toList();
 
     if (quizResults.isEmpty) {
-      recommendations.add('Realiza el mini quiz del capítulo para medir tu comprensión.');
+      recommendations
+          .add('Realiza el mini quiz del capítulo para medir tu comprensión.');
     }
 
     if (weakResults.isNotEmpty) {
-      recommendations.add('Repite los capítulos con menor puntuación antes de avanzar.');
-      recommendations.add('Repasa las flashcards y vuelve a intentar el mini quiz.');
+      recommendations
+          .add('Repite los capítulos con menor puntuación antes de avanzar.');
+      recommendations
+          .add('Repasa las flashcards y vuelve a intentar el mini quiz.');
     }
 
     if (masteredChapters.isEmpty && quizResults.isNotEmpty) {
-      recommendations.add('Marca como aprendidos los capítulos que ya dominas.');
+      recommendations
+          .add('Marca como aprendidos los capítulos que ya dominas.');
     }
 
     if (recommendations.isEmpty) {

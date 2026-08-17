@@ -24,8 +24,7 @@ class DashboardSkeleton extends StatelessWidget {
         /// HERO
         const SectionCard(
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SkeletonCard(
                 height: 30,
@@ -51,14 +50,10 @@ class DashboardSkeleton extends StatelessWidget {
         GridView.count(
           crossAxisCount: statsColumns,
           shrinkWrap: true,
-          physics:
-              const NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
-          childAspectRatio:
-              ResponsiveLayout.isDesktop(context)
-                  ? 1.8
-                  : 1.5,
+          childAspectRatio: ResponsiveLayout.isDesktop(context) ? 1.8 : 1.5,
           children: List.generate(
             4,
             (_) => const SectionCard(
@@ -75,14 +70,10 @@ class DashboardSkeleton extends StatelessWidget {
         GridView.count(
           crossAxisCount: statsColumns,
           shrinkWrap: true,
-          physics:
-              const NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
-          childAspectRatio:
-              ResponsiveLayout.isDesktop(context)
-                  ? 1.15
-                  : 1.1,
+          childAspectRatio: ResponsiveLayout.isDesktop(context) ? 1.15 : 1.1,
           children: List.generate(
             4,
             (_) => const SectionCard(

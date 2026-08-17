@@ -21,9 +21,8 @@ class ChatCitationModel {
       chunkIndex: map['chunk_index'] ?? 0,
       preview: map['preview'],
       highlight: map['highlight'],
-      distance: map['distance'] is num
-          ? (map['distance'] as num).toDouble()
-          : null,
+      distance:
+          map['distance'] is num ? (map['distance'] as num).toDouble() : null,
     );
   }
 
@@ -77,10 +76,8 @@ class ChatMessageModel {
       createdAt: createdAt ?? this.createdAt,
       isStreaming: isStreaming ?? this.isStreaming,
       confidence: confidence ?? this.confidence,
-      averageDistance:
-          averageDistance ?? this.averageDistance,
-      confidenceMessage:
-          confidenceMessage ?? this.confidenceMessage,
+      averageDistance: averageDistance ?? this.averageDistance,
+      confidenceMessage: confidenceMessage ?? this.confidenceMessage,
       citations: citations ?? this.citations,
     );
   }
@@ -91,9 +88,7 @@ class ChatMessageModel {
       'isUser': isUser,
       'createdAt': createdAt.toIso8601String(),
       'isStreaming': isStreaming,
-      'citations': citations
-          .map((item) => item.toMap())
-          .toList(),
+      'citations': citations.map((item) => item.toMap()).toList(),
     };
   }
 }

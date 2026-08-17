@@ -46,7 +46,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     return '$y-$m-$d';
   }
 
-
   Future<bool> ensurePeriodOpen() async {
     final courseId = activeCourseId.trim();
 
@@ -405,7 +404,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     width: 360,
                     child: DropdownButtonFormField<String>(
                       isExpanded: true,
-                      initialValue: activeCourseId.isEmpty ? null : activeCourseId,
+                      initialValue:
+                          activeCourseId.isEmpty ? null : activeCourseId,
                       decoration: const InputDecoration(
                         labelText: 'Curso / Sección',
                         border: OutlineInputBorder(),

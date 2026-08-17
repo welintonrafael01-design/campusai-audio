@@ -73,7 +73,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       if (!mounted) return;
 
       setState(() {
-        errorMessage = 'No se pudo actualizar la contraseña. Solicita un nuevo enlace.';
+        errorMessage =
+            'No se pudo actualizar la contraseña. Solicita un nuevo enlace.';
         successMessage = '';
       });
     } finally {

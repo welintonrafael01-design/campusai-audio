@@ -208,12 +208,15 @@ class _RubricScreenState extends State<RubricScreen> {
 
     buffer.writeln(title.toUpperCase());
     buffer.writeln('');
-    buffer.writeln('Código: ${selectedStudent?.studentCode ?? 'No especificado'}');
+    buffer.writeln(
+        'Código: ${selectedStudent?.studentCode ?? 'No especificado'}');
     buffer.writeln('Estudiante: ${selectedStudent?.name ?? 'No especificado'}');
-    buffer.writeln('Curso/sección: ${selectedStudent?.course ?? 'No especificado'}');
+    buffer.writeln(
+        'Curso/sección: ${selectedStudent?.course ?? 'No especificado'}');
     buffer.writeln('Correo: ${selectedStudent?.email ?? 'No especificado'}');
     buffer.writeln('');
-    buffer.writeln('Puntuación obtenida: ${assignedTotal.toStringAsFixed(1)} / $totalPoints');
+    buffer.writeln(
+        'Puntuación obtenida: ${assignedTotal.toStringAsFixed(1)} / $totalPoints');
     buffer.writeln('');
 
     final items = criteria;
@@ -226,7 +229,8 @@ class _RubricScreenState extends State<RubricScreen> {
 
       buffer.writeln('Criterio ${i + 1}: ${item['criterion'] ?? ''}');
       buffer.writeln('Descripción: ${item['description'] ?? ''}');
-      buffer.writeln('Puntos asignados: ${assigned.toStringAsFixed(1)} / ${max.toStringAsFixed(1)}');
+      buffer.writeln(
+          'Puntos asignados: ${assigned.toStringAsFixed(1)} / ${max.toStringAsFixed(1)}');
       if (obs.isNotEmpty) buffer.writeln('Observación: $obs');
       buffer.writeln('');
 
@@ -402,7 +406,7 @@ class _RubricScreenState extends State<RubricScreen> {
                     SizedBox(
                       width: 320,
                       child: DropdownButtonFormField<String>(
-                      isExpanded: true,
+                        isExpanded: true,
                         initialValue: selectedStudent?.id,
                         decoration: const InputDecoration(
                           labelText: 'Estudiante evaluado',
@@ -592,10 +596,14 @@ class _CriterionCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          _LevelRow(label: 'Excelente', text: levelMap['excellent']?.toString() ?? ''),
+          _LevelRow(
+              label: 'Excelente',
+              text: levelMap['excellent']?.toString() ?? ''),
           _LevelRow(label: 'Bueno', text: levelMap['good']?.toString() ?? ''),
           _LevelRow(label: 'Básico', text: levelMap['basic']?.toString() ?? ''),
-          _LevelRow(label: 'Insuficiente', text: levelMap['insufficient']?.toString() ?? ''),
+          _LevelRow(
+              label: 'Insuficiente',
+              text: levelMap['insufficient']?.toString() ?? ''),
         ],
       ),
     );
