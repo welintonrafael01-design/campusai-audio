@@ -11,5 +11,5 @@ if ! command -v adb >/dev/null 2>&1; then
   exit 1
 fi
 
-echo "Capturando logcat en $RUN_DIR/android.log"
-adb logcat -v time > "$RUN_DIR/android.log"
+echo "Capturando logcat redactado en $RUN_DIR/android.log"
+adb logcat -v time | python3 "$ROOT_DIR/tools/qa/redact_qa_output.py" > "$RUN_DIR/android.log"

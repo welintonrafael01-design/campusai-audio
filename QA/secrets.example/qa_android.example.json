@@ -1,0 +1,11 @@
+{
+  "API_BASE_URL": "http://10.0.2.2:8000",
+  "SUPABASE_URL": "<SUPABASE_URL>",
+  "SUPABASE_ANON_KEY": "<SUPABASE_ANON_KEY>",
+  "QA_STUDENT_A_EMAIL": "welintonrafael01+qa.student.a@gmail.com",
+  "QA_STUDENT_A_PASSWORD": "<LOCAL_ONLY>",
+  "QA_STUDENT_B_EMAIL": "welintonrafael01+qa.student.b@gmail.com",
+  "QA_STUDENT_B_PASSWORD": "<LOCAL_ONLY>",
+  "QA_TEACHER_EMAIL": "welintonrafael01+qa.teacher@gmail.com",
+  "QA_TEACHER_PASSWORD": "<LOCAL_ONLY>"
+}

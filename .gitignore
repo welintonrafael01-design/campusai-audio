@@ -55,6 +55,9 @@ screenshots/
 QA/runs/
 QA/automated/runs/
 QA/automated/screenshots/
+QA/secrets/
+.env.qa.local
+*.qa.local.json
 
 # Temporary backend uploads
 backend/app/uploads/

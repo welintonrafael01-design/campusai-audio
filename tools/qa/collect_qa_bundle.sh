@@ -32,18 +32,18 @@ git status --short > "$RUN_DIR/git-status.txt"
   echo
   echo "Flutter test:"
   (cd mobile/campusai_mobile && flutter test)
-} > "$RUN_DIR/test-results.txt" 2>&1 || true
+} 2>&1 | python3 "$ROOT_DIR/tools/qa/redact_qa_output.py" > "$RUN_DIR/test-results.txt" || true
 
 if [ -f "$ROOT_DIR/flutter.log" ]; then
-  cp "$ROOT_DIR/flutter.log" "$RUN_DIR/flutter.log"
+  python3 "$ROOT_DIR/tools/qa/redact_qa_output.py" < "$ROOT_DIR/flutter.log" > "$RUN_DIR/flutter.log"
 fi
 
 if [ -f "$ROOT_DIR/backend.log" ]; then
-  cp "$ROOT_DIR/backend.log" "$RUN_DIR/backend.log"
+  python3 "$ROOT_DIR/tools/qa/redact_qa_output.py" < "$ROOT_DIR/backend.log" > "$RUN_DIR/backend.log"
 fi
 
 if command -v adb >/dev/null 2>&1; then
-  adb logcat -d -v time > "$RUN_DIR/android.log" 2>/dev/null || true
+  adb logcat -d -v time 2>/dev/null | python3 "$ROOT_DIR/tools/qa/redact_qa_output.py" > "$RUN_DIR/android.log" || true
 fi
 
 echo "$RUN_DIR"

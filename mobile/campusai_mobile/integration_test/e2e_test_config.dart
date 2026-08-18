@@ -15,13 +15,18 @@ class E2eTestConfig {
   );
 
   static bool get hasStudentA =>
-      studentAEmail.trim().isNotEmpty && studentAPassword.trim().isNotEmpty;
+      isConfiguredValue(studentAEmail) && isConfiguredValue(studentAPassword);
 
   static bool get hasStudentB =>
-      studentBEmail.trim().isNotEmpty && studentBPassword.trim().isNotEmpty;
+      isConfiguredValue(studentBEmail) && isConfiguredValue(studentBPassword);
 
   static bool get hasTeacher =>
-      teacherEmail.trim().isNotEmpty && teacherPassword.trim().isNotEmpty;
+      isConfiguredValue(teacherEmail) && isConfiguredValue(teacherPassword);
 
   static bool get hasTwoStudents => hasStudentA && hasStudentB;
+
+  static bool isConfiguredValue(String value) {
+    final normalized = value.trim();
+    return normalized.isNotEmpty && !normalized.startsWith('<');
+  }
 }
