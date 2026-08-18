@@ -5,15 +5,6 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 FLUTTER_DIR="$ROOT_DIR/mobile/campusai_mobile"
 SECRETS_FILE="${QA_SECRETS_FILE:-$ROOT_DIR/QA/secrets/qa_android.local.json}"
 RUN_DIR="$ROOT_DIR/QA/automated/runs/$(date +%Y%m%d_%H%M%S)_android"
-LOGCAT_PID=""
-
-stop_logcat() {
-  if [[ -n "$LOGCAT_PID" ]] && kill -0 "$LOGCAT_PID" 2>/dev/null; then
-    kill "$LOGCAT_PID" 2>/dev/null || true
-    wait "$LOGCAT_PID" 2>/dev/null || true
-  fi
-}
-trap stop_logcat EXIT
 
 "$ROOT_DIR/tools/qa/validate_qa_secrets.sh" "$SECRETS_FILE"
 "$ROOT_DIR/tools/qa/check_backend.sh"
@@ -39,8 +30,6 @@ git -C "$ROOT_DIR" status --short > "$RUN_DIR/git-status.txt"
 } > "$RUN_DIR/metadata.txt"
 
 adb logcat -c
-adb logcat -v time | python3 "$ROOT_DIR/tools/qa/redact_qa_output.py" > "$RUN_DIR/android.log" &
-LOGCAT_PID=$!
 
 set +e
 (
@@ -51,11 +40,25 @@ set +e
 TEST_STATUS=${PIPESTATUS[0]}
 set -e
 
-stop_logcat
-LOGCAT_PID=""
-
-if [[ -x "$ROOT_DIR/tools/qa/collect_qa_bundle.sh" ]]; then
-  "$ROOT_DIR/tools/qa/collect_qa_bundle.sh" || true
+echo "Flutter integration tests: COMPLETE"
+echo "Collecting Android logcat..."
+if adb logcat -d -v time 2>/dev/null | python3 "$ROOT_DIR/tools/qa/redact_qa_output.py" > "$RUN_DIR/android.log"; then
+  echo "Android logcat: COMPLETE"
+else
+  # Diagnostic collection is secondary to the Flutter integration test result.
+  echo "WARNING: Android logcat collection failed; preserving test exit code." >&2
 fi
 
+if [[ -x "$ROOT_DIR/tools/qa/collect_qa_bundle.sh" ]]; then
+  echo "Collecting QA bundle..."
+  if "$ROOT_DIR/tools/qa/collect_qa_bundle.sh"; then
+    echo "QA bundle: COMPLETE"
+  else
+    echo "WARNING: QA bundle collection failed; preserving test exit code." >&2
+  fi
+fi
+
+echo "Android E2E runner: COMPLETE"
+echo "Run directory: $RUN_DIR"
+echo "Test exit code: $TEST_STATUS"
 exit "$TEST_STATUS"

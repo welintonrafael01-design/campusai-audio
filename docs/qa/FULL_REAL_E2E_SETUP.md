@@ -55,3 +55,22 @@ suite and still require the associated manual QA evidence.
 Each runner stores redacted output in `QA/automated/runs/<timestamp>_<target>/`.
 The optional diagnostic bundle is written to `QA/runs/`. Both locations are
 ignored by Git.
+
+## Android log lifecycle
+
+The Android runner clears logcat before Flutter starts and collects a finite,
+redacted `adb logcat -d` dump after the test completes. It does not retain a
+background `adb logcat` pipeline, so it does not need to wait for a live stream
+at shutdown. If diagnostic log collection or the optional QA bundle fails, the
+runner reports a warning and preserves the Flutter integration-test exit code.
+
+## Known automation gaps
+
+The following scenarios remain intentionally skipped as `AUTOMATION_GAP`; they
+must not be treated as passing until their fixture or driver dependencies exist:
+
+1. Teacher Studio: course and roster fixture harness.
+2. AI Tools: uploaded fixture and backend AI execution harness.
+3. Account/session restore: persisted fixture data.
+4. Library/Learning: generated fixture assertions.
+5. Home/Upload: Android file-picker driver support.
