@@ -12,6 +12,7 @@ from app.services.certificate_service import save_certificate
 from app.services.export_service import build_text_pdf, build_final_report_pdf, build_teaching_plan_pdf, build_rubric_pdf, build_exam_pdf, build_certificate_pdf, build_academic_badge_pdf, build_student_transcript_pdf
 from app.services.docx_export_service import build_text_docx
 from app.security.user_auth import AuthenticatedUser, require_current_user
+from app.security.teacher_auth import require_teacher_access
 from app.services.usage_limit_service import (
     enforce_export_permission,
     register_usage_event,
@@ -104,7 +105,7 @@ class ExportPdfPayload(BaseModel):
 @router.post("/student-transcript-pdf")
 async def export_student_transcript_pdf(
     payload: StudentTranscriptPdfPayload,
-    current_user: AuthenticatedUser = Depends(require_current_user),
+    current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
     try:
         plan = enforce_export_permission(
@@ -337,7 +338,7 @@ async def export_exam_pdf(
 @router.post("/rubric-pdf")
 async def export_rubric_pdf(
     payload: RubricPdfPayload,
-    current_user: AuthenticatedUser = Depends(require_current_user),
+    current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
     try:
         plan = enforce_export_permission(
@@ -382,7 +383,7 @@ async def export_rubric_pdf(
 @router.post("/teaching-plan-pdf")
 async def export_teaching_plan_pdf(
     payload: TeachingPlanPdfPayload,
-    current_user: AuthenticatedUser = Depends(require_current_user),
+    current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
     try:
         plan = enforce_export_permission(
@@ -424,7 +425,7 @@ async def export_teaching_plan_pdf(
 @router.post("/final-report-pdf")
 async def export_final_report_pdf(
     payload: FinalReportPdfPayload,
-    current_user: AuthenticatedUser = Depends(require_current_user),
+    current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
     try:
         plan = enforce_export_permission(

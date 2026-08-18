@@ -9,7 +9,17 @@ enum StudyBookRole {
 }
 
 class AccessControlService {
-  const AccessControlService();
+  const AccessControlService({
+    this.authenticatedOverride,
+    this.appMetadataOverride,
+    this.userMetadataOverride,
+    this.planOverride,
+  });
+
+  final bool? authenticatedOverride;
+  final Map<String, dynamic>? appMetadataOverride;
+  final Map<String, dynamic>? userMetadataOverride;
+  final CampusPlan? planOverride;
 
   static const Set<String> publicPaths = {
     '/auth',
@@ -37,36 +47,37 @@ class AccessControlService {
     '/admin/financial-dashboard',
   };
 
-  bool get isAuthenticated => AuthService.isLoggedIn;
+  bool get isAuthenticated => authenticatedOverride ?? AuthService.isLoggedIn;
 
-  CampusPlan get legacyPlan => const PlanGuardService().currentPlan;
+  CampusPlan get legacyPlan =>
+      planOverride ?? const PlanGuardService().currentPlan;
 
-  StudyBookRole get role {
-    final user = AuthService.currentUser;
-    final metadata = {
-      ...?user?.appMetadata,
-      ...?user?.userMetadata,
-    };
+  static StudyBookRole resolveRole({
+    Map<String, dynamic>? appMetadata,
+    Map<String, dynamic>? userMetadata,
+  }) {
+    // userMetadata is intentionally ignored because users can edit it.
+    final metadata = appMetadata ?? const <String, dynamic>{};
 
-    final rawRole = (metadata['role'] ??
-            metadata['user_role'] ??
-            metadata['studybook_role'] ??
-            '')
-        .toString()
-        .trim()
-        .toLowerCase();
+    final rawRole = (metadata['role'] ?? '').toString().trim().toLowerCase();
 
     if (rawRole == 'admin' || rawRole == 'institution_admin') {
       return StudyBookRole.admin;
     }
 
-    if (rawRole == 'teacher' ||
-        rawRole == 'educator' ||
-        legacyPlan == CampusPlan.teacher) {
+    if (rawRole == 'teacher' || rawRole == 'educator') {
       return StudyBookRole.teacher;
     }
 
     return StudyBookRole.student;
+  }
+
+  StudyBookRole get role {
+    final user = AuthService.currentUser;
+    return resolveRole(
+      appMetadata: appMetadataOverride ?? user?.appMetadata,
+      userMetadata: userMetadataOverride ?? user?.userMetadata,
+    );
   }
 
   bool get isTeacher =>
@@ -75,8 +86,8 @@ class AccessControlService {
   bool get isAdmin => role == StudyBookRole.admin;
 
   bool get hasTeacherTools {
-    if (isTeacher) return true;
-    return const PlanGuardService().canUseEducatorTools;
+    if (isAdmin) return true;
+    return isTeacher && AppPlans.limits[legacyPlan]!.canUseEducatorTools;
   }
 
   bool isPublicPath(String path) {

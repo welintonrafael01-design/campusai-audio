@@ -6,7 +6,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.database.supabase_client import get_supabase_admin_client
-from app.security.user_auth import AuthenticatedUser, require_current_user
+from app.security.teacher_auth import require_teacher_access
+from app.security.user_auth import AuthenticatedUser
 
 
 router = APIRouter(
@@ -92,7 +93,7 @@ def _select_for_user_candidates(
 
 @router.get("/snapshot")
 def get_educator_snapshot(
-    current_user: AuthenticatedUser = Depends(require_current_user),
+    current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
     user_ids = _candidate_user_ids(current_user)
 
@@ -136,7 +137,7 @@ def get_educator_snapshot(
 @router.post("/sync")
 def sync_educator_snapshot(
     payload: EducatorSyncPayload,
-    current_user: AuthenticatedUser = Depends(require_current_user),
+    current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
     user_id = current_user.user_id
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Any
 
 from fastapi import Header, HTTPException
 
@@ -11,6 +12,7 @@ from app.database.supabase_client import get_supabase_client
 class AuthenticatedUser:
     user_id: str
     email: str | None = None
+    app_metadata: dict[str, Any] = field(default_factory=dict)
 
 
 def require_current_user(
@@ -57,4 +59,5 @@ def require_current_user(
     return AuthenticatedUser(
         user_id=user.id,
         email=user.email,
+        app_metadata=dict(user.app_metadata or {}),
     )

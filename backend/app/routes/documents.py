@@ -84,6 +84,7 @@ from app.security.user_auth import (
     AuthenticatedUser,
     require_current_user,
 )
+from app.security.teacher_auth import require_teacher_access
 
 
 def secure_filename(filename: str) -> str:
@@ -282,7 +283,7 @@ def build_document_context(
 @router.post("/import-grades-excel")
 async def import_grades_excel(
     file: UploadFile = File(...),
-    current_user: AuthenticatedUser = Depends(require_current_user),
+    current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
     try:
         filename = file.filename or "grades.xlsx"
@@ -488,7 +489,7 @@ async def import_grades_pdf(
     learning_objective: str = Query(default=""),
     competency: str = Query(default=""),
     bloom_level: str = Query(default=""),
-    current_user: AuthenticatedUser = Depends(require_current_user),
+    current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
     try:
         validate_pdf_file(file)
@@ -540,7 +541,7 @@ async def import_grades_pdf(
 async def import_students_pdf(
     file: UploadFile = File(...),
     language: str = Query(default="es"),
-    current_user: AuthenticatedUser = Depends(require_current_user),
+    current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
     try:
         validate_pdf_file(file)
@@ -822,7 +823,7 @@ async def teaching_plan_document_by_id(
     document_id: str,
     language: str = Query(default="es"),
     weeks: int = Query(default=4, ge=1, le=16),
-    current_user: AuthenticatedUser = Depends(require_current_user),
+    current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
     try:
         validate_document_owner(
@@ -877,7 +878,7 @@ async def rubric_document_by_id(
     rubric_type: str = Query(default="Analítica"),
     criteria_count: int = Query(default=5, ge=3, le=10),
     performance_levels: int = Query(default=4, ge=3, le=6),
-    current_user: AuthenticatedUser = Depends(require_current_user),
+    current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
     try:
         validate_document_owner(
@@ -943,7 +944,7 @@ async def study_guide_document_by_id(
     include_key_concepts: bool = Query(default=True),
     include_practice_activities: bool = Query(default=True),
     include_self_assessment: bool = Query(default=True),
-    current_user: AuthenticatedUser = Depends(require_current_user),
+    current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
     try:
         validate_document_owner(
@@ -1023,7 +1024,7 @@ async def teaching_resources_document_by_id(
     include_multimedia_suggestions: bool = Query(default=True),
     include_web_resources: bool = Query(default=True),
     include_ai_prompts_for_students: bool = Query(default=True),
-    current_user: AuthenticatedUser = Depends(require_current_user),
+    current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
     try:
         validate_document_owner(
@@ -1096,7 +1097,7 @@ async def teaching_resources_document_by_id(
 async def analyze_assessment_for_unit(
     payload: dict = Body(...),
     language: str = Query(default="es"),
-    current_user: AuthenticatedUser = Depends(require_current_user),
+    current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
     try:
         academic_metadata = payload.get("academic_metadata") or {}

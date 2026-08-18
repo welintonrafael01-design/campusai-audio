@@ -3,9 +3,11 @@ from __future__ import annotations
 import hashlib
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from app.security.teacher_auth import require_teacher_access
+from app.security.user_auth import AuthenticatedUser
 from app.services.certificate_service import get_certificate, list_certificates, save_certificate
 
 
@@ -30,7 +32,9 @@ class AutoRecognitionPayload(BaseModel):
 
 
 @router.get("/stats")
-async def recognition_stats():
+async def recognition_stats(
+    current_user: AuthenticatedUser = Depends(require_teacher_access),
+):
     certificates = list_certificates()
     by_type: dict[str, int] = {}
 
@@ -52,7 +56,10 @@ async def recognition_stats():
 
 
 @router.post("/auto-recognitions")
-async def save_auto_recognitions(payload: AutoRecognitionPayload):
+async def save_auto_recognitions(
+    payload: AutoRecognitionPayload,
+    current_user: AuthenticatedUser = Depends(require_teacher_access),
+):
     saved = []
 
     for item in payload.recognitions:
@@ -87,7 +94,9 @@ async def save_auto_recognitions(payload: AutoRecognitionPayload):
 
 
 @router.get("/list")
-async def list_recognitions():
+async def list_recognitions(
+    current_user: AuthenticatedUser = Depends(require_teacher_access),
+):
     return {
         "certificates": list_certificates(),
     }

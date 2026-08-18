@@ -5,6 +5,17 @@ from fastapi import Depends, Header, HTTPException
 from app.security.user_auth import AuthenticatedUser, require_current_user
 
 
+def is_admin_user(current_user: AuthenticatedUser) -> bool:
+    admin_emails = {
+        email.strip().lower()
+        for email in os.getenv("ADMIN_EMAILS", "").split(",")
+        if email.strip()
+    }
+
+    user_email = (current_user.email or "").strip().lower()
+    return bool(admin_emails and user_email in admin_emails)
+
+
 def require_admin_key(
     x_admin_key: str = Header(default=""),
 ):
@@ -28,15 +39,7 @@ def require_admin_key(
 def require_admin_user(
     current_user: AuthenticatedUser = Depends(require_current_user),
 ) -> AuthenticatedUser:
-    admin_emails = {
-        email.strip().lower()
-        for email in os.getenv("ADMIN_EMAILS", "").split(",")
-        if email.strip()
-    }
-
-    user_email = (current_user.email or "").strip().lower()
-
-    if admin_emails and user_email in admin_emails:
+    if is_admin_user(current_user):
         return current_user
 
     raise HTTPException(
