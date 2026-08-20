@@ -71,9 +71,9 @@ class DashboardTools extends StatelessWidget {
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
           childAspectRatio: ResponsiveLayout.isDesktop(context)
-              ? 1.22
+              ? 1.18
               : isMobile
-                  ? 0.98
+                  ? 0.90
                   : 1.14,
           children: [
             _ToolCard(

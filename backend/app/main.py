@@ -50,6 +50,15 @@ def get_cors_origins() -> list[str]:
     return origins
 
 
+def get_cors_origin_regex() -> str | None:
+    """Allow ephemeral Flutter Web ports only on the local loopback host."""
+    value = os.getenv(
+        "BACKEND_CORS_ORIGIN_REGEX",
+        r"^http://(?:localhost|127\.0\.0\.1)(?::\d+)?$",
+    ).strip()
+    return value or None
+
+
 app = FastAPI(
     title="StudyBook AI API",
     description=(
@@ -63,6 +72,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=get_cors_origins(),
+    allow_origin_regex=get_cors_origin_regex(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

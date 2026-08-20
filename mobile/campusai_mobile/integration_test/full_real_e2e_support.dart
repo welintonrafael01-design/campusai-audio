@@ -20,6 +20,7 @@ import 'package:campusai_mobile/services/plan_guard_service.dart';
 import 'package:campusai_mobile/services/student_roster_service.dart';
 import 'package:campusai_mobile/services/study_result_service.dart';
 import 'package:campusai_mobile/services/subscription_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -56,14 +57,23 @@ class FullRealE2eJourney {
     await _runTeacher();
     await _runGuest();
 
-    _manualGate('NATIVE_ANDROID_FILE_PICKER', 'visual behavior');
+    _manualGate(
+      kIsWeb ? 'WEB_FILE_PICKER' : 'NATIVE_ANDROID_FILE_PICKER',
+      'visual behavior',
+    );
     _manualGate('AUDIOBOOK_SOUND', 'acoustic quality');
     _manualGate('VOICE_TUTOR_MICROPHONE', 'physical microphone quality');
-
     if (blockedExternalConfig.isNotEmpty) {
       _result('CORE', 'BLOCKED_EXTERNAL_CONFIG');
     } else {
       _result('CORE', 'PASS');
+    }
+
+    if (kIsWeb) {
+      tester.binding.handleAppLifecycleStateChanged(
+        AppLifecycleState.inactive,
+      );
+      await tester.pump();
     }
   }
 
@@ -95,6 +105,10 @@ class FullRealE2eJourney {
 
     await _generateStudentArtifacts(upload);
     await _assertLibraryAndLearning(upload);
+    if (kIsWeb) {
+      await _assertWebRuntimePersistence(upload);
+      await _assertWebResponsiveSmoke();
+    }
     await _assertAccountAndRestore(upload);
 
     await _logoutToAuth();
@@ -149,6 +163,9 @@ class FullRealE2eJourney {
     await _assertStudentRoutesDenied();
     _result('CLOUD_MULTIUSER_ISOLATION', 'PASS');
     _result('DIRECT_OWNERSHIP_ATTACK', 'PASS');
+    if (kIsWeb) {
+      _result('BROWSER_CACHE_ISOLATION', 'PASS');
+    }
 
     await _logoutToAuth();
   }
@@ -549,6 +566,56 @@ class FullRealE2eJourney {
         );
     expect(restoredDocument['summary']?.toString().trim(), isNotEmpty);
     _result('LOGOUT_LOGIN_RESTORE', 'PASS');
+  }
+
+  Future<void> _assertWebRuntimePersistence(DocumentHistory document) async {
+    final userId = AuthService.currentUser!.id;
+
+    await _go('/library');
+    await _pumpUntilText(document.fileName);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    await pumpStudyBookApp(tester, useMockLocalStorage: false);
+
+    expect(AuthService.currentUser?.id, userId);
+    final restoredPlan =
+        await const SubscriptionService().syncCurrentUserPlan();
+    expect(restoredPlan, CampusPlan.student);
+    expect(const AccessControlService().role, StudyBookRole.student);
+    expect(const AccessControlService().hasTeacherTools, isFalse);
+
+    await _go('/library');
+    await _pumpUntilText(document.fileName);
+    final restored = await CloudApiService.getStudyResult(
+      documentId: document.documentId,
+      type: 'flashcards',
+    );
+    expect(restored, isNotNull);
+    _result('WEB_SESSION_STORAGE', 'PASS');
+    _result('WEB_APP_RESTART', 'PASS');
+  }
+
+  Future<void> _assertWebResponsiveSmoke() async {
+    final originalSize = tester.view.physicalSize;
+    final originalRatio = tester.view.devicePixelRatio;
+
+    try {
+      tester.view.devicePixelRatio = 1;
+      for (final size in const [Size(1440, 900), Size(390, 844)]) {
+        tester.view.physicalSize = size;
+        await tester.pumpAndSettle();
+
+        for (final route in const ['/dashboard', '/library', '/account']) {
+          await _go(route);
+          expect(_currentPath, route);
+        }
+      }
+      _result('RESPONSIVE_WEB_SMOKE', 'PASS');
+    } finally {
+      tester.view.physicalSize = originalSize;
+      tester.view.devicePixelRatio = originalRatio;
+      await tester.pumpAndSettle();
+    }
   }
 
   Future<void> _createTeacherFixture() async {

@@ -1,6 +1,6 @@
 # Automated Bug Register - StudyBook AI RC1
 
-Updated: 2026-08-17
+Updated: 2026-08-20
 
 | ID | Severity | Module | Finding | Root cause | Status | Retest |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -11,13 +11,17 @@ Updated: 2026-08-17
 | AUTO-P2-008 | P2 MEDIUM | Local privacy | Courses and roster used global SharedPreferences keys. | Services did not use `UserScopedStorage`. | FIXED | `user_scoped_teacher_data_test.dart` |
 | AUTO-P2-009 | P2 MEDIUM | Chat persistence | All document chats resolved to a literal interpolation key. | Raw string prevented Dart interpolation. | FIXED | Distinct per-document chat key test |
 | AUTO-P2-010 | P2 MEDIUM | Native/audio QA | Picker visuals, acoustic quality and physical microphone cannot be fully asserted in `integration_test`. | Native UI and physical I/O require human/device evidence. | MANUAL_GATE | Run physical Android QA |
+| AUTO-P1-011 | P1 HIGH | Flutter Web / CORS | Full Real Web requests from Flutter's ephemeral localhost port failed preflight. | Backend allowed only a fixed set of local ports. | FIXED | Dynamic loopback preflight 200; external untrusted origin 400; canonical Web run CORS PASS |
+| AUTO-P2-012 | P2 MEDIUM | Dashboard responsive | AI tool cards overflowed vertically at the real desktop shell width and at 390 px. | Grid aspect ratios left less height than the two-line card content required. | FIXED | Desktop and 390 px widget tests plus Web responsive smoke PASS |
+| AUTO-P2-013 | P2 MEDIUM | Web QA runner | Flutter 3.41's legacy Web driver hung after app-side `All tests passed`. | SDK teardown did not return cleanly after Chrome lifecycle disposal. | FIXED | Supervised teardown requires `CORE` and `All tests passed` before controlled cleanup |
 
 ## Current Severity Summary
 
 - Open P0: 0
 - Open P1: 0
 - Open P2 product defects from this run: 0
-- Manual gates: 3 core device gates plus final Samsung/accessibility review
+- Manual gates: picker visuals, audio quality, physical microphone and final
+  human accessibility/responsive review
 
 ## Automation Gaps
 
@@ -26,6 +30,6 @@ The previous Core `AUTOMATION_GAP` items are closed by
 targeted coverage, while the canonical runner executes the orchestrated journey
 once to control AI cost.
 
-The remaining gaps are outside the automated Core gate: Web Full Real E2E,
-physical audio/microphone quality, native picker visual behavior and final human
-accessibility/device QA.
+Android and Web Full Real Core gates are now automated and closed. The remaining
+gates are physical audio/microphone quality, picker visual behavior and final
+human accessibility/device QA.

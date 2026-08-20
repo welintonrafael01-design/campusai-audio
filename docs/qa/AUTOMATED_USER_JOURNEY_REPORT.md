@@ -2,9 +2,11 @@
 
 Branch: `qa/studybook-ai-rc1`
 
-Generated: 2026-08-17
+Generated: 2026-08-20
 
-Canonical run: `QA/automated/runs/20260817_233509_android`
+Canonical Android run: `QA/automated/runs/20260817_233509_android`
+
+Canonical Web run: `QA/automated/runs/20260820_173702_web`
 
 ## Execution Summary
 
@@ -15,7 +17,7 @@ Canonical run: `QA/automated/runs/20260817_233509_android`
 | Core automation gaps | 0 |
 | Explicit manual gates | 3 |
 
-Runner result: `All tests passed` / `CORE=PASS`.
+Runner result on Android and Web: `All tests passed` / `CORE=PASS`.
 
 ## Canonical Journey
 
@@ -62,6 +64,13 @@ Guest
 | Student -> Teacher | PASS | Route denied and backend 403 |
 | Admin | PASS | Denied for all three QA identities |
 | Guest | PASS | Private route redirects to Auth |
+| Web session/remount | PASS | Supabase identity, plan and Library persisted |
+| Hard reload | PASS | Private route restored without white screen or privilege change |
+| Browser back/forward | PASS | Authorized Dashboard/Library navigation remained valid |
+| Browser cache switch | PASS | Student B replaced Student A in browser storage without stale data |
+| Responsive Web | PASS | Shell routes passed Flutter and browser smoke at 390 px |
+| CORS / console / build | PASS | Preflight, empty console error log and Web build |
+| Web secrets review | PASS | No QA credentials or privileged backend values in output bundle |
 
 ## Test Architecture
 
@@ -75,10 +84,17 @@ Guest
   does not set it and always executes the complete sequence.
 - Credentials remain in ignored local JSON and are supplied with
   `--dart-define-from-file`; logs are passed through `redact_qa_output.py`.
+- `run_full_web_e2e.sh` executes the same canonical journey through
+  `flutter drive`, captures a sanitized manifest and then runs a release-build
+  browser lifecycle probe.
+- `supervise_flutter_web_drive.py` treats teardown as successful only after the
+  app emits both `CORE` and `All tests passed`, then closes the known Flutter
+  Web driver hang without leaving child processes.
 
 ## Manual Gates
 
 - Native Android picker visual behavior.
+- Web picker visual behavior.
 - AudioBook acoustic quality.
 - Voice Tutor physical microphone quality.
 
@@ -89,6 +105,10 @@ checks outside the automated Core journey.
 
 Android Full Real Core: `PASS`
 
-Ready for Web Full Real E2E: `YES`
+Web Full Real Core: `PASS`
 
-Ready for RC2 review: `YES`, after Web and manual device gates are recorded.
+Android + Web Core gate: `PASS`
+
+Ready for final RC2 security review: `YES`
+
+Ready for physical device/manual gates: `YES`
