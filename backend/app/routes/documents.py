@@ -615,7 +615,10 @@ async def upload_document(
         print(f"[UPLOAD] extract_pages: {time.perf_counter() - step:.2f}s")
 
         step = time.perf_counter()
-        document_id = index_document_pages_for_rag(pages)
+        document_id = index_document_pages_for_rag(
+            pages,
+            owner_scope=current_user.user_id,
+        )
         print(f"[UPLOAD] rag_page_index: {time.perf_counter() - step:.2f}s")
 
         step = time.perf_counter()

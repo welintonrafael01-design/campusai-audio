@@ -4,8 +4,10 @@ import '../models/chat_message_model.dart';
 import 'security/user_scoped_storage.dart';
 
 class ChatHistoryService {
+  static const String _chatPrefix = 'chat_history';
+
   static String _keyForDocument(String documentId) {
-    return '\${_chatPrefix}_\${documentId.trim()}';
+    return '${_chatPrefix}_${documentId.trim()}';
   }
 
   static Future<void> saveMessages({

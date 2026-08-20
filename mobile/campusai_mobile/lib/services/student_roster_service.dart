@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:shared_preferences/shared_preferences.dart';
 import 'educator_sync_service.dart';
 import 'course_service.dart';
 import 'platform_file_service.dart';
+import 'security/user_scoped_storage.dart';
 
 class StudentRecord {
   final String id;
@@ -54,8 +54,7 @@ class StudentRosterService {
   static const String _key = 'studybook_students_roster';
 
   static Future<List<StudentRecord>> getStudents() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getStringList(_key) ?? [];
+    final raw = await UserScopedStorage.getStringList(_key);
 
     return raw
         .map((item) {
@@ -76,14 +75,12 @@ class StudentRosterService {
   }
 
   static Future<void> saveStudents(List<StudentRecord> students) async {
-    final prefs = await SharedPreferences.getInstance();
-
     final encoded = students
         .where((item) => item.isValid)
         .map((item) => jsonEncode(item.toJson()))
         .toList();
 
-    await prefs.setStringList(_key, encoded);
+    await UserScopedStorage.setStringList(_key, encoded);
 
     await EducatorSyncService.syncAfterLocalWrite();
   }

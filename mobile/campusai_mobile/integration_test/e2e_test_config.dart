@@ -13,6 +13,10 @@ class E2eTestConfig {
     'API_BASE_URL',
     defaultValue: 'http://127.0.0.1:8000',
   );
+  static const journeyScope = String.fromEnvironment(
+    'E2E_JOURNEY_SCOPE',
+    defaultValue: 'full',
+  );
 
   static bool get hasStudentA =>
       isConfiguredValue(studentAEmail) && isConfiguredValue(studentAPassword);

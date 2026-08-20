@@ -155,6 +155,8 @@ def index_document_for_rag(text: str) -> str:
 
 def index_document_pages_for_rag(
     pages: list[dict],
+    *,
+    owner_scope: str | None = None,
 ) -> str:
     if not pages:
         raise ValueError(
@@ -182,7 +184,10 @@ def index_document_pages_for_rag(
             "No hay texto válido por páginas para indexar."
         )
 
-    return store_document_page_embeddings(clean_pages)
+    return store_document_page_embeddings(
+        clean_pages,
+        owner_scope=owner_scope,
+    )
 
 
 def chat_with_document_id(

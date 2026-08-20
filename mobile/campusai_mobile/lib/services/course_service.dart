@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:shared_preferences/shared_preferences.dart';
 import 'educator_sync_service.dart';
 import 'platform_file_service.dart';
+import 'security/user_scoped_storage.dart';
 
 class CourseRecord {
   final String id;
@@ -62,8 +62,7 @@ class CourseService {
   static const String _activeKey = 'studybook_active_course';
 
   static Future<List<CourseRecord>> getCourses() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getStringList(_key) ?? [];
+    final raw = await UserScopedStorage.getStringList(_key);
 
     return raw
         .map((item) {
@@ -85,9 +84,7 @@ class CourseService {
   }
 
   static Future<void> saveCourses(List<CourseRecord> courses) async {
-    final prefs = await SharedPreferences.getInstance();
-
-    await prefs.setStringList(
+    await UserScopedStorage.setStringList(
       _key,
       courses
           .where((item) => item.isValid)
@@ -114,13 +111,11 @@ class CourseService {
   }
 
   static Future<String> getActiveCourseId() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_activeKey) ?? '';
+    return await UserScopedStorage.getString(_activeKey) ?? '';
   }
 
   static Future<void> setActiveCourse(String courseId) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_activeKey, courseId);
+    await UserScopedStorage.setString(_activeKey, courseId);
   }
 
   static Future<void> exportCsv() async {

@@ -53,6 +53,23 @@ def generate_document_id(text: str) -> str:
     ).hexdigest()[:24]
 
 
+def generate_user_scoped_document_id(
+    text: str,
+    *,
+    user_id: str,
+) -> str:
+    clean_user_id = user_id.strip()
+
+    if not clean_user_id:
+        raise ValueError("user_id es requerido para generar el ID.")
+
+    content_id = generate_document_id(text)
+
+    return hashlib.sha256(
+        f"{clean_user_id}:{content_id}".encode("utf-8")
+    ).hexdigest()[:24]
+
+
 def create_document_chunks(text: str) -> list[str]:
     clean_text = normalize_text(text)
 
@@ -126,13 +143,22 @@ def create_page_chunks(
 
 def store_document_page_embeddings(
     pages: list[dict],
+    *,
+    owner_scope: str | None = None,
 ) -> str:
     full_text = " ".join(
         page.get("text", "")
         for page in pages
     )
 
-    document_id = generate_document_id(full_text)
+    document_id = (
+        generate_user_scoped_document_id(
+            full_text,
+            user_id=owner_scope,
+        )
+        if owner_scope
+        else generate_document_id(full_text)
+    )
     collection_name = get_collection_name(document_id)
 
     if collection_exists(collection_name):

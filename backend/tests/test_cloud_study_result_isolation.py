@@ -1,6 +1,22 @@
 from app.services import cloud_service
 
 
+def test_study_result_allowlist_matches_product_resources():
+    assert {
+        "assessment_report",
+        "curriculum_intelligence",
+        "exam",
+        "final_report",
+        "flashcards",
+        "question_bank",
+        "quiz",
+        "rubric",
+        "study_guide",
+        "teaching_plan",
+        "teaching_resources",
+    }.issubset(cloud_service.ALLOWED_STUDY_RESULT_TYPES)
+
+
 class _Response:
     def __init__(self, data):
         self.data = data
@@ -46,6 +62,17 @@ class _FakeSupabase:
         return _Query(table_name, self.rows)
 
 
+class _NoRowQuery(_Query):
+    def execute(self):
+        return None
+
+
+class _NoRowSupabase(_FakeSupabase):
+    def table(self, table_name):
+        self.tables.append(table_name)
+        return _NoRowQuery(table_name, self.rows)
+
+
 def test_get_study_result_filters_by_user_document_and_type(monkeypatch):
     fake = _FakeSupabase(
         {
@@ -75,6 +102,19 @@ def test_get_study_result_filters_by_user_document_and_type(monkeypatch):
 
     assert result["content"] == "B"
     assert fake.tables == ["study_results"]
+
+
+def test_get_study_result_returns_none_when_client_has_no_row(monkeypatch):
+    fake = _NoRowSupabase({"study_results": []})
+    monkeypatch.setattr(cloud_service, "get_supabase_admin_client", lambda: fake)
+
+    result = cloud_service.get_study_result(
+        user_id="user_b",
+        document_id="doc_a",
+        type="flashcards",
+    )
+
+    assert result is None
 
 
 def test_list_study_results_never_returns_other_users(monkeypatch):

@@ -3,6 +3,31 @@ from __future__ import annotations
 from app.database.supabase_client import get_supabase_admin_client
 
 
+def _document_path_pattern(user_id: str) -> str:
+    clean_user_id = str(user_id).strip()
+
+    if not clean_user_id:
+        raise ValueError("user_id es requerido para acceder a documentos cloud.")
+
+    return f"{clean_user_id}/documents/%"
+
+
+def _with_owner(rows, *, user_id: str):
+    return [
+        {
+            **row,
+            "user_id": user_id,
+        }
+        for row in (rows or [])
+    ]
+
+
+def _missing_user_id_column(error: Exception) -> bool:
+    message = str(error).lower()
+    missing_column_code = "42703" in message or "pgrst204" in message
+    return missing_column_code and "user_id" in message
+
+
 def create_document(
     *,
     user_id: str,
@@ -31,14 +56,22 @@ def create_document(
         "summary": summary,
     }
 
-    result = (
-        client
-        .table("documents")
-        .insert(payload)
-        .execute()
-    )
+    try:
+        result = client.table("documents").insert(payload).execute()
+    except Exception as error:
+        if not _missing_user_id_column(error):
+            raise
 
-    return result.data
+        # Production still has the legacy documents schema in some projects.
+        # Ownership remains enforceable through the user-scoped storage path.
+        legacy_payload = {
+            key: value
+            for key, value in payload.items()
+            if key != "user_id"
+        }
+        result = client.table("documents").insert(legacy_payload).execute()
+
+    return _with_owner(result.data, user_id=user_id)
 
 
 def list_documents(
@@ -48,15 +81,14 @@ def list_documents(
     client = get_supabase_admin_client()
 
     result = (
-        client
-        .table("documents")
+        client.table("documents")
         .select("*")
-        .eq("user_id", user_id)
+        .like("storage_path", _document_path_pattern(user_id))
         .order("uploaded_at", desc=True)
         .execute()
     )
 
-    return result.data or []
+    return _with_owner(result.data, user_id=user_id)
 
 
 def delete_document(
@@ -67,11 +99,10 @@ def delete_document(
     client = get_supabase_admin_client()
 
     return (
-        client
-        .table("documents")
+        client.table("documents")
         .delete()
         .eq("document_id", document_id)
-        .eq("user_id", user_id)
+        .like("storage_path", _document_path_pattern(user_id))
         .execute()
     )
 
@@ -80,20 +111,18 @@ def delete_document(
 def list_library_documents(*, user_id: str):
     client = get_supabase_admin_client()
 
-    expected_prefix = f"{user_id}/documents/%"
-
     result = (
         client
         .table("documents")
         .select("*")
         .not_.is_("filename", "null")
         .not_.is_("storage_path", "null")
-        .like("storage_path", expected_prefix)
+        .like("storage_path", _document_path_pattern(user_id))
         .order("uploaded_at", desc=True)
         .execute()
     )
 
-    return result.data or []
+    return _with_owner(result.data, user_id=user_id)
 
 
 

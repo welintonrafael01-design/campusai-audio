@@ -6,8 +6,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-Future<void> pumpStudyBookApp(WidgetTester tester) async {
-  SharedPreferences.setMockInitialValues({});
+Future<void> pumpStudyBookApp(
+  WidgetTester tester, {
+  bool useMockLocalStorage = true,
+}) async {
+  if (useMockLocalStorage) {
+    SharedPreferences.setMockInitialValues({});
+  }
   await LocalStorageService.initialize();
 
   const supabaseUrl = String.fromEnvironment('SUPABASE_URL');

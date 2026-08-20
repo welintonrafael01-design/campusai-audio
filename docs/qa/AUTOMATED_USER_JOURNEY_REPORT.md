@@ -1,103 +1,94 @@
 # Automated User Journey Report - StudyBook AI RC1
 
 Branch: `qa/studybook-ai-rc1`
-Base tag: `studybook-v1-rc1`
+
 Generated: 2026-08-17
+
+Canonical run: `QA/automated/runs/20260817_233509_android`
 
 ## Execution Summary
 
-| Metric | Count |
+| Category | Count |
 | --- | ---: |
-| Total journeys tracked | 18 |
-| PASS | 4 |
-| FAIL | 0 |
-| BLOCKED | 11 |
-| MANUAL_REQUIRED | 3 |
+| Core journeys failed | 0 |
+| Core journeys blocked by external config | 0 |
+| Core automation gaps | 0 |
+| Explicit manual gates | 3 |
 
-## Commands Executed
+Runner result: `All tests passed` / `CORE=PASS`.
 
-```bash
-cd /Users/welintonmejia/Desktop/campusai-audio/mobile/campusai_mobile
-flutter test integration_test
+## Canonical Journey
+
+```text
+Student A
+  Auth -> Home -> real PDF upload -> AI resources -> Library -> Learning
+  -> Account -> Logout -> Login -> persisted data
+
+Student B
+  Auth -> Cloud/local isolation -> direct document attack -> direct result check
+
+Teacher
+  Auth -> course/roster fixture -> Teacher Studio -> real PDF upload
+  -> real teaching plan -> Logout
+
+Guest
+  Private route denied
 ```
 
-Result:
+## Result Matrix
 
-- `app_boot_e2e_test.dart`: PASS
-- `route_guard_e2e_test.dart`: PASS
-- `multiuser_isolation_e2e_test.dart`: PASS
-- `auth_journey_e2e_test.dart`: BLOCKED_EXTERNAL_CONFIG via justified `markTestSkipped`
-- `home_upload_e2e_test.dart`: BLOCKED_EXTERNAL_CONFIG or AUTOMATION_GAP via justified `markTestSkipped`
-- `ai_tools_e2e_test.dart`: BLOCKED_EXTERNAL_CONFIG or AUTOMATION_GAP via justified `markTestSkipped`
-- `library_learning_e2e_test.dart`: BLOCKED_EXTERNAL_CONFIG or AUTOMATION_GAP via justified `markTestSkipped`
-- `teacher_studio_e2e_test.dart`: BLOCKED_EXTERNAL_CONFIG or AUTOMATION_GAP via justified `markTestSkipped`
-- `account_session_e2e_test.dart`: BLOCKED_EXTERNAL_CONFIG or AUTOMATION_GAP via justified `markTestSkipped`
+| Journey | Result | Persistence/authorization evidence |
+| --- | --- | --- |
+| Student A Auth | PASS | Real Supabase user, Student role, Student plan, active subscription |
+| Home | PASS | Authenticated dashboard route |
+| Upload | PASS | Real PDF bytes through production upload controller and FastAPI pipeline |
+| Summary | PASS | Non-empty summary on owned Cloud document |
+| Chat | PASS | RAG backend plus Cloud chat and messages |
+| Flashcards | PASS | Cloud/local StudyResult |
+| Quiz | PASS | Cloud/local StudyResult |
+| Question Bank | PASS | Cloud/local StudyResult |
+| Exam | PASS | Cloud/local StudyResult |
+| AudioBook | PASS | Real metadata, Cloud audiobook and local library entry |
+| Voice Tutor text | PASS | Real coach endpoint response |
+| Library | PASS | Owned document visible |
+| Learning | PASS | Generated resources available |
+| Account | PASS | Plan/subscription synchronized |
+| Logout/Login restore | PASS | Session cleared; document and summary restored after login |
+| Student B Auth | PASS | Real Supabase user, Student role/plan, active subscription |
+| Multiuser isolation | PASS | No Student A Cloud or local artifacts visible |
+| Ownership attack | PASS | Document 403; foreign StudyResult absent |
+| Teacher Auth | PASS | Teacher role/plan, active subscription, Admin denied |
+| Teacher Studio | PASS | Course and roster visible; owned teaching plan generated/persisted |
+| Student -> Teacher | PASS | Route denied and backend 403 |
+| Admin | PASS | Denied for all three QA identities |
+| Guest | PASS | Private route redirects to Auth |
 
-Integration result: 3 passed, 6 skipped with explicit `BLOCKED_EXTERNAL_CONFIG` or `AUTOMATION_GAP` reason.
+## Test Architecture
 
-Backend ownership regression:
+- `full_real_user_journey_e2e_test.dart` is the canonical cost-controlled run.
+- `full_real_e2e_support.dart` orchestrates real services and records sanitized
+  `E2E_RESULT`, `E2E_ARTIFACT` and `E2E_MANUAL_GATE` markers.
+- `e2e_real_fixture.dart` embeds the existing small QA PDF only in integration
+  test code. It bypasses native picker UI but does not bypass upload, backend,
+  AI, ownership or persistence.
+- `E2E_JOURNEY_SCOPE=teacher` is a diagnostic-only mode. The official runner
+  does not set it and always executes the complete sequence.
+- Credentials remain in ignored local JSON and are supplied with
+  `--dart-define-from-file`; logs are passed through `redact_qa_output.py`.
 
-```bash
-cd /Users/welintonmejia/Desktop/campusai-audio
-PYTHONPATH=/Users/welintonmejia/Desktop/campusai-audio/backend backend/.venv/bin/python -m pytest backend/tests -q
-```
+## Manual Gates
 
-Result: PASS, 4 tests.
+- Native Android picker visual behavior.
+- AudioBook acoustic quality.
+- Voice Tutor physical microphone quality.
 
-## Journey Matrix
-
-| Journey | Status | Evidence | Notes |
-| --- | --- | --- | --- |
-| AUTH | PASS | `app_boot_e2e_test.dart` | Auth surface loads and empty submit returns a human validation state. |
-| HOME | BLOCKED | Requires authenticated QA user. | Needs `QA_STUDENT_A_EMAIL`, `QA_STUDENT_A_PASSWORD`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`. |
-| UPLOAD | BLOCKED | Requires authenticated QA user and file picker automation. | Fixture PDF is available at `QA/fixtures/studybook_qa_fixture.pdf`. |
-| CHAT | BLOCKED | Requires uploaded document and backend AI config. | Must run against QA backend with test credentials. |
-| SUMMARY | BLOCKED | Requires uploaded document and backend AI config. | No PASS declared. |
-| FLASHCARDS | BLOCKED | Requires uploaded document and backend AI config. | No PASS declared. |
-| QUIZ | BLOCKED | Requires uploaded document and backend AI config. | No PASS declared. |
-| QUESTION BANK | BLOCKED | Requires uploaded document and backend AI config. | No PASS declared. |
-| EXAM | BLOCKED | Requires uploaded document and backend AI config. | No PASS declared. |
-| AUDIOBOOK | MANUAL_REQUIRED | Audio output quality cannot be asserted automatically. | UI/request can be automated after authenticated fixture upload. |
-| VOICE TUTOR | MANUAL_REQUIRED | Physical microphone/audio permissions require device/browser QA. | Do not mark FAIL for environment-only limitations. |
-| LIBRARY | BLOCKED | Requires authenticated fixture-generated data. | Must verify tabs, search, refresh, favorite and delete. |
-| LEARNING | BLOCKED | Requires generated progress data. | No Enterprise-only features included. |
-| TEACHER | BLOCKED | Requires QA teacher credentials and teacher plan entitlement. | Needs `QA_TEACHER_EMAIL`, `QA_TEACHER_PASSWORD`. |
-| ACCOUNT | BLOCKED | Requires authenticated QA user. | Plan/usage/billing must be verified in QA mode. |
-| ROUTE GUARDS | PASS | `route_guard_e2e_test.dart` + backend admin tests. | Guest auth surface verified; role-specific student/teacher/admin guards still require QA users. |
-| MULTIUSER | PASS | `multiuser_isolation_e2e_test.dart` and `test_cloud_study_result_isolation.py`. | Local StudyResult scope and cloud query filters verified. Full Supabase two-user UI run is still required. |
-| SESSION ISOLATION | PASS | `multiuser_isolation_e2e_test.dart`. | Local session data separation verified. Full logout/login data restore requires QA credentials. |
-
-## Required Dart Defines for Full E2E
-
-```bash
-flutter test integration_test \
-  --dart-define=API_BASE_URL=http://10.0.2.2:8000 \
-  --dart-define=SUPABASE_URL=<qa_supabase_url> \
-  --dart-define=SUPABASE_ANON_KEY=<qa_supabase_anon_key> \
-  --dart-define=QA_STUDENT_A_EMAIL=<qa_student_a_email> \
-  --dart-define=QA_STUDENT_A_PASSWORD=<qa_student_a_password> \
-  --dart-define=QA_STUDENT_B_EMAIL=<qa_student_b_email> \
-  --dart-define=QA_STUDENT_B_PASSWORD=<qa_student_b_password> \
-  --dart-define=QA_TEACHER_EMAIL=<qa_teacher_email> \
-  --dart-define=QA_TEACHER_PASSWORD=<qa_teacher_password>
-```
-
-Do not commit these values.
-
-## Android Automated
-
-`flutter test integration_test` built and installed debug APKs while executing the integration suite. The environment accepted install/run, but no real Samsung/physical-device manual evidence was captured in this pass.
-
-Status: `PARTIAL`
-
-## Web Automated
-
-Web build validation is covered separately by `flutter build web`. Browser click-through with Usuario A/B remains blocked by missing QA credentials.
-
-Status: `BLOCKED_EXTERNAL_CONFIG`
+Physical Samsung UX and final human accessibility remain release-level manual
+checks outside the automated Core journey.
 
 ## Gate Decision
 
-Android Beta automated gate: `FAIL`
+Android Full Real Core: `PASS`
 
-Reason: required automatic PASS for authenticated Auth, Upload, Home, Chat, Library, full Route Guards, full Multiuser Isolation and Logout/Login is not yet available without QA credentials and fixture data execution.
+Ready for Web Full Real E2E: `YES`
+
+Ready for RC2 review: `YES`, after Web and manual device gates are recorded.

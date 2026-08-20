@@ -3,6 +3,21 @@ from __future__ import annotations
 from app.database.supabase_client import get_supabase_admin_client
 
 
+ALLOWED_STUDY_RESULT_TYPES = {
+    "assessment_report",
+    "curriculum_intelligence",
+    "exam",
+    "final_report",
+    "flashcards",
+    "question_bank",
+    "quiz",
+    "rubric",
+    "study_guide",
+    "teaching_plan",
+    "teaching_resources",
+}
+
+
 def create_workspace(
     *,
     name: str,
@@ -284,7 +299,7 @@ def upsert_study_result(
 
     clean_type = type.strip().lower()
 
-    if clean_type not in {"flashcards", "exam"}:
+    if clean_type not in ALLOWED_STUDY_RESULT_TYPES:
         raise ValueError("Tipo de resultado inválido.")
 
     payload = {
@@ -326,7 +341,7 @@ def get_study_result(
         .execute()
     )
 
-    return response.data
+    return response.data if response is not None else None
 
 
 def list_study_results(

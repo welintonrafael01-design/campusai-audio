@@ -19,6 +19,19 @@ if ! adb devices | awk '$1 == "emulator-5554" && $2 == "device" { found = 1 } EN
   exit 1
 fi
 
+for attempt in 1 2 3 4 5; do
+  if [[ "$(adb -s emulator-5554 get-state 2>/dev/null || true)" != "device" ]] ||
+    ! adb -s emulator-5554 shell 'test "$(getprop sys.boot_completed)" = "1"' 2>/dev/null; then
+    echo "Android emulator lost readiness during preflight." >&2
+    exit 1
+  fi
+  if [[ "$attempt" != "5" ]]; then
+    sleep 2
+  fi
+done
+
+echo "Android emulator stability check: READY"
+
 mkdir -p "$RUN_DIR"
 git -C "$ROOT_DIR" status --short > "$RUN_DIR/git-status.txt"
 {
@@ -34,13 +47,17 @@ adb logcat -c
 set +e
 (
   cd "$FLUTTER_DIR"
-  flutter test integration_test -d emulator-5554 \
+  flutter test integration_test/full_real_user_journey_e2e_test.dart \
+    -d emulator-5554 \
     --dart-define-from-file="$SECRETS_FILE"
 ) 2>&1 | python3 "$ROOT_DIR/tools/qa/redact_qa_output.py" | tee "$RUN_DIR/test.log"
 TEST_STATUS=${PIPESTATUS[0]}
 set -e
 
 echo "Flutter integration tests: COMPLETE"
+grep -E 'E2E_(ARTIFACT|RESULT|MANUAL_GATE|BLOCKED)' "$RUN_DIR/test.log" \
+  | python3 "$ROOT_DIR/tools/qa/redact_qa_output.py" \
+  > "$RUN_DIR/artifact-manifest.txt" || true
 echo "Collecting Android logcat..."
 if adb logcat -d -v time 2>/dev/null | python3 "$ROOT_DIR/tools/qa/redact_qa_output.py" > "$RUN_DIR/android.log"; then
   echo "Android logcat: COMPLETE"

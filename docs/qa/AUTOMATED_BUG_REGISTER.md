@@ -1,21 +1,31 @@
 # Automated Bug Register - StudyBook AI RC1
 
-Generated: 2026-08-17
+Updated: 2026-08-17
 
-| ID | SEVERITY | MODULE | DESCRIPTION | ROOT CAUSE | STATUS | FIX COMMIT | RETEST |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| AUTO-P2-001 | P2 MEDIUM | E2E Config | Full authenticated E2E cannot execute without QA Supabase credentials and user fixtures. | External QA credentials were not available in the environment. | OPEN | N/A | Provide `QA_STUDENT_A_EMAIL`, `QA_STUDENT_A_PASSWORD`, `QA_STUDENT_B_EMAIL`, `QA_STUDENT_B_PASSWORD`, `QA_TEACHER_EMAIL`, `QA_TEACHER_PASSWORD`. |
-| AUTO-P2-002 | P2 MEDIUM | Audio/Voice | AudioBook sound quality and Voice Tutor microphone quality cannot be asserted automatically. | Requires physical audio output/input and browser/device permissions. | MANUAL_REQUIRED | N/A | Execute manual device QA and capture evidence. |
-| AUTO-P2-003 | P2 MEDIUM | E2E Coverage | Several authenticated click paths are represented as integration-test placeholders until QA credentials and fixture upload harness are available. | File picker, generated AI resources and teacher data require an environment-safe fixture harness. | OPEN | N/A | Implement full click paths for Home Upload, AI Tools, Library/Learning, Teacher and Account once QA users are provisioned. |
+| ID | Severity | Module | Finding | Root cause | Status | Retest |
+| --- | --- | --- | --- | --- | --- | --- |
+| AUTO-P1-004 | P1 HIGH | Cloud Library | Real upload returned success but could be absent from Cloud Library. | Deployed legacy `documents` schema lacks `user_id`; insert error was swallowed by upload. | FIXED | Full Real Android `UPLOAD_PIPELINE=PASS` |
+| AUTO-P1-005 | P1 HIGH | Document ownership/RAG | Identical PDFs uploaded by different users could receive the same document ID and overwrite the local ownership registry. | ID was a content-only hash. | FIXED | User-scoped ID test plus Student B direct attack PASS |
+| AUTO-P2-006 | P2 MEDIUM | Cloud StudyResults | Missing foreign StudyResult produced HTTP 500. | Supabase `maybe_single()` can return `None`; service assumed `.data`. | FIXED | Student B foreign result returns null |
+| AUTO-P2-007 | P2 MEDIUM | Cloud StudyResults | App resource types such as quiz, question bank and teaching plan were rejected. | Backend allowlist only contained flashcards and exam. | FIXED | Real artifacts and Teacher plan persisted |
+| AUTO-P2-008 | P2 MEDIUM | Local privacy | Courses and roster used global SharedPreferences keys. | Services did not use `UserScopedStorage`. | FIXED | `user_scoped_teacher_data_test.dart` |
+| AUTO-P2-009 | P2 MEDIUM | Chat persistence | All document chats resolved to a literal interpolation key. | Raw string prevented Dart interpolation. | FIXED | Distinct per-document chat key test |
+| AUTO-P2-010 | P2 MEDIUM | Native/audio QA | Picker visuals, acoustic quality and physical microphone cannot be fully asserted in `integration_test`. | Native UI and physical I/O require human/device evidence. | MANUAL_GATE | Run physical Android QA |
 
-## P0
+## Current Severity Summary
 
-None reproduced.
+- Open P0: 0
+- Open P1: 0
+- Open P2 product defects from this run: 0
+- Manual gates: 3 core device gates plus final Samsung/accessibility review
 
-## P1
+## Automation Gaps
 
-None reproduced.
+The previous Core `AUTOMATION_GAP` items are closed by
+`full_real_user_journey_e2e_test.dart`. The older granular tests remain for
+targeted coverage, while the canonical runner executes the orchestrated journey
+once to control AI cost.
 
-## Bugs Auto-Fixed
-
-None. No reproducible P0/P1 defect was found in this automated pass.
+The remaining gaps are outside the automated Core gate: Web Full Real E2E,
+physical audio/microphone quality, native picker visual behavior and final human
+accessibility/device QA.
