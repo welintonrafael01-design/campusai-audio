@@ -1,5 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'security/user_scoped_storage.dart';
+
 class AcademicPeriodLockService {
   static const String _prefix = 'studybook_academic_period_closed_';
 
@@ -7,7 +9,7 @@ class AcademicPeriodLockService {
     if (courseId.trim().isEmpty) return false;
 
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('$_prefix$courseId') ?? false;
+    return prefs.getBool(UserScopedStorage.key('$_prefix$courseId')) ?? false;
   }
 
   static Future<void> setClosed({
@@ -17,6 +19,9 @@ class AcademicPeriodLockService {
     if (courseId.trim().isEmpty) return;
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('$_prefix$courseId', closed);
+    await prefs.setBool(
+      UserScopedStorage.key('$_prefix$courseId'),
+      closed,
+    );
   }
 }

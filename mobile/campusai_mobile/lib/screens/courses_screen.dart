@@ -8,6 +8,7 @@ import '../services/api_service.dart';
 import '../services/course_document_service.dart';
 import '../services/export_service.dart';
 import '../services/study_result_service.dart';
+import '../services/study_result_repository.dart';
 import '../models/study_result.dart';
 import '../theme/app_theme.dart';
 import '../widgets/accessible_tip_card.dart';
@@ -126,6 +127,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
   Future<void> uploadProgramForCourse(CourseRecord course) async {
     await CourseService.setActiveCourse(course.id);
     await loadCourses();
+    if (!mounted) return;
 
     if (!mounted) return;
 
@@ -198,7 +200,9 @@ class _CoursesScreenState extends State<CoursesScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo subir el programa: $error'),
+          content: const Text(
+            'No se pudo subir el programa. Revisa el archivo e intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -492,10 +496,11 @@ class _CoursesScreenState extends State<CoursesScreen> {
   ) async {
     await CourseService.setActiveCourse(course.id);
     await loadCourses();
+    if (!mounted) return;
 
     final planId = '${program.documentId}_teaching_plan';
 
-    final existing = await StudyResultService.getResult(
+    final existing = await const StudyResultRepository().getResult(
       documentId: planId,
       type: 'teaching_plan',
     );
@@ -529,6 +534,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
     if (weeks == null) return;
 
     var cancelled = false;
+    if (!mounted) return;
 
     showDialog<void>(
       context: context,
@@ -651,7 +657,9 @@ class _CoursesScreenState extends State<CoursesScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo generar planificación: $error'),
+          content: const Text(
+            'No se pudo generar la planificación. Intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -664,10 +672,11 @@ class _CoursesScreenState extends State<CoursesScreen> {
   ) async {
     await CourseService.setActiveCourse(course.id);
     await loadCourses();
+    if (!mounted) return;
 
     final rubricId = '${program.documentId}_rubric';
 
-    final existing = await StudyResultService.getResult(
+    final existing = await const StudyResultRepository().getResult(
       documentId: rubricId,
       type: 'rubric',
     );
@@ -700,6 +709,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
     if (rubricOptions == null) return;
 
     var cancelled = false;
+    if (!mounted) return;
 
     showDialog<void>(
       context: context,
@@ -782,7 +792,9 @@ class _CoursesScreenState extends State<CoursesScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo generar rúbrica: $error'),
+          content: const Text(
+            'No se pudo generar la rúbrica. Intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -999,10 +1011,11 @@ class _CoursesScreenState extends State<CoursesScreen> {
   ) async {
     await CourseService.setActiveCourse(course.id);
     await loadCourses();
+    if (!mounted) return;
 
     final examId = '${program.documentId}_exam';
 
-    final existing = await StudyResultService.getResult(
+    final existing = await const StudyResultRepository().getResult(
       documentId: examId,
       type: 'exam',
     );
@@ -1045,6 +1058,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
     final examObjective = examOptions['examObjective'] as String;
 
     var cancelled = false;
+    if (!mounted) return;
 
     showDialog<void>(
       context: context,
@@ -1171,7 +1185,9 @@ class _CoursesScreenState extends State<CoursesScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo generar examen: $error'),
+          content: const Text(
+            'No se pudo generar el examen. Intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -1317,10 +1333,11 @@ class _CoursesScreenState extends State<CoursesScreen> {
   ) async {
     await CourseService.setActiveCourse(course.id);
     await loadCourses();
+    if (!mounted) return;
 
     final questionBankId = '${program.documentId}_question_bank';
 
-    final existing = await StudyResultService.getResult(
+    final existing = await const StudyResultRepository().getResult(
       documentId: questionBankId,
       type: 'question_bank',
     );
@@ -1363,6 +1380,7 @@ class _CoursesScreenState extends State<CoursesScreen> {
     final bloomLevel = bankOptions['bloomLevel'] as String;
 
     var cancelled = false;
+    if (!mounted) return;
 
     showDialog<void>(
       context: context,
@@ -1470,7 +1488,9 @@ class _CoursesScreenState extends State<CoursesScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo generar banco de preguntas: $error'),
+          content: const Text(
+            'No se pudo generar el banco de preguntas. Intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );

@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'security/user_scoped_storage.dart';
+
 class AssessmentWeight {
   final String name;
   final double weight;
@@ -32,7 +34,8 @@ class AssessmentWeight {
 class AssessmentWeightService {
   static const String _prefix = 'studybook_assessment_weights_';
 
-  static String _key(String courseId) => '$_prefix$courseId';
+  static String _key(String courseId) =>
+      UserScopedStorage.key('$_prefix$courseId');
 
   static Future<List<AssessmentWeight>> getWeights(String courseId) async {
     final prefs = await SharedPreferences.getInstance();

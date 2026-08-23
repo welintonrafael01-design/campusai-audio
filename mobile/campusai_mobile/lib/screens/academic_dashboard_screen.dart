@@ -8,7 +8,7 @@ import '../services/academic_analytics_service.dart';
 import '../services/academic_engine/academic_resource_repository.dart';
 import '../services/academic_engine/curriculum_intelligence_engine.dart';
 import '../services/course_service.dart';
-import '../services/study_result_service.dart';
+import '../services/study_result_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
 
@@ -75,14 +75,15 @@ class _AcademicDashboardScreenState extends State<AcademicDashboardScreen> {
     required CourseRecord? activeCourse,
   }) async {
     try {
-      final plans = await StudyResultService.getResultsByType('teaching_plan');
+      final plans =
+          await const StudyResultRepository().getResultsByType('teaching_plan');
       final selectedPlan = selectTeachingPlanForCourse(plans, activeCourse);
       if (selectedPlan == null) return {};
 
       final plan = decodePlan(selectedPlan.content);
       if (plan.isEmpty) return {};
 
-      final savedIntelligence = await StudyResultService.getResult(
+      final savedIntelligence = await const StudyResultRepository().getResult(
         documentId: '${selectedPlan.documentId}_curriculum_intelligence',
         type: 'curriculum_intelligence',
       );

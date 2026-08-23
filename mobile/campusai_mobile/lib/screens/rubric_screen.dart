@@ -7,7 +7,7 @@ import '../services/export_service.dart';
 import '../services/gradebook_service.dart';
 import '../services/academic_period_lock_service.dart';
 import '../services/student_roster_service.dart';
-import '../services/study_result_service.dart';
+import '../services/study_result_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
 
@@ -56,7 +56,7 @@ class _RubricScreenState extends State<RubricScreen> {
   }
 
   Future<void> loadSavedRubric() async {
-    final result = await StudyResultService.getResult(
+    final result = await const StudyResultRepository().getResult(
       documentId: widget.documentId,
       type: 'rubric',
     );

@@ -324,9 +324,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         Navigator.of(context).pop();
       }
 
+      debugPrint('No se pudo importar asistencia PDF (${error.runtimeType}).');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('No se pudo importar el PDF: $error'),
+        const SnackBar(
+          content: Text(
+              'No se pudo importar el PDF. Revisa el archivo e intenta nuevamente.'),
           behavior: SnackBarBehavior.floating,
         ),
       );

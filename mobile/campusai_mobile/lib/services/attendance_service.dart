@@ -60,10 +60,11 @@ class AttendanceEntry {
 
 class AttendanceService {
   static const String _key = 'studybook_attendance_entries';
+  static String get _scopedKey => EducatorSyncService.scopedKey(_key);
 
   static Future<List<AttendanceEntry>> getEntries() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getStringList(_key) ?? [];
+    final raw = prefs.getStringList(_scopedKey) ?? [];
 
     return raw
         .map((item) {
@@ -106,7 +107,7 @@ class AttendanceService {
     final prefs = await SharedPreferences.getInstance();
 
     await prefs.setStringList(
-      _key,
+      _scopedKey,
       current.map((item) => jsonEncode(item.toJson())).toList(),
     );
 
@@ -120,7 +121,7 @@ class AttendanceService {
     final prefs = await SharedPreferences.getInstance();
 
     await prefs.setStringList(
-      _key,
+      _scopedKey,
       entries.map((item) => jsonEncode(item.toJson())).toList(),
     );
 
@@ -249,9 +250,11 @@ class AttendanceService {
     final prefs = await SharedPreferences.getInstance();
 
     await prefs.setStringList(
-      _key,
+      _scopedKey,
       mergedEntries.map((item) => jsonEncode(item.toJson())).toList(),
     );
+
+    await EducatorSyncService.syncAfterLocalWrite();
 
     return importedEntries.length;
   }

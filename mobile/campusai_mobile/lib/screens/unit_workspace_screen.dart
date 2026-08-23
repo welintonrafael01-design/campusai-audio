@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../services/academic_engine/academic_metadata_builder.dart';
 import '../services/academic_engine/academic_unit_resource_manager.dart';
-import '../services/study_result_service.dart';
+import '../services/study_result_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/accessible_tip_card.dart';
 import '../widgets/section_card.dart';
@@ -150,7 +150,7 @@ class _UnitWorkspaceScreenState extends State<UnitWorkspaceScreen> {
       if (definition.key == 'planning') continue;
 
       final documentId = documentIdForResource(definition.key);
-      final result = await StudyResultService.getResult(
+      final result = await const StudyResultRepository().getResult(
         documentId: documentId,
         type: typeForResource(definition.key),
       );

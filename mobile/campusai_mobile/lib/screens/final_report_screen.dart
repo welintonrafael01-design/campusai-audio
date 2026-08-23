@@ -243,9 +243,11 @@ class _FinalReportScreenState extends State<FinalReportScreen> {
     } catch (error) {
       if (!mounted) return;
 
+      debugPrint('No se pudo generar el Acta Final (${error.runtimeType}).');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('No se pudo generar el Acta Final: $error'),
+        const SnackBar(
+          content:
+              Text('No se pudo generar el Acta Final. Intenta nuevamente.'),
           behavior: SnackBarBehavior.floating,
         ),
       );

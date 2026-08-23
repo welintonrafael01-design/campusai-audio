@@ -3,7 +3,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../services/cloud_api_service.dart';
 import '../models/study_result.dart';
@@ -61,7 +60,7 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
         isLoading = false;
       });
     } catch (error) {
-      debugPrint('No se pudieron cargar los exámenes: $error');
+      debugPrint('No se pudieron cargar los exámenes (${error.runtimeType}).');
       if (!mounted) return;
       setState(() {
         isLoading = false;
@@ -250,7 +249,9 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo eliminar el examen: $error'),
+          content: const Text(
+            'No se pudo eliminar el examen. Intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -343,20 +344,7 @@ class _SavedExamsScreenState extends State<SavedExamsScreen> {
   }
 
   Future<List<Map<String, dynamic>>> loadQuestionBanks() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getStringList(EducatorSyncService.questionBanksKey) ?? [];
-
-    return raw
-        .map((item) {
-          try {
-            final decoded = jsonDecode(item);
-            if (decoded is Map<String, dynamic>) return decoded;
-            if (decoded is Map) return Map<String, dynamic>.from(decoded);
-          } catch (_) {}
-          return null;
-        })
-        .whereType<Map<String, dynamic>>()
-        .toList();
+    return EducatorSyncService.getLocalQuestionBanks();
   }
 
   Future<void> createMultiBankExam() async {

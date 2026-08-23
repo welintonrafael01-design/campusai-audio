@@ -10,7 +10,7 @@ import '../services/academic_engine/academic_unit_resource_manager.dart';
 import '../services/academic_engine/curriculum_intelligence_engine.dart';
 import '../services/api_service.dart';
 import '../services/export_service.dart';
-import '../services/study_result_service.dart';
+import '../services/study_result_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/accessible_tip_card.dart';
 import '../widgets/section_card.dart';
@@ -97,7 +97,7 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
 
   Future<void> loadSavedPlan() async {
     try {
-      final result = await StudyResultService.getResult(
+      final result = await const StudyResultRepository().getResult(
         documentId: widget.documentId,
         type: 'teaching_plan',
       );
@@ -111,7 +111,9 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
         setState(() => plan = Map<String, dynamic>.from(decoded));
       }
     } catch (error) {
-      debugPrint('No se pudo cargar la planificación docente: $error');
+      debugPrint(
+        'No se pudo cargar la planificación docente (${error.runtimeType}).',
+      );
     } finally {
       if (mounted) {
         setState(() => isLoadingPlan = false);
@@ -297,7 +299,9 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo generar inteligencia curricular: $error'),
+          content: const Text(
+            'No se pudo generar la inteligencia curricular. Intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -1583,7 +1587,9 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo generar Banco IA: $error'),
+          content: const Text(
+            'No se pudo generar el Banco IA. Intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -1628,7 +1634,7 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
 
     try {
       final bankId = '${unitId}_question_bank';
-      final bankResult = await StudyResultService.getResult(
+      final bankResult = await const StudyResultRepository().getResult(
         documentId: bankId,
         type: 'question_bank',
       );
@@ -1737,7 +1743,9 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo generar Examen IA: $error'),
+          content: const Text(
+            'No se pudo generar el Examen IA. Intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -1869,7 +1877,9 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo generar Rúbrica IA: $error'),
+          content: const Text(
+            'No se pudo generar la Rúbrica IA. Intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -2003,7 +2013,9 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo generar Guía IA: $error'),
+          content: const Text(
+            'No se pudo generar la Guía IA. Intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -2143,7 +2155,9 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo generar Recursos Docentes: $error'),
+          content: const Text(
+            'No se pudieron generar los Recursos Docentes. Intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -2201,7 +2215,7 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
     });
 
     try {
-      final examResult = await StudyResultService.getResult(
+      final examResult = await const StudyResultRepository().getResult(
         documentId: '${unitId}_unit_exam',
         type: 'exam',
       );
@@ -2234,15 +2248,15 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
         return;
       }
 
-      final bankResult = await StudyResultService.getResult(
+      final bankResult = await const StudyResultRepository().getResult(
         documentId: '${unitId}_question_bank',
         type: 'question_bank',
       );
-      final rubricResult = await StudyResultService.getResult(
+      final rubricResult = await const StudyResultRepository().getResult(
         documentId: '${unitId}_rubric',
         type: 'rubric',
       );
-      final guideResult = await StudyResultService.getResult(
+      final guideResult = await const StudyResultRepository().getResult(
         documentId: '${unitId}_study_guide',
         type: 'study_guide',
       );
@@ -2359,7 +2373,9 @@ class _TeachingPlanScreenState extends State<TeachingPlanScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo generar Reporte de Evaluación: $error'),
+          content: const Text(
+            'No se pudo generar el Reporte de Evaluación. Intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );

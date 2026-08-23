@@ -172,10 +172,13 @@ class GradebookActivity {
 class GradebookService {
   static const String _key = 'studybook_gradebook_entries';
   static const String _activitiesKey = 'studybook_gradebook_activities';
+  static String get _scopedKey => EducatorSyncService.scopedKey(_key);
+  static String get _scopedActivitiesKey =>
+      EducatorSyncService.scopedKey(_activitiesKey);
 
   static Future<List<GradebookEntry>> getEntries() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getStringList(_key) ?? [];
+    final raw = prefs.getStringList(_scopedKey) ?? [];
 
     return raw
         .map((item) {
@@ -205,7 +208,7 @@ class GradebookService {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(
-      _key,
+      _scopedKey,
       entries.map((item) => jsonEncode(item.toJson())).toList(),
     );
 
@@ -214,7 +217,7 @@ class GradebookService {
 
   static Future<List<GradebookActivity>> getActivities() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getStringList(_activitiesKey) ?? [];
+    final raw = prefs.getStringList(_scopedActivitiesKey) ?? [];
 
     return raw
         .map((item) {
@@ -283,7 +286,7 @@ class GradebookService {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(
-      _activitiesKey,
+      _scopedActivitiesKey,
       activities.map((item) => jsonEncode(item.toJson())).toList(),
     );
 
@@ -528,9 +531,10 @@ class GradebookService {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(
-      _key,
+      _scopedKey,
       entries.map((item) => jsonEncode(item.toJson())).toList(),
     );
+    await EducatorSyncService.syncAfterLocalWrite();
   }
 
   static Future<void> exportCsv() async {
@@ -634,9 +638,11 @@ class GradebookService {
     final prefs = await SharedPreferences.getInstance();
 
     await prefs.setStringList(
-      _key,
+      _scopedKey,
       entries.map((item) => jsonEncode(item.toJson())).toList(),
     );
+
+    await EducatorSyncService.syncAfterLocalWrite();
 
     return imported;
   }

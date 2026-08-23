@@ -365,9 +365,11 @@ class _StudentsScreenState extends State<StudentsScreen> {
         Navigator.of(context).pop();
       }
 
+      debugPrint('No se pudo importar estudiantes PDF (${error.runtimeType}).');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('No se pudo importar el PDF: $error'),
+        const SnackBar(
+          content: Text(
+              'No se pudo importar el PDF. Revisa el archivo e intenta nuevamente.'),
           behavior: SnackBarBehavior.floating,
         ),
       );

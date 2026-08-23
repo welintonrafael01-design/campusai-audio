@@ -2,6 +2,9 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'security/user_scoped_storage.dart';
+import 'educator_sync_service.dart';
+
 class CourseDocument {
   final String courseId;
   final String documentId;
@@ -33,11 +36,12 @@ class CourseDocument {
 }
 
 class CourseDocumentService {
-  static const String _key = 'studybook_course_documents';
+  static const String _key = EducatorSyncService.courseDocumentsKey;
+  static String get _scopedKey => UserScopedStorage.key(_key);
 
   static Future<List<CourseDocument>> getDocuments() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getStringList(_key) ?? [];
+    final raw = prefs.getStringList(_scopedKey) ?? [];
 
     return raw
         .map((item) {
@@ -74,9 +78,10 @@ class CourseDocumentService {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(
-      _key,
+      _scopedKey,
       documents.map((item) => jsonEncode(item.toJson())).toList(),
     );
+    await EducatorSyncService.syncAfterLocalWrite();
   }
 
   static Future<void> deleteDocumentForCourse(String courseId) async {
@@ -85,8 +90,9 @@ class CourseDocumentService {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(
-      _key,
+      _scopedKey,
       documents.map((item) => jsonEncode(item.toJson())).toList(),
     );
+    await EducatorSyncService.syncAfterLocalWrite();
   }
 }

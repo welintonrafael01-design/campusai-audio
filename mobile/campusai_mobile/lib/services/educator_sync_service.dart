@@ -15,6 +15,7 @@ class EducatorSyncService {
   static const String attendanceKey = 'studybook_attendance_entries';
   static const String gradebookKey = 'studybook_gradebook_entries';
   static const String questionBanksKey = 'studybook_question_banks';
+  static const String courseDocumentsKey = 'studybook_course_documents';
 
   static String scopedKey(String key) => UserScopedStorage.key(key);
 
@@ -50,10 +51,15 @@ class EducatorSyncService {
 
     final prefs = await SharedPreferences.getInstance();
 
+    final courses = _decodeStringList(
+      prefs.getStringList(scopedKey(coursesKey)) ?? const [],
+    );
+    final courseDocuments = _decodeStringList(
+      prefs.getStringList(scopedKey(courseDocumentsKey)) ?? const [],
+    );
+
     final payload = {
-      'courses': _decodeStringList(
-        prefs.getStringList(scopedKey(coursesKey)) ?? const [],
-      ),
+      'courses': _coursesWithDocuments(courses, courseDocuments),
       'students': _decodeStringList(
         prefs.getStringList(scopedKey(studentsKey)) ?? const [],
       ),
@@ -90,6 +96,10 @@ class EducatorSyncService {
         key: scopedKey(coursesKey),
         value: snapshot['courses'],
       );
+      await _saveCourseDocumentsFromCourses(
+        prefs: prefs,
+        value: snapshot['courses'],
+      );
       await _saveListIfNotEmpty(
         prefs: prefs,
         key: scopedKey(studentsKey),
@@ -123,6 +133,13 @@ class EducatorSyncService {
     }
   }
 
+  static Future<List<Map<String, dynamic>>> getLocalQuestionBanks() async {
+    final prefs = await SharedPreferences.getInstance();
+    return _decodeStringList(
+      prefs.getStringList(scopedKey(questionBanksKey)) ?? const [],
+    );
+  }
+
   static List<Map<String, dynamic>> _decodeStringList(List<String> raw) {
     return raw
         .map((item) {
@@ -135,6 +152,60 @@ class EducatorSyncService {
         })
         .whereType<Map<String, dynamic>>()
         .toList();
+  }
+
+  static List<Map<String, dynamic>> _coursesWithDocuments(
+    List<Map<String, dynamic>> courses,
+    List<Map<String, dynamic>> documents,
+  ) {
+    final byCourse = {
+      for (final item in documents)
+        (item['courseId'] ?? item['course_id'])?.toString() ?? '': item,
+    };
+    return courses.map((course) {
+      final courseId = course['id']?.toString() ?? '';
+      final document = byCourse[courseId];
+      if (document == null) return course;
+      return {
+        ...course,
+        'programDocumentId':
+            document['documentId'] ?? document['document_id'] ?? '',
+        'programFileName': document['fileName'] ?? document['file_name'] ?? '',
+        'programUploadedAt':
+            document['uploadedAt'] ?? document['uploaded_at'] ?? '',
+      };
+    }).toList();
+  }
+
+  static Future<void> _saveCourseDocumentsFromCourses({
+    required SharedPreferences prefs,
+    required dynamic value,
+  }) async {
+    if (value is! List) return;
+    final documents = value.whereType<Map>().map((raw) {
+      final course = Map<String, dynamic>.from(raw);
+      final documentId =
+          (course['programDocumentId'] ?? course['program_document_id'])
+              ?.toString()
+              .trim();
+      if (documentId == null || documentId.isEmpty) return null;
+      return {
+        'courseId': course['id']?.toString() ?? '',
+        'documentId': documentId,
+        'fileName': (course['programFileName'] ??
+                course['program_file_name'] ??
+                'Programa de clase.pdf')
+            .toString(),
+        'uploadedAt':
+            (course['programUploadedAt'] ?? course['program_uploaded_at'] ?? '')
+                .toString(),
+      };
+    }).whereType<Map<String, dynamic>>();
+
+    final encoded = documents.map(jsonEncode).toList();
+    if (encoded.isNotEmpty) {
+      await prefs.setStringList(scopedKey(courseDocumentsKey), encoded);
+    }
   }
 
   static Future<void> _saveListIfNotEmpty({

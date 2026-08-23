@@ -10,7 +10,7 @@ import '../services/student_roster_service.dart';
 import '../services/api_service.dart';
 import '../services/course_service.dart';
 import '../services/assessment_weight_service.dart';
-import '../services/study_result_service.dart';
+import '../services/study_result_repository.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
 
@@ -290,7 +290,9 @@ class _GradebookScreenState extends State<GradebookScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo importar PDF: $error'),
+          content: const Text(
+            'No se pudo importar el PDF. Revisa el archivo e intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -405,7 +407,9 @@ class _GradebookScreenState extends State<GradebookScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo importar Excel: $error'),
+          content: const Text(
+            'No se pudo importar el archivo Excel. Revisa el formato e intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -543,7 +547,9 @@ class _GradebookScreenState extends State<GradebookScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo importar desde Academic Engine: $error'),
+          content: const Text(
+            'No se pudo importar el recurso académico. Intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -560,7 +566,9 @@ class _GradebookScreenState extends State<GradebookScreen> {
     final results = <StudyResult>[];
 
     for (final type in const ['exam', 'rubric', 'assessment_report']) {
-      results.addAll(await StudyResultService.getResultsByType(type));
+      results.addAll(
+        await const StudyResultRepository().getResultsByType(type),
+      );
     }
 
     final options = results
