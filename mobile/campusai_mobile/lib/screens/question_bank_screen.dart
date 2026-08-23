@@ -6,10 +6,13 @@ import 'package:go_router/go_router.dart';
 
 import '../models/study_result.dart';
 import '../services/study_result_service.dart';
+import '../services/study_result_repository.dart';
 import '../services/export_service.dart';
 import '../services/api_service.dart';
 import '../services/cloud_api_service.dart';
+import '../services/plan_guard_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/upgrade_dialog.dart';
 import '../widgets/section_card.dart';
 
 class QuestionBankScreen extends StatefulWidget {
@@ -33,14 +36,14 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
   @override
   void initState() {
     super.initState();
-    questions = widget.initialQuestions;
+    questions = _usableQuestions(widget.initialQuestions);
     if (questions.isEmpty) {
       loadSavedQuestionBank();
     }
   }
 
   Future<void> loadSavedQuestionBank() async {
-    final result = await StudyResultService.getResult(
+    final result = await const StudyResultRepository().getResult(
       documentId: widget.documentId,
       type: 'question_bank',
     );
@@ -55,6 +58,7 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
           questions = decoded
               .whereType<Map>()
               .map((item) => Map<String, dynamic>.from(item))
+              .where(_isUsableQuestion)
               .toList();
         });
       }
@@ -173,6 +177,16 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
         item['correctOption']?.toString() ??
         item['correct_option']?.toString() ??
         '';
+  }
+
+  List<Map<String, dynamic>> _usableQuestions(List<Map<String, dynamic>> raw) {
+    return raw.map(Map<String, dynamic>.from).where(_isUsableQuestion).toList();
+  }
+
+  bool _isUsableQuestion(Map<String, dynamic> item) {
+    return questionText(item).trim().isNotEmpty &&
+        questionText(item) != 'Pregunta sin texto' &&
+        answerText(item).trim().isNotEmpty;
   }
 
   int maxQuestionsForExamType(String type) {
@@ -637,6 +651,10 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
   }
 
   Future<void> exportQuestionBankToPdf() async {
+    if (!const PlanGuardService().canExportPdf) {
+      showUpgradeRequired(context, featureName: 'Exportar banco a PDF');
+      return;
+    }
     await ExportService.exportTextToPdf(
       title: 'Banco de Preguntas',
       content: exportableContent(),
@@ -644,6 +662,10 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
   }
 
   Future<void> exportQuestionBankToDocx() async {
+    if (!const PlanGuardService().canExportDocx) {
+      showUpgradeRequired(context, featureName: 'Exportar banco a Word');
+      return;
+    }
     await ExportService.exportTextToDocx(
       title: 'Banco de Preguntas',
       content: exportableContent(),
@@ -651,6 +673,13 @@ class _QuestionBankScreenState extends State<QuestionBankScreen> {
   }
 
   Future<void> exportQuestionBankToPptx() async {
+    if (!const PlanGuardService().canExportPptx) {
+      showUpgradeRequired(
+        context,
+        featureName: 'Exportar banco a PowerPoint',
+      );
+      return;
+    }
     await ExportService.exportTextToPptx(
       title: 'Banco de Preguntas',
       content: exportableContent(),

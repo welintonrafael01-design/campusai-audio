@@ -154,6 +154,7 @@ void main() {
     const source = ChatCitationModel(
       documentId: 'internal-doc-id',
       chunkIndex: 30,
+      documentTitle: 'Resolución 0006-2025',
       pageNumber: 3,
       preview: excerpt,
       distance: 0.52,
@@ -175,7 +176,8 @@ void main() {
     await tester.tap(find.byKey(const Key('source-references-expansion')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Fuente 1 · Página 3'), findsOneWidget);
+    expect(find.text('Resolución 0006-2025'), findsOneWidget);
+    expect(find.text('Página 3'), findsOneWidget);
     expect(find.text(excerpt), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -199,6 +201,7 @@ void main() {
         ChatCitationModel(
           documentId: 'doc-ciag',
           chunkIndex: 2,
+          documentTitle: 'Normativa de accesibilidad',
           pageNumber: 6,
           preview:
               'La comisión dará seguimiento a las acciones de inclusión y accesibilidad.',
@@ -218,7 +221,8 @@ void main() {
     await tester.tap(find.byKey(const Key('source-references-expansion')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Fuente 1 · Página 6'), findsOneWidget);
+    expect(find.text('Normativa de accesibilidad'), findsOneWidget);
+    expect(find.text('Página 6'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

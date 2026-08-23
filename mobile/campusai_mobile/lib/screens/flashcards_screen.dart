@@ -10,6 +10,7 @@ import '../services/export_service.dart';
 import '../services/plan_guard_service.dart';
 import '../utils/upgrade_dialog.dart';
 import '../services/study_result_service.dart';
+import '../services/study_result_repository.dart';
 import '../services/cloud_api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
@@ -44,7 +45,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
     super.initState();
 
     if (widget.initialFlashcards.isNotEmpty) {
-      flashcards = widget.initialFlashcards;
+      flashcards = _parseFlashcards(widget.initialFlashcards);
       currentIndex = 0;
     } else {
       loadSavedFlashcards();
@@ -52,7 +53,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
   }
 
   Future<void> loadSavedFlashcards() async {
-    final savedResult = await StudyResultService.getResult(
+    final savedResult = await const StudyResultRepository().getResult(
       documentId: widget.documentId,
       type: 'flashcards',
     );
@@ -82,6 +83,9 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
       );
 
       final parsed = _parseFlashcards(data['flashcards']);
+      if (parsed.isEmpty) {
+        throw const FormatException('Flashcards incompletas.');
+      }
 
       if (!mounted) return;
 
@@ -108,10 +112,14 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
           content: content,
         );
       } catch (cloudError) {
-        debugPrint('No se pudo guardar flashcards cloud: $cloudError');
+        debugPrint(
+          'No se pudo guardar flashcards cloud (${cloudError.runtimeType}).',
+        );
       }
     } catch (error) {
-      debugPrint('No se pudieron generar las flashcards: $error');
+      debugPrint(
+        'No se pudieron generar las flashcards (${error.runtimeType}).',
+      );
       if (!mounted) return;
 
       setState(() {
@@ -143,6 +151,8 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
         return list
             .whereType<Map>()
             .map((item) => Map<String, dynamic>.from(item))
+            .map(_normalizedFlashcard)
+            .whereType<Map<String, dynamic>>()
             .toList();
       }
     }
@@ -151,10 +161,25 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
       return decoded
           .whereType<Map>()
           .map((item) => Map<String, dynamic>.from(item))
+          .map(_normalizedFlashcard)
+          .whereType<Map<String, dynamic>>()
           .toList();
     }
 
     return [];
+  }
+
+  Map<String, dynamic>? _normalizedFlashcard(Map<String, dynamic> item) {
+    final front = (item['front'] ?? item['question'] ?? item['pregunta'])
+            ?.toString()
+            .trim() ??
+        '';
+    final back = (item['back'] ?? item['answer'] ?? item['respuesta'])
+            ?.toString()
+            .trim() ??
+        '';
+    if (front.isEmpty || back.isEmpty) return null;
+    return {...item, 'front': front, 'back': back};
   }
 
   String getFront(Map<String, dynamic> item) {
@@ -306,12 +331,24 @@ ${getBack(card)}
 
     return Column(
       children: [
-        Text(
-          '${currentIndex + 1} / ${flashcards.length}',
-          style: const TextStyle(
-            color: AppTheme.textMuted,
-            fontWeight: FontWeight.w800,
-          ),
+        Row(
+          children: [
+            Text(
+              '${currentIndex + 1} / ${flashcards.length}',
+              style: const TextStyle(
+                color: AppTheme.textMuted,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const Spacer(),
+            TextButton.icon(
+              onPressed: currentIndex == 0
+                  ? null
+                  : () => setState(() => currentIndex = 0),
+              icon: const Icon(Icons.restart_alt_rounded),
+              label: const Text('Reiniciar'),
+            ),
+          ],
         ),
         const SizedBox(height: 10),
         LinearProgressIndicator(
@@ -486,17 +523,21 @@ class _CardFace extends StatelessWidget {
             ],
           ),
           const Spacer(),
-          Text(
-            content,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 25,
-              fontWeight: FontWeight.w900,
-              height: 1.35,
+          Expanded(
+            child: SingleChildScrollView(
+              child: Text(
+                content,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 23,
+                  fontWeight: FontWeight.w900,
+                  height: 1.35,
+                ),
+              ),
             ),
           ),
-          const Spacer(),
+          const SizedBox(height: 16),
           Text(
             footer,
             style: const TextStyle(

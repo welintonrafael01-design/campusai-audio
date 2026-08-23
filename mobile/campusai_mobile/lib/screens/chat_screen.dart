@@ -115,7 +115,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         cloudChatId = widget.cloudChatId;
       } catch (error) {
         debugPrint(
-          'No se pudo cargar historial cloud: $error',
+          'No se pudo cargar historial cloud (${error.runtimeType}).',
         );
       }
     }
@@ -171,7 +171,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Future<void> ensureCloudChat() async {
     if (cloudChatId.isNotEmpty) return;
 
-    debugPrint('STEP 1: Entrando a askQuestion');
     try {
       final cloudChat = await CloudApiService.createChat(
         workspaceId: isWorkspaceChat ? widget.workspaceId : null,
@@ -182,7 +181,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
       cloudChatId = cloudChat['id'] ?? '';
     } catch (error) {
-      debugPrint('No se pudo crear chat cloud: $error');
+      debugPrint('No se pudo crear chat cloud (${error.runtimeType}).');
     }
   }
 
@@ -203,7 +202,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         content: content,
       );
     } catch (error) {
-      debugPrint('No se pudo guardar mensaje cloud: $error');
+      debugPrint('No se pudo guardar mensaje cloud (${error.runtimeType}).');
     }
   }
 
@@ -232,12 +231,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       final fullAudioUrl = ApiService.buildAudioUrl(audioUrl);
 
       await voiceAudioService.play(fullAudioUrl);
-    } catch (error) {
+    } catch (_) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${l10n.voiceAnswerPlaybackError}: $error'),
+          content: Text(l10n.voiceAnswerPlaybackError),
         ),
       );
     } finally {
@@ -280,8 +279,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
 
     try {
-      debugPrint('STEP 2: Antes de llamar API');
-
       final data = isWorkspaceChat
           ? await ApiService.chatWithWorkspace(
               documentIds: effectiveDocumentIds,
@@ -293,21 +290,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               question: question,
             );
 
-      debugPrint('STEP 3: Respuesta recibida');
-
       final response = cleanMarkdown(
         data['answer'] ?? l10n.noAnswerReceived,
       );
 
       final rawCitations = data['citations'];
-
-      final confidence = data['confidence']?.toString();
-
-      final averageDistance = data['average_distance'] is num
-          ? (data['average_distance'] as num).toDouble()
-          : null;
-
-      final confidenceMessage = data['message']?.toString();
 
       final citations = rawCitations is List
           ? rawCitations
@@ -327,9 +314,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             isUser: false,
             createdAt: DateTime.now(),
             isStreaming: true,
-            confidence: confidence,
-            averageDistance: averageDistance,
-            confidenceMessage: confidenceMessage,
             citations: citations,
           ),
         );
@@ -346,9 +330,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           messages[responseIndex] = current.copyWith(
             text: current.text + character,
             isStreaming: true,
-            confidence: confidence,
-            averageDistance: averageDistance,
-            confidenceMessage: confidenceMessage,
             citations: citations,
           );
         });
@@ -383,11 +364,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       );
 
       await persistChat();
-    } catch (error) {
+    } catch (_) {
       if (!mounted) return;
 
       setState(() {
-        errorMessage = error.toString();
+        errorMessage = l10n.chatTemporaryError;
         messages.add(
           ChatMessageModel(
             text: l10n.chatTemporaryError,
@@ -507,13 +488,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         title: '${l10n.chatTitlePrefix} - ${widget.fileName}',
         content: exportableMessages,
       );
-    } catch (error) {
+    } catch (_) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${l10n.chatExportWordError}: $error',
+            l10n.chatExportWordError,
           ),
         ),
       );
@@ -553,13 +534,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         title: '${l10n.chatTitlePrefix} - ${widget.fileName}',
         content: exportableMessages,
       );
-    } catch (error) {
+    } catch (_) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${l10n.chatExportPdfError}: $error',
+            l10n.chatExportPdfError,
           ),
         ),
       );

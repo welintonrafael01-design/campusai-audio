@@ -17,7 +17,8 @@ import '../services/audiobook_library_service.dart';
 import '../services/cloud_api_service.dart';
 import '../services/library_favorites_service.dart';
 import '../services/chat_history_service.dart';
-import '../services/study_result_service.dart';
+import '../services/study_result_repository.dart';
+import '../services/document_resource_cleanup_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/document_display_title.dart';
 import '../widgets/section_card.dart';
@@ -145,7 +146,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         );
       }
     } catch (error) {
-      debugPrint('No se pudo cargar Biblioteca Cloud: $error');
+      debugPrint('No se pudo cargar Biblioteca Cloud (${error.runtimeType}).');
     }
 
     final items = [
@@ -203,7 +204,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         );
       }
     } catch (error) {
-      debugPrint('No se pudo cargar AudioBooks cloud: $error');
+      debugPrint('No se pudo cargar AudioBooks cloud (${error.runtimeType}).');
     }
 
     final savedAudiobooks = [
@@ -247,12 +248,14 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
     for (final type in const [
       'flashcards',
+      'quiz',
       'exam',
       'question_bank',
       'rubric',
       'study_guide',
     ]) {
-      final results = await StudyResultService.getResultsByType(type);
+      final results =
+          await const StudyResultRepository().getResultsByType(type);
 
       for (final result in results) {
         final item = _LibraryGeneratedItem.fromStudyResult(
@@ -351,22 +354,35 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
     if (confirm != true) return;
 
+    if (mounted) {
+      setState(() {
+        documents.removeWhere(
+          (item) => item.documentId == document.documentId,
+        );
+        generatedItems.removeWhere(
+          (item) => item.sourceDocumentId == document.documentId,
+        );
+        savedChats.removeWhere(
+          (item) => item.document.documentId == document.documentId,
+        );
+      });
+    }
+
     await HistoryService.deleteDocument(
       documents.indexWhere(
         (item) => item.documentId == document.documentId,
       ),
     );
+    await ref.read(activeDocumentProvider.notifier).loadActiveDocument();
+    ref.read(activeWorkspaceProvider.notifier).removeDocument(
+          document.documentId,
+        );
 
     await const AudiobookLibraryService().deleteAudiobook(document.documentId);
     await ChatHistoryService.clearChat(documentId: document.documentId);
     await const LibraryFavoritesService().removeFavorite(document.documentId);
-    await StudyResultService.deleteResult(
-      documentId: document.documentId,
-      type: 'flashcards',
-    );
-    await StudyResultService.deleteResult(
-      documentId: document.documentId,
-      type: 'exam',
+    await const DocumentResourceCleanupService().deleteAssociatedResults(
+      document.documentId,
     );
 
     try {
@@ -383,19 +399,6 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       );
     } catch (cloudError) {
       debugPrint('No se pudo eliminar AudioBook cloud: $cloudError');
-    }
-
-    try {
-      await CloudApiService.deleteStudyResult(
-        documentId: document.documentId,
-        type: 'flashcards',
-      );
-      await CloudApiService.deleteStudyResult(
-        documentId: document.documentId,
-        type: 'exam',
-      );
-    } catch (cloudError) {
-      debugPrint('No se pudieron eliminar resultados cloud: $cloudError');
     }
 
     await loadLibrary();
@@ -425,12 +428,12 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       if (!launched) {
         throw StateError('No se pudo abrir el PDF.');
       }
-    } catch (error) {
+    } catch (_) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo abrir el PDF: $error'),
+          content: Text('No pudimos abrir el PDF. Inténtalo nuevamente.'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -480,12 +483,12 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           queryParameters: queryParameters,
         ).toString(),
       );
-    } catch (error) {
+    } catch (_) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo preparar el chat: $error'),
+          content: Text('No pudimos preparar el chat. Inténtalo nuevamente.'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -515,12 +518,31 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       if (!mounted) return;
 
       context.go('/exam/${document.documentId}');
-    } catch (error) {
+    } catch (_) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo preparar el examen: $error'),
+          content: Text('No pudimos preparar el examen. Inténtalo nuevamente.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> openQuiz(DocumentHistory document) async {
+    try {
+      await ref.read(activeDocumentProvider.notifier).setDocument(document);
+      await prepareCloudDocument(document);
+
+      if (!mounted) return;
+
+      context.go('/exam/${document.documentId}?mode=practice');
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No pudimos preparar el quiz. Inténtalo nuevamente.'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -535,12 +557,14 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       if (!mounted) return;
 
       context.go('/flashcards/${document.documentId}');
-    } catch (error) {
+    } catch (_) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudieron preparar las flashcards: $error'),
+          content: Text(
+            'No pudimos preparar las flashcards. Inténtalo nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -555,12 +579,14 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       if (!mounted) return;
 
       context.go('/question-bank/${document.documentId}');
-    } catch (error) {
+    } catch (_) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo preparar el banco de preguntas: $error'),
+          content: Text(
+            'No pudimos preparar el banco de preguntas. Inténtalo nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -577,8 +603,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           isGeneratingAudiobook: false,
           onChat: () => openChat(document),
           onAudioBook: () => generateAudiobook(document),
+          onVoiceTutor: () => openVoiceTutor(document),
           onFlashcards: () => openFlashcards(document),
-          onQuiz: () => openExam(document),
+          onQuiz: () => openQuiz(document),
           onQuestionBank: () => openQuestionBank(document),
           onExam: () => openExam(document),
           onOpenPdf: () => openPdf(document),
@@ -590,6 +617,34 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     );
   }
 
+  Future<void> openVoiceTutor(DocumentHistory document) async {
+    await ref.read(activeDocumentProvider.notifier).setDocument(document);
+    await prepareCloudDocument(document);
+
+    if (!mounted) return;
+
+    context.go(
+      '/voice-tutor',
+      extra: {
+        'title': documentDisplayTitle(document.fileName),
+        'audiobookId': document.documentId,
+        'audiobook': {
+          'audiobook_id': document.documentId,
+          'title': documentDisplayTitle(document.fileName),
+          'source_document_id': document.documentId,
+          'chapters': [
+            {
+              'chapter_id': 'document',
+              'title': documentDisplayTitle(document.fileName),
+              'summary': document.cleanSummary,
+              'transcript': document.cleanSummary,
+            },
+          ],
+        },
+      },
+    );
+  }
+
   Future<void> openGeneratedResource(_LibraryGeneratedItem item) async {
     switch (item.type) {
       case 'flashcards':
@@ -597,6 +652,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         return;
       case 'exam':
         context.go('/exam/${item.documentId}');
+        return;
+      case 'quiz':
+        context.go('/exam/${item.documentId}?mode=practice');
         return;
       case 'question_bank':
         context.go('/question-bank/${item.documentId}');
@@ -1694,6 +1752,7 @@ class _LibraryGeneratedItem {
       'summary' => Icons.summarize_rounded,
       'flashcards' => Icons.style_rounded,
       'exam' => Icons.quiz_rounded,
+      'quiz' => Icons.psychology_alt_rounded,
       'question_bank' => Icons.fact_check_rounded,
       'rubric' => Icons.assignment_turned_in_rounded,
       'study_guide' => Icons.menu_book_rounded,
@@ -1706,6 +1765,7 @@ class _LibraryGeneratedItem {
       'summary' => 'Resumen',
       'flashcards' => 'Flashcards',
       'exam' => 'Examen',
+      'quiz' => 'Quiz',
       'question_bank' => 'Banco',
       'rubric' => 'Rúbrica',
       'study_guide' => 'Guía',
@@ -1718,6 +1778,7 @@ class _LibraryGeneratedItem {
       'summary' => 'Leer resumen',
       'flashcards' => 'Abrir flashcards',
       'exam' => 'Abrir examen',
+      'quiz' => 'Continuar quiz',
       'question_bank' => 'Abrir banco',
       'rubric' => 'Abrir rúbrica',
       'study_guide' => 'Ver guía',

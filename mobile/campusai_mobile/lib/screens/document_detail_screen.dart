@@ -14,6 +14,7 @@ class DocumentDetailScreen extends StatefulWidget {
   final bool isGeneratingAudiobook;
   final DocumentAction onChat;
   final DocumentAction onAudioBook;
+  final DocumentAction onVoiceTutor;
   final DocumentAction onFlashcards;
   final DocumentAction onQuiz;
   final DocumentAction onQuestionBank;
@@ -31,6 +32,7 @@ class DocumentDetailScreen extends StatefulWidget {
     required this.isGeneratingAudiobook,
     required this.onChat,
     required this.onAudioBook,
+    required this.onVoiceTutor,
     required this.onFlashcards,
     required this.onQuiz,
     required this.onQuestionBank,
@@ -201,6 +203,11 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                           onTap: widget.isGeneratingAudiobook
                               ? null
                               : () => runAndClose(widget.onAudioBook),
+                        ),
+                        _DetailAction(
+                          label: 'Tutor IA',
+                          icon: Icons.record_voice_over_rounded,
+                          onTap: () => runAndClose(widget.onVoiceTutor),
                         ),
                         _DetailAction(
                           label: 'Flashcards',

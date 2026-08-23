@@ -245,6 +245,7 @@ final appRouter = GoRouter(
           child: ExamScreen(
             documentId: documentId,
             initialQuestions: initialQuestions,
+            practiceMode: state.uri.queryParameters['mode'] == 'practice',
           ),
         );
       },

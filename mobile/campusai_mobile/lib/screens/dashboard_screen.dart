@@ -19,6 +19,7 @@ import '../services/onboarding_service.dart';
 import '../services/recent_documents_service.dart';
 import '../services/subscription_service.dart';
 import '../services/study_result_service.dart';
+import '../services/study_result_repository.dart';
 import '../services/workspace_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/safe_debug_log.dart';
@@ -163,7 +164,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     try {
       await const SubscriptionService().syncCurrentUserPlan();
     } catch (error) {
-      debugPrint('No se pudo sincronizar el plan: $error');
+      debugPrint('No se pudo sincronizar el plan (${error.runtimeType}).');
     }
   }
 
@@ -266,12 +267,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           );
         } catch (error) {
           debugPrint(
-            'No se pudo sincronizar documento cloud: $error',
+            'No se pudo sincronizar documento cloud (${error.runtimeType}).',
           );
         }
       }
     } catch (error) {
-      debugPrint('No se pudo sincronizar workspace cloud: $error');
+      debugPrint(
+        'No se pudo sincronizar workspace cloud (${error.runtimeType}).',
+      );
     }
 
     final workspace = WorkspaceModel(
@@ -479,7 +482,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudieron generar flashcards: $error'),
+          content: const Text(
+            'No se pudieron generar las flashcards. Intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -556,7 +561,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo generar el examen: $error'),
+          content: const Text(
+            'No se pudo generar el examen. Intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -612,7 +619,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         description: l10n.workspaceCreatedFromStudyBook,
       );
     } catch (error) {
-      debugPrint('No se pudo renombrar workspace cloud: $error');
+      debugPrint(
+          'No se pudo renombrar workspace cloud (${error.runtimeType}).');
     }
 
     await loadWorkspaces();
@@ -737,7 +745,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         );
       } catch (error) {
         debugPrint(
-          'No se pudo sincronizar documento agregado al workspace: $error',
+          'No se pudo sincronizar documento agregado al workspace '
+          '(${error.runtimeType}).',
         );
       }
     }
@@ -787,7 +796,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         workspaceId: workspace.workspaceId,
       );
     } catch (error) {
-      debugPrint('No se pudo eliminar workspace cloud: $error');
+      debugPrint('No se pudo eliminar workspace cloud (${error.runtimeType}).');
     }
 
     await loadWorkspaces();
@@ -925,7 +934,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       await loadHistory();
       await loadRecentDocuments();
     } catch (error) {
-      debugPrint('No se pudo procesar el documento: $error');
+      debugPrint('No se pudo procesar el documento (${error.runtimeType}).');
       if (!mounted) return;
 
       setState(() {
@@ -1050,7 +1059,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       await loadHistory();
       await loadRecentDocuments();
     } catch (error) {
-      debugPrint('No se pudo reintentar el documento: $error');
+      debugPrint('No se pudo reintentar el documento (${error.runtimeType}).');
       if (!mounted) return;
 
       setState(() {
@@ -1186,7 +1195,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     final planId = '${documentId}_teaching_plan';
 
-    final existingPlan = await StudyResultService.getResult(
+    final existingPlan = await const StudyResultRepository().getResult(
       documentId: planId,
       type: 'teaching_plan',
     );
@@ -1303,7 +1312,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo generar la planificación: $error'),
+          content: const Text(
+            'No se pudo generar la planificación. Intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -1527,7 +1538,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     final rubricId = '${documentId}_rubric';
 
-    final existingRubric = await StudyResultService.getResult(
+    final existingRubric = await const StudyResultRepository().getResult(
       documentId: rubricId,
       type: 'rubric',
     );
@@ -1647,7 +1658,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo generar la rúbrica: $error'),
+          content: const Text(
+            'No se pudo generar la rúbrica. Intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -1690,7 +1703,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         );
       }
     } catch (error) {
-      debugPrint('No se pudo generar el audio: $error');
+      debugPrint('No se pudo generar el audio (${error.runtimeType}).');
       if (!mounted) return;
 
       setState(() {
@@ -1718,7 +1731,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         isPlaying = audioService.isPlaying;
       });
     } catch (error) {
-      debugPrint('No se pudo reproducir el audio: $error');
+      debugPrint('No se pudo reproducir el audio (${error.runtimeType}).');
       if (!mounted) return;
 
       setState(() {
@@ -1750,7 +1763,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         isPlaying = audioService.isPlaying;
       });
     } catch (error) {
-      debugPrint('No se pudo reiniciar el audio: $error');
+      debugPrint('No se pudo reiniciar el audio (${error.runtimeType}).');
       if (!mounted) return;
 
       setState(() {
@@ -1960,6 +1973,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     context.pushNamed(
       'exam',
       pathParameters: {'documentId': documentId},
+    );
+  }
+
+  void openQuizScreen() {
+    if (!hasActiveDocument) {
+      showNoActiveDocumentMessage();
+      return;
+    }
+
+    context.pushNamed(
+      'exam',
+      pathParameters: {'documentId': documentId},
+      queryParameters: const {'mode': 'practice'},
     );
   }
 
@@ -2196,7 +2222,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No se pudo generar el banco de preguntas: $error'),
+          content: const Text(
+            'No se pudo generar el banco de preguntas. Intenta nuevamente.',
+          ),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -2267,7 +2295,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             openAudiobook: openAudioBookStudio,
             openVoiceTutor: openVoiceTutorScreen,
             openFlashcards: openFlashcardsScreen,
-            openQuiz: openExamScreen,
+            openQuiz: openQuizScreen,
             openQuestionBank: generateQuestionBank,
             openExam: openExamScreen,
           ),

@@ -46,7 +46,7 @@ class SettingsScreen extends ConsumerWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'No se pudo sincronizar el plan: $error',
+            'No se pudo sincronizar el plan. Intenta nuevamente.',
           ),
           behavior: SnackBarBehavior.floating,
         ),
@@ -81,7 +81,7 @@ class SettingsScreen extends ConsumerWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'No se pudo abrir el portal de suscripción: $error',
+            'No se pudo abrir el portal de suscripción. Intenta nuevamente.',
           ),
           behavior: SnackBarBehavior.floating,
         ),

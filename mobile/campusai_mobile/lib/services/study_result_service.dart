@@ -150,5 +150,24 @@ class StudyResultService {
     await prefs.remove(
       _buildLegacyScopedKey(documentId, type),
     );
+
+    if (type == 'question_bank') {
+      final key = EducatorSyncService.scopedKey(
+        EducatorSyncService.questionBanksKey,
+      );
+      final current = prefs.getStringList(key) ?? const [];
+      final updated = current.where((item) {
+        try {
+          final decoded = jsonDecode(item);
+          if (decoded is Map) {
+            final id = decoded['documentId'] ?? decoded['id'];
+            return id?.toString() != documentId;
+          }
+        } catch (_) {}
+        return true;
+      }).toList();
+      await prefs.setStringList(key, updated);
+      await EducatorSyncService.syncAfterLocalWrite();
+    }
   }
 }

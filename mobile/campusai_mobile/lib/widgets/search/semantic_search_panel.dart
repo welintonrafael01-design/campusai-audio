@@ -127,7 +127,7 @@ class _SemanticSearchPanelState extends State<SemanticSearchPanel> {
                       ),
                       Expanded(
                         child: Text(
-                          result.documentId,
+                          'Documento encontrado',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -153,39 +153,13 @@ class _SemanticSearchPanelState extends State<SemanticSearchPanel> {
                   const SizedBox(
                     height: 12,
                   ),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppTheme.accent.withValues(
-                            alpha: 0.12,
-                          ),
-                          borderRadius: BorderRadius.circular(
-                            999,
-                          ),
-                        ),
-                        child: Text(
-                          '${l10n.chunk} ${result.chunkIndex}',
-                          style: const TextStyle(
-                            color: AppTheme.accent,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        '${l10n.score} ${(1 - result.distance).toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          color: AppTheme.textMuted,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
+                  const Text(
+                    'Fragmento relevante',
+                    style: TextStyle(
+                      color: AppTheme.accent,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ],
               ),

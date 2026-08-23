@@ -50,13 +50,13 @@ class SourceReferencesSection extends StatelessWidget {
             final excerpt =
                 source.highlight?.trim() ?? source.preview?.trim() ?? '';
             final page = source.pageNumber;
-            final sourceLabel = page != null && page > 0
-                ? 'Fuente ${index + 1} · Página $page'
-                : 'Fuente ${index + 1}';
+            final title = source.documentTitle?.trim() ?? '';
+            final sourceLabel = title.isEmpty ? 'Fuente ${index + 1}' : title;
+            final pageLabel = page != null && page > 0 ? 'Página $page' : '';
 
             return Semantics(
               button: true,
-              label: '$sourceLabel. Abrir fragmento citado.',
+              label: '$sourceLabel. $pageLabel. Abrir fragmento citado.',
               child: InkWell(
                 key: Key('source-reference-$index'),
                 onTap: onSourceTap == null ? null : () => onSourceTap!(source),
@@ -84,6 +84,17 @@ class SourceReferencesSection extends StatelessWidget {
                                 fontWeight: FontWeight.w900,
                               ),
                             ),
+                            if (pageLabel.isNotEmpty) ...[
+                              const SizedBox(height: 3),
+                              Text(
+                                pageLabel,
+                                style: const TextStyle(
+                                  color: AppTheme.accent,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
                             const SizedBox(height: 5),
                             Text(
                               excerpt.isEmpty

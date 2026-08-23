@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../l10n/app_localizations.dart';
 import '../models/study_result.dart';
 import '../services/api_service.dart';
+import '../services/access_control_service.dart';
 import '../services/export_service.dart';
 import '../services/gradebook_service.dart';
 import '../services/academic_period_lock_service.dart';
@@ -14,6 +15,7 @@ import '../services/student_roster_service.dart';
 import '../services/plan_guard_service.dart';
 import '../utils/upgrade_dialog.dart';
 import '../services/study_result_service.dart';
+import '../services/study_result_repository.dart';
 import '../services/cloud_api_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
@@ -21,11 +23,13 @@ import '../widgets/section_card.dart';
 class ExamScreen extends StatefulWidget {
   final String documentId;
   final List<Map<String, dynamic>> initialQuestions;
+  final bool practiceMode;
 
   const ExamScreen({
     super.key,
     required this.documentId,
     this.initialQuestions = const [],
+    this.practiceMode = false,
   });
 
   @override
@@ -54,15 +58,21 @@ class _ExamScreenState extends State<ExamScreen> {
   final Set<int> correctIndexes = {};
 
   AppLocalizations get l10n => AppLocalizations.of(context);
+  bool get isTeacherExperience => const AccessControlService().hasTeacherTools;
+  String get resultType => widget.practiceMode ? 'quiz' : 'exam';
+  String get screenTitle =>
+      widget.practiceMode ? 'Quiz de práctica' : l10n.examTitle;
 
   @override
   void initState() {
     super.initState();
 
-    loadCourseAndStudents();
+    if (isTeacherExperience && !widget.practiceMode) {
+      loadCourseAndStudents();
+    }
 
     if (widget.initialQuestions.isNotEmpty) {
-      questions = widget.initialQuestions;
+      questions = _parseQuestions(widget.initialQuestions);
       resetQuizState();
     } else {
       loadSavedExam();
@@ -205,9 +215,9 @@ class _ExamScreenState extends State<ExamScreen> {
   }
 
   Future<void> loadSavedExam() async {
-    final savedResult = await StudyResultService.getResult(
+    final savedResult = await const StudyResultRepository().getResult(
       documentId: widget.documentId,
-      type: 'exam',
+      type: resultType,
     );
 
     if (savedResult == null) return;
@@ -238,6 +248,9 @@ class _ExamScreenState extends State<ExamScreen> {
       );
 
       final parsedQuestions = _parseQuestions(data['questions']);
+      if (parsedQuestions.isEmpty) {
+        throw const FormatException('Preguntas incompletas.');
+      }
 
       if (!mounted) return;
 
@@ -251,7 +264,7 @@ class _ExamScreenState extends State<ExamScreen> {
       await StudyResultService.saveResult(
         StudyResult(
           documentId: widget.documentId,
-          type: 'exam',
+          type: resultType,
           content: content,
           createdAt: DateTime.now().toIso8601String(),
         ),
@@ -260,19 +273,23 @@ class _ExamScreenState extends State<ExamScreen> {
       try {
         await CloudApiService.saveStudyResult(
           documentId: widget.documentId,
-          type: 'exam',
+          type: resultType,
           content: content,
         );
       } catch (cloudError) {
-        debugPrint('No se pudo guardar examen cloud: $cloudError');
+        debugPrint(
+          'No se pudo guardar evaluación cloud (${cloudError.runtimeType}).',
+        );
       }
     } catch (error) {
-      debugPrint('No se pudo generar el examen: $error');
+      debugPrint(
+        'No se pudo generar la evaluación (${error.runtimeType}).',
+      );
       if (!mounted) return;
 
       setState(() {
         errorMessage =
-            'Booky no pudo preparar el examen esta vez. Podemos intentarlo otra vez.';
+            'Booky no pudo preparar ${widget.practiceMode ? 'el quiz' : 'el examen'} esta vez. Podemos intentarlo otra vez.';
       });
     } finally {
       if (mounted) {
@@ -310,6 +327,8 @@ class _ExamScreenState extends State<ExamScreen> {
         return list
             .whereType<Map>()
             .map((item) => Map<String, dynamic>.from(item))
+            .map(_normalizedQuestion)
+            .whereType<Map<String, dynamic>>()
             .toList();
       }
     }
@@ -318,10 +337,42 @@ class _ExamScreenState extends State<ExamScreen> {
       return decoded
           .whereType<Map>()
           .map((item) => Map<String, dynamic>.from(item))
+          .map(_normalizedQuestion)
+          .whereType<Map<String, dynamic>>()
           .toList();
     }
 
     return [];
+  }
+
+  Map<String, dynamic>? _normalizedQuestion(Map<String, dynamic> item) {
+    final question = (item['question'] ??
+                item['pregunta'] ??
+                item['text'] ??
+                item['enunciado'] ??
+                item['prompt'])
+            ?.toString()
+            .trim() ??
+        '';
+    final answer = (item['correct_answer'] ??
+                item['respuesta_correcta'] ??
+                item['respuesta'] ??
+                item['answer'] ??
+                item['correctOption'] ??
+                item['correct_option'])
+            ?.toString()
+            .trim() ??
+        '';
+    final options = _parseOptions(item['options'] ?? item['opciones']);
+
+    if (question.isEmpty || answer.isEmpty) return null;
+    if (options.isNotEmpty && options.length < 2) return null;
+
+    return {
+      ...item,
+      'question': question,
+      'correct_answer': answer,
+    };
   }
 
   List<String> _parseOptions(dynamic options) {
@@ -625,7 +676,11 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
       if (!mounted) return;
 
       setState(() {
-        errorMessage = 'No se pudo generar versión alterna: $error';
+        debugPrint(
+          'No se pudo generar versión alterna (${error.runtimeType}).',
+        );
+        errorMessage =
+            'No se pudo generar la versión alterna. Intenta nuevamente.';
       });
     } finally {
       if (mounted) {
@@ -982,7 +1037,7 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
           ),
           const SizedBox(height: 16),
           Text(
-            l10n.examTitle,
+            screenTitle,
             style: TextStyle(
               color: Colors.white,
               fontSize: 34,
@@ -991,14 +1046,18 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
           ),
           const SizedBox(height: 8),
           Text(
-            l10n.examSubtitle,
+            widget.practiceMode
+                ? 'Practica con preguntas del documento y recibe retroalimentación inmediata.'
+                : l10n.examSubtitle,
             style: TextStyle(
               color: Colors.white,
               height: 1.4,
             ),
           ),
           const SizedBox(height: 16),
-          Row(
+          Wrap(
+            spacing: 4,
+            runSpacing: 4,
             children: [
               Tooltip(
                 message: l10n.exportWord,
@@ -1020,38 +1079,41 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
                   ),
                 ),
               ),
-              Tooltip(
-                message: 'Clave docente PDF',
-                child: IconButton(
-                  onPressed:
-                      questions.isEmpty ? null : exportExamAnswerKeyToPdf,
-                  icon: const Icon(
-                    Icons.key_rounded,
-                    color: Colors.white,
+              if (isTeacherExperience && !widget.practiceMode) ...[
+                Tooltip(
+                  message: 'Clave docente PDF',
+                  child: IconButton(
+                    onPressed:
+                        questions.isEmpty ? null : exportExamAnswerKeyToPdf,
+                    icon: const Icon(
+                      Icons.key_rounded,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-              ),
-              Tooltip(
-                message: 'Generar rúbrica desde examen',
-                child: IconButton(
-                  onPressed: questions.isEmpty ? null : generateRubricFromExam,
-                  icon: const Icon(
-                    Icons.rule_rounded,
-                    color: Colors.white,
+                Tooltip(
+                  message: 'Generar rúbrica desde examen',
+                  child: IconButton(
+                    onPressed:
+                        questions.isEmpty ? null : generateRubricFromExam,
+                    icon: const Icon(
+                      Icons.rule_rounded,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-              ),
-              Tooltip(
-                message: 'Crear versión B/C/D',
-                child: IconButton(
-                  onPressed:
-                      questions.isEmpty ? null : generateAlternateExamVersion,
-                  icon: const Icon(
-                    Icons.copy_all_rounded,
-                    color: Colors.white,
+                Tooltip(
+                  message: 'Crear versión B/C/D',
+                  child: IconButton(
+                    onPressed:
+                        questions.isEmpty ? null : generateAlternateExamVersion,
+                    icon: const Icon(
+                      Icons.copy_all_rounded,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-              ),
+              ],
             ],
           ),
         ],
@@ -1426,7 +1488,9 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
             ),
           ],
           const SizedBox(height: 22),
-          if (students.isNotEmpty) ...[
+          if (isTeacherExperience &&
+              !widget.practiceMode &&
+              students.isNotEmpty) ...[
             DropdownButtonFormField<String>(
               isExpanded: true,
               initialValue: selectedStudent?.id,
@@ -1462,33 +1526,34 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
             ),
             const SizedBox(height: 12),
           ],
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              OutlinedButton.icon(
-                onPressed: () => context.goNamed('gradebook'),
-                icon: const Icon(Icons.fact_check_rounded),
-                label: const Text('Ver Libro de Calificaciones'),
-              ),
-              OutlinedButton.icon(
-                onPressed: () => context.goNamed('final-report'),
-                icon: const Icon(Icons.workspace_premium_rounded),
-                label: const Text('Ver Acta Final'),
-              ),
-              OutlinedButton.icon(
-                onPressed: () => context.goNamed('courses'),
-                icon: const Icon(Icons.school_rounded),
-                label: const Text('Volver a Mis Cursos'),
-              ),
-              OutlinedButton.icon(
-                onPressed: () => context.goNamed('dashboard'),
-                icon: const Icon(Icons.dashboard_rounded),
-                label: const Text('Dashboard'),
-              ),
-            ],
-          ),
+          if (isTeacherExperience && !widget.practiceMode)
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () => context.goNamed('gradebook'),
+                  icon: const Icon(Icons.fact_check_rounded),
+                  label: const Text('Ver Libro de Calificaciones'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => context.goNamed('final-report'),
+                  icon: const Icon(Icons.workspace_premium_rounded),
+                  label: const Text('Ver Acta Final'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => context.goNamed('courses'),
+                  icon: const Icon(Icons.school_rounded),
+                  label: const Text('Volver a Mis Cursos'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () => context.goNamed('dashboard'),
+                  icon: const Icon(Icons.dashboard_rounded),
+                  label: const Text('Dashboard'),
+                ),
+              ],
+            ),
           const SizedBox(height: 12),
           ElevatedButton.icon(
             onPressed: restartQuiz,
@@ -1505,7 +1570,7 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: Text(l10n.examTitle),
+        title: Text(screenTitle),
       ),
       body: SafeArea(
         child: ListView(
@@ -1517,7 +1582,11 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
               onPressed: isLoading ? null : generateExam,
               icon: const Icon(Icons.auto_awesome_rounded),
               label: Text(
-                questions.isEmpty ? l10n.generateExam : l10n.regenerateExam,
+                questions.isEmpty
+                    ? (widget.practiceMode ? 'Generar quiz' : l10n.generateExam)
+                    : (widget.practiceMode
+                        ? 'Crear nuevo quiz'
+                        : l10n.regenerateExam),
               ),
             ),
             const SizedBox(height: 20),
