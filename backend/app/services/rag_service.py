@@ -684,12 +684,19 @@ def get_retrieval_citations(
 
         metadata = metadatas[index] if index < len(metadatas) else {}
         distance = distances[index] if index < len(distances) else None
+        raw_page_number = metadata.get("page_number")
+        page_number = (
+            raw_page_number
+            if isinstance(raw_page_number, int) and raw_page_number > 0
+            else None
+        )
 
         citations.append(
             {
                 "document_id": clean_document_id,
                 "chunk_index": metadata.get("chunk_index", index),
                 "distance": distance,
+                "page_number": page_number,
                 "preview": document.strip()[:240],
                 "highlight": extract_best_highlight(
                     document=document,

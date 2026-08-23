@@ -4,6 +4,7 @@ class ChatCitationModel {
   final String? preview;
   final String? highlight;
   final double? distance;
+  final int? pageNumber;
 
   const ChatCitationModel({
     required this.documentId,
@@ -11,6 +12,7 @@ class ChatCitationModel {
     this.preview,
     this.highlight,
     this.distance,
+    this.pageNumber,
   });
 
   factory ChatCitationModel.fromMap(
@@ -23,6 +25,9 @@ class ChatCitationModel {
       highlight: map['highlight'],
       distance:
           map['distance'] is num ? (map['distance'] as num).toDouble() : null,
+      pageNumber: map['page_number'] is num
+          ? (map['page_number'] as num).toInt()
+          : int.tryParse(map['page_number']?.toString() ?? ''),
     );
   }
 
@@ -33,6 +38,7 @@ class ChatCitationModel {
       'preview': preview,
       'highlight': highlight,
       'distance': distance,
+      'page_number': pageNumber,
     };
   }
 }

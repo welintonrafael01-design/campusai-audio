@@ -801,7 +801,7 @@ abstract class AppLocalizations {
   /// No description provided for @processingDocumentDescription.
   ///
   /// In es, this message translates to:
-  /// **'Generando resumen IA, audio y embeddings RAG.'**
+  /// **'Preparando el resumen, el audio y las fuentes del documento.'**
   String get processingDocumentDescription;
 
   /// No description provided for @activeWorkspace.

@@ -8,22 +8,15 @@ import '../../theme/app_theme.dart';
 
 class SourceViewerSheet extends StatelessWidget {
   final String documentId;
-  final int chunkIndex;
   final String content;
   final Map<String, dynamic> metadata;
 
   const SourceViewerSheet({
     super.key,
     required this.documentId,
-    required this.chunkIndex,
     required this.content,
     this.metadata = const {},
   });
-
-  String get shortDocumentId {
-    if (documentId.length <= 12) return documentId;
-    return '${documentId.substring(0, 8)}...${documentId.substring(documentId.length - 4)}';
-  }
 
   int? get pageNumber {
     final value = metadata['page_number'];
@@ -71,14 +64,6 @@ class SourceViewerSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final metadataEntries = metadata.entries
-        .where(
-          (entry) =>
-              entry.value != null && entry.value.toString().trim().isNotEmpty,
-        )
-        .take(6)
-        .toList();
-
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: const BoxDecoration(
@@ -136,72 +121,15 @@ class SourceViewerSheet extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                _InfoPill(
-                  icon: Icons.description_outlined,
-                  label: l10n.document,
-                  value: shortDocumentId,
-                ),
-                if (metadata['page_number'] != null)
-                  _InfoPill(
-                    icon: Icons.menu_book_rounded,
-                    label: l10n.page,
-                    value: metadata['page_number'].toString(),
-                  ),
-                _InfoPill(
-                  icon: Icons.tag_rounded,
-                  label: l10n.chunk,
-                  value: chunkIndex.toString(),
-                ),
-                if (metadataEntries.isNotEmpty)
-                  _InfoPill(
-                    icon: Icons.dataset_outlined,
-                    label: l10n.metadata,
-                    value: '${metadataEntries.length} ${l10n.fields}',
-                  ),
-              ],
-            ),
-            if (metadataEntries.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.035),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.06),
-                  ),
-                ),
-                child: Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: metadataEntries.map((entry) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 7,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.16),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        '${entry.key}: ${entry.value}',
-                        style: const TextStyle(
-                          color: AppTheme.textMuted,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    );
-                  }).toList(),
+            if (pageNumber != null && pageNumber! > 0)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: _InfoPill(
+                  icon: Icons.menu_book_rounded,
+                  label: l10n.page,
+                  value: pageNumber.toString(),
                 ),
               ),
-            ],
             const SizedBox(height: 18),
             Row(
               children: [

@@ -107,6 +107,30 @@ def test_rag_collections_keep_alpha_and_beta_documents_isolated(monkeypatch):
     assert "ALPHA exclusivo" not in beta_context
 
 
+def test_retrieval_citations_include_only_real_page_metadata(monkeypatch):
+    monkeypatch.setattr(rag_service, "client", chromadb.EphemeralClient())
+    monkeypatch.setattr(
+        rag_service,
+        "embedding_function",
+        _FakeEmbeddingFunction(),
+    )
+
+    document_id = rag_service.store_document_page_embeddings(
+        [{"page_number": 3, "text": "ALPHA fuente legible y verificable"}],
+        owner_scope="user-a",
+    )
+
+    citations = rag_service.get_retrieval_citations(
+        document_id,
+        "ALPHA",
+        top_k=1,
+    )
+
+    assert len(citations) == 1
+    assert citations[0]["page_number"] == 3
+    assert "ALPHA fuente legible" in citations[0]["preview"]
+
+
 def test_upload_summarizes_selected_document_and_hides_internal_fields(
     monkeypatch,
     tmp_path: Path,

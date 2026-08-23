@@ -377,7 +377,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get processingDocumentDescription =>
-      'Génération du résumé IA, de l’audio et des embeddings RAG.';
+      'Préparation du résumé, de l’audio et des sources du document.';
 
   @override
   String get activeWorkspace => 'Workspace actif';

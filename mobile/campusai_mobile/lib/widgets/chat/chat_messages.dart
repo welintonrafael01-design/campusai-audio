@@ -6,8 +6,8 @@ import '../../theme/app_theme.dart';
 import '../../services/source_service.dart';
 import '../typing_dots.dart';
 import 'chat_bubble.dart';
-import 'citation_chips.dart';
 import 'empty_chat_state.dart';
+import 'source_references_section.dart';
 import 'source_viewer_sheet.dart';
 
 class ChatMessages extends StatefulWidget {
@@ -71,36 +71,17 @@ class _ChatMessagesState extends State<ChatMessages> {
     );
   }
 
-  Future<void> showCitationSource(String citation) async {
-    debugPrint('Citation clicked: $citation');
-
-    final match = RegExp(
-      r'\[FUENTE document=([^\s\]]+) chunk=(\d+)\]',
-    ).firstMatch(citation);
-
-    if (match == null) return;
-
-    final documentId = match.group(1) ?? '';
-
-    final chunkIndex = int.tryParse(
-          match.group(2) ?? '',
-        ) ??
-        0;
+  Future<void> showCitationSource(ChatCitationModel citation) async {
+    final documentId = citation.documentId;
+    final chunkIndex = citation.chunkIndex;
 
     if (documentId.isEmpty) return;
 
-    debugPrint('Document ID: $documentId');
-    debugPrint('Chunk Index: $chunkIndex');
-
     try {
-      debugPrint('Calling source endpoint...');
-
       final source = await SourceService.getSourceChunk(
         documentId: documentId,
         chunkIndex: chunkIndex,
       );
-
-      debugPrint('Source loaded successfully');
 
       if (!mounted) return;
 
@@ -113,7 +94,6 @@ class _ChatMessagesState extends State<ChatMessages> {
             heightFactor: 0.72,
             child: SourceViewerSheet(
               documentId: source['document_id'] ?? documentId,
-              chunkIndex: source['chunk_index'] ?? chunkIndex,
               content: source['content'] ?? '',
               metadata: Map<String, dynamic>.from(
                 source['metadata'] ?? {},
@@ -123,89 +103,16 @@ class _ChatMessagesState extends State<ChatMessages> {
         },
       );
     } catch (error) {
-      debugPrint('Source loaded successfully');
+      debugPrint('No se pudo abrir la fuente citada: $error');
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            '${AppLocalizations.of(context).sourceLoadError}: $error',
-          ),
+          content: Text(AppLocalizations.of(context).sourceLoadError),
         ),
       );
     }
-  }
-
-  Widget buildConfidenceBanner(ChatMessageModel message) {
-    if (message.isUser) return const SizedBox.shrink();
-
-    final confidence = message.confidence;
-    final confidenceMessage = message.confidenceMessage;
-
-    if (confidence == null || confidence.trim().isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    IconData icon = Icons.help_outline_rounded;
-    String label = AppLocalizations.of(context).unknownConfidence;
-    Color color = AppTheme.textMuted;
-
-    if (confidence == 'high') {
-      icon = Icons.verified_rounded;
-      label = AppLocalizations.of(context).highConfidence;
-      color = Colors.greenAccent;
-    } else if (confidence == 'medium') {
-      icon = Icons.info_rounded;
-      label = AppLocalizations.of(context).mediumConfidence;
-      color = Colors.amberAccent;
-    } else if (confidence == 'low') {
-      icon = Icons.warning_rounded;
-      label = AppLocalizations.of(context).lowConfidence;
-      color = Colors.redAccent;
-    }
-
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(
-          left: 14,
-          top: 8,
-          bottom: 6,
-        ),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppTheme.surface.withValues(alpha: 0.94),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: color.withValues(alpha: 0.30),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: color,
-              size: 18,
-            ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                confidenceMessage == null || confidenceMessage.trim().isEmpty
-                    ? label
-                    : '$label · $confidenceMessage',
-                style: TextStyle(
-                  color: color,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   @override
@@ -228,7 +135,6 @@ class _ChatMessagesState extends State<ChatMessages> {
                   ? CrossAxisAlignment.end
                   : CrossAxisAlignment.start,
               children: [
-                if (!message.isUser) buildConfidenceBanner(message),
                 ChatBubble(
                   text: message.text,
                   isUser: message.isUser,
@@ -237,34 +143,15 @@ class _ChatMessagesState extends State<ChatMessages> {
                 if (!message.isUser && message.citations.isNotEmpty)
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: Container(
-                      margin: const EdgeInsets.only(
+                    child: Padding(
+                      padding: const EdgeInsets.only(
                         left: 14,
                         top: 4,
                         bottom: 18,
                       ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.surface.withValues(alpha: 0.92),
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.08),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.18),
-                            blurRadius: 16,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: CitationChips(
-                        text: message.text,
-                        citations: message.citations,
-                        onCitationTap: showCitationSource,
+                      child: SourceReferencesSection(
+                        sources: message.citations,
+                        onSourceTap: showCitationSource,
                       ),
                     ),
                   ),

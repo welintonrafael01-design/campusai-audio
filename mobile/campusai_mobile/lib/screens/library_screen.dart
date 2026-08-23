@@ -9,6 +9,8 @@ import '../models/document_history.dart';
 import '../models/audiobook_history.dart';
 import '../models/study_result.dart';
 import '../providers/audio_provider.dart';
+import '../providers/document_provider.dart';
+import 'document_detail_screen.dart';
 import '../services/history_service.dart';
 import '../services/api_service.dart';
 import '../services/audiobook_service.dart';
@@ -18,6 +20,7 @@ import '../services/library_favorites_service.dart';
 import '../services/chat_history_service.dart';
 import '../services/study_result_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/document_display_title.dart';
 import '../widgets/section_card.dart';
 import '../widgets/mini_player.dart';
 import '../widgets/studybook_app_shell.dart';
@@ -46,13 +49,25 @@ enum LibraryCategory {
 }
 
 class LibraryScreen extends ConsumerStatefulWidget {
-  const LibraryScreen({super.key});
+  final List<DocumentHistory>? initialDocuments;
+
+  const LibraryScreen({
+    super.key,
+    this.initialDocuments,
+  });
 
   @override
   ConsumerState<LibraryScreen> createState() => _LibraryScreenState();
 }
 
 class _LibraryScreenState extends ConsumerState<LibraryScreen> {
+  static const primaryCategories = <LibraryCategory>[
+    LibraryCategory.all,
+    LibraryCategory.documents,
+    LibraryCategory.generated,
+    LibraryCategory.audiobooks,
+  ];
+
   List<DocumentHistory> documents = [];
   List<AudiobookHistory> audiobooks = [];
   final Set<String> cloudDocumentIds = {};
@@ -72,7 +87,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   void initState() {
     super.initState();
 
-    loadLibrary();
+    final initialDocuments = widget.initialDocuments;
+    if (initialDocuments == null) {
+      loadLibrary();
+    } else {
+      documents = List<DocumentHistory>.from(initialDocuments);
+      isLoading = false;
+    }
   }
 
   @override
@@ -275,14 +296,14 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   }
 
   Future<void> setActiveDocument(DocumentHistory document) async {
-    await HistoryService.saveActiveDocument(document);
+    await ref.read(activeDocumentProvider.notifier).setDocument(document);
 
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          '${document.fileName} seleccionado como documento activo.',
+          '${documentDisplayTitle(document.fileName)} seleccionado como documento activo.',
         ),
         behavior: SnackBarBehavior.floating,
       ),
@@ -307,17 +328,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     );
   }
 
-  Future<void> deleteDocument(int index) async {
-    if (index < 0 || index >= filteredDocuments.length) return;
-
-    final document = filteredDocuments[index];
-
+  Future<void> deleteDocument(DocumentHistory document) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Eliminar documento'),
         content: Text(
-          'Se eliminará "${document.fileName}" de la biblioteca. '
+          'Se eliminará "${documentDisplayTitle(document.fileName)}" de la biblioteca. '
           'También se limpiarán AudioBooks, chats, flashcards y exámenes asociados.',
         ),
         actions: [
@@ -424,6 +441,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
   Future<void> openChat(DocumentHistory document) async {
     try {
+      await ref.read(activeDocumentProvider.notifier).setDocument(document);
+      if (!mounted) return;
       String cloudChatId = '';
 
       if (isCloudDocument(document)) {
@@ -492,6 +511,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
   Future<void> openExam(DocumentHistory document) async {
     try {
+      await ref.read(activeDocumentProvider.notifier).setDocument(document);
       await prepareCloudDocument(document);
 
       if (!mounted) return;
@@ -511,6 +531,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
   Future<void> openFlashcards(DocumentHistory document) async {
     try {
+      await ref.read(activeDocumentProvider.notifier).setDocument(document);
       await prepareCloudDocument(document);
 
       if (!mounted) return;
@@ -526,6 +547,50 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         ),
       );
     }
+  }
+
+  Future<void> openQuestionBank(DocumentHistory document) async {
+    try {
+      await ref.read(activeDocumentProvider.notifier).setDocument(document);
+      await prepareCloudDocument(document);
+
+      if (!mounted) return;
+
+      context.go('/question-bank/${document.documentId}');
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No se pudo preparar el banco de preguntas: $error'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> openDocumentDetail(DocumentHistory document) async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => DocumentDetailScreen(
+          document: document,
+          isCloud: isCloudDocument(document),
+          isFavorite: favoriteDocumentIds.contains(document.documentId),
+          isGeneratingAudiobook:
+              generatingAudiobookDocumentId == document.documentId,
+          onChat: () => openChat(document),
+          onAudioBook: () => generateAudiobook(document),
+          onFlashcards: () => openFlashcards(document),
+          onQuiz: () => openExam(document),
+          onQuestionBank: () => openQuestionBank(document),
+          onExam: () => openExam(document),
+          onOpenPdf: () => openPdf(document),
+          onSetActive: () => setActiveDocument(document),
+          onToggleFavorite: () => toggleFavorite(document.documentId),
+          onDelete: () => deleteDocument(document),
+        ),
+      ),
+    );
   }
 
   Future<void> openGeneratedResource(_LibraryGeneratedItem item) async {
@@ -602,6 +667,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     });
 
     try {
+      await ref.read(activeDocumentProvider.notifier).setDocument(document);
       await prepareCloudDocument(document);
 
       final data = await const AudiobookService().generateAudiobookFromText(
@@ -647,7 +713,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       await showDialog<void>(
         context: context,
         builder: (_) => _AudiobookChaptersDialog(
-          documentTitle: document.fileName,
+          documentTitle: documentDisplayTitle(document.fileName),
           chapters: chapters,
           onPlayChapter: (chapter) async {
             final audioUrl = chapter['audio_url']?.toString() ?? '';
@@ -662,7 +728,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
               await ref.read(audioProvider.notifier).play(
                     audioUrl: fullAudioUrl,
                     title:
-                        '${chapter['title']?.toString() ?? 'Capítulo'} · ${document.fileName}',
+                        '${chapter['title']?.toString() ?? 'Capítulo'} · ${documentDisplayTitle(document.fileName)}',
                   );
 
               if (!mounted) return;
@@ -757,10 +823,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
   String categoryLabel(LibraryCategory category) {
     return switch (category) {
-      LibraryCategory.all => 'Todo',
+      LibraryCategory.all => 'Todos',
       LibraryCategory.documents => 'Documentos',
       LibraryCategory.generated => 'Generados',
-      LibraryCategory.audiobooks => 'AudioBooks',
+      LibraryCategory.audiobooks => 'Audio',
       LibraryCategory.chats => 'Chats',
       LibraryCategory.favorites => 'Favoritos',
     };
@@ -867,44 +933,72 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     };
   }
 
-  Widget buildSourceFilterTabs() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: LibrarySourceFilter.values.map((filter) {
-          final isSelected = selectedSourceFilter == filter;
-
-          return Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: ChoiceChip(
-              selected: isSelected,
-              avatar: Icon(
-                sourceFilterIcon(filter),
-                size: 17,
-                color: isSelected ? Colors.white : AppTheme.accent,
-              ),
-              label: Text(
-                '${sourceFilterLabel(filter)} (${sourceFilterCount(filter)})',
-              ),
-              onSelected: (_) {
-                setState(() {
-                  selectedSourceFilter = filter;
-                });
-              },
-              selectedColor: AppTheme.secondary,
-              backgroundColor: AppTheme.card,
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.white : AppTheme.textPrimary,
-                fontWeight: FontWeight.w800,
-              ),
-              side: BorderSide(
-                color: isSelected
-                    ? AppTheme.secondary
-                    : Colors.white.withValues(alpha: 0.08),
-              ),
+  Widget buildSourceFilterMenu() {
+    return PopupMenuButton<LibrarySourceFilter>(
+      tooltip: 'Filtrar por ubicación',
+      color: AppTheme.surface,
+      onSelected: (filter) {
+        setState(() => selectedSourceFilter = filter);
+      },
+      itemBuilder: (context) => [
+        const PopupMenuItem<LibrarySourceFilter>(
+          enabled: false,
+          child: Text(
+            'Ubicación',
+            style: TextStyle(fontWeight: FontWeight.w900),
+          ),
+        ),
+        ...LibrarySourceFilter.values.map((filter) {
+          return PopupMenuItem<LibrarySourceFilter>(
+            value: filter,
+            child: Row(
+              children: [
+                Icon(
+                  selectedSourceFilter == filter
+                      ? Icons.check_circle_rounded
+                      : sourceFilterIcon(filter),
+                  color: selectedSourceFilter == filter
+                      ? AppTheme.success
+                      : AppTheme.accent,
+                  size: 19,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  '${sourceFilterLabel(filter)} (${sourceFilterCount(filter)})',
+                ),
+              ],
             ),
           );
-        }).toList(),
+        }),
+      ],
+      child: Container(
+        key: const Key('library-location-filter'),
+        constraints: const BoxConstraints(minHeight: 52),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        decoration: BoxDecoration(
+          color: AppTheme.card,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.08),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.tune_rounded, color: AppTheme.accent),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                selectedSourceFilter == LibrarySourceFilter.all
+                    ? 'Ubicación'
+                    : sourceFilterLabel(selectedSourceFilter),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1006,9 +1100,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         }).toList();
       },
       child: Container(
+        constraints: const BoxConstraints(minHeight: 52),
         padding: const EdgeInsets.symmetric(
-          horizontal: 18,
-          vertical: 15,
+          horizontal: 14,
+          vertical: 12,
         ),
         decoration: BoxDecoration(
           color: AppTheme.card,
@@ -1026,11 +1121,15 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
               size: 20,
             ),
             const SizedBox(width: 10),
-            Text(
-              sortLabel(selectedSortOption),
-              style: const TextStyle(
-                color: AppTheme.textPrimary,
-                fontWeight: FontWeight.w900,
+            Expanded(
+              child: Text(
+                sortLabel(selectedSortOption),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
             ),
             const SizedBox(width: 8),
@@ -1045,14 +1144,36 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   }
 
   Widget buildSearchAndSortRow() {
-    return Row(
-      children: [
-        Expanded(
-          child: buildSearchBox(),
-        ),
-        const SizedBox(width: 12),
-        buildSortDropdown(),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final controls = Row(
+          children: [
+            Expanded(child: buildSourceFilterMenu()),
+            const SizedBox(width: 10),
+            Expanded(child: buildSortDropdown()),
+          ],
+        );
+
+        if (constraints.maxWidth < 620) {
+          return Column(
+            children: [
+              buildSearchBox(),
+              const SizedBox(height: 10),
+              controls,
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(child: buildSearchBox()),
+            const SizedBox(width: 12),
+            SizedBox(width: 180, child: buildSourceFilterMenu()),
+            const SizedBox(width: 10),
+            SizedBox(width: 210, child: buildSortDropdown()),
+          ],
+        );
+      },
     );
   }
 
@@ -1194,7 +1315,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: LibraryCategory.values.map((category) {
+        children: primaryCategories.map((category) {
           final isSelected = selectedCategory == category;
           final count = categoryCount(category);
 
@@ -1209,6 +1330,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
               ),
               label: Text(
                 '${categoryLabel(category)} ($count)',
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.fade,
               ),
               onSelected: (_) {
                 setState(() {
@@ -1300,8 +1424,6 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         ),
         const SizedBox(height: 18),
         buildCategoryTabs(),
-        const SizedBox(height: 12),
-        buildSourceFilterTabs(),
         const SizedBox(height: 14),
         buildSearchAndSortRow(),
         if (sourceFilterCount(selectedSourceFilter) == 0) ...[
@@ -1369,7 +1491,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
               await ref.read(audioProvider.notifier).play(
                     audioUrl: fullAudioUrl,
                     title:
-                        '${chapter['title']?.toString() ?? 'Capítulo'} · ${audiobook.fileName}',
+                        '${chapter['title']?.toString() ?? 'Capítulo'} · ${documentDisplayTitle(audiobook.fileName)}',
                   );
             },
           ),
@@ -1380,34 +1502,16 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             filteredDocuments.isNotEmpty &&
             sourceFilterCount(selectedSourceFilter) > 0) ...[
           const SizedBox(height: 18),
-          ...filteredDocuments.asMap().entries.map(
-            (entry) {
-              final index = entry.key;
-              final document = entry.value;
-
+          ...filteredDocuments.map(
+            (document) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 14),
                 child: _DocumentLibraryCard(
                   document: document,
-                  isGeneratingAudiobook:
-                      generatingAudiobookDocumentId == document.documentId,
                   isFavorite: favoriteDocumentIds.contains(document.documentId),
                   onToggleFavorite: () => toggleFavorite(document.documentId),
-                  onSetActive: () => setActiveDocument(document),
-                  onOpenPdf: () => openPdf(document),
-                  onChat: () {
-                    openChat(document);
-                  },
-                  onAudio: () {
-                    generateAudiobook(document);
-                  },
-                  onFlashcards: () {
-                    openFlashcards(document);
-                  },
-                  onExam: () {
-                    openExam(document);
-                  },
-                  onDelete: () => deleteDocument(index),
+                  onOpen: () => openDocumentDetail(document),
+                  onDelete: () => deleteDocument(document),
                 ),
               );
             },
@@ -1489,32 +1593,41 @@ class _LibrarySummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _LibraryMetric(
-            icon: Icons.picture_as_pdf_rounded,
-            label: 'Documentos',
-            value: totalDocuments.toString(),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _LibraryMetric(
-            icon: Icons.auto_awesome_rounded,
-            label: 'Generados',
-            value: generatedCount.toString(),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _LibraryMetric(
-            icon: Icons.headphones_rounded,
-            label: 'Audios',
-            value: audioCount.toString(),
-          ),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 600;
+
+        return Row(
+          children: [
+            Expanded(
+              child: _LibraryMetric(
+                icon: Icons.picture_as_pdf_rounded,
+                label: 'Documentos',
+                value: totalDocuments.toString(),
+                compact: compact,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _LibraryMetric(
+                icon: Icons.auto_awesome_rounded,
+                label: 'Generados',
+                value: generatedCount.toString(),
+                compact: compact,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _LibraryMetric(
+                icon: Icons.headphones_rounded,
+                label: 'Audio',
+                value: audioCount.toString(),
+                compact: compact,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -1523,41 +1636,65 @@ class _LibraryMetric extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final bool compact;
 
   const _LibraryMetric({
     required this.icon,
     required this.label,
     required this.value,
+    required this.compact,
   });
 
   @override
   Widget build(BuildContext context) {
     return SectionCard(
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            color: AppTheme.accent,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: AppTheme.textMuted,
-                fontWeight: FontWeight.w700,
-              ),
+      padding: EdgeInsets.all(compact ? 10 : 20),
+      child: compact
+          ? Column(
+              children: [
+                Icon(icon, color: AppTheme.accent, size: 21),
+                const SizedBox(height: 5),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: AppTheme.textMuted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                Icon(icon, color: AppTheme.accent),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      color: AppTheme.textMuted,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
             ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              color: AppTheme.textPrimary,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -1603,8 +1740,8 @@ class _LibraryGeneratedItem {
       documentId: document.documentId,
       sourceDocumentId: document.documentId,
       type: 'summary',
-      title: 'Resumen - ${document.fileName}',
-      subtitle: document.fileName,
+      title: 'Resumen - ${documentDisplayTitle(document.fileName)}',
+      subtitle: documentDisplayTitle(document.fileName),
       content: document.cleanSummary,
       createdAt: document.createdAt,
       isCloud: isCloud,
@@ -1637,7 +1774,8 @@ class _LibraryGeneratedItem {
         'course_name',
       ],
     );
-    final fallbackName = document?.fileName ?? topic;
+    final fallbackName =
+        document == null ? topic : documentDisplayTitle(document.fileName);
 
     return _LibraryGeneratedItem(
       documentId: result.documentId,
@@ -1879,7 +2017,7 @@ class _SavedChatTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.document.fileName,
+                  documentDisplayTitle(item.document.fileName),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -2263,7 +2401,7 @@ class _SavedAudiobookTile extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  audiobook.fileName,
+                  documentDisplayTitle(audiobook.fileName),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -2333,34 +2471,25 @@ class _SavedAudiobookTile extends StatelessWidget {
 
 class _DocumentLibraryCard extends StatelessWidget {
   final DocumentHistory document;
-  final bool isGeneratingAudiobook;
   final bool isFavorite;
   final VoidCallback onToggleFavorite;
-  final VoidCallback onSetActive;
-  final VoidCallback onOpenPdf;
-  final VoidCallback onChat;
-  final VoidCallback onAudio;
-  final VoidCallback onFlashcards;
-  final VoidCallback onExam;
+  final VoidCallback onOpen;
   final VoidCallback onDelete;
 
   const _DocumentLibraryCard({
     required this.document,
-    required this.isGeneratingAudiobook,
     required this.isFavorite,
     required this.onToggleFavorite,
-    required this.onSetActive,
-    required this.onOpenPdf,
-    required this.onChat,
-    required this.onAudio,
-    required this.onFlashcards,
-    required this.onExam,
+    required this.onOpen,
     required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
     return SectionCard(
+      key: Key('document-card-${document.documentId}'),
+      padding: const EdgeInsets.all(16),
+      onTap: onOpen,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -2383,7 +2512,7 @@ class _DocumentLibraryCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      document.fileName,
+                      documentDisplayTitle(document.fileName),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -2393,36 +2522,13 @@ class _DocumentLibraryCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            document.formattedDate,
-                            style: const TextStyle(
-                              color: AppTheme.textMuted,
-                            ),
-                          ),
-                        ),
-                        if (!document.hasSummary && !document.hasAudio)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppTheme.accent.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: const Text(
-                              'Cloud',
-                              style: TextStyle(
-                                color: AppTheme.accent,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ),
-                      ],
+                    Text(
+                      'PDF · ${document.formattedDate}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppTheme.textMuted,
+                      ),
                     ),
                   ],
                 ),
@@ -2435,13 +2541,34 @@ class _DocumentLibraryCard extends StatelessWidget {
                   color: isFavorite ? AppTheme.warning : AppTheme.textMuted,
                 ),
               ),
-              IconButton(
-                tooltip: 'Eliminar',
-                onPressed: onDelete,
-                icon: const Icon(
-                  Icons.delete_outline_rounded,
-                  color: AppTheme.danger,
-                ),
+              PopupMenuButton<String>(
+                tooltip: 'Más acciones',
+                color: AppTheme.surface,
+                onSelected: (value) {
+                  if (value == 'open') onOpen();
+                  if (value == 'delete') onDelete();
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem<String>(
+                    value: 'open',
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(Icons.open_in_new_rounded),
+                      title: Text('Ver detalle'),
+                    ),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'delete',
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(
+                        Icons.delete_outline_rounded,
+                        color: AppTheme.danger,
+                      ),
+                      title: Text('Eliminar'),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -2449,7 +2576,7 @@ class _DocumentLibraryCard extends StatelessWidget {
             const SizedBox(height: 14),
             Text(
               document.cleanSummary,
-              maxLines: 3,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: AppTheme.textMuted,
@@ -2457,57 +2584,6 @@ class _DocumentLibraryCard extends StatelessWidget {
               ),
             ),
           ],
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              FilledButton.icon(
-                onPressed: onOpenPdf,
-                icon: const Icon(Icons.open_in_new_rounded),
-                label: const Text('Abrir PDF'),
-              ),
-              FilledButton.icon(
-                onPressed: onChat,
-                icon: const Icon(Icons.chat_bubble_rounded),
-                label: const Text('Chat'),
-              ),
-              OutlinedButton.icon(
-                onPressed: isGeneratingAudiobook ? null : onAudio,
-                icon: isGeneratingAudiobook
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.2,
-                        ),
-                      )
-                    : const Icon(Icons.headphones_rounded),
-                label: Text(
-                  isGeneratingAudiobook
-                      ? 'Creando...'
-                      : document.hasAudio
-                          ? 'Escuchar'
-                          : 'Crear AudioBook',
-                ),
-              ),
-              OutlinedButton.icon(
-                onPressed: onFlashcards,
-                icon: const Icon(Icons.style_rounded),
-                label: const Text('Flashcards'),
-              ),
-              OutlinedButton.icon(
-                onPressed: onExam,
-                icon: const Icon(Icons.quiz_rounded),
-                label: const Text('Examen'),
-              ),
-              OutlinedButton.icon(
-                onPressed: onSetActive,
-                icon: const Icon(Icons.check_circle_rounded),
-                label: const Text('Usar como activo'),
-              ),
-            ],
-          ),
         ],
       ),
     );

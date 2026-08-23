@@ -116,7 +116,7 @@
   "exportSummaryToPowerPoint": "Exportar resumo para PowerPoint",
   "exportSummaryToPdf": "Exportar resumo para PDF",
   "processingDocument": "Processando documento...",
-  "processingDocumentDescription": "Gerando resumo IA, áudio e embeddings RAG.",
+  "processingDocumentDescription": "Preparando o resumo, o áudio e as fontes do documento.",
   "activeWorkspace": "Workspace ativo",
   "documentReadyToStudy": "Documento pronto para estudar",
   "aiReady": "IA pronta",
