@@ -4,11 +4,14 @@ from pydantic import BaseModel
 
 from app.security.user_auth import AuthenticatedUser, require_current_user
 from app.services.audiobook_service import (
+    audio_filename_belongs_to_user,
     audiobook_audio_path,
     generate_audiobook_payload,
     generate_chapter_audio_payload,
     generate_learning_pack,
+    scoped_audiobook_storage_id,
 )
+from app.services.cloud_service import user_owns_legacy_audiobook_audio
 
 
 router = APIRouter(
@@ -90,7 +93,10 @@ async def generate_chapter_audio_endpoint(
 ):
     try:
         return generate_chapter_audio_payload(
-            audiobook_id=payload.audiobook_id,
+            audiobook_id=scoped_audiobook_storage_id(
+                user_id=current_user.user_id,
+                audiobook_id=payload.audiobook_id,
+            ),
             chapter_id=payload.chapter_id,
             chapter_title=payload.chapter_title,
             script=payload.script,
@@ -136,7 +142,24 @@ async def generate_learning_pack_endpoint(
 
 
 @router.get("/audio/{filename}")
-async def get_audiobook_audio(filename: str):
+async def get_audiobook_audio(
+    filename: str,
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    owns_scoped_audio = audio_filename_belongs_to_user(
+        user_id=current_user.user_id,
+        filename=filename,
+    )
+    owns_legacy_audio = owns_scoped_audio or user_owns_legacy_audiobook_audio(
+        user_id=current_user.user_id,
+        filename=filename,
+    )
+    if not owns_legacy_audio:
+        raise HTTPException(
+            status_code=404,
+            detail="Audio de capítulo no encontrado.",
+        )
+
     audio_path = audiobook_audio_path(filename)
     if audio_path is None:
         raise HTTPException(

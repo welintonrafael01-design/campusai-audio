@@ -13,7 +13,6 @@ import '../providers/document_provider.dart';
 import 'document_detail_screen.dart';
 import '../services/history_service.dart';
 import '../services/api_service.dart';
-import '../services/audiobook_service.dart';
 import '../services/audiobook_library_service.dart';
 import '../services/cloud_api_service.dart';
 import '../services/library_favorites_service.dart';
@@ -81,7 +80,6 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   final TextEditingController searchController = TextEditingController();
   String searchQuery = '';
   bool isLoading = true;
-  String generatingAudiobookDocumentId = '';
 
   @override
   void initState() {
@@ -576,8 +574,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           document: document,
           isCloud: isCloudDocument(document),
           isFavorite: favoriteDocumentIds.contains(document.documentId),
-          isGeneratingAudiobook:
-              generatingAudiobookDocumentId == document.documentId,
+          isGeneratingAudiobook: false,
           onChat: () => openChat(document),
           onAudioBook: () => generateAudiobook(document),
           onFlashcards: () => openFlashcards(document),
@@ -660,121 +657,20 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       return;
     }
 
-    if (generatingAudiobookDocumentId.isNotEmpty) return;
+    await ref.read(activeDocumentProvider.notifier).setDocument(document);
+    await prepareCloudDocument(document);
 
-    setState(() {
-      generatingAudiobookDocumentId = document.documentId;
-    });
-
-    try {
-      await ref.read(activeDocumentProvider.notifier).setDocument(document);
-      await prepareCloudDocument(document);
-
-      final data = await const AudiobookService().generateAudiobookFromText(
-        text: text,
-        maxChapters: 6,
-      );
-
-      final rawChapters = data['chapters'];
-      final chapters = rawChapters is List ? rawChapters : [];
-
-      if (chapters.isEmpty) {
-        throw Exception('No se generaron capítulos de audio.');
-      }
-
-      final audiobookHistory = AudiobookHistory(
-        documentId: document.documentId,
-        fileName: document.fileName,
-        chapters: chapters
-            .whereType<Map>()
-            .map((item) => Map<String, dynamic>.from(item))
-            .toList(),
-        createdAt: DateTime.now().toIso8601String(),
-      );
-
-      await const AudiobookLibraryService().saveAudiobook(
-        audiobookHistory,
-      );
-
-      try {
-        await CloudApiService.saveAudiobook(
-          documentId: audiobookHistory.documentId,
-          fileName: audiobookHistory.fileName,
-          chapters: audiobookHistory.chapters,
-        );
-      } catch (cloudError) {
-        debugPrint('No se pudo guardar AudioBook cloud: $cloudError');
-      }
-
-      await loadLibrary();
-
-      if (!mounted) return;
-
-      await showDialog<void>(
-        context: context,
-        builder: (_) => _AudiobookChaptersDialog(
-          documentTitle: documentDisplayTitle(document.fileName),
-          chapters: chapters,
-          onPlayChapter: (chapter) async {
-            final audioUrl = chapter['audio_url']?.toString() ?? '';
-
-            if (audioUrl.trim().isEmpty) return;
-
-            final fullAudioUrl = ApiService.buildAudioUrl(audioUrl);
-
-            try {
-              debugPrint('[AUDIOBOOK_PLAY] url=$fullAudioUrl');
-
-              await ref.read(audioProvider.notifier).play(
-                    audioUrl: fullAudioUrl,
-                    title:
-                        '${chapter['title']?.toString() ?? 'Capítulo'} · ${documentDisplayTitle(document.fileName)}',
-                  );
-
-              if (!mounted) return;
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Reproduciendo capítulo del AudioBook...'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            } catch (error) {
-              debugPrint('[AUDIOBOOK_PLAY_ERROR] $error');
-
-              if (!mounted) return;
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'No se pudo reproducir el capítulo: $error',
-                  ),
-                  behavior: SnackBarBehavior.floating,
-                  backgroundColor: AppTheme.danger,
-                ),
-              );
-            }
-          },
-        ),
-      );
-    } catch (error) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'No se pudo crear el AudioBook: $error',
-          ),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          generatingAudiobookDocumentId = '';
-        });
-      }
-    }
+    if (!mounted) return;
+    context.goNamed(
+      'audioBookStudio',
+      extra: {
+        'sourceMode': 'solo',
+        'sourceType': 'document',
+        'sourceDocumentId': document.documentId,
+        'initialTitle': documentDisplayTitle(document.fileName),
+        'initialText': text,
+      },
+    );
   }
 
   Future<void> deleteSavedAudiobook(String documentId) async {
@@ -2586,154 +2482,6 @@ class _DocumentLibraryCard extends StatelessWidget {
           ],
         ],
       ),
-    );
-  }
-}
-
-class _AudiobookChaptersDialog extends StatelessWidget {
-  final String documentTitle;
-  final List<dynamic> chapters;
-  final Future<void> Function(Map<String, dynamic> chapter) onPlayChapter;
-
-  const _AudiobookChaptersDialog({
-    required this.documentTitle,
-    required this.chapters,
-    required this.onPlayChapter,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: AppTheme.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(28),
-      ),
-      title: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              gradient: AppTheme.mainGradient,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(
-              Icons.headphones_rounded,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Text(
-              'AudioBook generado',
-              style: TextStyle(
-                color: AppTheme.textPrimary,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-        ],
-      ),
-      content: SizedBox(
-        width: 520,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              documentTitle,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: AppTheme.textMuted,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              'Selecciona un capítulo. Luego usa el MiniPlayer para pausar, avanzar o reiniciar.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppTheme.textMuted,
-                height: 1.35,
-                fontSize: 13,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: chapters.length,
-                itemBuilder: (context, index) {
-                  final rawChapter = chapters[index];
-                  final chapter = rawChapter is Map<String, dynamic>
-                      ? rawChapter
-                      : Map<String, dynamic>.from(rawChapter as Map);
-
-                  final title =
-                      chapter['title']?.toString() ?? 'Capítulo ${index + 1}';
-                  final estimatedMinutes =
-                      chapter['estimated_minutes']?.toString() ?? '1';
-
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    decoration: BoxDecoration(
-                      color: AppTheme.card,
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: ListTile(
-                      leading: const Icon(
-                        Icons.headphones_rounded,
-                        color: AppTheme.accent,
-                      ),
-                      title: Text(
-                        title,
-                        style: const TextStyle(
-                          color: AppTheme.textPrimary,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      subtitle: Text(
-                        '$estimatedMinutes min aprox. · toca reproducir',
-                        style: const TextStyle(
-                          color: AppTheme.textMuted,
-                        ),
-                      ),
-                      trailing: IconButton(
-                        tooltip: 'Reproducir capítulo',
-                        onPressed: () async {
-                          await onPlayChapter(chapter);
-
-                          if (!context.mounted) return;
-
-                          Navigator.of(context).pop();
-                        },
-                        icon: const Icon(
-                          Icons.play_circle_fill_rounded,
-                          color: AppTheme.accent,
-                        ),
-                      ),
-                      onTap: () async {
-                        await onPlayChapter(chapter);
-
-                        if (!context.mounted) return;
-
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          child: const Text('Cerrar'),
-        ),
-      ],
     );
   }
 }

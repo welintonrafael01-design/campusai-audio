@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from hashlib import sha256
 import json
 from pathlib import Path
 import re
@@ -44,6 +45,23 @@ def _safe_audio_filename(value: str) -> str:
     clean_value = re.sub(r"[^a-zA-Z0-9_.-]+", "_", value.strip())
     clean_value = clean_value.strip("._")
     return clean_value[:160] or uuid4().hex
+
+
+def audiobook_owner_scope(user_id: str) -> str:
+    clean_user_id = clean_text(user_id)
+    if not clean_user_id:
+        raise ValueError("No se pudo identificar al propietario del audio.")
+    return sha256(clean_user_id.encode("utf-8")).hexdigest()[:20]
+
+
+def scoped_audiobook_storage_id(*, user_id: str, audiobook_id: str) -> str:
+    clean_audiobook_id = _safe_audio_filename(audiobook_id)
+    return f"{audiobook_owner_scope(user_id)}_{clean_audiobook_id}"
+
+
+def audio_filename_belongs_to_user(*, user_id: str, filename: str) -> bool:
+    clean_filename = _safe_audio_filename(filename)
+    return clean_filename.startswith(f"{audiobook_owner_scope(user_id)}_")
 
 
 def _safe_list(value) -> list:

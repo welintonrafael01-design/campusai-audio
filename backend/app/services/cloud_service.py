@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from app.database.supabase_client import get_supabase_admin_client
 
 
@@ -402,6 +404,63 @@ def delete_study_result(
         "document_id": document_id,
         "type": clean_type,
     }
+
+
+def user_owns_legacy_audiobook_audio(*, user_id: str, filename: str) -> bool:
+    clean_filename = filename.strip()
+    if not clean_filename:
+        return False
+
+    client = get_supabase_admin_client()
+
+    try:
+        study_results = (
+            client
+            .table("study_results")
+            .select("content")
+            .eq("user_id", user_id)
+            .eq("type", "audiobook")
+            .execute()
+        )
+        for row in study_results.data or []:
+            content = row.get("content") if isinstance(row, dict) else None
+            try:
+                payload = json.loads(content) if isinstance(content, str) else content
+            except (TypeError, ValueError):
+                continue
+            if _audiobook_payload_contains_filename(payload, clean_filename):
+                return True
+
+        legacy_results = (
+            client
+            .table("audiobooks")
+            .select("chapters")
+            .eq("user_id", user_id)
+            .execute()
+        )
+        return any(
+            _audiobook_payload_contains_filename(row, clean_filename)
+            for row in (legacy_results.data or [])
+        )
+    except Exception:
+        return False
+
+
+def _audiobook_payload_contains_filename(payload, filename: str) -> bool:
+    if not isinstance(payload, dict):
+        return False
+
+    chapters = payload.get("chapters")
+    if not isinstance(chapters, list):
+        return False
+
+    for chapter in chapters:
+        if not isinstance(chapter, dict):
+            continue
+        audio_url = str(chapter.get("audio_url") or "").strip()
+        if audio_url.rsplit("/", 1)[-1] == filename:
+            return True
+    return False
 
 
 

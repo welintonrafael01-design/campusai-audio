@@ -291,20 +291,22 @@ class CloudApiService {
     required String type,
     required String content,
   }) async {
-    final response = await http.post(
-      Uri.parse(
-        '${ApiService.baseUrl}/cloud/study-results',
-      ),
-      headers: {
-        'Content-Type': 'application/json',
-        ...AuthService.authHeaders,
-      },
-      body: jsonEncode({
-        'document_id': documentId,
-        'type': type,
-        'content': content,
-      }),
-    );
+    final response = await http
+        .post(
+          Uri.parse(
+            '${ApiService.baseUrl}/cloud/study-results',
+          ),
+          headers: {
+            'Content-Type': 'application/json',
+            ...AuthService.authHeaders,
+          },
+          body: jsonEncode({
+            'document_id': documentId,
+            'type': type,
+            'content': content,
+          }),
+        )
+        .timeout(ApiService.timeoutDuration);
 
     return ApiService.decodeResponse(response);
   }
@@ -313,12 +315,14 @@ class CloudApiService {
     required String documentId,
     required String type,
   }) async {
-    final response = await http.get(
-      Uri.parse(
-        '${ApiService.baseUrl}/cloud/study-results/$documentId/$type',
-      ),
-      headers: AuthService.authHeaders,
-    );
+    final response = await http
+        .get(
+          Uri.parse(
+            '${ApiService.baseUrl}/cloud/study-results/$documentId/$type',
+          ),
+          headers: AuthService.authHeaders,
+        )
+        .timeout(ApiService.timeoutDuration);
 
     final data = ApiService.decodeResponse(response);
 
@@ -338,10 +342,12 @@ class CloudApiService {
             },
     );
 
-    final response = await http.get(
-      uri,
-      headers: AuthService.authHeaders,
-    );
+    final response = await http
+        .get(
+          uri,
+          headers: AuthService.authHeaders,
+        )
+        .timeout(ApiService.timeoutDuration);
 
     final data = ApiService.decodeResponse(response);
 

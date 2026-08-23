@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:just_audio/just_audio.dart';
 
+import 'auth_service.dart';
+
 class AudioPlayerService {
   final AudioPlayer player = AudioPlayer();
 
@@ -20,6 +22,9 @@ class AudioPlayerService {
   Duration get currentPosition => player.position;
   Duration? get totalDuration => player.duration;
 
+  Map<String, String>? get _requestHeaders =>
+      AuthService.isLoggedIn ? AuthService.authHeaders : null;
+
   Future<void> play(String url) async {
     final cleanUrl = url.trim();
 
@@ -33,7 +38,7 @@ class AudioPlayerService {
 
         await player.stop();
 
-        await player.setUrl(cleanUrl);
+        await player.setUrl(cleanUrl, headers: _requestHeaders);
 
         await player.setSpeed(_currentSpeed);
       }
@@ -66,6 +71,7 @@ class AudioPlayerService {
     await player.setAudioSource(
       AudioSource.uri(
         Uri.parse(cleanUrl),
+        headers: _requestHeaders,
       ),
     );
 

@@ -6,19 +6,42 @@ import '../models/study_result.dart';
 import 'academic_engine/academic_resource_repository.dart';
 import 'api_service.dart';
 import 'auth_service.dart';
+import 'cloud_api_service.dart';
 import 'study_result_service.dart';
+
+enum AudioBookSyncStatus {
+  local,
+  syncing,
+  synced,
+  syncFailed,
+}
+
+extension AudioBookSyncStatusValue on AudioBookSyncStatus {
+  String get storageValue => switch (this) {
+        AudioBookSyncStatus.local => 'local',
+        AudioBookSyncStatus.syncing => 'syncing',
+        AudioBookSyncStatus.synced => 'synced',
+        AudioBookSyncStatus.syncFailed => 'sync_failed',
+      };
+}
 
 class AudioBookSaveResult {
   final String documentId;
   final bool cloudSynced;
+  final AudioBookSyncStatus syncStatus;
+  final Map<String, dynamic> audiobook;
 
   const AudioBookSaveResult({
     required this.documentId,
     required this.cloudSynced,
+    required this.syncStatus,
+    required this.audiobook,
   });
 }
 
 class AudiobookService {
+  static const String resultType = 'audiobook';
+
   const AudiobookService();
 
   Future<Map<String, dynamic>> generateAudiobookFromText({
@@ -86,20 +109,23 @@ class AudiobookService {
 
       final raw = response['audiobook'];
       if (raw is Map) {
-        return normalizeAudioBookPayload(
-          Map<String, dynamic>.from(raw),
-          fallbackTitle: title,
-          fallbackText: cleanText,
-          sourceMode: sourceMode,
-          sourceType: sourceType,
-          sourceDocumentId: sourceDocumentId,
-          courseId: courseId,
-          courseName: courseName,
-          unitId: unitId,
-          unitTopic: unitTopic,
-          language: language,
-          voiceProfile: voiceProfile,
-        );
+        return {
+          ...normalizeAudioBookPayload(
+            Map<String, dynamic>.from(raw),
+            fallbackTitle: title,
+            fallbackText: cleanText,
+            sourceMode: sourceMode,
+            sourceType: sourceType,
+            sourceDocumentId: sourceDocumentId,
+            courseId: courseId,
+            courseName: courseName,
+            unitId: unitId,
+            unitTopic: unitTopic,
+            language: language,
+            voiceProfile: voiceProfile,
+          ),
+          'generation_source': 'backend',
+        };
       }
     } catch (_) {
       // Fallback local para que el MVP funcione aunque el backend/IA falle.
@@ -126,13 +152,11 @@ class AudiobookService {
   }
 
   Future<AudioBookSaveResult> saveAudioBookWithStatus(
-    Map<String, dynamic> audiobook,
-  ) async {
-    final audiobookId = cleanText(audiobook['audiobook_id']).isNotEmpty
-        ? cleanText(audiobook['audiobook_id'])
-        : 'audiobook_${DateTime.now().millisecondsSinceEpoch}';
-    final unitId = cleanText(audiobook['unit_id']);
-    final documentId = unitId.isNotEmpty ? '${unitId}_audiobook' : audiobookId;
+    Map<String, dynamic> audiobook, {
+    Future<void> Function()? cloudSave,
+  }) async {
+    final documentId = documentIdForAudioBook(audiobook);
+    final syncUpdatedAt = DateTime.now().toIso8601String();
 
     final payload = Map<String, dynamic>.from(audiobook)
       ..remove('_last_audio_generation_failed')
@@ -140,34 +164,176 @@ class AudiobookService {
       ..remove('_last_learning_pack_generation_failed')
       ..remove('_last_learning_pack_generation_chapter_id')
       ..remove('_cloud_sync_pending')
-      ..['audiobook_id'] = documentId;
+      ..['audiobook_id'] = documentId
+      ..['sync_status'] = AudioBookSyncStatus.synced.storageValue
+      ..['sync_updated_at'] = syncUpdatedAt;
+    final syncingPayload = {
+      ...payload,
+      'sync_status': AudioBookSyncStatus.syncing.storageValue,
+    };
 
     final cloudSynced = await AcademicResourceRepository.saveResource(
       documentId: documentId,
-      type: 'audiobook',
+      type: resultType,
       content: jsonEncode(payload),
+      localContent: jsonEncode(syncingPayload),
       cloudDebugLabel: 'audio libro',
+      cloudSave: cloudSave,
+    );
+
+    final finalStatus = cloudSynced
+        ? AudioBookSyncStatus.synced
+        : AudioBookSyncStatus.syncFailed;
+    final finalPayload = {
+      ...payload,
+      'sync_status': finalStatus.storageValue,
+      'sync_updated_at': DateTime.now().toIso8601String(),
+    };
+
+    await StudyResultService.saveResult(
+      StudyResult(
+        documentId: documentId,
+        type: resultType,
+        content: jsonEncode(finalPayload),
+        createdAt: syncUpdatedAt,
+      ),
     );
 
     return AudioBookSaveResult(
       documentId: documentId,
       cloudSynced: cloudSynced,
+      syncStatus: finalStatus,
+      audiobook: finalPayload,
     );
   }
 
-  Future<List<StudyResult>> getAudioBooks() {
-    return StudyResultService.getResultsByType('audiobook');
+  String documentIdForAudioBook(Map<String, dynamic> audiobook) {
+    final unitId = cleanText(audiobook['unit_id']);
+    if (unitId.isNotEmpty) return '${unitId}_audiobook';
+
+    final sourceDocumentId = cleanText(audiobook['source_document_id']);
+    if (sourceDocumentId.isNotEmpty) {
+      return sourceDocumentId.endsWith('_audiobook')
+          ? sourceDocumentId
+          : '${sourceDocumentId}_audiobook';
+    }
+
+    final audiobookId = cleanText(audiobook['audiobook_id']);
+    return audiobookId.isNotEmpty
+        ? audiobookId
+        : 'audiobook_${DateTime.now().millisecondsSinceEpoch}';
   }
 
-  Future<StudyResult?> getAudioBook(String documentId) {
-    return StudyResultService.getResult(
+  Future<List<StudyResult>> getAudioBooks({
+    Future<List<dynamic>> Function()? cloudLoader,
+  }) async {
+    final localResults = await StudyResultService.getResultsByType(resultType);
+    final resultsById = {
+      for (final result in localResults) result.documentId: result,
+    };
+
+    if (cloudLoader == null && !AuthService.isLoggedIn) {
+      return localResults;
+    }
+
+    try {
+      final cloudItems = await (cloudLoader ??
+          () => CloudApiService.getStudyResults(type: resultType))();
+
+      for (final item in cloudItems) {
+        final cloudResult = studyResultFromCloud(item);
+        if (cloudResult == null) continue;
+
+        final local = resultsById[cloudResult.documentId];
+        if (local != null && syncStatusFromResult(local) == 'sync_failed') {
+          continue;
+        }
+
+        resultsById[cloudResult.documentId] = cloudResult;
+        await StudyResultService.saveResult(cloudResult);
+      }
+    } catch (_) {
+      // Offline/cloud failure: the local library remains fully available.
+    }
+
+    final results = resultsById.values.toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return results;
+  }
+
+  Future<StudyResult?> getAudioBook(
+    String documentId, {
+    Future<Map<String, dynamic>?> Function()? cloudLoader,
+  }) async {
+    final local = await StudyResultService.getResult(
       documentId: documentId,
-      type: 'audiobook',
+      type: resultType,
     );
+    if (local != null) return local;
+    if (cloudLoader == null && !AuthService.isLoggedIn) return null;
+
+    try {
+      final cloudItem = await (cloudLoader ??
+          () => CloudApiService.getStudyResult(
+                documentId: documentId,
+                type: resultType,
+              ))();
+      final cloudResult = studyResultFromCloud(cloudItem);
+      if (cloudResult == null) return null;
+      await StudyResultService.saveResult(cloudResult);
+      return cloudResult;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<StudyResult?> getAudioBookById(String documentId) {
     return getAudioBook(documentId);
+  }
+
+  StudyResult? studyResultFromCloud(dynamic raw) {
+    if (raw is! Map) return null;
+    final item = Map<String, dynamic>.from(raw);
+    final documentId = cleanText(item['document_id']).isNotEmpty
+        ? cleanText(item['document_id'])
+        : cleanText(item['documentId']);
+    final type = cleanText(item['type']);
+    final content = cleanText(item['content']);
+    if (documentId.isEmpty || type != resultType || content.isEmpty) {
+      return null;
+    }
+
+    var hydratedContent = content;
+    try {
+      final decoded = jsonDecode(content);
+      if (decoded is Map) {
+        hydratedContent = jsonEncode({
+          ...Map<String, dynamic>.from(decoded),
+          'audiobook_id': documentId,
+          'sync_status': AudioBookSyncStatus.synced.storageValue,
+        });
+      }
+    } catch (_) {}
+
+    return StudyResult(
+      documentId: documentId,
+      type: resultType,
+      content: hydratedContent,
+      createdAt: firstCleanText([
+        item['updated_at'],
+        item['created_at'],
+        item['createdAt'],
+        DateTime.now().toIso8601String(),
+      ]),
+    );
+  }
+
+  String syncStatusFromResult(StudyResult result) {
+    try {
+      final decoded = jsonDecode(result.content);
+      if (decoded is Map) return cleanText(decoded['sync_status']);
+    } catch (_) {}
+    return AudioBookSyncStatus.local.storageValue;
   }
 
   Map<String, dynamic> decodeAudioBook(StudyResult result) {
@@ -379,7 +545,7 @@ class AudiobookService {
 
       final saveResult = await saveAudioBookWithStatus(updated);
       return {
-        ...updated,
+        ...saveResult.audiobook,
         if (!saveResult.cloudSynced) '_cloud_sync_pending': true,
       };
     } catch (_) {
@@ -480,7 +646,7 @@ class AudiobookService {
 
       final saveResult = await saveAudioBookWithStatus(updated);
       return {
-        ...updated,
+        ...saveResult.audiobook,
         if (!saveResult.cloudSynced) '_cloud_sync_pending': true,
       };
     } catch (_) {
@@ -733,9 +899,9 @@ class AudiobookService {
       'source_type': cleanText(raw['source_type']).isNotEmpty
           ? cleanText(raw['source_type'])
           : sourceType,
-      'source_document_id': cleanText(raw['source_document_id']).isNotEmpty
-          ? cleanText(raw['source_document_id'])
-          : sourceDocumentId,
+      'source_document_id': sourceDocumentId.trim().isNotEmpty
+          ? sourceDocumentId.trim()
+          : cleanText(raw['source_document_id']),
       'course_id': cleanText(raw['course_id']).isNotEmpty
           ? cleanText(raw['course_id'])
           : courseId,
@@ -755,6 +921,12 @@ class AudiobookService {
       'learning_objectives': stringListFrom(raw['learning_objectives']),
       'key_concepts': stringListFrom(raw['key_concepts']),
       'review_questions': stringListFrom(raw['review_questions']),
+      'sync_status': cleanText(raw['sync_status']).isNotEmpty
+          ? cleanText(raw['sync_status'])
+          : AudioBookSyncStatus.local.storageValue,
+      'generation_source': cleanText(raw['generation_source']).isNotEmpty
+          ? cleanText(raw['generation_source'])
+          : cleanText(fallback['generation_source']),
       'created_at': cleanText(raw['created_at']).isNotEmpty
           ? cleanText(raw['created_at'])
           : DateTime.now().toIso8601String(),
@@ -810,7 +982,9 @@ class AudiobookService {
     return {
       'audiobook_id': unitId.trim().isNotEmpty
           ? '${unitId.trim()}_audiobook'
-          : 'audiobook_${DateTime.now().millisecondsSinceEpoch}',
+          : sourceDocumentId.trim().isNotEmpty
+              ? '${sourceDocumentId.trim()}_audiobook'
+              : 'audiobook_${DateTime.now().millisecondsSinceEpoch}',
       'source_mode': sourceMode,
       'source_type': sourceType,
       'source_document_id': sourceDocumentId,
@@ -823,6 +997,8 @@ class AudiobookService {
           'Audio libro educativo generado desde contenido académico.',
       'language': language,
       'voice_profile': voiceProfile,
+      'sync_status': AudioBookSyncStatus.local.storageValue,
+      'generation_source': 'local_fallback',
       'estimated_duration_minutes': chapters.fold<int>(
         0,
         (sum, chapter) =>
@@ -932,4 +1108,11 @@ class AudiobookService {
   }
 
   String cleanText(dynamic value) => value?.toString().trim() ?? '';
+
+  String firstCleanText(List<dynamic> values) {
+    return values.map(cleanText).firstWhere(
+          (value) => value.isNotEmpty,
+          orElse: () => '',
+        );
+  }
 }

@@ -9,6 +9,7 @@ class AcademicResourceRepository {
     required String documentId,
     required String type,
     required String content,
+    String? localContent,
     String cloudDebugLabel = 'recurso académico',
     Future<void> Function()? cloudSave,
   }) async {
@@ -16,7 +17,7 @@ class AcademicResourceRepository {
       StudyResult(
         documentId: documentId,
         type: type,
-        content: content,
+        content: localContent ?? content,
         createdAt: DateTime.now().toIso8601String(),
       ),
     );
