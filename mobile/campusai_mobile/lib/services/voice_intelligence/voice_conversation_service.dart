@@ -2,6 +2,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
+typedef MicrophonePermissionRequester = Future<PermissionStatus> Function();
+
 class VoiceConversationState {
   final String status;
   final String partialText;
@@ -11,6 +13,7 @@ class VoiceConversationState {
   final DateTime? startedAt;
   final DateTime? endedAt;
   final int durationSeconds;
+  final bool requiresSettings;
 
   const VoiceConversationState({
     this.status = VoiceConversationService.idle,
@@ -21,6 +24,7 @@ class VoiceConversationState {
     this.startedAt,
     this.endedAt,
     this.durationSeconds = 0,
+    this.requiresSettings = false,
   });
 
   static const idleState = VoiceConversationState();
@@ -34,6 +38,7 @@ class VoiceConversationState {
     DateTime? startedAt,
     DateTime? endedAt,
     int? durationSeconds,
+    bool? requiresSettings,
   }) {
     return VoiceConversationState(
       status: status ?? this.status,
@@ -44,6 +49,7 @@ class VoiceConversationState {
       startedAt: startedAt ?? this.startedAt,
       endedAt: endedAt ?? this.endedAt,
       durationSeconds: durationSeconds ?? this.durationSeconds,
+      requiresSettings: requiresSettings ?? this.requiresSettings,
     );
   }
 }
@@ -56,7 +62,13 @@ class VoiceConversationService {
   static const String denied = 'denied';
   static const String error = 'error';
 
+  VoiceConversationService({
+    MicrophonePermissionRequester? requestMicrophonePermission,
+  }) : _requestMicrophonePermission =
+            requestMicrophonePermission ?? Permission.microphone.request;
+
   final SpeechToText _speech = SpeechToText();
+  final MicrophonePermissionRequester _requestMicrophonePermission;
   VoiceConversationState _state = VoiceConversationState.idleState;
   DateTime? _startedAt;
   String _latestText = '';
@@ -69,6 +81,10 @@ class VoiceConversationService {
     required void Function(VoiceConversationState state) onStateChanged,
     String localeId = 'es_ES',
   }) async {
+    if (_state.status == requestingPermission || _speech.isListening) {
+      return _state;
+    }
+
     _completedTurn = false;
     _latestText = '';
     _emit(
@@ -78,12 +94,16 @@ class VoiceConversationService {
       onStateChanged,
     );
 
-    final permission = await Permission.microphone.request();
+    final permission = await _requestMicrophonePermission();
     if (!permission.isGranted) {
+      final requiresSettings = permission.isPermanentlyDenied;
       return _emit(
-        const VoiceConversationState(
+        VoiceConversationState(
           status: denied,
-          errorMessage: 'Permiso de micrófono denegado.',
+          errorMessage: requiresSettings
+              ? 'El permiso de micrófono está bloqueado. Actívalo en Ajustes.'
+              : 'Permiso de micrófono denegado.',
+          requiresSettings: requiresSettings,
         ),
         onStateChanged,
       );
@@ -171,6 +191,8 @@ class VoiceConversationService {
       await _speech.cancel();
     }
   }
+
+  Future<bool> openPermissionSettings() => openAppSettings();
 
   Future<VoiceConversationState> stopListening({
     required void Function(VoiceConversationState state) onStateChanged,

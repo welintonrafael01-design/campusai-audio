@@ -21,6 +21,7 @@ import '../services/subscription_service.dart';
 import '../services/study_result_service.dart';
 import '../services/workspace_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/safe_debug_log.dart';
 import '../widgets/animated_fade_slide.dart';
 import '../widgets/dashboard/dashboard_tools.dart';
 import '../widgets/onboarding/studybook_onboarding_dialog.dart';
@@ -888,7 +889,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       }
 
       final data = result.data;
-      debugPrint('UPLOAD RESPONSE: $data');
+      SafeDebugLog.uploadCompleted(data);
 
       final document = DocumentHistory(
         documentId: data['document_id'] ?? '',

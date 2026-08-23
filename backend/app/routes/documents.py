@@ -113,6 +113,23 @@ UPLOAD_FOLDER.mkdir(
 MAX_UPLOAD_SIZE_MB = 25
 
 
+def build_upload_response(
+    *,
+    filename: str | None,
+    document_id: str,
+    ai_summary: str,
+) -> dict:
+    return {
+        "filename": filename,
+        "file_name": filename,
+        "document_id": document_id,
+        "message": "Documento procesado correctamente.",
+        "ai_summary": ai_summary,
+        "audio_file": "",
+        "audio_url": "",
+    }
+
+
 def validate_pdf_file(
     file: UploadFile,
 ) -> None:
@@ -636,7 +653,10 @@ async def upload_document(
             )
             print(f"[UPLOAD] storage_upload: {time.perf_counter() - step:.2f}s")
         except Exception as storage_error:
-            print(f"[UPLOAD] storage_upload_failed: {storage_error}")
+            print(
+                "[UPLOAD] storage_upload_failed "
+                f"type={type(storage_error).__name__}"
+            )
 
         step = time.perf_counter()
         document_record = register_document_file(
@@ -682,30 +702,30 @@ async def upload_document(
             )
             print(f"[UPLOAD] cloud_document_insert: {time.perf_counter() - step:.2f}s")
         except Exception as cloud_document_error:
-            print(f"[UPLOAD] cloud_document_insert_failed: {cloud_document_error}")
+            print(
+                "[UPLOAD] cloud_document_insert_failed "
+                f"type={type(cloud_document_error).__name__}"
+            )
 
         print(f"[UPLOAD] total: {time.perf_counter() - start_time:.2f}s")
 
-        return {
-            "filename": file.filename,
-            "file_name": file.filename,
-            "document_id": document_id,
-            "message": "Documento procesado correctamente.",
-            "text_preview": extracted_text[:1000],
-            "ai_summary": ai_summary,
-            "audio_file": "",
-            "audio_url": "",
-            "document_info": document_record,
-        }
+        return build_upload_response(
+            filename=file.filename,
+            document_id=document_id,
+            ai_summary=ai_summary,
+        )
 
     except HTTPException:
         raise
 
     except Exception as error:
-        print(f"[UPLOAD] error after {time.perf_counter() - start_time:.2f}s: {error}")
+        print(
+            f"[UPLOAD] failed after {time.perf_counter() - start_time:.2f}s "
+            f"type={type(error).__name__}"
+        )
         raise HTTPException(
             status_code=500,
-            detail=str(error),
+            detail="No se pudo procesar el documento.",
         )
 
 

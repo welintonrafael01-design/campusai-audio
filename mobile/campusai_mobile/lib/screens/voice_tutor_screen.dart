@@ -576,6 +576,8 @@ class _VoiceTutorScreenState extends State<VoiceTutorScreen> {
                                   onStart: startVoiceTurn,
                                   onStop: stopVoiceTurn,
                                   onCancel: cancelVoiceTurn,
+                                  onOpenSettings: conversationService
+                                      .openPermissionSettings,
                                 ),
                                 if (errorMessage.isNotEmpty) ...[
                                   const SizedBox(height: 16),
@@ -873,6 +875,7 @@ class _VoiceInputPanel extends StatelessWidget {
   final VoidCallback onStart;
   final VoidCallback onStop;
   final VoidCallback onCancel;
+  final Future<bool> Function() onOpenSettings;
 
   const _VoiceInputPanel({
     required this.state,
@@ -882,6 +885,7 @@ class _VoiceInputPanel extends StatelessWidget {
     required this.onStart,
     required this.onStop,
     required this.onCancel,
+    required this.onOpenSettings,
   });
 
   @override
@@ -890,6 +894,8 @@ class _VoiceInputPanel extends StatelessWidget {
     final isProcessing = state.status == VoiceConversationService.processing;
     final isDenied = state.status == VoiceConversationService.denied;
     final isError = state.status == VoiceConversationService.error;
+    final isRequesting =
+        state.status == VoiceConversationService.requestingPermission;
     final label = isSpeaking
         ? 'Hablando...'
         : isThinking
@@ -998,8 +1004,9 @@ class _VoiceInputPanel extends StatelessWidget {
             runSpacing: 10,
             children: [
               FilledButton.icon(
-                onPressed:
-                    isBusy || isListening || isProcessing ? null : onStart,
+                onPressed: isBusy || isListening || isProcessing || isRequesting
+                    ? null
+                    : onStart,
                 icon: const Icon(Icons.mic_rounded),
                 label: const Text('Preguntar por voz'),
               ),
@@ -1013,6 +1020,12 @@ class _VoiceInputPanel extends StatelessWidget {
                 icon: const Icon(Icons.close_rounded),
                 label: const Text('Cancelar'),
               ),
+              if (isDenied && state.requiresSettings)
+                OutlinedButton.icon(
+                  onPressed: onOpenSettings,
+                  icon: const Icon(Icons.settings_rounded),
+                  label: const Text('Abrir ajustes'),
+                ),
             ],
           ),
         ],

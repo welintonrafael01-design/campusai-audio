@@ -2,6 +2,15 @@
 
 Status: `MANUAL_REQUIRED`
 
+## Latest Physical Run
+
+The 2026-08-22 Samsung run found release blockers in microphone permission,
+keyboard-constrained chat layout and rotated scanned-PDF OCR. Their code causes
+are remediated on the QA branch and documented in
+`docs/qa/PHYSICAL_ANDROID_FAILURE_REMEDIATION.md`.
+
+Current gate: `READY_FOR_PHYSICAL_RETEST`, not PASS.
+
 ## Automated Build Evidence
 
 | Artifact | Status | Path |
@@ -58,4 +67,6 @@ API_BASE_URL=http://127.0.0.1:8000
 | Library | Only current user data | MANUAL_REQUIRED |
 | Teacher guard | Student cannot enter Teacher | MANUAL_REQUIRED |
 | Admin guard | Non-admin sees friendly 403/redirect | MANUAL_REQUIRED |
-
+| CIAG rotated scan | Summary matches inclusion/accessibility source | RETEST_REQUIRED |
+| Chat with IME | No overflow with keyboard and active player | RETEST_REQUIRED |
+| Voice Tutor microphone | One permission prompt and recognized input | RETEST_REQUIRED |

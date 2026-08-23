@@ -692,6 +692,48 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
+  Widget buildCompactHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        gradient: AppTheme.mainGradient,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.auto_awesome_rounded,
+            color: Colors.white,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              widget.fileName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          IconButton(
+            tooltip: l10n.exportChatToWord,
+            visualDensity: VisualDensity.compact,
+            onPressed: exportChatToDocx,
+            icon: const Icon(Icons.description_rounded, color: Colors.white),
+          ),
+          IconButton(
+            tooltip: l10n.exportChatToPdf,
+            visualDensity: VisualDensity.compact,
+            onPressed: exportChatToPdf,
+            icon: const Icon(Icons.picture_as_pdf_rounded, color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget buildContextPanel() {
     return Container(
       width: 340,
@@ -780,11 +822,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       isVoiceModeEnabled = false;
     }
 
+    final keyboardVisible = MediaQuery.viewInsetsOf(context).bottom > 0;
+
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(18, 14, 18, 12),
-          child: buildHeader(),
+          padding: EdgeInsets.fromLTRB(
+            18,
+            keyboardVisible ? 8 : 14,
+            18,
+            keyboardVisible ? 6 : 12,
+          ),
+          child: keyboardVisible ? buildCompactHeader() : buildHeader(),
         ),
         Expanded(
           child: ChatMessages(

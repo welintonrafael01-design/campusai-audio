@@ -9,10 +9,14 @@ Generated: 2026-08-13
 | RC1-P2-001 | P2 MEDIUM | Formatting | FIXED_IN_QA_BRANCH | `dart format --output=none --set-exit-if-changed .` reports 33 files would be formatted. | Baseline command returned exit code 1. The E2E automation sprint ran `dart format`, producing only mechanical formatting changes. | Re-run format check in final validation. |
 | RC1-P2-002 | P2 MEDIUM | Repository hygiene | OPEN | `backend/.venv` is tracked in Git history/current index. | `git ls-files backend/.venv` returns 8445 files. | Remove tracked virtualenv in a dedicated cleanup commit and rebuild environment from `requirements.txt`; do not rewrite history without explicit approval. |
 | RC1-P2-003 | P2 MEDIUM | Manual QA evidence | OPEN | Android real device, web two-user isolation, Stripe test and accessibility passes are not yet manually executed. | No Android device connected; Stripe config not verified. | Execute the manual QA matrix before promoting to RC2/Android Beta. |
+| RC1-P1-004 | P1 HIGH | Voice Tutor | FIXED_AWAITING_PHYSICAL_RETEST | Android manifest omitted microphone group 7 (`RECORD_AUDIO`). | Samsung log contained 18 plugin warnings; plugin source maps group 7 to microphone. | Repeat permission deny/grant/settings flow on Samsung. |
+| RC1-P1-005 | P1 HIGH | Document pipeline | FIXED_AWAITING_PHYSICAL_RETEST | Image-only PDF pages rotated 270 degrees reached OCR laterally, corrupting summary input. | CIAG checksum `72bc94d8...a4950`; corrected extraction returns 8 forward pages. | Re-upload the same PDF and verify summary semantics. |
+| RC1-P2-006 | P2 MEDIUM | Chat UI | FIXED_AWAITING_PHYSICAL_RETEST | Full header plus mini player overflowed when IME reduced available height. | Reduced-viewport widget regression passes. | Repeat with Samsung keyboard and long messages. |
+| RC1-P2-007 | P2 MEDIUM | Upload privacy | FIXED | Upload response and Flutter debug line exposed unnecessary document text and internal metadata. | Privacy contract and redaction regressions pass. | Monitor release logs during physical retest. |
 
 ## P0 Blockers
 
-None reproduced in this automated pass.
+No open P1 code defect remains after remediation. Physical confirmation is still required.
 
 ## P1 High
 

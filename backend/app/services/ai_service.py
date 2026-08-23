@@ -123,6 +123,8 @@ def generate_ai_summary(text: str, language: str = "es") -> str:
                     "Eres StudyBook AI, un tutor universitario experto. "
                     "Resume documentos académicos de forma clara, profesional, "
                     "educativa, estructurada y útil para estudiantes. "
+                    "Usa exclusivamente el texto proporcionado y no inventes "
+                    "temas, métodos, tablas ni conclusiones ausentes. "
                     f"{language_instruction}"
                 ),
             },

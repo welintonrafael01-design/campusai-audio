@@ -7,6 +7,74 @@ from PIL import Image
 
 
 MAX_CHARACTERS = 120000
+MIN_OCR_CONFIDENCE = 45.0
+
+
+def prepare_page_image_for_ocr(page) -> Image.Image:
+    pix = page.get_pixmap(
+        matrix=fitz.Matrix(2, 2),
+        alpha=False,
+    )
+
+    image = Image.frombytes(
+        "RGB",
+        [pix.width, pix.height],
+        pix.samples,
+    )
+
+    rotation = int(page.rotation or 0) % 360
+    if rotation:
+        image = image.rotate(rotation, expand=True)
+
+    return image
+
+
+def extract_text_with_ocr(page) -> str:
+    image = prepare_page_image_for_ocr(page)
+    data = pytesseract.image_to_data(
+        image,
+        lang="eng+spa",
+        output_type=pytesseract.Output.DICT,
+    )
+
+    lines: dict[tuple[int, int, int], list[str]] = {}
+    confidences: list[float] = []
+
+    for index, raw_word in enumerate(data.get("text", [])):
+        word = str(raw_word).strip()
+        if not word:
+            continue
+
+        line_key = (
+            int(data["block_num"][index]),
+            int(data["par_num"][index]),
+            int(data["line_num"][index]),
+        )
+        lines.setdefault(line_key, []).append(word)
+
+        try:
+            confidence = float(data["conf"][index])
+        except (TypeError, ValueError):
+            continue
+
+        if confidence >= 0:
+            confidences.append(confidence)
+
+    average_confidence = (
+        sum(confidences) / len(confidences)
+        if confidences
+        else 0.0
+    )
+
+    if not lines or average_confidence < MIN_OCR_CONFIDENCE:
+        raise ValueError(
+            "La calidad OCR del PDF es insuficiente para generar contenido fiable."
+        )
+
+    return "\n".join(
+        " ".join(words)
+        for words in lines.values()
+    )
 
 
 def extract_text_from_pdf(pdf_path: str) -> str:
@@ -41,20 +109,7 @@ def extract_text_from_pdf(pdf_path: str) -> str:
                 # =====================================================
                 # OCR FALLBACK
                 # =====================================================
-                pix = page.get_pixmap(
-                    matrix=fitz.Matrix(2, 2)
-                )
-
-                image = Image.frombytes(
-                    "RGB",
-                    [pix.width, pix.height],
-                    pix.samples,
-                )
-
-                ocr_text = pytesseract.image_to_string(
-                    image,
-                    lang="eng+spa",
-                )
+                ocr_text = extract_text_with_ocr(page)
 
                 if ocr_text:
                     text += ocr_text + "\n"
@@ -108,20 +163,7 @@ def extract_pages_from_pdf(pdf_path: str) -> list[dict]:
                 page_text = page.get_text()
 
                 if not page_text or not page_text.strip():
-                    pix = page.get_pixmap(
-                        matrix=fitz.Matrix(2, 2)
-                    )
-
-                    image = Image.frombytes(
-                        "RGB",
-                        [pix.width, pix.height],
-                        pix.samples,
-                    )
-
-                    page_text = pytesseract.image_to_string(
-                        image,
-                        lang="eng+spa",
-                    )
+                    page_text = extract_text_with_ocr(page)
 
                 clean_text = normalize_text(page_text or "")
 
