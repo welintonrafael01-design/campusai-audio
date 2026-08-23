@@ -5,6 +5,7 @@ from app.database.supabase_client import get_supabase_admin_client
 
 ALLOWED_STUDY_RESULT_TYPES = {
     "assessment_report",
+    "audiobook",
     "curriculum_intelligence",
     "exam",
     "final_report",
@@ -16,6 +17,15 @@ ALLOWED_STUDY_RESULT_TYPES = {
     "teaching_plan",
     "teaching_resources",
 }
+
+
+def canonical_study_result_type(value: str) -> str:
+    clean_type = value.strip().lower()
+
+    if clean_type not in ALLOWED_STUDY_RESULT_TYPES:
+        raise ValueError("Tipo de resultado inválido.")
+
+    return clean_type
 
 
 def create_workspace(
@@ -295,12 +305,8 @@ def upsert_study_result(
     type: str,
     content: str,
 ) -> dict:
+    clean_type = canonical_study_result_type(type)
     client = get_supabase_admin_client()
-
-    clean_type = type.strip().lower()
-
-    if clean_type not in ALLOWED_STUDY_RESULT_TYPES:
-        raise ValueError("Tipo de resultado inválido.")
 
     payload = {
         "user_id": user_id,
@@ -328,6 +334,7 @@ def get_study_result(
     document_id: str,
     type: str,
 ) -> dict | None:
+    clean_type = canonical_study_result_type(type)
     client = get_supabase_admin_client()
 
     response = (
@@ -336,7 +343,7 @@ def get_study_result(
         .select("*")
         .eq("user_id", user_id)
         .eq("document_id", document_id)
-        .eq("type", type.strip().lower())
+        .eq("type", clean_type)
         .maybe_single()
         .execute()
     )
@@ -349,6 +356,7 @@ def list_study_results(
     user_id: str,
     type: str | None = None,
 ) -> list[dict]:
+    clean_type = canonical_study_result_type(type) if type else None
     client = get_supabase_admin_client()
 
     query = (
@@ -358,8 +366,8 @@ def list_study_results(
         .eq("user_id", user_id)
     )
 
-    if type:
-        query = query.eq("type", type.strip().lower())
+    if clean_type:
+        query = query.eq("type", clean_type)
 
     response = (
         query
@@ -376,6 +384,7 @@ def delete_study_result(
     document_id: str,
     type: str,
 ) -> dict:
+    clean_type = canonical_study_result_type(type)
     client = get_supabase_admin_client()
 
     (
@@ -384,14 +393,14 @@ def delete_study_result(
         .delete()
         .eq("user_id", user_id)
         .eq("document_id", document_id)
-        .eq("type", type.strip().lower())
+        .eq("type", clean_type)
         .execute()
     )
 
     return {
         "deleted": True,
         "document_id": document_id,
-        "type": type,
+        "type": clean_type,
     }
 
 

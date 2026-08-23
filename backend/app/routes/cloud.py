@@ -98,6 +98,12 @@ def handle_cloud_error(error: Exception) -> HTTPException:
             detail=str(error),
         )
 
+    if isinstance(error, ValueError):
+        return HTTPException(
+            status_code=400,
+            detail=str(error),
+        )
+
     return HTTPException(
         status_code=500,
         detail=str(error),

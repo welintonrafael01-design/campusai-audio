@@ -8,6 +8,16 @@ import 'api_service.dart';
 import 'auth_service.dart';
 import 'study_result_service.dart';
 
+class AudioBookSaveResult {
+  final String documentId;
+  final bool cloudSynced;
+
+  const AudioBookSaveResult({
+    required this.documentId,
+    required this.cloudSynced,
+  });
+}
+
 class AudiobookService {
   const AudiobookService();
 
@@ -111,6 +121,13 @@ class AudiobookService {
   }
 
   Future<String> saveAudioBook(Map<String, dynamic> audiobook) async {
+    final result = await saveAudioBookWithStatus(audiobook);
+    return result.documentId;
+  }
+
+  Future<AudioBookSaveResult> saveAudioBookWithStatus(
+    Map<String, dynamic> audiobook,
+  ) async {
     final audiobookId = cleanText(audiobook['audiobook_id']).isNotEmpty
         ? cleanText(audiobook['audiobook_id'])
         : 'audiobook_${DateTime.now().millisecondsSinceEpoch}';
@@ -122,16 +139,20 @@ class AudiobookService {
       ..remove('_last_audio_generation_chapter_id')
       ..remove('_last_learning_pack_generation_failed')
       ..remove('_last_learning_pack_generation_chapter_id')
+      ..remove('_cloud_sync_pending')
       ..['audiobook_id'] = documentId;
 
-    await AcademicResourceRepository.saveResource(
+    final cloudSynced = await AcademicResourceRepository.saveResource(
       documentId: documentId,
       type: 'audiobook',
       content: jsonEncode(payload),
       cloudDebugLabel: 'audio libro',
     );
 
-    return documentId;
+    return AudioBookSaveResult(
+      documentId: documentId,
+      cloudSynced: cloudSynced,
+    );
   }
 
   Future<List<StudyResult>> getAudioBooks() {
@@ -356,8 +377,11 @@ class AudiobookService {
             : chapterDurationSeconds(chapter),
       );
 
-      await saveAudioBook(updated);
-      return updated;
+      final saveResult = await saveAudioBookWithStatus(updated);
+      return {
+        ...updated,
+        if (!saveResult.cloudSynced) '_cloud_sync_pending': true,
+      };
     } catch (_) {
       return {
         ...audiobook,
@@ -454,8 +478,11 @@ class AudiobookService {
         learningPack: learningPack,
       );
 
-      await saveAudioBook(updated);
-      return updated;
+      final saveResult = await saveAudioBookWithStatus(updated);
+      return {
+        ...updated,
+        if (!saveResult.cloudSynced) '_cloud_sync_pending': true,
+      };
     } catch (_) {
       return {
         ...audiobook,

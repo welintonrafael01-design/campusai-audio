@@ -5,11 +5,12 @@ import '../cloud_api_service.dart';
 import '../study_result_service.dart';
 
 class AcademicResourceRepository {
-  static Future<void> saveResource({
+  static Future<bool> saveResource({
     required String documentId,
     required String type,
     required String content,
     String cloudDebugLabel = 'recurso académico',
+    Future<void> Function()? cloudSave,
   }) async {
     await StudyResultService.saveResult(
       StudyResult(
@@ -21,13 +22,19 @@ class AcademicResourceRepository {
     );
 
     try {
-      await CloudApiService.saveStudyResult(
-        documentId: documentId,
-        type: type,
-        content: content,
-      );
+      if (cloudSave != null) {
+        await cloudSave();
+      } else {
+        await CloudApiService.saveStudyResult(
+          documentId: documentId,
+          type: type,
+          content: content,
+        );
+      }
+      return true;
     } catch (cloudError) {
       debugPrint('No se pudo guardar $cloudDebugLabel en cloud: $cloudError');
+      return false;
     }
   }
 

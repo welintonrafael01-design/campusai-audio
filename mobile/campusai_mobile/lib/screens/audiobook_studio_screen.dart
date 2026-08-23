@@ -129,6 +129,57 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
     }
   }
 
+  void showAudioBookSaveStatus({
+    required bool cloudSynced,
+    required String successMessage,
+    required Map<String, dynamic> audiobook,
+  }) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          cloudSynced
+              ? successMessage
+              : '$successMessage Guardado en este dispositivo, pero la sincronización está pendiente.',
+        ),
+        behavior: SnackBarBehavior.floating,
+        action: cloudSynced
+            ? null
+            : SnackBarAction(
+                label: 'Reintentar',
+                onPressed: () {
+                  unawaited(retryAudioBookCloudSync(audiobook));
+                },
+              ),
+      ),
+    );
+  }
+
+  Future<void> retryAudioBookCloudSync(
+    Map<String, dynamic> audiobook,
+  ) async {
+    final result = await audiobookService.saveAudioBookWithStatus(audiobook);
+
+    if (!mounted) return;
+
+    if (result.cloudSynced) {
+      setState(() {
+        selectedAudioBook = Map<String, dynamic>.from(selectedAudioBook)
+          ..remove('_cloud_sync_pending');
+      });
+      await loadSavedAudioBooks();
+    }
+
+    if (!mounted) return;
+
+    showAudioBookSaveStatus(
+      cloudSynced: result.cloudSynced,
+      successMessage: result.cloudSynced
+          ? 'AudioBook sincronizado.'
+          : 'No se pudo sincronizar todavía.',
+      audiobook: audiobook,
+    );
+  }
+
   Future<void> generateAudioBook() async {
     if (isGenerating) return;
 
@@ -159,7 +210,9 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
         unitId: widget.unitId,
         unitTopic: widget.unitTopic,
       );
-      final documentId = await audiobookService.saveAudioBook(generated);
+      final saveResult =
+          await audiobookService.saveAudioBookWithStatus(generated);
+      final documentId = saveResult.documentId;
       final normalized = {
         ...generated,
         'audiobook_id': documentId,
@@ -184,11 +237,10 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
       await loadSavedAudioBooks();
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('AudioBook generado y guardado.'),
-          behavior: SnackBarBehavior.floating,
-        ),
+      showAudioBookSaveStatus(
+        cloudSynced: saveResult.cloudSynced,
+        successMessage: 'AudioBook generado y guardado.',
+        audiobook: normalized,
       );
     } catch (_) {
       if (!mounted) return;
@@ -268,12 +320,14 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
           );
       final audioUrl = cleanText(updatedChapter['audio_url']);
       final failed = updatedAudioBook['_last_audio_generation_failed'] == true;
+      final cloudSynced = updatedAudioBook['_cloud_sync_pending'] != true;
 
       if (!mounted) return;
       setState(() {
         selectedAudioBook = Map<String, dynamic>.from(updatedAudioBook)
           ..remove('_last_audio_generation_failed')
-          ..remove('_last_audio_generation_chapter_id');
+          ..remove('_last_audio_generation_chapter_id')
+          ..remove('_cloud_sync_pending');
         if (failed || audioUrl.isEmpty) {
           chapterAudioErrors[chapterId] = 'tts_failed';
         } else {
@@ -284,16 +338,22 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
       await loadSavedAudioBooks();
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            !failed && audioUrl.isNotEmpty
-                ? 'Audio generado para este capítulo.'
-                : 'No se pudo generar audio real. Puedes seguir usando reproducción simulada.',
+      if (!failed && audioUrl.isNotEmpty) {
+        showAudioBookSaveStatus(
+          cloudSynced: cloudSynced,
+          successMessage: 'Audio generado para este capítulo.',
+          audiobook: updatedAudioBook,
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'No se pudo generar audio real. Puedes seguir usando reproducción simulada.',
+            ),
+            behavior: SnackBarBehavior.floating,
           ),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+        );
+      }
     } catch (_) {
       if (!mounted) return;
       setState(() => chapterAudioErrors[chapterId] = 'tts_failed');
@@ -331,6 +391,7 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
       );
       final failed =
           updatedAudioBook['_last_learning_pack_generation_failed'] == true;
+      final cloudSynced = updatedAudioBook['_cloud_sync_pending'] != true;
       final updatedChapter = audiobookService
           .chapterListFrom(updatedAudioBook['chapters'])
           .firstWhere(
@@ -343,7 +404,8 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
       setState(() {
         selectedAudioBook = Map<String, dynamic>.from(updatedAudioBook)
           ..remove('_last_learning_pack_generation_failed')
-          ..remove('_last_learning_pack_generation_chapter_id');
+          ..remove('_last_learning_pack_generation_chapter_id')
+          ..remove('_cloud_sync_pending');
         if (failed || !hasLearningPack) {
           chapterLearningPackErrors[chapterId] = 'learning_pack_failed';
         } else {
@@ -354,16 +416,22 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
       await loadSavedAudioBooks();
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            !failed && hasLearningPack
-                ? 'Actividades listas para este capítulo.'
-                : 'No se pudieron generar actividades. Puedes seguir escuchando el capítulo.',
+      if (!failed && hasLearningPack) {
+        showAudioBookSaveStatus(
+          cloudSynced: cloudSynced,
+          successMessage: 'Actividades listas para este capítulo.',
+          audiobook: updatedAudioBook,
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'No se pudieron generar actividades. Puedes seguir escuchando el capítulo.',
+            ),
+            behavior: SnackBarBehavior.floating,
           ),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+        );
+      }
     } catch (_) {
       if (!mounted) return;
       setState(
@@ -2097,7 +2165,7 @@ class _AudioBookResult extends StatelessWidget {
             final chapterId = cleanText(chapter['chapter_id']);
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: _AudioBookChapterCard(
+              child: AudioBookChapterCard(
                 chapter: chapter,
                 isCurrent: chapterId == currentChapterId,
                 isCompleted: completedChapters.contains(chapterId),
@@ -2185,23 +2253,31 @@ class _PlaybackPanel extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Wrap(
+              spacing: 14,
+              runSpacing: 8,
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Icon(
-                  isPlaying
-                      ? Icons.graphic_eq_rounded
-                      : Icons.pause_circle_outline_rounded,
-                  color: AppTheme.primary,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isPlaying
+                          ? Icons.graphic_eq_rounded
+                          : Icons.pause_circle_outline_rounded,
+                      color: AppTheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      isPlaying ? 'Reproduciendo' : 'En pausa',
+                      style: const TextStyle(
+                        color: AppTheme.textPrimary,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  isPlaying ? 'Reproduciendo' : 'En pausa',
-                  style: const TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const Spacer(),
                 Text(
                   '${formatDuration(currentPositionSeconds)} / '
                   '${formatDuration(currentChapterDuration)}',
@@ -2252,7 +2328,7 @@ class _PlaybackPanel extends StatelessWidget {
   }
 }
 
-class _AudioBookChapterCard extends StatelessWidget {
+class AudioBookChapterCard extends StatelessWidget {
   final Map<String, dynamic> chapter;
   final bool isCurrent;
   final bool isCompleted;
@@ -2275,7 +2351,8 @@ class _AudioBookChapterCard extends StatelessWidget {
   final int Function(dynamic value) intFrom;
   final String Function(int seconds) formatDuration;
 
-  const _AudioBookChapterCard({
+  const AudioBookChapterCard({
+    super.key,
     required this.chapter,
     required this.isCurrent,
     required this.isCompleted,
@@ -2330,32 +2407,144 @@ class _AudioBookChapterCard extends StatelessWidget {
     final progress = durationSeconds <= 0
         ? 0.0
         : (currentPositionSeconds / durationSeconds).clamp(0.0, 1.0);
+    final actions = <_ChapterAction>[
+      _ChapterAction(
+        label: currentPositionSeconds > 0
+            ? 'Continuar capítulo'
+            : 'Escuchar capítulo',
+        icon: hasAudio ? Icons.volume_up_rounded : Icons.play_arrow_rounded,
+        onPressed: onListen,
+        isPrimary: true,
+      ),
+      _ChapterAction(
+        label: hasAudio
+            ? 'Regenerar audio'
+            : isGeneratingAudio
+                ? 'Generando audio...'
+                : 'Generar audio',
+        icon: Icons.graphic_eq_rounded,
+        onPressed: isGeneratingAudio ? null : onGenerateAudio,
+        isLoading: isGeneratingAudio,
+      ),
+      if (!hasLearningPack)
+        _ChapterAction(
+          label: isGeneratingLearningPack
+              ? 'Generando actividades...'
+              : 'Generar flashcards y mini quiz',
+          icon: Icons.quiz_rounded,
+          onPressed: isGeneratingLearningPack ? null : onGenerateLearningPack,
+          isLoading: isGeneratingLearningPack,
+        ),
+      if (hasLearningPack && !hasFlashcards && !hasMiniQuiz)
+        _ChapterAction(
+          label: 'Ver actividades',
+          icon: Icons.school_rounded,
+          onPressed: onLearningPack,
+        ),
+      if (hasFlashcards)
+        _ChapterAction(
+          label: 'Repasar flashcards',
+          icon: Icons.style_rounded,
+          onPressed: onLearningPack,
+        ),
+      if (hasMiniQuiz)
+        _ChapterAction(
+          label: 'Hacer mini quiz',
+          icon: Icons.quiz_rounded,
+          onPressed: onLearningPack,
+        ),
+      _ChapterAction(
+        label: 'Ver resumen',
+        icon: Icons.article_rounded,
+        onPressed: onTranscript,
+      ),
+      _ChapterAction(
+        label: 'Preguntarle a Booky',
+        icon: Icons.chat_bubble_outline_rounded,
+        onPressed: onTutor,
+      ),
+      _ChapterAction(
+        label: 'Preguntar por voz',
+        icon: Icons.record_voice_over_rounded,
+        onPressed: onVoiceTutor,
+      ),
+      _ChapterAction(
+        label: 'Ver progreso',
+        icon: Icons.insights_rounded,
+        onPressed: onProgress,
+      ),
+    ];
 
     return SectionCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              CircleAvatar(child: Text(number <= 0 ? '-' : '$number')),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  title.isEmpty ? 'Capítulo' : title,
-                  style: const TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final titleRow = Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(child: Text(number <= 0 ? '-' : '$number')),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      title.isEmpty ? 'Capítulo' : title,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppTheme.textPrimary,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              if (isCompleted)
-                const Chip(label: Text('Completado'))
-              else if (isCurrent)
-                const Chip(label: Text('En progreso')),
-              Chip(label: Text(audioState)),
-              Chip(label: Text(learningState)),
-            ],
+                ],
+              );
+              final statuses = Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (isCompleted)
+                    _ChapterStatusChip(
+                      label: 'Completado',
+                      maxWidth: constraints.maxWidth,
+                    )
+                  else if (isCurrent)
+                    _ChapterStatusChip(
+                      label: 'En progreso',
+                      maxWidth: constraints.maxWidth,
+                    ),
+                  _ChapterStatusChip(
+                    label: audioState,
+                    maxWidth: constraints.maxWidth,
+                  ),
+                  _ChapterStatusChip(
+                    label: learningState,
+                    maxWidth: constraints.maxWidth,
+                  ),
+                ],
+              );
+
+              if (constraints.maxWidth < 700) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    titleRow,
+                    const SizedBox(height: 10),
+                    statuses,
+                  ],
+                );
+              }
+
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: titleRow),
+                  const SizedBox(width: 16),
+                  Flexible(child: statuses),
+                ],
+              );
+            },
           ),
           if (summary.isNotEmpty) ...[
             const SizedBox(height: 10),
@@ -2382,97 +2571,139 @@ class _AudioBookChapterCard extends StatelessWidget {
             items: stringListFrom(chapter['reflection_questions']),
           ),
           const SizedBox(height: 10),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              FilledButton.icon(
-                onPressed: onListen,
-                icon: Icon(
-                  hasAudio ? Icons.volume_up_rounded : Icons.play_arrow_rounded,
+          _ChapterActions(actions: actions),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChapterStatusChip extends StatelessWidget {
+  final String label;
+  final double maxWidth;
+
+  const _ChapterStatusChip({
+    required this.label,
+    required this.maxWidth,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: maxWidth),
+      child: Chip(
+        label: Text(
+          label,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
+  }
+}
+
+class _ChapterAction {
+  final String label;
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final bool isPrimary;
+  final bool isLoading;
+
+  const _ChapterAction({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+    this.isPrimary = false,
+    this.isLoading = false,
+  });
+}
+
+class _ChapterActions extends StatelessWidget {
+  final List<_ChapterAction> actions;
+
+  const _ChapterActions({required this.actions});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 840
+            ? 3
+            : constraints.maxWidth >= 560
+                ? 2
+                : 1;
+        const spacing = 10.0;
+        final itemWidth =
+            (constraints.maxWidth - (spacing * (columns - 1))) / columns;
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: actions
+              .map(
+                (action) => SizedBox(
+                  width: itemWidth,
+                  child: _ChapterActionButton(action: action),
                 ),
-                label: Text(
-                  currentPositionSeconds > 0
-                      ? 'Continuar capítulo'
-                      : 'Escuchar capítulo',
-                ),
-              ),
-              OutlinedButton.icon(
-                onPressed: isGeneratingAudio ? null : onGenerateAudio,
-                icon: isGeneratingAudio
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.graphic_eq_rounded),
-                label: Text(
-                  hasAudio
-                      ? 'Regenerar audio'
-                      : isGeneratingAudio
-                          ? 'Generando audio...'
-                          : 'Generar audio',
-                ),
-              ),
-              if (!hasLearningPack)
-                OutlinedButton.icon(
-                  onPressed:
-                      isGeneratingLearningPack ? null : onGenerateLearningPack,
-                  icon: isGeneratingLearningPack
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.quiz_rounded),
-                  label: Text(
-                    isGeneratingLearningPack
-                        ? 'Generando actividades...'
-                        : 'Generar flashcards y mini quiz',
-                  ),
-                ),
-              if (hasLearningPack && !hasFlashcards && !hasMiniQuiz)
-                OutlinedButton.icon(
-                  onPressed: onLearningPack,
-                  icon: const Icon(Icons.school_rounded),
-                  label: const Text('Ver actividades'),
-                ),
-              if (hasFlashcards)
-                OutlinedButton.icon(
-                  onPressed: onLearningPack,
-                  icon: const Icon(Icons.style_rounded),
-                  label: const Text('Repasar flashcards'),
-                ),
-              if (hasMiniQuiz)
-                OutlinedButton.icon(
-                  onPressed: onLearningPack,
-                  icon: const Icon(Icons.quiz_rounded),
-                  label: const Text('Hacer mini quiz'),
-                ),
-              OutlinedButton.icon(
-                onPressed: onTranscript,
-                icon: const Icon(Icons.article_rounded),
-                label: const Text('Ver resumen'),
-              ),
-              OutlinedButton.icon(
-                onPressed: onTutor,
-                icon: const Icon(Icons.chat_bubble_outline_rounded),
-                label: const Text('Preguntarle a Booky'),
-              ),
-              OutlinedButton.icon(
-                onPressed: onVoiceTutor,
-                icon: const Icon(Icons.record_voice_over_rounded),
-                label: const Text('Preguntar por voz'),
-              ),
-              OutlinedButton.icon(
-                onPressed: onProgress,
-                icon: const Icon(Icons.insights_rounded),
-                label: const Text('Ver progreso'),
-              ),
-            ],
+              )
+              .toList(),
+        );
+      },
+    );
+  }
+}
+
+class _ChapterActionButton extends StatelessWidget {
+  final _ChapterAction action;
+
+  const _ChapterActionButton({required this.action});
+
+  @override
+  Widget build(BuildContext context) {
+    final child = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          if (action.isLoading)
+            const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          else
+            Icon(action.icon, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              action.label,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
+    );
+    final style = ButtonStyle(
+      alignment: Alignment.centerLeft,
+      minimumSize: const WidgetStatePropertyAll(Size.fromHeight(52)),
+      padding: const WidgetStatePropertyAll(
+        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+    );
+
+    if (action.isPrimary) {
+      return FilledButton(
+        onPressed: action.onPressed,
+        style: style,
+        child: child,
+      );
+    }
+
+    return OutlinedButton(
+      onPressed: action.onPressed,
+      style: style,
+      child: child,
     );
   }
 }
