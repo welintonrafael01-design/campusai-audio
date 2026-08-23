@@ -111,5 +111,27 @@ void main() {
 
       expect(access.redirectForPath('/dashboard'), '/auth');
     });
+
+    test('Free users are guided to plans for gated learning capabilities', () {
+      const access = AccessControlService(
+        authenticatedOverride: true,
+        appMetadataOverride: {'role': 'student'},
+        planOverride: CampusPlan.free,
+      );
+
+      expect(access.redirectForPath('/voice-tutor'), '/plans');
+      expect(access.redirectForPath('/question-bank/document-1'), '/plans');
+    });
+
+    test('Student plan can open voice and question bank', () {
+      const access = AccessControlService(
+        authenticatedOverride: true,
+        appMetadataOverride: {'role': 'student'},
+        planOverride: CampusPlan.student,
+      );
+
+      expect(access.redirectForPath('/voice-tutor'), isNull);
+      expect(access.redirectForPath('/question-bank/document-1'), isNull);
+    });
   });
 }

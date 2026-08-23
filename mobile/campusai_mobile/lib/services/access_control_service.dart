@@ -1,12 +1,10 @@
 import '../config/app_plans.dart';
 import 'auth_service.dart';
+import 'entitlement_service.dart';
 import 'plan_guard_service.dart';
 
-enum StudyBookRole {
-  student,
-  teacher,
-  admin,
-}
+export 'entitlement_service.dart'
+    show EntitlementService, ProductCapability, StudyBookRole;
 
 class AccessControlService {
   const AccessControlService({
@@ -47,6 +45,10 @@ class AccessControlService {
     '/admin/financial-dashboard',
   };
 
+  static const Set<String> voicePaths = {
+    '/voice-tutor',
+  };
+
   bool get isAuthenticated => authenticatedOverride ?? AuthService.isLoggedIn;
 
   CampusPlan get legacyPlan =>
@@ -85,10 +87,13 @@ class AccessControlService {
 
   bool get isAdmin => role == StudyBookRole.admin;
 
-  bool get hasTeacherTools {
-    if (isAdmin) return true;
-    return isTeacher && AppPlans.limits[legacyPlan]!.canUseEducatorTools;
-  }
+  EntitlementService get entitlements => EntitlementService(
+        role: role,
+        plan: legacyPlan,
+      );
+
+  bool get hasTeacherTools =>
+      entitlements.can(ProductCapability.teacherWorkspace);
 
   bool isPublicPath(String path) {
     if (publicPaths.contains(path)) return true;
@@ -120,12 +125,23 @@ class AccessControlService {
       return '/auth';
     }
 
-    if (isAdminPath(path) && !isAdmin) {
+    if (isAdminPath(path) &&
+        !entitlements.can(ProductCapability.adminConsole)) {
       return '/dashboard';
     }
 
     if (isTeacherPath(path) && !hasTeacherTools) {
       return '/dashboard';
+    }
+
+    if (voicePaths.contains(path) &&
+        !entitlements.can(ProductCapability.voiceExperience)) {
+      return '/plans';
+    }
+
+    if (path.startsWith('/question-bank/') &&
+        !entitlements.can(ProductCapability.questionBank)) {
+      return '/plans';
     }
 
     return null;

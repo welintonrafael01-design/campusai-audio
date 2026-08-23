@@ -47,7 +47,7 @@ def require_current_user(
     except Exception as error:
         raise HTTPException(
             status_code=401,
-            detail=f"Token inválido o expirado: {error}",
+            detail="La sesión no es válida o ha expirado.",
         ) from error
 
     if user is None:

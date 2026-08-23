@@ -169,6 +169,41 @@ def test_teacher_can_access_educator_snapshot(monkeypatch):
     assert response.json()["source"] == "supabase"
 
 
+def test_educator_row_ids_are_scoped_per_user_and_namespace():
+    first = educator._scoped_row_id(
+        user_id="teacher-a",
+        namespace="course",
+        record_id="mat101",
+    )
+    other_user = educator._scoped_row_id(
+        user_id="teacher-b",
+        namespace="course",
+        record_id="mat101",
+    )
+    other_namespace = educator._scoped_row_id(
+        user_id="teacher-a",
+        namespace="student",
+        record_id="mat101",
+    )
+
+    assert first != other_user
+    assert first != other_namespace
+    assert len(first) == 32
+
+
+def test_educator_snapshot_identifies_only_stale_cloud_rows():
+    stale = educator._stale_row_ids(
+        existing_rows=[
+            {"id": "keep"},
+            {"id": "remove"},
+            {"id": ""},
+        ],
+        incoming_rows=[{"id": "keep"}, {"id": "new"}],
+    )
+
+    assert stale == ["remove"]
+
+
 def test_student_cannot_call_teacher_document_endpoint(monkeypatch):
     client = _authorized_client(
         monkeypatch,
@@ -219,6 +254,11 @@ def test_student_keeps_shared_question_bank_and_exam_access(monkeypatch):
     monkeypatch.setattr(
         documents,
         "enforce_exam_limit",
+        lambda **kwargs: "student",
+    )
+    monkeypatch.setattr(
+        documents,
+        "enforce_question_bank_permission",
         lambda **kwargs: "student",
     )
     monkeypatch.setattr(

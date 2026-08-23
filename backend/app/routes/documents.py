@@ -44,6 +44,7 @@ from app.services.usage_limit_service import (
     enforce_chat_limit,
     enforce_flashcard_limit,
     enforce_exam_limit,
+    enforce_question_bank_permission,
     register_usage_event,
 )
 
@@ -231,7 +232,7 @@ def validate_document_owner(
     except PermissionError as error:
         raise HTTPException(
             status_code=403,
-            detail=str(error),
+            detail="No tienes permiso para acceder a este documento.",
         ) from error
 
 
@@ -494,8 +495,8 @@ async def import_grades_excel(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo importar el archivo de calificaciones.",
+        ) from error
 
 
 @router.post("/import-grades-pdf")
@@ -551,8 +552,8 @@ async def import_grades_pdf(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo importar el PDF de calificaciones.",
+        ) from error
 
 @router.post("/import-students-pdf")
 async def import_students_pdf(
@@ -603,8 +604,8 @@ async def import_students_pdf(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo importar el PDF de estudiantes.",
+        ) from error
 
 @router.post("/upload")
 async def upload_document(
@@ -775,7 +776,7 @@ async def chat_document_by_id(
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
-        validate_document_owner(
+        document_record = validate_document_owner(
             document_id=document_id,
             current_user=current_user,
         )
@@ -815,6 +816,13 @@ async def chat_document_by_id(
             document_id=document_id,
             question=question,
         )
+        document_title = str(
+            document_record.get("filename")
+            or document_record.get("file_name")
+            or "Documento"
+        ).strip()
+        for citation in citations:
+            citation["document_title"] = document_title
 
         confidence_data = calculate_rag_confidence(
             citations
@@ -834,7 +842,7 @@ async def chat_document_by_id(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
+            detail="No se pudo completar el chat con este documento.",
         )
 
 
@@ -887,10 +895,13 @@ async def teaching_plan_document_by_id(
     except HTTPException:
         raise
 
+    except HTTPException:
+        raise
+
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
+            detail="No se pudo abrir la fuente citada.",
         )
 
 @router.post("/rubric/{document_id}")
@@ -948,10 +959,13 @@ async def rubric_document_by_id(
     except HTTPException:
         raise
 
+    except HTTPException:
+        raise
+
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
+            detail="No se pudo abrir la fuente citada.",
         )
 
 
@@ -1024,8 +1038,8 @@ async def study_guide_document_by_id(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo generar la guía de estudio.",
+        ) from error
 
 
 @router.post("/teaching-resources/{document_id}")
@@ -1112,8 +1126,8 @@ async def teaching_resources_document_by_id(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudieron generar los recursos docentes.",
+        ) from error
 
 
 @router.post("/analyze-assessment")
@@ -1159,8 +1173,8 @@ async def analyze_assessment_for_unit(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo analizar la evaluación.",
+        ) from error
 
 
 @router.post("/question-bank/{document_id}")
@@ -1183,6 +1197,8 @@ async def question_bank_document_by_id(
             document_id=document_id,
             current_user=current_user,
         )
+
+        enforce_question_bank_permission(user_id=current_user.user_id)
 
         plan = enforce_exam_limit(
             user_id=current_user.user_id,
@@ -1237,8 +1253,8 @@ async def question_bank_document_by_id(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo generar el banco de preguntas.",
+        ) from error
 
 @router.post("/exam/{document_id}")
 async def exam_document_by_id(
@@ -1315,8 +1331,8 @@ async def exam_document_by_id(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo generar el examen.",
+        ) from error
 
 
 @router.post("/flashcards/{document_id}")
@@ -1381,8 +1397,8 @@ async def flashcards_document_by_id(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudieron generar las flashcards.",
+        ) from error
 
 @router.post("/chat-stream/{document_id}")
 async def stream_chat_document(
@@ -1435,8 +1451,8 @@ async def stream_chat_document(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo iniciar la respuesta del chat.",
+        ) from error
 
 
 
@@ -1481,8 +1497,8 @@ async def document_file_token(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo preparar el acceso al documento.",
+        ) from error
 
 
 @router.get("/file-secure/{document_id}")
@@ -1528,8 +1544,8 @@ async def document_file_secure(
     except Exception as error:
         raise HTTPException(
             status_code=401,
-            detail=str(error),
-        )
+            detail="El acceso al documento no es válido o expiró.",
+        ) from error
 
 
 
@@ -1558,11 +1574,13 @@ async def document_info(
         )
 
         return info
+    except HTTPException:
+        raise
     except Exception as error:
         raise HTTPException(
             status_code=404,
-            detail=str(error),
-        )
+            detail="No se encontró el documento solicitado.",
+        ) from error
 
 @router.get("/source-chunk")
 async def source_chunk(
@@ -1581,11 +1599,14 @@ async def source_chunk(
             chunk_index=chunk_index,
         )
 
+    except HTTPException:
+        raise
+
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo abrir la fuente citada.",
+        ) from error
 
 
 @router.get("/semantic-search")
@@ -1596,6 +1617,10 @@ async def semantic_search(
     try:
         results = semantic_search_all_documents(
             query=query,
+            document_filter=lambda document_id: is_document_owner(
+                document_id=document_id,
+                user_id=current_user.user_id,
+            ),
         )
 
         filtered_results = []
@@ -1621,10 +1646,13 @@ async def semantic_search(
             "results": filtered_results,
         }
 
+    except HTTPException:
+        raise
+
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
+            detail="No se pudo completar la búsqueda en este momento.",
         )
 
 
@@ -1791,8 +1819,8 @@ async def chat_workspace(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo completar el chat del espacio de estudio.",
+        ) from error
 
 
 @router.post("/chat-workspace-stream")
@@ -1846,8 +1874,8 @@ async def stream_chat_workspace(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo iniciar el chat del espacio de estudio.",
+        ) from error
 
 
 
@@ -1912,8 +1940,8 @@ async def workspace_flashcards(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudieron generar las flashcards del espacio.",
+        ) from error
 
 
 
@@ -1929,6 +1957,8 @@ async def workspace_question_bank(
             document_ids=document_ids,
             current_user=current_user,
         )
+
+        enforce_question_bank_permission(user_id=current_user.user_id)
 
         plan = enforce_exam_limit(
             user_id=current_user.user_id,
@@ -1981,8 +2011,8 @@ async def workspace_question_bank(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo generar el banco del espacio de estudio.",
+        ) from error
 
 @router.post("/workspace-exam")
 async def workspace_exam(
@@ -2045,5 +2075,5 @@ async def workspace_exam(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo generar el examen del espacio de estudio.",
+        ) from error

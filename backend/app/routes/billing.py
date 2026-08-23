@@ -263,7 +263,7 @@ def create_checkout_session(
     except Exception as exc:
         raise HTTPException(
             status_code=502,
-            detail=f"No se pudo crear la sesión de pago: {exc}",
+            detail="No se pudo iniciar el pago. Intenta nuevamente.",
         ) from exc
 
     if not session.url:
@@ -325,7 +325,7 @@ def create_customer_portal_session(
     except Exception as exc:
         raise HTTPException(
             status_code=502,
-            detail=f"No se pudo crear el portal de cliente: {exc}",
+            detail="No se pudo abrir el portal de suscripción.",
         ) from exc
 
     if not session.url:
@@ -350,8 +350,8 @@ def get_my_subscription_endpoint(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo consultar la suscripción.",
+        ) from error
 
 
 @router.get("/usage/me")
@@ -365,8 +365,8 @@ def get_my_usage_endpoint(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo consultar el uso del plan.",
+        ) from error
 
 
 @router.post("/webhook")
@@ -515,7 +515,7 @@ def get_financial_dashboard(
     except Exception as exc:
         raise HTTPException(
             status_code=500,
-            detail=f"No se pudo consultar user_subscriptions: {exc}",
+            detail="No se pudo cargar el resumen financiero.",
         ) from exc
 
     rows = response.data or []

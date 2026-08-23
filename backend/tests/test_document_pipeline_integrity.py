@@ -107,6 +107,33 @@ def test_rag_collections_keep_alpha_and_beta_documents_isolated(monkeypatch):
     assert "ALPHA exclusivo" not in beta_context
 
 
+def test_semantic_search_filters_ownership_before_querying_collections(monkeypatch):
+    monkeypatch.setattr(rag_service, "client", chromadb.EphemeralClient())
+    monkeypatch.setattr(
+        rag_service,
+        "embedding_function",
+        _FakeEmbeddingFunction(),
+    )
+
+    alpha_id = rag_service.store_document_page_embeddings(
+        [{"page_number": 1, "text": "ALPHA contenido privado"}],
+        owner_scope="user-a",
+    )
+    beta_id = rag_service.store_document_page_embeddings(
+        [{"page_number": 1, "text": "BETA contenido privado"}],
+        owner_scope="user-b",
+    )
+
+    results = rag_service.semantic_search_all_documents(
+        "BETA",
+        document_filter=lambda document_id: document_id == alpha_id,
+    )
+
+    assert results
+    assert {item["document_id"] for item in results} == {alpha_id}
+    assert beta_id not in {item["document_id"] for item in results}
+
+
 def test_retrieval_citations_include_only_real_page_metadata(monkeypatch):
     monkeypatch.setattr(rag_service, "client", chromadb.EphemeralClient())
     monkeypatch.setattr(
@@ -129,6 +156,44 @@ def test_retrieval_citations_include_only_real_page_metadata(monkeypatch):
     assert len(citations) == 1
     assert citations[0]["page_number"] == 3
     assert "ALPHA fuente legible" in citations[0]["preview"]
+
+
+def test_document_chat_returns_human_source_title(monkeypatch):
+    app = FastAPI()
+    app.include_router(documents.router)
+    app.dependency_overrides[require_current_user] = lambda: AuthenticatedUser(
+        user_id="user-a",
+        email="user-a@example.test",
+        app_metadata={"role": "student"},
+    )
+    monkeypatch.setattr(
+        documents,
+        "validate_document_owner",
+        lambda **kwargs: {"filename": "Biología molecular.pdf"},
+    )
+    monkeypatch.setattr(documents, "enforce_chat_limit", lambda **kwargs: "student")
+    monkeypatch.setattr(documents, "chat_with_document_id", lambda **kwargs: "Respuesta")
+    monkeypatch.setattr(documents, "register_usage_event", lambda **kwargs: None)
+    monkeypatch.setattr(
+        documents,
+        "get_retrieval_citations",
+        lambda **kwargs: [
+            {
+                "document_id": "doc-a",
+                "chunk_index": 0,
+                "page_number": 2,
+                "preview": "Fragmento legible",
+                "distance": 0.2,
+            }
+        ],
+    )
+
+    response = TestClient(app).post("/documents/chat/doc-a?question=¿Qué dice?")
+
+    assert response.status_code == 200
+    assert response.json()["citations"][0]["document_title"] == (
+        "Biología molecular.pdf"
+    )
 
 
 def test_upload_summarizes_selected_document_and_hides_internal_fields(

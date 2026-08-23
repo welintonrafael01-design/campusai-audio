@@ -1,10 +1,12 @@
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.services.ai_service import ask_ai_coach
 from app.services.audio_service import build_audio_url, generate_audio_from_text
+from app.services.usage_limit_service import enforce_voice_permission
+from app.security.user_auth import AuthenticatedUser, require_current_user
 
 
 router = APIRouter(
@@ -29,7 +31,11 @@ class VoiceTtsRequest(BaseModel):
 
 
 @router.post("/coach")
-async def voice_coach(payload: VoiceCoachRequest):
+async def voice_coach(
+    payload: VoiceCoachRequest,
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    enforce_voice_permission(user_id=current_user.user_id)
     return ask_ai_coach(
         message=payload.message,
         context=payload.context,
@@ -40,7 +46,11 @@ async def voice_coach(payload: VoiceCoachRequest):
 
 
 @router.post("/tts")
-async def voice_tts(payload: VoiceTtsRequest):
+async def voice_tts(
+    payload: VoiceTtsRequest,
+    current_user: AuthenticatedUser = Depends(require_current_user),
+):
+    enforce_voice_permission(user_id=current_user.user_id)
     clean_text = (payload.text or "").strip()
 
     if not clean_text:

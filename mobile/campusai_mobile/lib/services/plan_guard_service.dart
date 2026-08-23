@@ -1,5 +1,6 @@
 import '../config/app_plans.dart';
 import 'local_storage_service.dart';
+import 'security/user_scoped_storage.dart';
 
 class PlanGuardService {
   const PlanGuardService();
@@ -8,19 +9,35 @@ class PlanGuardService {
   static const String _planSourceStorageKey = 'studybook_ai_plan_source';
   static const String _subscriptionStatusStorageKey =
       'studybook_ai_subscription_status';
+  static const String _planOwnerStorageKey = 'studybook_ai_plan_owner';
+
+  String? _storedValue(String key) {
+    try {
+      return LocalStorageService.getString(key);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool get _belongsToCurrentUser {
+    final owner = _storedValue(_planOwnerStorageKey);
+    return owner != null && owner == UserScopedStorage.currentUserScope;
+  }
 
   CampusPlan get currentPlan {
-    final storedPlan = LocalStorageService.getString(_planStorageKey);
+    if (!_belongsToCurrentUser) return CampusPlan.free;
+    final storedPlan = _storedValue(_planStorageKey);
     return planFromCode(storedPlan);
   }
 
   String get currentPlanSource {
-    return LocalStorageService.getString(_planSourceStorageKey) ?? 'local';
+    if (!_belongsToCurrentUser) return 'local';
+    return _storedValue(_planSourceStorageKey) ?? 'local';
   }
 
   String get currentSubscriptionStatus {
-    return LocalStorageService.getString(_subscriptionStatusStorageKey) ??
-        'free';
+    if (!_belongsToCurrentUser) return 'free';
+    return _storedValue(_subscriptionStatusStorageKey) ?? 'free';
   }
 
   bool get isSyncedFromSupabase {
@@ -50,6 +67,10 @@ class PlanGuardService {
     String subscriptionStatus = 'active',
   }) {
     LocalStorageService.setString(
+      _planOwnerStorageKey,
+      UserScopedStorage.currentUserScope,
+    );
+    LocalStorageService.setString(
       _planStorageKey,
       planCodeFromCampusPlan(plan),
     );
@@ -61,6 +82,10 @@ class PlanGuardService {
   }
 
   void resetToFree() {
+    LocalStorageService.setString(
+      _planOwnerStorageKey,
+      UserScopedStorage.currentUserScope,
+    );
     LocalStorageService.setString(
       _planStorageKey,
       planCodeFromCampusPlan(CampusPlan.free),

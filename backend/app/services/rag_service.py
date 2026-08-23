@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pathlib import Path
+from typing import Callable
 
 import chromadb
 import hashlib
@@ -446,6 +447,7 @@ def semantic_search_all_documents(
     query: str,
     top_k_per_document: int = 3,
     max_results: int = 20,
+    document_filter: Callable[[str], bool] | None = None,
 ) -> list[dict]:
     clean_query = query.strip()
 
@@ -473,6 +475,9 @@ def semantic_search_all_documents(
             "",
             1,
         )
+
+        if document_filter is not None and not document_filter(document_id):
+            continue
 
         try:
             collection = client.get_collection(

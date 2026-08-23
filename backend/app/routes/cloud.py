@@ -95,7 +95,7 @@ def handle_cloud_error(error: Exception) -> HTTPException:
     if isinstance(error, PermissionError):
         return HTTPException(
             status_code=403,
-            detail=str(error),
+            detail="No tienes permiso para acceder a este recurso.",
         )
 
     if isinstance(error, ValueError):
@@ -106,7 +106,7 @@ def handle_cloud_error(error: Exception) -> HTTPException:
 
     return HTTPException(
         status_code=500,
-        detail=str(error),
+        detail="No se pudo completar la operación en la nube.",
     )
 
 

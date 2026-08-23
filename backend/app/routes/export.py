@@ -145,8 +145,13 @@ async def export_student_transcript_pdf(
             },
         )
 
+    except HTTPException:
+        raise
     except Exception as error:
-        raise HTTPException(status_code=500, detail=str(error))
+        raise HTTPException(
+            status_code=500,
+            detail="No se pudo generar la exportación solicitada.",
+        ) from error
 
 @router.post("/academic-badge-pdf")
 async def export_academic_badge_pdf(
@@ -213,11 +218,13 @@ async def export_academic_badge_pdf(
             },
         )
 
+    except HTTPException:
+        raise
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo generar la exportación solicitada.",
+        ) from error
 
 @router.post("/certificate-pdf")
 async def export_certificate_pdf(
@@ -284,11 +291,13 @@ async def export_certificate_pdf(
             },
         )
 
+    except HTTPException:
+        raise
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo generar la exportación solicitada.",
+        ) from error
 
 @router.post("/exam-pdf")
 async def export_exam_pdf(
@@ -329,11 +338,13 @@ async def export_exam_pdf(
             },
         )
 
+    except HTTPException:
+        raise
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo generar la exportación solicitada.",
+        ) from error
 
 @router.post("/rubric-pdf")
 async def export_rubric_pdf(
@@ -374,11 +385,13 @@ async def export_rubric_pdf(
             },
         )
 
+    except HTTPException:
+        raise
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo generar la exportación solicitada.",
+        ) from error
 
 @router.post("/teaching-plan-pdf")
 async def export_teaching_plan_pdf(
@@ -416,11 +429,13 @@ async def export_teaching_plan_pdf(
             },
         )
 
+    except HTTPException:
+        raise
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo generar la exportación solicitada.",
+        ) from error
 
 @router.post("/final-report-pdf")
 async def export_final_report_pdf(
@@ -463,11 +478,13 @@ async def export_final_report_pdf(
             },
         )
 
+    except HTTPException:
+        raise
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo generar la exportación solicitada.",
+        ) from error
 
 
 @router.post("/xlsx")
@@ -550,11 +567,13 @@ async def export_xlsx(
             },
         )
 
+    except HTTPException:
+        raise
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo generar la exportación solicitada.",
+        ) from error
 
 
 @router.post("/pdf")
@@ -605,11 +624,13 @@ async def export_pdf(
             },
         )
 
+    except HTTPException:
+        raise
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo generar la exportación solicitada.",
+        ) from error
 
 
 
@@ -664,8 +685,10 @@ async def export_docx(
             },
         )
 
+    except HTTPException:
+        raise
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo generar la exportación solicitada.",
+        ) from error

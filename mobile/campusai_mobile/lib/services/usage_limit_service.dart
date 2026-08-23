@@ -1,11 +1,14 @@
 import 'local_storage_service.dart';
 import 'plan_guard_service.dart';
+import 'security/user_scoped_storage.dart';
 
 class UsageLimitService {
   const UsageLimitService();
 
   static const String _pdfUploadDateKey = 'studybook_ai_pdf_upload_date';
   static const String _pdfUploadCountKey = 'studybook_ai_pdf_upload_count';
+  String get _scopedUploadDateKey => UserScopedStorage.key(_pdfUploadDateKey);
+  String get _scopedUploadCountKey => UserScopedStorage.key(_pdfUploadCountKey);
 
   String _todayKey() {
     final now = DateTime.now();
@@ -17,13 +20,13 @@ class UsageLimitService {
 
   int getPdfUploadsToday() {
     final today = _todayKey();
-    final storedDate = LocalStorageService.getString(_pdfUploadDateKey);
+    final storedDate = LocalStorageService.getString(_scopedUploadDateKey);
 
     if (storedDate != today) {
       return 0;
     }
 
-    final rawCount = LocalStorageService.getString(_pdfUploadCountKey);
+    final rawCount = LocalStorageService.getString(_scopedUploadCountKey);
 
     return int.tryParse(rawCount ?? '0') ?? 0;
   }
@@ -38,18 +41,18 @@ class UsageLimitService {
 
   void registerPdfUpload() {
     final today = _todayKey();
-    final storedDate = LocalStorageService.getString(_pdfUploadDateKey);
+    final storedDate = LocalStorageService.getString(_scopedUploadDateKey);
 
     if (storedDate != today) {
-      LocalStorageService.setString(_pdfUploadDateKey, today);
-      LocalStorageService.setString(_pdfUploadCountKey, '1');
+      LocalStorageService.setString(_scopedUploadDateKey, today);
+      LocalStorageService.setString(_scopedUploadCountKey, '1');
       return;
     }
 
     final currentCount = getPdfUploadsToday();
 
     LocalStorageService.setString(
-      _pdfUploadCountKey,
+      _scopedUploadCountKey,
       '${currentCount + 1}',
     );
   }
@@ -60,7 +63,7 @@ class UsageLimitService {
   }
 
   void resetPdfUploadsToday() {
-    LocalStorageService.remove(_pdfUploadDateKey);
-    LocalStorageService.remove(_pdfUploadCountKey);
+    LocalStorageService.remove(_scopedUploadDateKey);
+    LocalStorageService.remove(_scopedUploadCountKey);
   }
 }

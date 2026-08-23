@@ -40,6 +40,20 @@ PLAN_EXAM_LIMITS = {
     "ultra": 999999,
 }
 
+VOICE_ENABLED_PLANS = {
+    "student",
+    "teacher",
+    "accessibility",
+    "ultra",
+}
+
+QUESTION_BANK_ENABLED_PLANS = {
+    "student",
+    "teacher",
+    "accessibility",
+    "ultra",
+}
+
 
 def get_plan_for_user(user_id: str) -> str:
     subscription = get_user_subscription(
@@ -223,6 +237,38 @@ def enforce_exam_limit(
     return plan
 
 
+def enforce_voice_permission(*, user_id: str) -> str:
+    """Require an active subscription that includes the voice experience."""
+    plan = get_plan_for_user(user_id)
+
+    if plan not in VOICE_ENABLED_PLANS:
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "Voice Tutor está disponible en los planes Student, "
+                "Teacher y Accessibility."
+            ),
+        )
+
+    return plan
+
+
+def enforce_question_bank_permission(*, user_id: str) -> str:
+    """Require a subscription that includes question-bank generation."""
+    plan = get_plan_for_user(user_id)
+
+    if plan not in QUESTION_BANK_ENABLED_PLANS:
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "El Banco de preguntas está disponible en los planes "
+                "Student, Teacher y Accessibility."
+            ),
+        )
+
+    return plan
+
+
 PLAN_EXPORT_PERMISSIONS = {
     "free": {
         "pdf": True,
@@ -232,10 +278,22 @@ PLAN_EXPORT_PERMISSIONS = {
     "student": {
         "pdf": True,
         "docx": True,
+        "pptx": False,
+        "xlsx": False,
+    },
+    "accessibility": {
+        "pdf": True,
+        "docx": True,
+        "pptx": False,
+        "xlsx": False,
+    },
+    "teacher": {
+        "pdf": True,
+        "docx": True,
         "pptx": True,
         "xlsx": True,
     },
-    "teacher": {
+    "ultra": {
         "pdf": True,
         "docx": True,
         "pptx": True,

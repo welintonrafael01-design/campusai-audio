@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -28,14 +29,57 @@ def _safe_text(value: Any) -> str:
     return "" if value is None else str(value)
 
 
-def _upsert(table: str, rows: list[dict[str, Any]]) -> int:
-    if not rows:
-        return 0
+def _scoped_row_id(*, user_id: str, namespace: str, record_id: str) -> str:
+    raw = f"{user_id.strip()}:{namespace.strip()}:{record_id.strip()}"
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32]
 
+
+def _stale_row_ids(
+    *,
+    existing_rows: list[dict[str, Any]],
+    incoming_rows: list[dict[str, Any]],
+) -> list[str]:
+    incoming_ids = {_safe_text(row.get("id")).strip() for row in incoming_rows}
+    return [
+        record_id
+        for row in existing_rows
+        if (record_id := _safe_text(row.get("id")).strip())
+        and record_id not in incoming_ids
+    ]
+
+
+def _sync_user_rows(
+    *,
+    table: str,
+    user_id: str,
+    rows: list[dict[str, Any]],
+) -> int:
     client = get_supabase_admin_client()
-    response = client.table(table).upsert(rows, on_conflict="id").execute()
+    response = None
+    if rows:
+        response = client.table(table).upsert(rows, on_conflict="id").execute()
 
-    if response.data is None:
+    existing_rows = (
+        client.table(table)
+        .select("id")
+        .eq("user_id", user_id)
+        .execute()
+        .data
+        or []
+    )
+    for record_id in _stale_row_ids(
+        existing_rows=existing_rows,
+        incoming_rows=rows,
+    ):
+        (
+            client.table(table)
+            .delete()
+            .eq("user_id", user_id)
+            .eq("id", record_id)
+            .execute()
+        )
+
+    if response is None or response.data is None:
         return len(rows)
 
     return len(response.data)
@@ -121,7 +165,7 @@ def get_educator_snapshot(
     except Exception as exc:
         raise HTTPException(
             status_code=500,
-            detail=f"No se pudo cargar el snapshot Educator: {exc}",
+            detail="No se pudo cargar la información docente.",
         ) from exc
 
     return {
@@ -150,7 +194,11 @@ def sync_educator_snapshot(
 
         course_rows.append(
             {
-                "id": record_id,
+                "id": _scoped_row_id(
+                    user_id=user_id,
+                    namespace="course",
+                    record_id=record_id,
+                ),
                 "user_id": user_id,
                 "name": name,
                 "code": _safe_text(item.get("code")),
@@ -173,7 +221,11 @@ def sync_educator_snapshot(
 
         student_rows.append(
             {
-                "id": record_id,
+                "id": _scoped_row_id(
+                    user_id=user_id,
+                    namespace="student",
+                    record_id=record_id,
+                ),
                 "user_id": user_id,
                 "course_id": _safe_text(item.get("courseId") or item.get("course_id")),
                 "name": name,
@@ -199,7 +251,11 @@ def sync_educator_snapshot(
 
         attendance_rows.append(
             {
-                "id": record_id,
+                "id": _scoped_row_id(
+                    user_id=user_id,
+                    namespace="attendance",
+                    record_id=record_id,
+                ),
                 "user_id": user_id,
                 "course_id": _safe_text(item.get("courseId") or item.get("course_id")),
                 "student_id": _safe_text(item.get("studentId") or item.get("student_id")),
@@ -217,7 +273,11 @@ def sync_educator_snapshot(
 
         gradebook_rows.append(
             {
-                "id": record_id,
+                "id": _scoped_row_id(
+                    user_id=user_id,
+                    namespace="gradebook",
+                    record_id=record_id,
+                ),
                 "user_id": user_id,
                 "course_id": _safe_text(item.get("courseId") or item.get("course_id")),
                 "student_id": _safe_text(item.get("studentId") or item.get("student_id")),
@@ -241,7 +301,11 @@ def sync_educator_snapshot(
 
         question_bank_rows.append(
             {
-                "id": record_id,
+                "id": _scoped_row_id(
+                    user_id=user_id,
+                    namespace="question_bank",
+                    record_id=record_id,
+                ),
                 "user_id": user_id,
                 "course_id": _safe_text(item.get("courseId") or item.get("course_id")),
                 "title": _safe_text(item.get("title") or item.get("documentTitle") or "Banco de preguntas"),
@@ -252,14 +316,34 @@ def sync_educator_snapshot(
     try:
         return {
             "source": "supabase",
-            "courses": _upsert("educator_courses", course_rows),
-            "students": _upsert("educator_students", student_rows),
-            "attendance": _upsert("educator_attendance", attendance_rows),
-            "gradebook": _upsert("educator_gradebook", gradebook_rows),
-            "question_banks": _upsert("educator_question_banks", question_bank_rows),
+            "courses": _sync_user_rows(
+                table="educator_courses",
+                user_id=user_id,
+                rows=course_rows,
+            ),
+            "students": _sync_user_rows(
+                table="educator_students",
+                user_id=user_id,
+                rows=student_rows,
+            ),
+            "attendance": _sync_user_rows(
+                table="educator_attendance",
+                user_id=user_id,
+                rows=attendance_rows,
+            ),
+            "gradebook": _sync_user_rows(
+                table="educator_gradebook",
+                user_id=user_id,
+                rows=gradebook_rows,
+            ),
+            "question_banks": _sync_user_rows(
+                table="educator_question_banks",
+                user_id=user_id,
+                rows=question_bank_rows,
+            ),
         }
     except Exception as exc:
         raise HTTPException(
             status_code=500,
-            detail=f"No se pudo sincronizar Educator: {exc}",
+            detail="No se pudo sincronizar la información docente.",
         ) from exc
