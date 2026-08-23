@@ -416,6 +416,9 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
           );
       final audioUrl = cleanText(updatedChapter['audio_url']);
       final failed = updatedAudioBook['_last_audio_generation_failed'] == true;
+      final failureReason = cleanText(
+        updatedAudioBook['_last_audio_generation_reason'],
+      );
       final cloudSynced = updatedAudioBook['_cloud_sync_pending'] != true;
 
       if (!mounted) return;
@@ -423,6 +426,7 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
         selectedAudioBook = Map<String, dynamic>.from(updatedAudioBook)
           ..remove('_last_audio_generation_failed')
           ..remove('_last_audio_generation_chapter_id')
+          ..remove('_last_audio_generation_reason')
           ..remove('_cloud_sync_pending');
         if (failed || audioUrl.isEmpty) {
           chapterAudioErrors[chapterId] = 'tts_failed';
@@ -442,21 +446,35 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'No se pudo generar audio real. Puedes seguir usando reproducción simulada.',
+              switch (failureReason) {
+                'identity' =>
+                  'No se pudo identificar este AudioBook. Ábrelo de nuevo e inténtalo otra vez.',
+                'narration' =>
+                  'Este capítulo no tiene narración suficiente para generar audio.',
+                'service' =>
+                  'El servicio de voz no devolvió audio. Inténtalo de nuevo en unos minutos.',
+                'request' =>
+                  'No se pudo conectar con el servicio de voz. Revisa tu conexión e inténtalo otra vez.',
+                _ =>
+                  'No se pudo generar audio real. Puedes seguir usando reproducción simulada.',
+              },
             ),
             behavior: SnackBarBehavior.floating,
           ),
         );
       }
-    } catch (_) {
+    } catch (error) {
+      debugPrint(
+        'AudioBook chapter generation could not finish (${error.runtimeType}).',
+      );
       if (!mounted) return;
       setState(() => chapterAudioErrors[chapterId] = 'tts_failed');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'No se pudo generar audio real. Puedes seguir usando reproducción simulada.',
+            'No se pudo preparar el audio de este capítulo. Inténtalo nuevamente.',
           ),
           behavior: SnackBarBehavior.floating,
         ),

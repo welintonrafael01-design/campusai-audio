@@ -348,6 +348,31 @@ void main() {
           'source_document_id': 'document_beta',
         }),
         'document_beta_audiobook');
+    expect(
+      service.stableAudioBookId({
+        'source_document_id': 'document_restored',
+        'chapters': const [],
+      }),
+      'document_restored_audiobook',
+    );
+  });
+
+  test('restored chapter maps keep the runtime type required by playback', () {
+    const service = AudiobookService();
+    final chapters = service.chapterListFrom([
+      {
+        'chapter_id': 'chapter_1',
+        'title': 'Capítulo restaurado',
+        'script': 'Narración lista para generar audio.',
+      },
+    ]);
+
+    final chapter = chapters.firstWhere(
+      (item) => item['chapter_id'] == 'chapter_1',
+      orElse: () => <String, dynamic>{},
+    );
+
+    expect(chapter['script'], isNotEmpty);
   });
 
   testWidgets('Library to AudioBook generation opens the player', (

@@ -8,6 +8,7 @@ __pycache__/
 
 # Audio generated
 backend/app/audio/
+backend/storage/
 
 # Flutter
 .dart_tool/

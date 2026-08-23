@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/study_result.dart';
@@ -161,6 +162,7 @@ class AudiobookService {
     final payload = Map<String, dynamic>.from(audiobook)
       ..remove('_last_audio_generation_failed')
       ..remove('_last_audio_generation_chapter_id')
+      ..remove('_last_audio_generation_reason')
       ..remove('_last_learning_pack_generation_failed')
       ..remove('_last_learning_pack_generation_chapter_id')
       ..remove('_cloud_sync_pending')
@@ -208,6 +210,13 @@ class AudiobookService {
   }
 
   String documentIdForAudioBook(Map<String, dynamic> audiobook) {
+    final stableId = stableAudioBookId(audiobook);
+    if (stableId.isNotEmpty) return stableId;
+
+    return 'audiobook_${DateTime.now().millisecondsSinceEpoch}';
+  }
+
+  String stableAudioBookId(Map<String, dynamic> audiobook) {
     final unitId = cleanText(audiobook['unit_id']);
     if (unitId.isNotEmpty) return '${unitId}_audiobook';
 
@@ -219,9 +228,7 @@ class AudiobookService {
     }
 
     final audiobookId = cleanText(audiobook['audiobook_id']);
-    return audiobookId.isNotEmpty
-        ? audiobookId
-        : 'audiobook_${DateTime.now().millisecondsSinceEpoch}';
+    return audiobookId;
   }
 
   Future<List<StudyResult>> getAudioBooks({
@@ -491,14 +498,22 @@ class AudiobookService {
     required String chapterId,
     String voiceProfile = 'standard',
   }) async {
-    final audiobookId = cleanText(audiobook['audiobook_id']);
+    final audiobookId = stableAudioBookId(audiobook);
     final chapters = chapterListFrom(audiobook['chapters']);
     final chapter = chapters.firstWhere(
       (item) => cleanText(item['chapter_id']) == chapterId.trim(),
       orElse: () => <String, dynamic>{},
     );
 
-    if (audiobookId.isEmpty || chapter.isEmpty) return audiobook;
+    if (audiobookId.isEmpty || chapter.isEmpty) {
+      debugPrint('AudioBook TTS omitted: incomplete persisted identity.');
+      return {
+        ...audiobook,
+        '_last_audio_generation_failed': true,
+        '_last_audio_generation_chapter_id': chapterId,
+        '_last_audio_generation_reason': 'identity',
+      };
+    }
 
     final script = [
       cleanText(chapter['script']),
@@ -506,7 +521,15 @@ class AudiobookService {
       cleanText(chapter['summary']),
     ].firstWhere((item) => item.isNotEmpty, orElse: () => '');
 
-    if (script.isEmpty) return audiobook;
+    if (script.isEmpty) {
+      debugPrint('AudioBook TTS omitted: chapter narration is empty.');
+      return {
+        ...audiobook,
+        '_last_audio_generation_failed': true,
+        '_last_audio_generation_chapter_id': chapterId,
+        '_last_audio_generation_reason': 'narration',
+      };
+    }
 
     try {
       final response = await ApiService.generateAudioForAudioBookChapter(
@@ -531,6 +554,7 @@ class AudiobookService {
           ...audiobook,
           '_last_audio_generation_failed': true,
           '_last_audio_generation_chapter_id': chapterId,
+          '_last_audio_generation_reason': 'service',
         };
       }
 
@@ -548,11 +572,13 @@ class AudiobookService {
         ...saveResult.audiobook,
         if (!saveResult.cloudSynced) '_cloud_sync_pending': true,
       };
-    } catch (_) {
+    } catch (error) {
+      debugPrint('AudioBook TTS unavailable (${error.runtimeType}).');
       return {
         ...audiobook,
         '_last_audio_generation_failed': true,
         '_last_audio_generation_chapter_id': chapterId,
+        '_last_audio_generation_reason': 'request',
       };
     }
   }
@@ -1029,7 +1055,7 @@ class AudiobookService {
           ? cleanText(item['script'])
           : cleanText(item['transcript']);
 
-      return {
+      return <String, dynamic>{
         'chapter_id': cleanText(item['chapter_id']).isNotEmpty
             ? cleanText(item['chapter_id'])
             : 'chapter_$number',

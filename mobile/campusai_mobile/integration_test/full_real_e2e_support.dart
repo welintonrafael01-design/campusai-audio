@@ -20,6 +20,7 @@ import 'package:campusai_mobile/services/plan_guard_service.dart';
 import 'package:campusai_mobile/services/student_roster_service.dart';
 import 'package:campusai_mobile/services/study_result_service.dart';
 import 'package:campusai_mobile/services/subscription_service.dart';
+import 'package:campusai_mobile/utils/document_display_title.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -523,7 +524,7 @@ class FullRealE2eJourney {
 
     await _go('/library');
     expect(_currentPath, '/library');
-    await _pumpUntilText(document.fileName);
+    await _pumpUntilText(documentDisplayTitle(document.fileName));
     _result('LIBRARY', 'PASS');
 
     await _go('/learning');
@@ -572,7 +573,7 @@ class FullRealE2eJourney {
     final userId = AuthService.currentUser!.id;
 
     await _go('/library');
-    await _pumpUntilText(document.fileName);
+    await _pumpUntilText(documentDisplayTitle(document.fileName));
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pumpAndSettle();
     await pumpStudyBookApp(tester, useMockLocalStorage: false);
@@ -585,7 +586,7 @@ class FullRealE2eJourney {
     expect(const AccessControlService().hasTeacherTools, isFalse);
 
     await _go('/library');
-    await _pumpUntilText(document.fileName);
+    await _pumpUntilText(documentDisplayTitle(document.fileName));
     final restored = await CloudApiService.getStudyResult(
       documentId: document.documentId,
       type: 'flashcards',
