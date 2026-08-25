@@ -7,6 +7,7 @@ import 'package:campusai_mobile/screens/audiobook_studio_screen.dart';
 import 'package:campusai_mobile/screens/library_screen.dart';
 import 'package:campusai_mobile/services/academic_engine/academic_resource_repository.dart';
 import 'package:campusai_mobile/services/audiobook_service.dart';
+import 'package:campusai_mobile/services/audio_player_service.dart';
 import 'package:campusai_mobile/services/local_storage_service.dart';
 import 'package:campusai_mobile/services/security/user_scoped_storage.dart';
 import 'package:campusai_mobile/services/study_result_service.dart';
@@ -37,6 +38,7 @@ Widget _chapterTestApp({required double textScale}) {
                 'Un capítulo con un título deliberadamente largo para validar teléfonos compactos',
             'summary':
                 'Resumen suficientemente largo para comprobar que el contenido crece verticalmente sin forzar anchos fijos.',
+            'audio_url': '/audiobook/audio/chapter_12.mp3',
             'key_concepts': [
               'Concepto académico extenso que debe ajustarse correctamente',
             ],
@@ -375,6 +377,29 @@ void main() {
     expect(chapter['script'], isNotEmpty);
   });
 
+  test('completed real audio restarts before replaying the same URL', () {
+    expect(
+      shouldRestartAudioPlayback(
+        currentUrl: 'https://example.test/chapter.mp3',
+        requestedUrl: 'https://example.test/chapter.mp3',
+        isCompleted: true,
+        position: const Duration(seconds: 59),
+        duration: const Duration(seconds: 59),
+      ),
+      isTrue,
+    );
+    expect(
+      shouldRestartAudioPlayback(
+        currentUrl: 'https://example.test/chapter.mp3',
+        requestedUrl: 'https://example.test/chapter.mp3',
+        isCompleted: false,
+        position: const Duration(seconds: 12),
+        duration: const Duration(seconds: 59),
+      ),
+      isFalse,
+    );
+  });
+
   testWidgets('Library to AudioBook generation opens the player', (
     tester,
   ) async {
@@ -456,6 +481,9 @@ void main() {
 
     expect(find.byType(AudioBookPlaybackPanel), findsOneWidget);
     expect(find.text('Capitulo Alpha'), findsWidgets);
+    expect(find.text('Audio pendiente'), findsWidgets);
+    expect(find.text(missingChapterAudioMessage), findsOneWidget);
+    expect(find.text('Reproducir'), findsNothing);
     expect(
         audiobookService.savedResult?.documentId, 'document_alpha_audiobook');
     expect(tester.takeException(), isNull);
@@ -477,6 +505,7 @@ void main() {
             currentChapterId: 'chapter_1',
             currentPositionSeconds: 3723,
             currentChapterDuration: 10800,
+            hasAudio: true,
             isPlaying: false,
             isLoading: true,
             errorMessage:

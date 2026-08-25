@@ -4,6 +4,18 @@ import 'package:just_audio/just_audio.dart';
 
 import 'auth_service.dart';
 
+bool shouldRestartAudioPlayback({
+  required String? currentUrl,
+  required String requestedUrl,
+  required bool isCompleted,
+  required Duration position,
+  required Duration? duration,
+}) {
+  if (currentUrl != requestedUrl) return false;
+  if (isCompleted) return true;
+  return duration != null && duration > Duration.zero && position >= duration;
+}
+
 class AudioPlayerService {
   final AudioPlayer player = AudioPlayer();
 
@@ -41,6 +53,14 @@ class AudioPlayerService {
         await player.setUrl(cleanUrl, headers: _requestHeaders);
 
         await player.setSpeed(_currentSpeed);
+      } else if (shouldRestartAudioPlayback(
+        currentUrl: _currentUrl,
+        requestedUrl: cleanUrl,
+        isCompleted: player.processingState == ProcessingState.completed,
+        position: player.position,
+        duration: player.duration,
+      )) {
+        await player.seek(Duration.zero);
       }
 
       unawaited(player.play());

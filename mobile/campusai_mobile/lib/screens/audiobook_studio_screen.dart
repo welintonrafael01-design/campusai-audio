@@ -16,6 +16,9 @@ import '../widgets/section_card.dart';
 import '../widgets/studybook/booky_card.dart';
 import '../widgets/studybook/studybook_states.dart';
 
+const missingChapterAudioMessage =
+    'Este capítulo todavía no tiene audio. Usa "Generar audio" en el capítulo antes de reproducirlo.';
+
 class AudioBookStudioScreen extends StatefulWidget {
   final String sourceMode;
   final String sourceType;
@@ -168,6 +171,10 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
             progress: contextualProgress,
             continueFromProgress: true,
           );
+          playerErrorMessage = chapterAudioMessage(
+            contextualBook,
+            selectedChapterId,
+          );
           currentPositionSeconds = intFrom(
             contextualProgress['current_position_seconds'],
           );
@@ -319,6 +326,10 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
           progress: savedProgress,
           continueFromProgress: true,
         );
+        playerErrorMessage = chapterAudioMessage(
+          normalized,
+          selectedChapterId,
+        );
         currentPositionSeconds = intFrom(
           savedProgress['current_position_seconds'],
         );
@@ -391,6 +402,7 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
       selectedProgress = loadedProgress;
       selectedChapterId = chapterId;
       currentPositionSeconds = position;
+      playerErrorMessage = chapterAudioMessage(audiobook, chapterId);
     });
   }
 
@@ -432,6 +444,9 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
           chapterAudioErrors[chapterId] = 'tts_failed';
         } else {
           chapterAudioErrors.remove(chapterId);
+          if (selectedChapterId == chapterId) {
+            playerErrorMessage = '';
+          }
         }
       });
 
@@ -594,7 +609,19 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
       return;
     }
 
-    startSimulatedPlayback();
+    playbackTimer?.cancel();
+    if (!mounted) return;
+    setState(() {
+      isPlaying = false;
+      isPlayerLoading = false;
+      playerErrorMessage = missingChapterAudioMessage;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(missingChapterAudioMessage),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   void startSimulatedPlayback() {
@@ -780,15 +807,20 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
     );
     final nextId = cleanText(updatedProgress['current_chapter_id']);
     final shouldMoveToNext = nextId.isNotEmpty && nextId != selectedChapterId;
+    final selectedId = nextId.isNotEmpty ? nextId : selectedChapterId;
 
     if (!mounted) return;
     setState(() {
       selectedProgress = updatedProgress;
-      selectedChapterId = nextId.isNotEmpty ? nextId : selectedChapterId;
+      selectedChapterId = selectedId;
       currentPositionSeconds = shouldMoveToNext
           ? 0
           : intFrom(updatedProgress['current_position_seconds']);
       isPlaying = false;
+      playerErrorMessage = chapterAudioMessage(
+        selectedAudioBook,
+        selectedId,
+      );
     });
 
     await loadSavedAudioBooks();
@@ -813,6 +845,7 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
       selectedChapterId = nextId;
       currentPositionSeconds = 0;
       isPlaying = false;
+      playerErrorMessage = chapterAudioMessage(selectedAudioBook, nextId);
     });
     await saveCurrentProgress();
   }
@@ -1207,6 +1240,24 @@ class _AudioBookStudioScreenState extends State<AudioBookStudioScreen> {
     final chapter = selectedChapter;
     if (chapter == null) return false;
     return cleanText(chapter['audio_url']).isNotEmpty;
+  }
+
+  String chapterAudioMessage(
+    Map<String, dynamic> audiobook,
+    String chapterId,
+  ) {
+    if (chapterId.isEmpty) return '';
+    final bookChapters = audiobookService.chapterListFrom(
+      audiobook['chapters'],
+    );
+    for (final chapter in bookChapters) {
+      if (cleanText(chapter['chapter_id']) == chapterId) {
+        return cleanText(chapter['audio_url']).isEmpty
+            ? missingChapterAudioMessage
+            : '';
+      }
+    }
+    return '';
   }
 
   Duration get simulatedTickDuration {
@@ -2257,6 +2308,12 @@ class _AudioBookResult extends StatelessWidget {
         : completion > 0 || currentPositionSeconds > 0
             ? 'En progreso'
             : 'No iniciado';
+    final currentChapter = chapters.firstWhere(
+      (chapter) => cleanText(chapter['chapter_id']) == currentChapterId,
+      orElse: () => <String, dynamic>{},
+    );
+    final currentChapterHasAudio =
+        cleanText(currentChapter['audio_url']).isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2309,6 +2366,7 @@ class _AudioBookResult extends StatelessWidget {
                 currentChapterId: currentChapterId,
                 currentPositionSeconds: currentPositionSeconds,
                 currentChapterDuration: currentChapterDuration,
+                hasAudio: currentChapterHasAudio,
                 isPlaying: isPlaying,
                 isLoading: isPlayerLoading,
                 errorMessage: playerErrorMessage,
@@ -2394,6 +2452,7 @@ class AudioBookPlaybackPanel extends StatelessWidget {
   final String currentChapterId;
   final int currentPositionSeconds;
   final int currentChapterDuration;
+  final bool hasAudio;
   final bool isPlaying;
   final bool isLoading;
   final String errorMessage;
@@ -2414,6 +2473,7 @@ class AudioBookPlaybackPanel extends StatelessWidget {
     required this.currentChapterId,
     required this.currentPositionSeconds,
     required this.currentChapterDuration,
+    required this.hasAudio,
     required this.isPlaying,
     required this.isLoading,
     required this.errorMessage,
@@ -2467,9 +2527,11 @@ class AudioBookPlaybackPanel extends StatelessWidget {
                   child: Text(
                     isLoading
                         ? 'Preparando audio'
-                        : isPlaying
-                            ? 'Reproduciendo'
-                            : 'En pausa',
+                        : !hasAudio
+                            ? 'Audio pendiente'
+                            : isPlaying
+                                ? 'Reproduciendo'
+                                : 'En pausa',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -2526,7 +2588,7 @@ class AudioBookPlaybackPanel extends StatelessWidget {
                 max: currentChapterDuration <= 0
                     ? 1
                     : currentChapterDuration.toDouble(),
-                onChanged: currentChapterDuration <= 0 || isLoading
+                onChanged: currentChapterDuration <= 0 || isLoading || !hasAudio
                     ? null
                     : (value) => onSeek(value.round()),
               ),
@@ -2542,16 +2604,18 @@ class AudioBookPlaybackPanel extends StatelessWidget {
               runSpacing: 10,
               children: [
                 IconButton.outlined(
-                  onPressed: isLoading ? null : onSkipBackward,
+                  onPressed: isLoading || !hasAudio ? null : onSkipBackward,
                   tooltip: 'Retroceder 10 segundos',
                   icon: const Icon(Icons.replay_10_rounded),
                 ),
                 FilledButton.icon(
                   onPressed: isLoading
                       ? null
-                      : isPlaying
-                          ? onPause
-                          : onResume,
+                      : !hasAudio
+                          ? null
+                          : isPlaying
+                              ? onPause
+                              : onResume,
                   icon: isLoading
                       ? const SizedBox(
                           width: 18,
@@ -2566,18 +2630,20 @@ class AudioBookPlaybackPanel extends StatelessWidget {
                   label: Text(
                     isLoading
                         ? 'Preparando...'
-                        : isPlaying
-                            ? 'Pausar'
-                            : 'Reproducir',
+                        : !hasAudio
+                            ? 'Audio pendiente'
+                            : isPlaying
+                                ? 'Pausar'
+                                : 'Reproducir',
                   ),
                 ),
                 IconButton.outlined(
-                  onPressed: isLoading ? null : onSkipForward,
+                  onPressed: isLoading || !hasAudio ? null : onSkipForward,
                   tooltip: 'Avanzar 10 segundos',
                   icon: const Icon(Icons.forward_10_rounded),
                 ),
                 OutlinedButton.icon(
-                  onPressed: isLoading ? null : onRestart,
+                  onPressed: isLoading || !hasAudio ? null : onRestart,
                   icon: const Icon(Icons.replay_rounded),
                   label: const Text('Reiniciar capítulo'),
                 ),
@@ -2681,23 +2747,29 @@ class AudioBookChapterCard extends StatelessWidget {
         : (currentPositionSeconds / durationSeconds).clamp(0.0, 1.0);
     final actions = <_ChapterAction>[
       _ChapterAction(
-        label: currentPositionSeconds > 0
-            ? 'Continuar capítulo'
-            : 'Escuchar capítulo',
-        icon: hasAudio ? Icons.volume_up_rounded : Icons.play_arrow_rounded,
-        onPressed: onListen,
-        isPrimary: true,
-      ),
-      _ChapterAction(
         label: hasAudio
-            ? 'Regenerar audio'
+            ? currentPositionSeconds > 0
+                ? 'Continuar capítulo'
+                : 'Escuchar capítulo'
             : isGeneratingAudio
                 ? 'Generando audio...'
-                : 'Generar audio',
-        icon: Icons.graphic_eq_rounded,
-        onPressed: isGeneratingAudio ? null : onGenerateAudio,
-        isLoading: isGeneratingAudio,
+                : 'Generar audio para escuchar',
+        icon: hasAudio ? Icons.volume_up_rounded : Icons.graphic_eq_rounded,
+        onPressed: hasAudio
+            ? onListen
+            : isGeneratingAudio
+                ? null
+                : onGenerateAudio,
+        isPrimary: true,
+        isLoading: !hasAudio && isGeneratingAudio,
       ),
+      if (hasAudio)
+        _ChapterAction(
+          label: 'Regenerar audio',
+          icon: Icons.graphic_eq_rounded,
+          onPressed: isGeneratingAudio ? null : onGenerateAudio,
+          isLoading: isGeneratingAudio,
+        ),
       if (!hasLearningPack)
         _ChapterAction(
           label: isGeneratingLearningPack
