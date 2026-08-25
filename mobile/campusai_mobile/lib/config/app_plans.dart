@@ -2,6 +2,7 @@ enum CampusPlan {
   free,
   student,
   teacher,
+  institution,
   accessibility,
   ultra,
 }
@@ -53,10 +54,11 @@ class AppPlans {
 
   static const Map<CampusPlan, String> planNames = {
     CampusPlan.free: 'Free',
-    CampusPlan.student: 'Student',
-    CampusPlan.teacher: 'Teacher',
-    CampusPlan.accessibility: 'Accessibility',
-    CampusPlan.ultra: 'Ultra Premium',
+    CampusPlan.student: 'Student Pro',
+    CampusPlan.teacher: 'Teacher Pro',
+    CampusPlan.institution: 'Institution',
+    CampusPlan.accessibility: 'Student Pro · Accesibilidad',
+    CampusPlan.ultra: 'Student Pro · Legacy Ultra',
   };
 
   static const Map<CampusPlan, String> planPrices = {
@@ -65,6 +67,7 @@ class AppPlans {
     CampusPlan.accessibility: r'US$3.99',
     CampusPlan.teacher: r'US$9.99',
     CampusPlan.ultra: r'US$24.99',
+    CampusPlan.institution: '',
   };
 
   static const Map<CampusPlan, PlanLimits> limits = {
@@ -144,12 +147,12 @@ class AppPlans {
       canUseAcademicBadges: true,
       canUseTranscriptPremium: true,
     ),
-    CampusPlan.ultra: PlanLimits(
-      maxPdfUploadsPerDay: 999999,
-      maxChatsPerDay: 999999,
-      maxFlashcardsPerPdf: 999999,
-      maxExamQuestionsPerPdf: 999999,
-      maxAudioMinutesPerMonth: 999999,
+    CampusPlan.institution: PlanLimits(
+      maxPdfUploadsPerDay: 100,
+      maxChatsPerDay: 1000,
+      maxFlashcardsPerPdf: 1000,
+      maxExamQuestionsPerPdf: 300,
+      maxAudioMinutesPerMonth: 300,
       canExportPdf: true,
       canExportDocx: true,
       canExportPptx: true,
@@ -163,5 +166,46 @@ class AppPlans {
       canUseAcademicBadges: true,
       canUseTranscriptPremium: true,
     ),
+    CampusPlan.ultra: PlanLimits(
+      maxPdfUploadsPerDay: 999999,
+      maxChatsPerDay: 999999,
+      maxFlashcardsPerPdf: 999999,
+      maxExamQuestionsPerPdf: 999999,
+      maxAudioMinutesPerMonth: 999999,
+      canExportPdf: true,
+      canExportDocx: true,
+      canExportPptx: true,
+      canUseAdvancedAnalytics: true,
+      canUseEducatorTools: false,
+      canUseVoiceOnboarding: true,
+      canUseQuestionBank: true,
+      canUseTeachingPlan: false,
+      canUseGradebook: false,
+      canUseCertificates: true,
+      canUseAcademicBadges: true,
+      canUseTranscriptPremium: true,
+    ),
   };
+
+  static CampusPlan canonicalPlan(CampusPlan plan) {
+    return switch (plan) {
+      CampusPlan.accessibility || CampusPlan.ultra => CampusPlan.student,
+      _ => plan,
+    };
+  }
+
+  static bool subscriptionAllowsPaidCapabilities(String status) {
+    final normalized = status.trim().toLowerCase();
+    return normalized == 'active' || normalized == 'trialing';
+  }
+
+  static CampusPlan effectivePlan(
+    CampusPlan plan,
+    String subscriptionStatus,
+  ) {
+    if (canonicalPlan(plan) == CampusPlan.free) return CampusPlan.free;
+    return subscriptionAllowsPaidCapabilities(subscriptionStatus)
+        ? plan
+        : CampusPlan.free;
+  }
 }

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../config/app_plans.dart';
 import '../../layout/responsive_layout.dart';
-import '../../services/plan_guard_service.dart';
+import '../../services/access_control_service.dart';
 import '../../theme/app_theme.dart';
 import '../section_card.dart';
 import '../studybook/booky_card.dart';
@@ -29,8 +28,7 @@ class DashboardEducatorCenter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isMobile = ResponsiveLayout.isMobile(context);
-    final plan = const PlanGuardService().currentPlan;
-    final isEducator = plan == CampusPlan.teacher;
+    final isEducator = const AccessControlService().hasTeacherTools;
 
     if (!isEducator) {
       return const SizedBox.shrink();

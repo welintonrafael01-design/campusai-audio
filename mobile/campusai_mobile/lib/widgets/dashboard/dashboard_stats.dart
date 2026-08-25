@@ -104,7 +104,7 @@ class _DashboardStatsState extends State<DashboardStats> {
   }
 
   Future<_DashboardMetrics> _loadMetrics() async {
-    final currentPlan = const PlanGuardService().currentPlan;
+    final currentPlan = const PlanGuardService().effectivePlan;
     final currentPlanName = AppPlans.planNames[currentPlan] ?? 'Free';
 
     final usageFuture = ApiService.getUsageSummary();
@@ -130,8 +130,8 @@ class _DashboardStatsState extends State<DashboardStats> {
 
     final backendPlan = usageData['plan']?.toString();
     final planName = backendPlan?.isNotEmpty == true
-        ? backendPlan!.toUpperCase()
-        : currentPlanName.toUpperCase();
+        ? AppPlans.planNames[planFromCode(backendPlan)] ?? currentPlanName
+        : currentPlanName;
 
     final usage = _usageFromResponse(usageData);
     final totals = _totalsFromResponse(usageData);
@@ -188,7 +188,7 @@ class _DashboardStatsState extends State<DashboardStats> {
       crossAxisCount = 3;
     }
 
-    final currentPlan = const PlanGuardService().currentPlan;
+    final currentPlan = const PlanGuardService().effectivePlan;
     final currentPlanName = AppPlans.planNames[currentPlan] ?? 'Free';
 
     return FutureBuilder<_DashboardMetrics>(
@@ -196,7 +196,7 @@ class _DashboardStatsState extends State<DashboardStats> {
       builder: (context, snapshot) {
         final metrics = snapshot.data ??
             _DashboardMetrics(
-              planName: currentPlanName.toUpperCase(),
+              planName: currentPlanName,
               audiobooksCount: 0,
               flashcardsCount: 0,
               examsCount: 0,

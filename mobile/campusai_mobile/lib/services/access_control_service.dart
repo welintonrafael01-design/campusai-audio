@@ -12,12 +12,16 @@ class AccessControlService {
     this.appMetadataOverride,
     this.userMetadataOverride,
     this.planOverride,
+    this.subscriptionStatusOverride,
+    this.serverRoleOverride,
   });
 
   final bool? authenticatedOverride;
   final Map<String, dynamic>? appMetadataOverride;
   final Map<String, dynamic>? userMetadataOverride;
   final CampusPlan? planOverride;
+  final String? subscriptionStatusOverride;
+  final String? serverRoleOverride;
 
   static const Set<String> publicPaths = {
     '/auth',
@@ -49,6 +53,10 @@ class AccessControlService {
     '/voice-tutor',
   };
 
+  static const Set<String> audioBookPaths = {
+    '/audiobook-studio',
+  };
+
   bool get isAuthenticated => authenticatedOverride ?? AuthService.isLoggedIn;
 
   CampusPlan get legacyPlan =>
@@ -57,13 +65,17 @@ class AccessControlService {
   static StudyBookRole resolveRole({
     Map<String, dynamic>? appMetadata,
     Map<String, dynamic>? userMetadata,
+    String? serverRole,
   }) {
     // userMetadata is intentionally ignored because users can edit it.
     final metadata = appMetadata ?? const <String, dynamic>{};
 
-    final rawRole = (metadata['role'] ?? '').toString().trim().toLowerCase();
+    final verifiedRole = serverRole?.trim().toLowerCase() ?? '';
+    final rawRole = verifiedRole.isNotEmpty
+        ? verifiedRole
+        : (metadata['role'] ?? '').toString().trim().toLowerCase();
 
-    if (rawRole == 'admin' || rawRole == 'institution_admin') {
+    if (verifiedRole == 'admin') {
       return StudyBookRole.admin;
     }
 
@@ -76,9 +88,11 @@ class AccessControlService {
 
   StudyBookRole get role {
     final user = AuthService.currentUser;
+    final cachedServerRole = const PlanGuardService().currentServerRole;
     return resolveRole(
       appMetadata: appMetadataOverride ?? user?.appMetadata,
       userMetadata: userMetadataOverride ?? user?.userMetadata,
+      serverRole: serverRoleOverride ?? cachedServerRole,
     );
   }
 
@@ -90,6 +104,10 @@ class AccessControlService {
   EntitlementService get entitlements => EntitlementService(
         role: role,
         plan: legacyPlan,
+        subscriptionStatus: subscriptionStatusOverride ??
+            (planOverride != null
+                ? 'active'
+                : const PlanGuardService().currentSubscriptionStatus),
       );
 
   bool get hasTeacherTools =>
@@ -135,7 +153,12 @@ class AccessControlService {
     }
 
     if (voicePaths.contains(path) &&
-        !entitlements.can(ProductCapability.voiceExperience)) {
+        !entitlements.can(ProductCapability.voiceTutor)) {
+      return '/plans';
+    }
+
+    if (audioBookPaths.contains(path) &&
+        !entitlements.can(ProductCapability.audioBook)) {
       return '/plans';
     }
 

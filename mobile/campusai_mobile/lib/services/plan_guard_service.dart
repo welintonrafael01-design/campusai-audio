@@ -10,6 +10,7 @@ class PlanGuardService {
   static const String _subscriptionStatusStorageKey =
       'studybook_ai_subscription_status';
   static const String _planOwnerStorageKey = 'studybook_ai_plan_owner';
+  static const String _serverRoleStorageKey = 'studybook_ai_server_role';
 
   String? _storedValue(String key) {
     try {
@@ -40,11 +41,21 @@ class PlanGuardService {
     return _storedValue(_subscriptionStatusStorageKey) ?? 'free';
   }
 
+  String get currentServerRole {
+    if (!_belongsToCurrentUser) return '';
+    return _storedValue(_serverRoleStorageKey)?.trim().toLowerCase() ?? '';
+  }
+
   bool get isSyncedFromSupabase {
     return currentPlanSource == 'supabase';
   }
 
-  PlanLimits get limits => AppPlans.limits[currentPlan]!;
+  CampusPlan get effectivePlan => AppPlans.effectivePlan(
+        currentPlan,
+        currentSubscriptionStatus,
+      );
+
+  PlanLimits get limits => AppPlans.limits[effectivePlan]!;
 
   bool get canExportPdf => limits.canExportPdf;
   bool get canExportDocx => limits.canExportDocx;
@@ -65,6 +76,7 @@ class PlanGuardService {
     CampusPlan plan, {
     String source = 'local_test',
     String subscriptionStatus = 'active',
+    String? serverRole,
   }) {
     LocalStorageService.setString(
       _planOwnerStorageKey,
@@ -79,6 +91,10 @@ class PlanGuardService {
       _subscriptionStatusStorageKey,
       subscriptionStatus,
     );
+    final normalizedRole = serverRole?.trim().toLowerCase();
+    if (normalizedRole != null && normalizedRole.isNotEmpty) {
+      LocalStorageService.setString(_serverRoleStorageKey, normalizedRole);
+    }
   }
 
   void resetToFree() {
@@ -95,6 +111,7 @@ class PlanGuardService {
       _subscriptionStatusStorageKey,
       'free',
     );
+    LocalStorageService.setString(_serverRoleStorageKey, 'student');
   }
 
   bool canGenerateFlashcards(int requestedAmount) {
@@ -106,7 +123,7 @@ class PlanGuardService {
   }
 
   String upgradeMessage(String featureName) {
-    return 'La función "$featureName" requiere actualizar tu plan.';
+    return '$featureName está disponible con Student Pro.';
   }
 
   String limitMessage({
@@ -123,6 +140,7 @@ CampusPlan planFromCode(String? value) {
   return switch (value) {
     'student' => CampusPlan.student,
     'teacher' => CampusPlan.teacher,
+    'institution' => CampusPlan.institution,
     'accessibility' => CampusPlan.accessibility,
     'ultra' => CampusPlan.ultra,
     'pro' => CampusPlan.student,
@@ -136,6 +154,7 @@ String planCodeFromCampusPlan(CampusPlan plan) {
     CampusPlan.free => 'free',
     CampusPlan.student => 'student',
     CampusPlan.teacher => 'teacher',
+    CampusPlan.institution => 'institution',
     CampusPlan.accessibility => 'accessibility',
     CampusPlan.ultra => 'ultra',
   };

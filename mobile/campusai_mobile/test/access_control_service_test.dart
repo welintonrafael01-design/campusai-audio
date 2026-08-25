@@ -33,11 +33,21 @@ void main() {
       );
     });
 
-    test('userMetadata cannot downgrade appMetadata admin', () {
+    test('appMetadata admin alone is not Admin authority', () {
       expect(
         AccessControlService.resolveRole(
           appMetadata: const {'role': 'admin'},
           userMetadata: const {'role': 'student'},
+        ),
+        StudyBookRole.student,
+      );
+    });
+
+    test('server verified Admin role resolves Admin', () {
+      expect(
+        AccessControlService.resolveRole(
+          appMetadata: const {'role': 'student'},
+          serverRole: 'admin',
         ),
         StudyBookRole.admin,
       );
@@ -120,6 +130,7 @@ void main() {
       );
 
       expect(access.redirectForPath('/voice-tutor'), '/plans');
+      expect(access.redirectForPath('/audiobook-studio'), '/plans');
       expect(access.redirectForPath('/question-bank/document-1'), '/plans');
     });
 
@@ -131,7 +142,48 @@ void main() {
       );
 
       expect(access.redirectForPath('/voice-tutor'), isNull);
+      expect(access.redirectForPath('/audiobook-studio'), isNull);
       expect(access.redirectForPath('/question-bank/document-1'), isNull);
+    });
+
+    test('pending checkout never grants paid capabilities', () {
+      const access = AccessControlService(
+        authenticatedOverride: true,
+        appMetadataOverride: {'role': 'teacher'},
+        planOverride: CampusPlan.teacher,
+        subscriptionStatusOverride: 'pending',
+      );
+
+      expect(access.redirectForPath('/teacher'), '/dashboard');
+      expect(access.redirectForPath('/voice-tutor'), '/plans');
+      expect(access.redirectForPath('/audiobook-studio'), '/plans');
+    });
+
+    test('legacy Ultra never grants Teacher visibility', () {
+      const access = AccessControlService(
+        authenticatedOverride: true,
+        appMetadataOverride: {'role': 'teacher'},
+        planOverride: CampusPlan.ultra,
+      );
+
+      expect(access.redirectForPath('/teacher'), '/dashboard');
+      expect(access.redirectForPath('/audiobook-studio'), isNull);
+    });
+
+    test('Institution Teacher can open Teacher Studio but Student cannot', () {
+      const teacher = AccessControlService(
+        authenticatedOverride: true,
+        serverRoleOverride: 'teacher',
+        planOverride: CampusPlan.institution,
+      );
+      const student = AccessControlService(
+        authenticatedOverride: true,
+        serverRoleOverride: 'student',
+        planOverride: CampusPlan.institution,
+      );
+
+      expect(teacher.redirectForPath('/teacher'), isNull);
+      expect(student.redirectForPath('/teacher'), '/dashboard');
     });
   });
 }

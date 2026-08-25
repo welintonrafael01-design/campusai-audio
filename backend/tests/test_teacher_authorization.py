@@ -66,9 +66,13 @@ def test_teacher_access_requires_server_role_and_active_teacher_plan():
         _user(role="educator"),
         subscription=_subscription(plan="educator"),
     )
-    assert has_teacher_access(
+    assert not has_teacher_access(
         _user(role="teacher"),
         subscription=_subscription(plan="ultra"),
+    )
+    assert has_teacher_access(
+        _user(role="teacher"),
+        subscription=_subscription(plan="institution"),
     )
 
     assert not has_teacher_access(

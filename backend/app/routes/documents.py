@@ -44,6 +44,7 @@ from app.services.usage_limit_service import (
     enforce_chat_limit,
     enforce_flashcard_limit,
     enforce_exam_limit,
+    enforce_audiobook_permission,
     enforce_question_bank_permission,
     register_usage_event,
 )
@@ -1665,6 +1666,8 @@ async def generate_audio_endpoint(
     start_time = time.perf_counter()
 
     try:
+        enforce_audiobook_permission(user_id=current_user.user_id)
+
         if not text.strip():
             raise HTTPException(
                 status_code=400,
@@ -1701,6 +1704,8 @@ async def generate_audiobook_endpoint(
     start_time = time.perf_counter()
 
     try:
+        enforce_audiobook_permission(user_id=current_user.user_id)
+
         if not text.strip():
             raise HTTPException(
                 status_code=400,

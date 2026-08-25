@@ -105,13 +105,7 @@ class Sidebar extends StatelessWidget {
           const Spacer(),
           Builder(
             builder: (context) {
-              final title = switch (plan) {
-                CampusPlan.free => 'Cuenta Free',
-                CampusPlan.student => 'Cuenta Student',
-                CampusPlan.accessibility => 'Cuenta Accessibility',
-                CampusPlan.teacher => 'Cuenta Teacher',
-                CampusPlan.ultra => 'Cuenta Ultra Premium',
-              };
+              final title = 'Cuenta ${AppPlans.planNames[plan] ?? 'Free'}';
 
               final description = switch (plan) {
                 CampusPlan.free =>
@@ -119,11 +113,13 @@ class Sidebar extends StatelessWidget {
                 CampusPlan.student =>
                   'Convierte contenido en AudioBooks, quizzes, flashcards y tutoría inteligente.',
                 CampusPlan.accessibility =>
-                  'Aprende a tu manera con audio, lectura y explicaciones simples.',
+                  'Student Pro con lectura, audio y preferencias accesibles.',
                 CampusPlan.teacher =>
                   'Prepara clases, rúbricas, exámenes y recursos en menos tiempo.',
                 CampusPlan.ultra =>
-                  'Máximo poder con límites ampliados y funciones premium.',
+                  'Plan Student legacy con límites ampliados; no concede herramientas docentes.',
+                CampusPlan.institution =>
+                  'Teacher Core seguro para cuentas institucionales autorizadas.',
               };
 
               final icon = switch (plan) {
@@ -132,6 +128,7 @@ class Sidebar extends StatelessWidget {
                 CampusPlan.accessibility => Icons.accessibility_new_rounded,
                 CampusPlan.teacher => Icons.school_rounded,
                 CampusPlan.ultra => Icons.auto_awesome_rounded,
+                CampusPlan.institution => Icons.apartment_rounded,
               };
 
               return Container(

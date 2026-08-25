@@ -50,6 +50,11 @@ async def test_chapter_generation_never_trusts_client_owner_scope(monkeypatch):
         "generate_chapter_audio_payload",
         fake_generate,
     )
+    monkeypatch.setattr(
+        audiobook_route,
+        "enforce_audiobook_permission",
+        lambda **kwargs: "student",
+    )
 
     await audiobook_route.generate_chapter_audio_endpoint(
         payload=audiobook_route.AudioBookChapterAudioPayload(

@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from fastapi import HTTPException
 
 from app.database.supabase_client import get_supabase_admin_client
+from app.security.entitlements import ProductCapability, plan_capabilities
 from app.services.subscription_service import get_user_subscription
 
 
@@ -14,6 +15,7 @@ PLAN_UPLOAD_LIMITS = {
     "teacher": 100,
     "accessibility": 15,
     "ultra": 999999,
+    "institution": 100,
 }
 
 PLAN_CHAT_LIMITS = {
@@ -22,6 +24,7 @@ PLAN_CHAT_LIMITS = {
     "teacher": 1000,
     "accessibility": 200,
     "ultra": 999999,
+    "institution": 1000,
 }
 
 PLAN_FLASHCARD_LIMITS = {
@@ -30,6 +33,7 @@ PLAN_FLASHCARD_LIMITS = {
     "teacher": 1000,
     "accessibility": 100,
     "ultra": 999999,
+    "institution": 1000,
 }
 
 PLAN_EXAM_LIMITS = {
@@ -38,20 +42,7 @@ PLAN_EXAM_LIMITS = {
     "teacher": 300,
     "accessibility": 80,
     "ultra": 999999,
-}
-
-VOICE_ENABLED_PLANS = {
-    "student",
-    "teacher",
-    "accessibility",
-    "ultra",
-}
-
-QUESTION_BANK_ENABLED_PLANS = {
-    "student",
-    "teacher",
-    "accessibility",
-    "ultra",
+    "institution": 300,
 }
 
 
@@ -239,32 +230,45 @@ def enforce_exam_limit(
 
 def enforce_voice_permission(*, user_id: str) -> str:
     """Require an active subscription that includes the voice experience."""
-    plan = get_plan_for_user(user_id)
+    return enforce_plan_capability(
+        user_id=user_id,
+        capability=ProductCapability.VOICE_TUTOR,
+        denial_message="Voice Tutor está disponible con Student Pro.",
+    )
 
-    if plan not in VOICE_ENABLED_PLANS:
-        raise HTTPException(
-            status_code=403,
-            detail=(
-                "Voice Tutor está disponible en los planes Student, "
-                "Teacher y Accessibility."
-            ),
-        )
 
-    return plan
+def enforce_audiobook_permission(*, user_id: str) -> str:
+    """Gate new AudioBook generation without blocking owned playback."""
+    return enforce_plan_capability(
+        user_id=user_id,
+        capability=ProductCapability.AUDIOBOOK,
+        denial_message="AudioBook está disponible con Student Pro.",
+    )
 
 
 def enforce_question_bank_permission(*, user_id: str) -> str:
     """Require a subscription that includes question-bank generation."""
+    return enforce_plan_capability(
+        user_id=user_id,
+        capability=ProductCapability.QUESTION_BANK,
+        denial_message=(
+            "El Banco de preguntas está disponible con Student Pro."
+        ),
+    )
+
+
+def enforce_plan_capability(
+    *,
+    user_id: str,
+    capability: ProductCapability,
+    denial_message: str,
+) -> str:
+    # get_plan_for_user already applies the server-side subscription status and
+    # returns Free for unknown or inactive paid subscriptions.
     plan = get_plan_for_user(user_id)
 
-    if plan not in QUESTION_BANK_ENABLED_PLANS:
-        raise HTTPException(
-            status_code=403,
-            detail=(
-                "El Banco de preguntas está disponible en los planes "
-                "Student, Teacher y Accessibility."
-            ),
-        )
+    if capability not in plan_capabilities(plan, status="active"):
+        raise HTTPException(status_code=403, detail=denial_message)
 
     return plan
 
@@ -294,6 +298,12 @@ PLAN_EXPORT_PERMISSIONS = {
         "xlsx": True,
     },
     "ultra": {
+        "pdf": True,
+        "docx": True,
+        "pptx": True,
+        "xlsx": True,
+    },
+    "institution": {
         "pdf": True,
         "docx": True,
         "pptx": True,

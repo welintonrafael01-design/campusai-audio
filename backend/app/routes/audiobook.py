@@ -12,6 +12,7 @@ from app.services.audiobook_service import (
     scoped_audiobook_storage_id,
 )
 from app.services.cloud_service import user_owns_legacy_audiobook_audio
+from app.services.usage_limit_service import enforce_audiobook_permission
 
 
 router = APIRouter(
@@ -60,6 +61,7 @@ async def generate_audiobook_endpoint(
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
+        enforce_audiobook_permission(user_id=current_user.user_id)
         audiobook = generate_audiobook_payload(
             title=payload.title,
             text=payload.text,
@@ -77,6 +79,8 @@ async def generate_audiobook_endpoint(
         return {
             "audiobook": audiobook,
         }
+    except HTTPException:
+        raise
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
     except Exception as error:
@@ -92,6 +96,7 @@ async def generate_chapter_audio_endpoint(
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
+        enforce_audiobook_permission(user_id=current_user.user_id)
         return generate_chapter_audio_payload(
             audiobook_id=scoped_audiobook_storage_id(
                 user_id=current_user.user_id,
@@ -103,6 +108,8 @@ async def generate_chapter_audio_endpoint(
             voice_profile=payload.voice_profile,
             language=payload.language,
         )
+    except HTTPException:
+        raise
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
     except Exception as error:
@@ -118,6 +125,7 @@ async def generate_learning_pack_endpoint(
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
+        enforce_audiobook_permission(user_id=current_user.user_id)
         learning_pack = generate_learning_pack(
             audiobook_id=payload.audiobook_id,
             chapter_id=payload.chapter_id,
@@ -132,6 +140,8 @@ async def generate_learning_pack_endpoint(
         return {
             "learning_pack": learning_pack,
         }
+    except HTTPException:
+        raise
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
     except Exception as error:

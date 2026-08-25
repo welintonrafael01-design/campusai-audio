@@ -2,6 +2,7 @@ import pytest
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
+from app.routes import documents as document_routes
 from app.routes import export as export_routes
 from app.security.user_auth import AuthenticatedUser, require_current_user
 from app.services import usage_limit_service
@@ -18,6 +19,7 @@ from app.services import usage_limit_service
         ("accessibility", "pptx", False),
         ("teacher", "pptx", True),
         ("ultra", "pptx", True),
+        ("institution", "pptx", True),
     ],
 )
 def test_export_permissions_match_flutter_plan_contract(
@@ -58,6 +60,7 @@ def test_export_permissions_match_flutter_plan_contract(
         ("teacher", True),
         ("accessibility", True),
         ("ultra", True),
+        ("institution", True),
     ],
 )
 def test_voice_permissions_match_flutter_plan_contract(monkeypatch, plan, allowed):
@@ -87,6 +90,7 @@ def test_voice_permissions_match_flutter_plan_contract(monkeypatch, plan, allowe
         ("teacher", True),
         ("accessibility", True),
         ("ultra", True),
+        ("institution", True),
     ],
 )
 def test_question_bank_permissions_match_flutter_contract(
@@ -139,3 +143,71 @@ def test_export_endpoint_preserves_plan_denial(monkeypatch):
 
     assert response.status_code == 403
     assert response.json()["detail"] == "Este formato no está incluido en tu plan."
+
+
+@pytest.mark.parametrize(
+    ("plan", "allowed"),
+    [
+        ("free", False),
+        ("student", True),
+        ("teacher", True),
+        ("accessibility", True),
+        ("ultra", True),
+        ("institution", True),
+    ],
+)
+def test_audiobook_generation_uses_server_plan(monkeypatch, plan, allowed):
+    monkeypatch.setattr(
+        usage_limit_service,
+        "get_plan_for_user",
+        lambda user_id: plan,
+    )
+
+    if allowed:
+        assert (
+            usage_limit_service.enforce_audiobook_permission(user_id="user-1")
+            == plan
+        )
+        return
+
+    with pytest.raises(HTTPException) as exc:
+        usage_limit_service.enforce_audiobook_permission(user_id="user-1")
+    assert exc.value.status_code == 403
+    assert "Student Pro" in exc.value.detail
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/documents/audio?text=Contenido",
+        "/documents/audiobook?text=Contenido",
+    ],
+)
+def test_legacy_audio_endpoints_preserve_server_plan_denial(monkeypatch, path):
+    app = FastAPI()
+    app.include_router(document_routes.router)
+    app.dependency_overrides[require_current_user] = lambda: AuthenticatedUser(
+        user_id="free-1",
+        email="free@studybook.ai",
+        app_metadata={"role": "student"},
+    )
+
+    def deny_audiobook(**kwargs):
+        del kwargs
+        raise HTTPException(
+            status_code=403,
+            detail="AudioBook está disponible con Student Pro.",
+        )
+
+    monkeypatch.setattr(
+        document_routes,
+        "enforce_audiobook_permission",
+        deny_audiobook,
+    )
+
+    response = TestClient(app).post(path)
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == (
+        "AudioBook está disponible con Student Pro."
+    )

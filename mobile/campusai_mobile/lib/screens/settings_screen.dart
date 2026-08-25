@@ -7,6 +7,7 @@ import '../l10n/app_localizations.dart';
 import '../providers/theme_provider.dart';
 import '../providers/locale_provider.dart';
 import '../services/api_service.dart';
+import '../services/access_control_service.dart';
 import '../services/auth_service.dart';
 import '../services/billing_service.dart';
 import '../services/history_service.dart';
@@ -244,8 +245,10 @@ class SettingsScreen extends ConsumerWidget {
         }
 
         final data = snapshot.data ?? {};
-        final plan = data['plan']?.toString() ??
-            const PlanGuardService().currentPlanName;
+        final rawBackendPlan = data['plan']?.toString().trim() ?? '';
+        final plan = rawBackendPlan.isEmpty
+            ? const PlanGuardService().currentPlanName
+            : AppPlans.planNames[planFromCode(rawBackendPlan)] ?? 'Free';
 
         final rawUsage = data['usage'];
         final usage = rawUsage is Map<String, dynamic>
@@ -341,20 +344,26 @@ class SettingsScreen extends ConsumerWidget {
     final isDark = themeMode == ThemeMode.dark;
     final user = AuthService.currentUser;
     final email = user?.email ?? 'Usuario no disponible';
-    final planSource = const PlanGuardService().currentPlanSource;
-    final currentPlan = const PlanGuardService().currentPlan;
-    final limits = AppPlans.limits[currentPlan]!;
-
-    final friendlyPlanName = switch (currentPlan) {
-      CampusPlan.free => 'Free',
-      CampusPlan.student => 'Student',
-      CampusPlan.accessibility => 'Accessibility',
-      CampusPlan.teacher => 'Teacher',
-      CampusPlan.ultra => 'Ultra Premium',
+    const planGuard = PlanGuardService();
+    final planSource = planGuard.currentPlanSource;
+    final currentPlan = planGuard.currentPlan;
+    final limits = planGuard.limits;
+    final access = const AccessControlService();
+    final entitlements = access.entitlements;
+    final subscriptionStatus = planGuard.currentSubscriptionStatus;
+    final friendlyPlanName = AppPlans.planNames[currentPlan] ?? 'Free';
+    final friendlyStatus = switch (subscriptionStatus.toLowerCase()) {
+      'active' => 'Suscripción activa',
+      'trialing' => 'Periodo de prueba activo',
+      'pending' => 'Activación pendiente',
+      'past_due' => 'Pago pendiente',
+      'canceled' || 'cancelled' => 'Suscripción cancelada',
+      'expired' || 'inactive' => 'Suscripción inactiva',
+      'free' => 'Cuenta activa',
+      _ => currentPlan == CampusPlan.free
+          ? 'Cuenta activa'
+          : 'Estado por confirmar',
     };
-
-    final friendlyStatus =
-        currentPlan == CampusPlan.free ? 'Cuenta activa' : 'Suscripción activa';
 
     final friendlySource = planSource == 'supabase' ? 'Sincronizado' : 'Local';
 
@@ -487,12 +496,33 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 _PlanLimitRow(
                   label: 'AudioBooks y voz',
-                  value: limits.canUseVoiceOnboarding ? 'Incluido' : 'Premium',
+                  value: entitlements.can(ProductCapability.audioBook)
+                      ? 'Incluido'
+                      : 'Student Pro',
                 ),
                 _PlanLimitRow(
                   label: 'Exportaciones',
                   value:
                       'PDF${limits.canExportDocx ? ', DOCX' : ''}${limits.canExportPptx ? ', PPTX' : ''}',
+                ),
+                const SizedBox(height: 10),
+                _PlanLimitRow(
+                  label: 'Chat, resumen y práctica',
+                  value: 'Incluido',
+                ),
+                _PlanLimitRow(
+                  label: 'Banco de preguntas',
+                  value: entitlements.can(ProductCapability.questionBank)
+                      ? 'Incluido'
+                      : 'Student Pro',
+                ),
+                _PlanLimitRow(
+                  label: 'Teacher Studio',
+                  value: entitlements.can(ProductCapability.teacherWorkspace)
+                      ? 'Incluido'
+                      : access.isTeacher
+                          ? 'Teacher Pro'
+                          : 'Requiere cuenta docente',
                 ),
                 const SizedBox(height: 16),
                 Wrap(
@@ -576,7 +606,7 @@ class SettingsScreen extends ConsumerWidget {
                 children: [
                   const _SettingsSectionTitle(
                     icon: Icons.rocket_launch_rounded,
-                    title: 'Desbloquea StudyBook AI Premium',
+                    title: 'Continúa con Student Pro',
                     subtitle:
                         'Convierte tus PDFs en una experiencia completa de estudio con voz, audio y exportaciones avanzadas.',
                   ),
@@ -642,8 +672,9 @@ class SettingsScreen extends ConsumerWidget {
                     _ProgressChip(
                       icon: Icons.headphones_rounded,
                       label: 'AudioBooks',
-                      value:
-                          currentPlan == CampusPlan.free ? 'Premium' : 'Activo',
+                      value: entitlements.can(ProductCapability.audioBook)
+                          ? 'Activo'
+                          : 'Student Pro',
                     ),
                     _ProgressChip(
                       icon: Icons.quiz_rounded,

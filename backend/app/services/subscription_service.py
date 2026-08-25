@@ -3,16 +3,27 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from app.database.supabase_client import get_supabase_admin_client
+from app.security.entitlements import (
+    SUPPORTED_STORED_PLANS,
+    canonical_plan,
+    effective_stored_plan,
+    normalize_stored_plan,
+    normalize_subscription_status,
+    subscription_is_entitled,
+)
 
 
-VALID_PLANS = {"free", "student", "teacher", "accessibility", "ultra"}
+VALID_PLANS = SUPPORTED_STORED_PLANS
 
 
 def default_free_subscription(user_id: str) -> dict:
     return {
         "user_id": user_id,
         "plan": "free",
+        "subscribed_plan": "free",
+        "canonical_plan": "free",
         "subscription_status": "free",
+        "entitled": True,
         "email": None,
         "stripe_customer_id": None,
         "stripe_subscription_id": None,
@@ -29,10 +40,7 @@ def upsert_user_subscription(
     stripe_subscription_id: str | None = None,
     subscription_status: str | None = None,
 ) -> dict:
-    clean_plan = plan.strip().lower()
-
-    if clean_plan not in VALID_PLANS:
-        clean_plan = "free"
+    clean_plan = normalize_stored_plan(plan)
 
     if not user_id:
         raise ValueError("user_id es requerido.")
@@ -112,17 +120,21 @@ def get_user_subscription(
     if not isinstance(data, dict):
         return default_free_subscription(user_id)
 
-    plan = data.get("plan") or "free"
-    status = data.get("subscription_status") or "unknown"
-
-    if status != "active":
-        plan = "free"
+    subscribed_plan = normalize_stored_plan(data.get("plan"))
+    status = normalize_subscription_status(data.get("subscription_status"))
+    plan = effective_stored_plan(plan=subscribed_plan, status=status)
 
     return {
         "user_id": data.get("user_id") or user_id,
         "email": data.get("email"),
         "plan": plan,
+        "subscribed_plan": subscribed_plan,
+        "canonical_plan": canonical_plan(plan),
         "subscription_status": status,
+        "entitled": subscription_is_entitled(
+            plan=subscribed_plan,
+            status=status,
+        ),
         "stripe_customer_id": data.get("stripe_customer_id"),
         "stripe_subscription_id": data.get("stripe_subscription_id"),
         "source": "supabase",

@@ -4,6 +4,13 @@ import stripe
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
+from app.security.admin_auth import is_admin_user
+from app.security.entitlements import (
+    commercial_plan_code,
+    normalize_stored_plan,
+    resolve_capabilities,
+    resolve_role,
+)
 from app.security.user_auth import AuthenticatedUser, require_current_user
 
 from app.services.usage_limit_service import get_usage_summary_for_user
@@ -22,6 +29,8 @@ PLAN_MONTHLY_PRICES = {
     "accessibility": 3.99,
     "teacher": 9.99,
     "ultra": 24.99,
+    # Institution is provisioned contractually; no public Stripe price exists.
+    "institution": None,
 }
 
 PLAN_ESTIMATED_AI_COSTS = {
@@ -30,6 +39,7 @@ PLAN_ESTIMATED_AI_COSTS = {
     "accessibility": 1.25,
     "teacher": 3.25,
     "ultra": 7.50,
+    "institution": 0.0,
 }
 
 
@@ -82,19 +92,7 @@ def _require_billing_admin(current_user: AuthenticatedUser) -> None:
 
 
 def _normalize_plan(plan: str | None) -> str:
-    value = (plan or "free").strip().lower()
-
-    legacy_map = {
-        "pro": "student",
-        "educator": "teacher",
-    }
-
-    value = legacy_map.get(value, value)
-
-    if value in {"free", "student", "teacher", "accessibility", "ultra"}:
-        return value
-
-    return "free"
+    return normalize_stored_plan(plan)
 
 
 def _stripe_price_map() -> dict[str, str]:
@@ -344,9 +342,28 @@ def get_my_subscription_endpoint(
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     try:
-        return get_user_subscription(
+        subscription = get_user_subscription(
             user_id=current_user.user_id,
         )
+        role = resolve_role(
+            current_user.app_metadata,
+            admin_authorized=is_admin_user(current_user),
+        )
+        capabilities = resolve_capabilities(
+            role=role,
+            plan=subscription.get("plan"),
+            status=subscription.get("subscription_status"),
+        )
+        return {
+            **subscription,
+            "role": role,
+            "commercial_plan": commercial_plan_code(
+                subscription.get("plan"),
+            ),
+            "capabilities": sorted(
+                capability.value for capability in capabilities
+            ),
+        }
     except Exception as error:
         raise HTTPException(
             status_code=500,
@@ -552,7 +569,8 @@ def get_financial_dashboard(
         active_users = data["active_users"] if plan != "free" else 0
         users_for_cost = data["users"]
 
-        mrr = round(active_users * PLAN_MONTHLY_PRICES[plan], 2)
+        monthly_price = PLAN_MONTHLY_PRICES[plan]
+        mrr = round(active_users * monthly_price, 2) if monthly_price else 0.0
         estimated_cost = round(
             users_for_cost * PLAN_ESTIMATED_AI_COSTS.get(plan, 0.0),
             2,

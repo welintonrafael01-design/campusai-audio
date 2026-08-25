@@ -190,7 +190,7 @@ class _PlansScreenState extends State<PlansScreen> {
       ),
       const _PlanUiData(
         plan: CampusPlan.student,
-        name: 'Student',
+        name: 'Student Pro',
         audience: 'Para estudiantes intensivos',
         price: 'US\$4.99',
         period: '/mes',
@@ -202,7 +202,6 @@ class _PlansScreenState extends State<PlansScreen> {
           '300 chats diarios',
           '200 flashcards por PDF',
           '100 preguntas de examen por PDF',
-          '60 minutos de audio al mes',
           'AudioBooks y resumen en audio',
           'Modo voz y lectura asistida',
           'Exportar PDF y DOCX',
@@ -215,34 +214,8 @@ class _PlansScreenState extends State<PlansScreen> {
         ],
       ),
       const _PlanUiData(
-        plan: CampusPlan.accessibility,
-        name: 'Accessibility',
-        audience: 'Para accesibilidad e inclusión',
-        price: 'US\$3.99',
-        period: '/mes',
-        badge: 'INCLUSIÓN',
-        icon: Icons.accessibility_new_rounded,
-        isHighlighted: false,
-        benefits: [
-          '15 PDFs diarios',
-          '200 chats diarios',
-          '120 minutos de audio al mes',
-          'Lectura asistida y voz',
-          'Resúmenes accesibles',
-          '100 flashcards por PDF',
-          '80 preguntas de examen por PDF',
-          'Exportar PDF y DOCX',
-          'Certificados e insignias académicas',
-        ],
-        lockedBenefits: [
-          'Gradebook docente',
-          'Planificación docente IA',
-          'Analíticas avanzadas de aula',
-        ],
-      ),
-      const _PlanUiData(
         plan: CampusPlan.teacher,
-        name: 'Teacher',
+        name: 'Teacher Pro',
         audience: 'Para docentes y aulas',
         price: 'US\$9.99',
         period: '/mes',
@@ -252,7 +225,6 @@ class _PlansScreenState extends State<PlansScreen> {
         benefits: [
           '100 PDFs diarios',
           '1,000 chats diarios',
-          '300 minutos de audio al mes',
           'Herramientas docentes completas',
           'Cursos, estudiantes y asistencia',
           'Gradebook y ponderaciones',
@@ -264,33 +236,30 @@ class _PlansScreenState extends State<PlansScreen> {
           'Exportar PDF, DOCX y PPTX',
         ],
         lockedBenefits: [
-          'Procesamiento prioritario Ultra',
+          'Funciones institucionales avanzadas',
         ],
       ),
       const _PlanUiData(
-        plan: CampusPlan.ultra,
-        name: 'Ultra Premium',
-        audience: 'Para usuarios intensivos e instituciones',
-        price: 'US\$24.99',
-        period: '/mes',
-        badge: 'MÁXIMO NIVEL',
-        icon: Icons.auto_awesome_rounded,
-        isHighlighted: true,
+        plan: CampusPlan.institution,
+        name: 'Institution',
+        audience: 'Para instituciones con acuerdo administrado',
+        price: 'Contacto',
+        period: '',
+        badge: 'PRÓXIMAMENTE',
+        icon: Icons.apartment_rounded,
+        isHighlighted: false,
+        isAvailableForCheckout: false,
         benefits: [
-          'Límites ampliados premium',
-          'Audio mensual ampliado',
-          'Todos los módulos Student',
-          'Todos los módulos Accessibility',
-          'Todos los módulos Teacher',
-          'Analítica avanzada',
-          'Reportes y exportaciones completas',
-          'Certificados premium',
-          'Insignias académicas premium',
-          'Reconocimiento automático',
-          'Acceso anticipado a funciones premium',
-          'Ideal para usuarios intensivos',
+          'Base Student Pro y Teacher Pro',
+          'Acceso por rol institucional autorizado',
+          'Cursos, estudiantes y evaluación docente',
+          'Persistencia y restauración cloud',
         ],
-        lockedBenefits: [],
+        lockedBenefits: [
+          'Administración multiinstitución futura',
+          'Analíticas Enterprise futuras',
+          'Marketplace e integraciones futuras',
+        ],
       ),
     ];
   }
@@ -352,9 +321,11 @@ class _PlansScreenState extends State<PlansScreen> {
                       width: cardWidth,
                       child: _PlanCard(
                         data: planData,
-                        isCurrent: current == planData.plan,
+                        isCurrent:
+                            AppPlans.canonicalPlan(current) == planData.plan,
                         onSelect: () {
-                          if (planData.plan == CampusPlan.free) {
+                          if (planData.plan == CampusPlan.free ||
+                              !planData.isAvailableForCheckout) {
                             return;
                           }
 
@@ -446,6 +417,7 @@ class _PlanCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isFree = data.plan == CampusPlan.free;
+    final canSelect = !isFree && data.isAvailableForCheckout;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
@@ -565,8 +537,10 @@ class _PlanCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 18),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          Wrap(
+            spacing: 4,
+            runSpacing: 2,
+            crossAxisAlignment: WrapCrossAlignment.end,
             children: [
               Text(
                 data.price,
@@ -576,7 +550,6 @@ class _PlanCard extends StatelessWidget {
                   fontWeight: FontWeight.w900,
                 ),
               ),
-              const SizedBox(width: 4),
               Padding(
                 padding: const EdgeInsets.only(bottom: 6),
                 child: Text(
@@ -612,16 +585,16 @@ class _PlanCard extends StatelessWidget {
                     label: Text('${data.name} activo'),
                   )
                 : FilledButton.icon(
-                    onPressed: isFree ? null : onSelect,
+                    onPressed: canSelect ? onSelect : null,
                     icon: Icon(
                       data.plan == CampusPlan.teacher
                           ? Icons.school_rounded
                           : Icons.rocket_launch_rounded,
                     ),
                     label: Text(
-                      data.plan == CampusPlan.teacher
-                          ? 'Actualizar a Teacher'
-                          : 'Actualizar a ${data.name}',
+                      data.isAvailableForCheckout
+                          ? 'Actualizar a ${data.name}'
+                          : 'Disponible próximamente',
                     ),
                   ),
           ),
@@ -693,6 +666,7 @@ class _PlanUiData {
   final String badge;
   final IconData icon;
   final bool isHighlighted;
+  final bool isAvailableForCheckout;
   final List<String> benefits;
   final List<String> lockedBenefits;
 
@@ -705,6 +679,7 @@ class _PlanUiData {
     required this.badge,
     required this.icon,
     required this.isHighlighted,
+    this.isAvailableForCheckout = true,
     required this.benefits,
     required this.lockedBenefits,
   });

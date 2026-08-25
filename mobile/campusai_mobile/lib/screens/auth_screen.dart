@@ -3,7 +3,9 @@ import 'package:go_router/go_router.dart';
 
 import '../l10n/app_localizations.dart';
 import '../services/auth_service.dart';
+import '../services/access_control_service.dart';
 import '../services/educator_sync_service.dart';
+import '../services/plan_guard_service.dart';
 import '../services/subscription_service.dart';
 import '../theme/app_theme.dart';
 
@@ -50,12 +52,18 @@ class _AuthScreenState extends State<AuthScreen> {
           password: password,
         );
 
-        await EducatorSyncService.pullRemoteIntoLocalIfAvailable();
+        // Start every authenticated session from a fail-closed local context.
+        // The backend subscription response repopulates role and plan below.
+        const PlanGuardService().resetToFree();
 
         try {
           await const SubscriptionService().syncCurrentUserPlan();
         } catch (syncError) {
           debugPrint('No se pudo sincronizar el plan del usuario: $syncError');
+        }
+
+        if (const AccessControlService().hasTeacherTools) {
+          await EducatorSyncService.pullRemoteIntoLocalIfAvailable();
         }
 
         if (!mounted) return;

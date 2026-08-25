@@ -7,6 +7,7 @@ import '../config/app_plans.dart';
 import 'api_service.dart';
 import 'auth_service.dart';
 import 'plan_guard_service.dart';
+import 'subscription_service.dart';
 
 class BillingService {
   const BillingService();
@@ -16,6 +17,12 @@ class BillingService {
 
     if (plan == CampusPlan.free) {
       throw Exception('El plan Free no requiere checkout.');
+    }
+
+    if (plan == CampusPlan.institution) {
+      throw Exception(
+        'El plan Institution se gestiona mediante un acuerdo institucional.',
+      );
     }
 
     if (!AuthService.isLoggedIn) {
@@ -88,14 +95,7 @@ class BillingService {
       throw Exception('Respuesta inválida del servidor.');
     }
 
-    final plan = planFromCode(decoded['plan']?.toString());
-    final status = decoded['subscription_status']?.toString() ?? 'unknown';
-
-    const PlanGuardService().saveCurrentPlan(
-      plan,
-      source: decoded['source']?.toString() ?? 'supabase',
-      subscriptionStatus: status,
-    );
+    const SubscriptionService().cacheSubscriptionResponse(decoded);
 
     return decoded;
   }

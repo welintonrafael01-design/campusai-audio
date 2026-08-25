@@ -5,16 +5,23 @@ from typing import Any
 from fastapi import Depends, HTTPException
 
 from app.security.admin_auth import is_admin_user
+from app.security.entitlements import (
+    ProductCapability,
+    canonical_plan,
+    has_capability,
+    normalized_value,
+    resolve_role,
+)
 from app.security.user_auth import AuthenticatedUser, require_current_user
 from app.services.subscription_service import get_user_subscription
 
 
 TEACHER_ROLES = {"teacher", "educator"}
-TEACHER_PLANS = {"teacher", "ultra"}
+TEACHER_PLANS = {"teacher", "institution"}
 
 
 def _normalized_value(value: Any) -> str:
-    return str(value or "").strip().lower()
+    return normalized_value(value)
 
 
 def teacher_role_from_app_metadata(current_user: AuthenticatedUser) -> str:
@@ -22,8 +29,7 @@ def teacher_role_from_app_metadata(current_user: AuthenticatedUser) -> str:
 
 
 def normalized_teacher_plan(value: Any) -> str:
-    plan = _normalized_value(value)
-    return "teacher" if plan == "educator" else plan
+    return canonical_plan(value)
 
 
 def has_teacher_access(
@@ -31,20 +37,20 @@ def has_teacher_access(
     *,
     subscription: dict[str, Any] | None = None,
 ) -> bool:
-    if is_admin_user(current_user):
-        return True
-
-    role = teacher_role_from_app_metadata(current_user)
-    if role not in TEACHER_ROLES:
-        return False
-
     current_subscription = subscription or get_user_subscription(
         user_id=current_user.user_id,
     )
-    status = _normalized_value(current_subscription.get("subscription_status"))
-    plan = normalized_teacher_plan(current_subscription.get("plan"))
+    role = resolve_role(
+        current_user.app_metadata,
+        admin_authorized=is_admin_user(current_user),
+    )
 
-    return status == "active" and plan in TEACHER_PLANS
+    return has_capability(
+        ProductCapability.TEACHER_WORKSPACE,
+        role=role,
+        plan=current_subscription.get("plan"),
+        status=current_subscription.get("subscription_status"),
+    )
 
 
 def require_teacher_access(
