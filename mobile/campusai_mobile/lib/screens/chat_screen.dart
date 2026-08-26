@@ -12,6 +12,7 @@ import '../services/chat_history_service.dart';
 import '../services/cloud_api_service.dart';
 import '../services/export_service.dart';
 import '../services/plan_guard_service.dart';
+import '../utils/document_display_title.dart';
 import '../utils/upgrade_dialog.dart';
 import '../theme/app_theme.dart';
 import '../widgets/chat/chat_input.dart';
@@ -175,8 +176,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       final cloudChat = await CloudApiService.createChat(
         workspaceId: isWorkspaceChat ? widget.workspaceId : null,
         documentId: isWorkspaceChat ? null : widget.documentId,
-        title:
-            isWorkspaceChat ? 'Workspace: ${widget.fileName}' : widget.fileName,
+        title: isWorkspaceChat
+            ? 'Colección: ${widget.fileName}'
+            : documentDisplayTitle(widget.fileName),
       );
 
       cloudChatId = cloudChat['id'] ?? '';
@@ -604,9 +606,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
                 const SizedBox(height: 6),
                 Tooltip(
-                  message: widget.fileName,
+                  message: isWorkspaceChat
+                      ? widget.fileName
+                      : documentDisplayTitle(widget.fileName),
                   child: Text(
-                    widget.fileName,
+                    isWorkspaceChat
+                        ? widget.fileName
+                        : documentDisplayTitle(widget.fileName),
                     maxLines: 1,
                     softWrap: false,
                     overflow: TextOverflow.ellipsis,
@@ -633,7 +639,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       ),
                     ),
                     child: Text(
-                      'Workspace Multi-PDF · ${effectiveDocumentIds.length} documentos conectados',
+                      'Colección · ${effectiveDocumentIds.length} documentos conectados',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -689,7 +695,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              widget.fileName,
+              isWorkspaceChat
+                  ? widget.fileName
+                  : documentDisplayTitle(widget.fileName),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
@@ -758,7 +766,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  widget.fileName,
+                  isWorkspaceChat
+                      ? widget.fileName
+                      : documentDisplayTitle(widget.fileName),
                   maxLines: 4,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(

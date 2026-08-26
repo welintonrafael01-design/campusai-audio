@@ -1443,7 +1443,7 @@ class _CampusIntelligenceCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _SectionTitle(
-            title: 'Inteligencia CampusAI',
+            title: 'Inteligencia de aprendizaje',
             icon: Icons.hub_rounded,
             color: AppTheme.accent,
           ),

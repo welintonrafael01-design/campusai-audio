@@ -22,6 +22,7 @@ import '../services/study_result_service.dart';
 import '../services/study_result_repository.dart';
 import '../services/workspace_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/document_display_title.dart';
 import '../utils/safe_debug_log.dart';
 import '../widgets/animated_fade_slide.dart';
 import '../widgets/dashboard/dashboard_tools.dart';
@@ -292,7 +293,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Workspace "${draft.name}" creado con ${selectedDocuments.length} documento(s).',
+          'Colección "${draft.name}" creada con ${selectedDocuments.length} documento(s).',
         ),
       ),
     );
@@ -629,7 +630,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Workspace renombrado a "$newName".'),
+        content: Text('Colección renombrada a "$newName".'),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -2264,7 +2265,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final visibleRecentDocuments = recentDocuments.take(3).toList();
 
     return ListView(
-      padding: EdgeInsets.all(isMobile ? 16 : 22),
+      padding: EdgeInsets.all(isMobile ? AppTheme.space16 : AppTheme.space24),
       children: [
         AnimatedFadeSlide(
           child: _AiFirstHeader(
@@ -2359,10 +2360,10 @@ class _AiFirstHeader extends StatelessWidget {
     final isMobile = ResponsiveLayout.isMobile(context);
 
     return Container(
-      padding: EdgeInsets.all(isMobile ? 22 : 30),
+      padding: EdgeInsets.all(isMobile ? AppTheme.space20 : AppTheme.space24),
       decoration: BoxDecoration(
         gradient: AppTheme.mainGradient,
-        borderRadius: BorderRadius.circular(isMobile ? 24 : 30),
+        borderRadius: BorderRadius.circular(AppTheme.radiusExtraLarge),
         boxShadow: [
           BoxShadow(
             color: AppTheme.primary.withValues(alpha: 0.20),
@@ -2388,19 +2389,19 @@ class _AiFirstHeader extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppTheme.space16),
           Text(
             hasActiveDocument
                 ? '¿Qué quieres hacer con IA?'
                 : 'Sube un PDF y Booky lo convierte en aprendizaje.',
             style: TextStyle(
               color: Colors.white,
-              fontSize: isMobile ? 28 : 38,
+              fontSize: isMobile ? 27 : 34,
               fontWeight: FontWeight.w900,
               height: 1.05,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppTheme.space12),
           const Text(
             'Chat, resumen, AudioBook, Voice Tutor, flashcards y evaluaciones en un solo lugar.',
             style: TextStyle(
@@ -2409,7 +2410,7 @@ class _AiFirstHeader extends StatelessWidget {
               height: 1.45,
             ),
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: AppTheme.space20),
           Wrap(
             spacing: 12,
             runSpacing: 12,
@@ -2471,7 +2472,7 @@ class _ActiveDocumentCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         border: Border.all(
           color: Colors.white.withValues(alpha: 0.08),
         ),
@@ -2509,7 +2510,9 @@ class _ActiveDocumentCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   hasActiveDocument
-                      ? (fileName.isEmpty ? 'Documento listo' : fileName)
+                      ? (fileName.isEmpty
+                          ? 'Documento listo'
+                          : documentDisplayTitle(fileName))
                       : 'Ningún documento seleccionado',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -2583,7 +2586,7 @@ class _RecentMiniList extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppTheme.surface,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         border: Border.all(
           color: Colors.white.withValues(alpha: 0.08),
         ),
@@ -2658,7 +2661,7 @@ class _RecentMiniTile extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    document.fileName,
+                    documentDisplayTitle(document.fileName),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(

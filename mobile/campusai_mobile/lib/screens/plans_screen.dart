@@ -150,14 +150,13 @@ class _PlansScreenState extends State<PlansScreen> {
 
     try {
       await const BillingService().startCheckout(plan);
-    } catch (error) {
+    } catch (_) {
       if (!context.mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            AppLocalizations.of(context)
-                .paymentStartError(planName, error.toString()),
+            AppLocalizations.of(context).paymentStartError(planName),
           ),
           behavior: SnackBarBehavior.floating,
         ),
@@ -359,10 +358,10 @@ class _PlansHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(26),
+      padding: const EdgeInsets.all(AppTheme.space24),
       decoration: BoxDecoration(
         gradient: AppTheme.mainGradient,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(AppTheme.radiusExtraLarge),
         boxShadow: [
           BoxShadow(
             color: AppTheme.primary.withValues(alpha: 0.22),
@@ -424,7 +423,7 @@ class _PlanCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppTheme.card,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
         border: Border.all(
           color: isCurrent
               ? AppTheme.success
@@ -462,7 +461,7 @@ class _PlanCard extends StatelessWidget {
                   color: Colors.white,
                   fontSize: 11,
                   fontWeight: FontWeight.w900,
-                  letterSpacing: 0.6,
+                  letterSpacing: 0,
                 ),
               ),
             ),
@@ -473,7 +472,7 @@ class _PlanCard extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: AppTheme.accent.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                 ),
                 child: Icon(
                   data.icon,
@@ -492,42 +491,47 @@ class _PlanCard extends StatelessWidget {
                   ),
                 ),
               ),
-              if (isCurrent)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 7,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.success.withValues(alpha: 0.16),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                      color: AppTheme.success.withValues(alpha: 0.45),
-                    ),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.verified_rounded,
-                        color: AppTheme.success,
-                        size: 16,
-                      ),
-                      SizedBox(width: 5),
-                      Text(
-                        'PLAN ACTUAL',
-                        style: TextStyle(
-                          color: AppTheme.success,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
             ],
           ),
+          if (isCurrent) ...[
+            const SizedBox(height: AppTheme.space12),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.success.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: AppTheme.success.withValues(alpha: 0.45),
+                  ),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.verified_rounded,
+                      color: AppTheme.success,
+                      size: 16,
+                    ),
+                    SizedBox(width: 5),
+                    Text(
+                      'PLAN ACTUAL',
+                      style: TextStyle(
+                        color: AppTheme.success,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 8),
           Text(
             data.audience,

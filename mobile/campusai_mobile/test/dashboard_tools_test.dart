@@ -68,24 +68,37 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('DashboardTools mobile cards do not overflow at 390 px',
+  for (final width in const [320.0, 360.0, 390.0, 411.0, 430.0]) {
+    testWidgets(
+      'DashboardTools mobile cards do not overflow at ${width.toInt()} px',
       (tester) async {
-    tester.view.physicalSize = const Size(390, 844);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
+        tester.view.physicalSize = Size(width, 844);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 22.5),
-            child: buildTools(),
+        await tester.pumpWidget(
+          MaterialApp(
+            builder: (context, child) {
+              final mediaQuery = MediaQuery.of(context);
+              return MediaQuery(
+                data: mediaQuery.copyWith(
+                  textScaler: const TextScaler.linear(1.3),
+                ),
+                child: child!,
+              );
+            },
+            home: Scaffold(
+              body: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: buildTools(),
+              ),
+            ),
           ),
-        ),
-      ),
-    );
+        );
 
-    expect(tester.takeException(), isNull);
-  });
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
 }

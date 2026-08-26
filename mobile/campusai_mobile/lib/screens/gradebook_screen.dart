@@ -484,7 +484,7 @@ class _GradebookScreenState extends State<GradebookScreen> {
       if (options.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('No hay recursos del Academic Engine para importar.'),
+            content: Text('No hay recursos académicos con IA para importar.'),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -796,7 +796,7 @@ class _GradebookScreenState extends State<GradebookScreen> {
             icon: const Icon(Icons.upload_file_rounded),
           ),
           IconButton(
-            tooltip: 'Importar desde Academic Engine',
+            tooltip: 'Importar recursos con IA',
             onPressed: courses.isEmpty || isImportingFromAcademicEngine
                 ? null
                 : importFromAcademicEngine,
@@ -918,7 +918,7 @@ class _GradebookScreenState extends State<GradebookScreen> {
                       label: Text(
                         isImportingFromAcademicEngine
                             ? 'Importando...'
-                            : 'Importar desde Academic Engine',
+                            : 'Importar recursos con IA',
                       ),
                     ),
                     OutlinedButton.icon(
@@ -1030,7 +1030,7 @@ class _AcademicEngineImportSheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Importar desde Academic Engine',
+              'Importar recursos académicos con IA',
               style: TextStyle(
                 color: AppTheme.textPrimary,
                 fontSize: 22,
@@ -1095,7 +1095,7 @@ class _AcademicEngineActivitiesSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Actividades importadas desde Academic Engine',
+            'Actividades importadas desde recursos con IA',
             style: TextStyle(
               color: AppTheme.textPrimary,
               fontSize: 21,
@@ -1110,7 +1110,7 @@ class _AcademicEngineActivitiesSection extends StatelessWidget {
           const SizedBox(height: 12),
           if (activities.isEmpty)
             const Text(
-              'Aún no hay actividades importadas desde Academic Engine.',
+              'Aún no hay actividades importadas desde recursos con IA.',
               style: TextStyle(color: AppTheme.textMuted),
             )
           else

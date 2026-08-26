@@ -238,7 +238,7 @@ class _WorkspacesPanelState extends State<WorkspacesPanel> {
                                     Icons.chat_bubble_outline_rounded,
                                   ),
                                   label: const Text(
-                                    'Chat Workspace IA',
+                                    'Chat de la colección',
                                   ),
                                 ),
                               ),

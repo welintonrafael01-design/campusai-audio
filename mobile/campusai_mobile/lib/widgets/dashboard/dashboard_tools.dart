@@ -48,7 +48,7 @@ class DashboardTools extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Herramientas AI',
+          'Herramientas con IA',
           style: TextStyle(
             color: AppTheme.textPrimary,
             fontSize: isMobile ? 24 : 30,
@@ -66,6 +66,7 @@ class DashboardTools extends StatelessWidget {
         const SizedBox(height: 16),
         GridView.count(
           crossAxisCount: crossAxisCount,
+          mainAxisExtent: isMobile ? 236 : 210,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: 12,
@@ -168,46 +169,53 @@ class _ToolCard extends StatelessWidget {
 
     return Opacity(
       opacity: enabled ? 1 : 0.55,
-      child: SectionCard(
-        padding: EdgeInsets.all(isMobile ? 14 : 16),
+      child: Semantics(
+        label: '$title. $subtitle',
+        button: true,
+        enabled: enabled,
         onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(18),
+        excludeSemantics: true,
+        child: SectionCard(
+          padding: EdgeInsets.all(isMobile ? 14 : 16),
+          onTap: onTap,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: ResponsiveLayout.isMobile(context) ? 22 : 28,
+                ),
               ),
-              child: Icon(
-                icon,
-                color: color,
-                size: ResponsiveLayout.isMobile(context) ? 22 : 28,
+              const SizedBox(height: 12),
+              Text(
+                title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: isMobile ? 14.5 : 17,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: AppTheme.textPrimary,
-                fontSize: isMobile ? 14.5 : 17,
-                fontWeight: FontWeight.w900,
+              const SizedBox(height: 8),
+              Text(
+                subtitle,
+                maxLines: ResponsiveLayout.isMobile(context) ? 3 : 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppTheme.textMuted,
+                  height: 1.4,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              subtitle,
-              maxLines: ResponsiveLayout.isMobile(context) ? 3 : 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: AppTheme.textMuted,
-                height: 1.4,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

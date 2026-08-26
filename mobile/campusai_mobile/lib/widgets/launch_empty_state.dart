@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_theme.dart';
+import 'studybook/studybook_states.dart';
 
 class LaunchEmptyState extends StatelessWidget {
   final String title;
@@ -20,28 +20,12 @@ class LaunchEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, color: AppTheme.accent, size: 30),
-        const SizedBox(height: 10),
-        Text(
-          title,
-          style: const TextStyle(
-            color: AppTheme.textPrimary,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          message,
-          style: const TextStyle(color: AppTheme.textMuted, height: 1.4),
-        ),
-        if (onAction != null && actionLabel.trim().isNotEmpty) ...[
-          const SizedBox(height: 12),
-          OutlinedButton(onPressed: onAction, child: Text(actionLabel)),
-        ],
-      ],
+    return StudyBookEmptyState(
+      title: title,
+      message: message,
+      actionLabel: actionLabel,
+      onAction: onAction,
+      icon: icon,
     );
   }
 }

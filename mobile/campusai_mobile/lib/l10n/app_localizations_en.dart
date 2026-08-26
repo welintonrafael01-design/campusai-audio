@@ -127,7 +127,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get workspaceCreatedFromStudyBook =>
-      'Workspace created from StudyBook AI';
+      'Collection created from StudyBook AI';
 
   @override
   String get cloudConversation => 'Cloud conversation';
@@ -137,11 +137,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'This conversation has no associated document.';
 
   @override
-  String get workspaceWithoutDocuments => 'This workspace has no documents.';
+  String get workspaceWithoutDocuments => 'This collection has no documents.';
 
   @override
   String get workspaceWithoutValidDocuments =>
-      'This workspace has no valid documents.';
+      'This collection has no valid documents.';
 
   @override
   String get defaultPdfDocumentName => 'PDF document';
@@ -178,10 +178,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get activeDocument => 'Active document';
 
   @override
-  String get createWorkspace => 'Create workspace';
+  String get createWorkspace => 'Create collection';
 
   @override
-  String get workspaceName => 'Workspace name';
+  String get workspaceName => 'Collection name';
 
   @override
   String get workspaceNameHint => 'E.g.: Thesis, Criminal Law, Final project';
@@ -196,7 +196,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get create => 'Create';
 
   @override
-  String get myWorkspace => 'My workspace';
+  String get myWorkspace => 'My collection';
 
   @override
   String get heroSubtitle => 'Your intelligent AI study hub.';
@@ -208,7 +208,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ragReady => 'Ready';
 
   @override
-  String get ragActive => 'RAG active';
+  String get ragActive => 'Content connected';
 
   @override
   String get aiTools => 'AI Tools';
@@ -253,10 +253,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recentDocuments => 'Recent documents';
 
   @override
-  String get aiWorkspaces => 'AI Workspaces';
+  String get aiWorkspaces => 'AI collections';
 
   @override
-  String get createWorkspaceButton => 'Create workspace';
+  String get createWorkspaceButton => 'Create collection';
 
   @override
   String get newWorkspace => 'New';
@@ -272,7 +272,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get updatedAt => 'Updated';
 
   @override
-  String get openWorkspace => 'Open workspace';
+  String get openWorkspace => 'Open collection';
 
   @override
   String get recentConversations => 'Recent conversations';
@@ -374,7 +374,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Preparing the document summary, audio, and sources.';
 
   @override
-  String get activeWorkspace => 'Active workspace';
+  String get activeWorkspace => 'Active collection';
 
   @override
   String get documentReadyToStudy => 'Document ready to study';
@@ -390,7 +390,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String workspaceChatWelcome(Object count) {
-    return 'Hi. I am StudyBook AI.\n\nI am ready to help you study this workspace with $count documents.\n\nYou can ask for comparisons, cross-document summaries, or combined analysis.';
+    return 'Hi. I am StudyBook AI.\n\nI am ready to help you study this collection with $count documents.\n\nYou can ask for comparisons, cross-document summaries, or combined analysis.';
   }
 
   @override
@@ -427,7 +427,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatTitlePrefix => 'Chat';
 
   @override
-  String get workspaceAiChat => 'Workspace AI chat';
+  String get workspaceAiChat => 'Collection chat';
 
   @override
   String get contextualAiChat => 'Contextual AI chat';
@@ -437,11 +437,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get workspaceRagContext =>
-      'RAG active across multiple workspace documents.';
+      'Answers based on the documents in this collection.';
 
   @override
-  String get documentRagContext =>
-      'RAG active to answer based on the selected document.';
+  String get documentRagContext => 'Answers based on the selected document.';
 
   @override
   String get contextHintConcepts =>
@@ -604,8 +603,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Choose the plan that fits the way you study or teach.';
 
   @override
-  String paymentStartError(Object planName, Object error) {
-    return 'Could not start payment for $planName: $error';
+  String paymentStartError(Object planName) {
+    return 'We couldn\'t start payment for $planName. Please try again.';
   }
 
   @override

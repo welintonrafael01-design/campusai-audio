@@ -47,7 +47,7 @@ void main() {
     await LocalStorageService.initialize();
   });
 
-  for (final width in const [360.0, 390.0, 411.0, 430.0]) {
+  for (final width in const [320.0, 360.0, 390.0, 411.0, 430.0]) {
     testWidgets(
       'Library remains responsive at ${width.toInt()} px and text scale 1.3',
       (tester) async {
@@ -71,6 +71,14 @@ void main() {
         expect(find.textContaining('Audio ('), findsOneWidget);
         expect(
             find.byKey(const Key('library-location-filter')), findsOneWidget);
+        final sortFilter = find.byKey(const Key('library-sort-filter'));
+        expect(sortFilter, findsOneWidget);
+        final newestLabel = find.descendant(
+          of: sortFilter,
+          matching: find.text('Más reciente'),
+        );
+        expect(newestLabel, findsOneWidget);
+        expect(tester.widget<Text>(newestLabel).overflow, isNull);
 
         final categoryLabels = tester
             .widgetList<ChoiceChip>(find.byType(ChoiceChip))
@@ -120,7 +128,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(DocumentDetailScreen), findsOneWidget);
-    expect(find.text('ESTUDIAR CON IA'), findsOneWidget);
+    expect(find.text('Estudiar con IA'), findsOneWidget);
     expect(find.text('Chat'), findsOneWidget);
     expect(find.text('Resumen'), findsOneWidget);
     expect(find.text('AudioBook'), findsOneWidget);

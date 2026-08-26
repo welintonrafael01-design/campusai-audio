@@ -62,11 +62,11 @@ class DashboardAcademicActivity extends StatelessWidget {
             ],
           ),
           _ActivityCard(
-            title: 'Workspaces',
+            title: 'Colecciones',
             icon: Icons.hub_rounded,
             color: AppTheme.accent,
             lines: [
-              'Workspaces activos: $workspaceCount',
+              'Colecciones activas: $workspaceCount',
               'Documentos conectados: $workspaceDocumentCount',
               workspaceCount > 0
                   ? 'Multi-PDF habilitado'

@@ -127,7 +127,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get workspaceCreatedFromStudyBook =>
-      'Workspace criado a partir do StudyBook AI';
+      'Coleção criada a partir do StudyBook AI';
 
   @override
   String get cloudConversation => 'Conversa na nuvem';
@@ -137,11 +137,11 @@ class AppLocalizationsPt extends AppLocalizations {
       'Esta conversa não tem documento associado.';
 
   @override
-  String get workspaceWithoutDocuments => 'Este workspace não tem documentos.';
+  String get workspaceWithoutDocuments => 'Esta coleção não tem documentos.';
 
   @override
   String get workspaceWithoutValidDocuments =>
-      'Este workspace não tem documentos válidos.';
+      'Esta coleção não tem documentos válidos.';
 
   @override
   String get defaultPdfDocumentName => 'Documento PDF';
@@ -178,10 +178,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get activeDocument => 'Documento ativo';
 
   @override
-  String get createWorkspace => 'Criar workspace';
+  String get createWorkspace => 'Criar coleção';
 
   @override
-  String get workspaceName => 'Nome do workspace';
+  String get workspaceName => 'Nome da coleção';
 
   @override
   String get workspaceNameHint => 'Ex.: Tese, Direito Penal, Projeto final';
@@ -196,7 +196,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get create => 'Criar';
 
   @override
-  String get myWorkspace => 'Meu workspace';
+  String get myWorkspace => 'Minha coleção';
 
   @override
   String get heroSubtitle => 'Seu centro inteligente de estudos com IA.';
@@ -208,7 +208,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get ragReady => 'Pronto';
 
   @override
-  String get ragActive => 'RAG ativo';
+  String get ragActive => 'Conteúdo conectado';
 
   @override
   String get aiTools => 'Ferramentas IA';
@@ -254,13 +254,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get recentDocuments => 'Documentos recentes';
 
   @override
-  String get aiWorkspaces => 'Workspaces IA';
+  String get aiWorkspaces => 'Coleções com IA';
 
   @override
-  String get createWorkspaceButton => 'Criar workspace';
+  String get createWorkspaceButton => 'Criar coleção';
 
   @override
-  String get newWorkspace => 'Novo';
+  String get newWorkspace => 'Nova';
 
   @override
   String get workspaceEmptyDescription =>
@@ -273,7 +273,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get updatedAt => 'Atualizado';
 
   @override
-  String get openWorkspace => 'Abrir workspace';
+  String get openWorkspace => 'Abrir coleção';
 
   @override
   String get recentConversations => 'Conversas recentes';
@@ -373,7 +373,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'Preparando o resumo, o áudio e as fontes do documento.';
 
   @override
-  String get activeWorkspace => 'Workspace ativo';
+  String get activeWorkspace => 'Coleção ativa';
 
   @override
   String get documentReadyToStudy => 'Documento pronto para estudar';
@@ -389,7 +389,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String workspaceChatWelcome(Object count) {
-    return 'Olá. Sou o StudyBook AI.\n\nEstou pronto para ajudar você a estudar este workspace com $count documentos.\n\nVocê pode pedir comparações, sínteses cruzadas ou análises combinadas.';
+    return 'Olá. Sou o StudyBook AI.\n\nEstou pronto para ajudar você a estudar esta coleção com $count documentos.\n\nVocê pode pedir comparações, sínteses cruzadas ou análises combinadas.';
   }
 
   @override
@@ -426,7 +426,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get chatTitlePrefix => 'Chat';
 
   @override
-  String get workspaceAiChat => 'Chat IA do workspace';
+  String get workspaceAiChat => 'Chat da coleção';
 
   @override
   String get contextualAiChat => 'Chat IA contextual';
@@ -436,11 +436,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get workspaceRagContext =>
-      'RAG ativo sobre vários documentos do workspace.';
+      'Respostas baseadas nos documentos desta coleção.';
 
   @override
   String get documentRagContext =>
-      'RAG ativo para responder com base no documento selecionado.';
+      'Respostas baseadas no documento selecionado.';
 
   @override
   String get contextHintConcepts =>
@@ -604,8 +604,8 @@ class AppLocalizationsPt extends AppLocalizations {
       'Escolha o plano que se adapta à sua forma de estudar ou ensinar.';
 
   @override
-  String paymentStartError(Object planName, Object error) {
-    return 'Não foi possível iniciar o pagamento de $planName: $error';
+  String paymentStartError(Object planName) {
+    return 'Não foi possível iniciar o pagamento de $planName. Tente novamente.';
   }
 
   @override

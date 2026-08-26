@@ -47,7 +47,7 @@ class ActiveDocumentCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      l10n.activeWorkspace,
+                      'Documento activo',
                       style: TextStyle(
                         color: AppTheme.textMuted,
                         fontSize: 12,
@@ -88,7 +88,7 @@ class ActiveDocumentCard extends StatelessWidget {
             children: [
               _MiniBadge(
                 icon: Icons.hub_rounded,
-                label: l10n.ragActive,
+                label: 'Contenido conectado',
               ),
               _MiniBadge(
                 icon: Icons.auto_awesome_rounded,
@@ -128,7 +128,7 @@ class _StatusBadge extends StatelessWidget {
         ),
       ),
       child: Text(
-        AppLocalizations.of(context).ragActive,
+        'Listo',
         style: TextStyle(
           color: AppTheme.success,
           fontWeight: FontWeight.w900,

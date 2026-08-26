@@ -333,7 +333,7 @@ abstract class AppLocalizations {
   /// No description provided for @workspaceCreatedFromStudyBook.
   ///
   /// In es, this message translates to:
-  /// **'Workspace creado desde StudyBook AI'**
+  /// **'Colección creada desde StudyBook AI'**
   String get workspaceCreatedFromStudyBook;
 
   /// No description provided for @cloudConversation.
@@ -351,13 +351,13 @@ abstract class AppLocalizations {
   /// No description provided for @workspaceWithoutDocuments.
   ///
   /// In es, this message translates to:
-  /// **'Este workspace no tiene documentos.'**
+  /// **'Esta colección no tiene documentos.'**
   String get workspaceWithoutDocuments;
 
   /// No description provided for @workspaceWithoutValidDocuments.
   ///
   /// In es, this message translates to:
-  /// **'Este workspace no tiene documentos válidos.'**
+  /// **'Esta colección no tiene documentos válidos.'**
   String get workspaceWithoutValidDocuments;
 
   /// No description provided for @defaultPdfDocumentName.
@@ -429,13 +429,13 @@ abstract class AppLocalizations {
   /// No description provided for @createWorkspace.
   ///
   /// In es, this message translates to:
-  /// **'Crear workspace'**
+  /// **'Crear colección'**
   String get createWorkspace;
 
   /// No description provided for @workspaceName.
   ///
   /// In es, this message translates to:
-  /// **'Nombre del workspace'**
+  /// **'Nombre de la colección'**
   String get workspaceName;
 
   /// No description provided for @workspaceNameHint.
@@ -465,7 +465,7 @@ abstract class AppLocalizations {
   /// No description provided for @myWorkspace.
   ///
   /// In es, this message translates to:
-  /// **'Mi workspace'**
+  /// **'Mi colección'**
   String get myWorkspace;
 
   /// No description provided for @heroSubtitle.
@@ -489,7 +489,7 @@ abstract class AppLocalizations {
   /// No description provided for @ragActive.
   ///
   /// In es, this message translates to:
-  /// **'RAG activo'**
+  /// **'Contenido conectado'**
   String get ragActive;
 
   /// No description provided for @aiTools.
@@ -579,19 +579,19 @@ abstract class AppLocalizations {
   /// No description provided for @aiWorkspaces.
   ///
   /// In es, this message translates to:
-  /// **'Workspaces IA'**
+  /// **'Colecciones con IA'**
   String get aiWorkspaces;
 
   /// No description provided for @createWorkspaceButton.
   ///
   /// In es, this message translates to:
-  /// **'Crear workspace'**
+  /// **'Crear colección'**
   String get createWorkspaceButton;
 
   /// No description provided for @newWorkspace.
   ///
   /// In es, this message translates to:
-  /// **'Nuevo'**
+  /// **'Nueva'**
   String get newWorkspace;
 
   /// No description provided for @workspaceEmptyDescription.
@@ -615,7 +615,7 @@ abstract class AppLocalizations {
   /// No description provided for @openWorkspace.
   ///
   /// In es, this message translates to:
-  /// **'Abrir workspace'**
+  /// **'Abrir colección'**
   String get openWorkspace;
 
   /// No description provided for @recentConversations.
@@ -807,7 +807,7 @@ abstract class AppLocalizations {
   /// No description provided for @activeWorkspace.
   ///
   /// In es, this message translates to:
-  /// **'Workspace activo'**
+  /// **'Colección activa'**
   String get activeWorkspace;
 
   /// No description provided for @documentReadyToStudy.
@@ -837,7 +837,7 @@ abstract class AppLocalizations {
   /// No description provided for @workspaceChatWelcome.
   ///
   /// In es, this message translates to:
-  /// **'Hola. Soy StudyBook AI.\n\nEstoy listo para ayudarte a estudiar este workspace con {count} documentos.\n\nPuedes pedir comparaciones, síntesis cruzadas o análisis combinados.'**
+  /// **'Hola. Soy StudyBook AI.\n\nEstoy listo para ayudarte a estudiar esta colección con {count} documentos.\n\nPuedes pedir comparaciones, síntesis cruzadas o análisis combinados.'**
   String workspaceChatWelcome(Object count);
 
   /// No description provided for @documentChatWelcome.
@@ -903,7 +903,7 @@ abstract class AppLocalizations {
   /// No description provided for @workspaceAiChat.
   ///
   /// In es, this message translates to:
-  /// **'Chat IA de workspace'**
+  /// **'Chat con tu colección'**
   String get workspaceAiChat;
 
   /// No description provided for @contextualAiChat.
@@ -921,13 +921,13 @@ abstract class AppLocalizations {
   /// No description provided for @workspaceRagContext.
   ///
   /// In es, this message translates to:
-  /// **'RAG activo sobre múltiples documentos del workspace.'**
+  /// **'Respuestas basadas en los documentos de esta colección.'**
   String get workspaceRagContext;
 
   /// No description provided for @documentRagContext.
   ///
   /// In es, this message translates to:
-  /// **'RAG activo para responder con base en el documento seleccionado.'**
+  /// **'Respuestas basadas en el documento seleccionado.'**
   String get documentRagContext;
 
   /// No description provided for @contextHintConcepts.
@@ -1233,8 +1233,8 @@ abstract class AppLocalizations {
   /// No description provided for @paymentStartError.
   ///
   /// In es, this message translates to:
-  /// **'No se pudo iniciar el pago de {planName}: {error}'**
-  String paymentStartError(Object planName, Object error);
+  /// **'No pudimos iniciar el pago de {planName}. Intenta nuevamente.'**
+  String paymentStartError(Object planName);
 
   /// No description provided for @pdfsPerDay.
   ///

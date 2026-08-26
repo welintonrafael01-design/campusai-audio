@@ -60,8 +60,8 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
 
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppTheme.surface,
       isScrollControlled: true,
+      showDragHandle: true,
       builder: (context) => SafeArea(
         child: Padding(
           padding: EdgeInsets.fromLTRB(
@@ -181,7 +181,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                       ),
                       const SizedBox(height: 24),
                     ],
-                    const _SectionTitle('ESTUDIAR CON IA'),
+                    const _SectionTitle('Estudiar con IA'),
                     const SizedBox(height: 12),
                     _ActionGrid(
                       actions: [
@@ -232,7 +232,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                       ],
                     ),
                     const SizedBox(height: 24),
-                    const _SectionTitle('DOCUMENTO'),
+                    const _SectionTitle('Documento'),
                     const SizedBox(height: 12),
                     FilledButton.icon(
                       onPressed: () => runAndClose(widget.onOpenPdf),
@@ -240,7 +240,7 @@ class _DocumentDetailScreenState extends State<DocumentDetailScreen> {
                       label: const Text('Abrir PDF'),
                     ),
                     const SizedBox(height: 24),
-                    const _SectionTitle('ACCIONES SECUNDARIAS'),
+                    const _SectionTitle('Más acciones'),
                     const SizedBox(height: 12),
                     SectionCard(
                       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -310,11 +310,7 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: const TextStyle(
-        color: AppTheme.textPrimary,
-        fontSize: 13,
-        fontWeight: FontWeight.w900,
-      ),
+      style: Theme.of(context).textTheme.titleMedium,
     );
   }
 }

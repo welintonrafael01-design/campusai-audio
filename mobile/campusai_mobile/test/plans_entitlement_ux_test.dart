@@ -27,7 +27,7 @@ void main() {
     const PlanGuardService().resetToFree();
   });
 
-  for (final width in const [360.0, 430.0]) {
+  for (final width in const [320.0, 360.0, 430.0]) {
     testWidgets(
       'canonical plans remain responsive at ${width.toInt()} px',
       (tester) async {

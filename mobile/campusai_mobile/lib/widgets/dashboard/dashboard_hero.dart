@@ -192,7 +192,7 @@ class DashboardHero extends StatelessWidget {
                   ),
                   _HeroPill(
                     icon: Icons.chat_bubble_rounded,
-                    text: 'Chat RAG',
+                    text: 'Chat con fuentes',
                   ),
                 ],
               ),
@@ -215,8 +215,8 @@ class DashboardHero extends StatelessWidget {
                   Expanded(
                     flex: isMobile ? 0 : 1,
                     child: _HeroMetric(
-                      label: 'Estado RAG',
-                      value: hasActiveDocument ? l10n.ragActive : l10n.ragReady,
+                      label: 'Documento',
+                      value: hasActiveDocument ? 'Conectado' : l10n.ragReady,
                       icon: Icons.hub_rounded,
                     ),
                   ),

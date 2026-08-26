@@ -887,7 +887,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     };
   }
 
-  Widget buildSourceFilterMenu() {
+  Widget buildSourceFilterMenu({bool compact = false}) {
     return PopupMenuButton<LibrarySourceFilter>(
       tooltip: 'Filtrar por ubicación',
       color: AppTheme.surface,
@@ -928,7 +928,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       child: Container(
         key: const Key('library-location-filter'),
         constraints: const BoxConstraints(minHeight: 52),
-        padding: const EdgeInsets.symmetric(horizontal: 14),
+        padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 14),
         decoration: BoxDecoration(
           color: AppTheme.card,
           borderRadius: BorderRadius.circular(18),
@@ -939,8 +939,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.tune_rounded, color: AppTheme.accent),
-            const SizedBox(width: 8),
+            if (!compact) ...[
+              const Icon(Icons.tune_rounded, color: AppTheme.accent),
+              const SizedBox(width: 8),
+            ],
             Expanded(
               child: Text(
                 selectedSourceFilter == LibrarySourceFilter.all
@@ -1015,7 +1017,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     return sorted;
   }
 
-  Widget buildSortDropdown() {
+  Widget buildSortDropdown({bool compact = false}) {
     return PopupMenuButton<LibrarySortOption>(
       color: AppTheme.surface,
       elevation: 14,
@@ -1054,9 +1056,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         }).toList();
       },
       child: Container(
+        key: const Key('library-sort-filter'),
         constraints: const BoxConstraints(minHeight: 52),
-        padding: const EdgeInsets.symmetric(
-          horizontal: 14,
+        padding: EdgeInsets.symmetric(
+          horizontal: compact ? 10 : 14,
           vertical: 12,
         ),
         decoration: BoxDecoration(
@@ -1069,24 +1072,25 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.sort_rounded,
-              color: AppTheme.accent,
-              size: 20,
-            ),
-            const SizedBox(width: 10),
+            if (!compact) ...[
+              const Icon(
+                Icons.sort_rounded,
+                color: AppTheme.accent,
+                size: 20,
+              ),
+              const SizedBox(width: 10),
+            ],
             Expanded(
               child: Text(
                 sortLabel(selectedSortOption),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
                 style: const TextStyle(
                   color: AppTheme.textPrimary,
                   fontWeight: FontWeight.w900,
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: compact ? 4 : 8),
             const Icon(
               Icons.keyboard_arrow_down_rounded,
               color: AppTheme.accent,
@@ -1100,20 +1104,24 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   Widget buildSearchAndSortRow() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final controls = Row(
-          children: [
-            Expanded(child: buildSourceFilterMenu()),
-            const SizedBox(width: 10),
-            Expanded(child: buildSortDropdown()),
-          ],
-        );
-
         if (constraints.maxWidth < 620) {
           return Column(
             children: [
               buildSearchBox(),
               const SizedBox(height: 10),
-              controls,
+              Row(
+                children: [
+                  Expanded(
+                    flex: 4,
+                    child: buildSourceFilterMenu(compact: true),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    flex: 6,
+                    child: buildSortDropdown(compact: true),
+                  ),
+                ],
+              ),
             ],
           );
         }
@@ -1201,6 +1209,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       date: (item) => item.createdAt,
     );
   }
+
+  int get visibleItemCount => categoryCount(selectedCategory);
 
   Widget buildSearchBox() {
     return TextField(
@@ -1313,47 +1323,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 
   Widget buildEmptyState() {
     return SectionCard(
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              gradient: AppTheme.mainGradient,
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: const Icon(
-              Icons.library_books_rounded,
-              color: Colors.white,
-              size: 42,
-            ),
-          ),
-          const SizedBox(height: 18),
-          const Text(
-            'Tu biblioteca está vacía',
-            style: TextStyle(
-              color: AppTheme.textPrimary,
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Sube tu primer PDF para comenzar a crear resúmenes, AudioBooks, flashcards y exámenes.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppTheme.textMuted,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 18),
-          FilledButton.icon(
-            onPressed: () {
-              context.go('/dashboard');
-            },
-            icon: const Icon(Icons.upload_file_rounded),
-            label: const Text('Subir PDF'),
-          ),
-        ],
+      child: StudyBookEmptyState(
+        title: 'Tu biblioteca está vacía',
+        message:
+            'Sube tu primer PDF para crear resúmenes, AudioBooks, flashcards y evaluaciones.',
+        icon: Icons.library_books_rounded,
+        actionLabel: 'Subir PDF',
+        onAction: () => context.go('/dashboard'),
       ),
     );
   }
@@ -1365,7 +1341,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       );
     }
 
-    if (documents.isEmpty) {
+    if (documents.isEmpty &&
+        audiobooks.isEmpty &&
+        generatedItems.isEmpty &&
+        savedChats.isEmpty) {
       return buildEmptyState();
     }
 
@@ -1380,35 +1359,22 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         buildCategoryTabs(),
         const SizedBox(height: 14),
         buildSearchAndSortRow(),
-        if (sourceFilterCount(selectedSourceFilter) == 0) ...[
+        if (visibleItemCount == 0) ...[
           const SizedBox(height: 22),
           SectionCard(
-            child: Column(
-              children: [
-                const Icon(
-                  Icons.search_off_rounded,
-                  color: AppTheme.textMuted,
-                  size: 42,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'No hay elementos para mostrar',
-                  style: const TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Cambia el filtro, la categoría o el texto de búsqueda.',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: AppTheme.textMuted,
-                    height: 1.4,
-                  ),
-                ),
-              ],
+            child: StudyBookEmptyState(
+              title: 'No hay elementos para mostrar',
+              message: 'Cambia el filtro, la categoría o el texto de búsqueda.',
+              icon: Icons.search_off_rounded,
+              actionLabel: 'Limpiar filtros',
+              onAction: () {
+                searchController.clear();
+                setState(() {
+                  searchQuery = '';
+                  selectedCategory = LibraryCategory.all;
+                  selectedSourceFilter = LibrarySourceFilter.all;
+                });
+              },
             ),
           ),
         ],
@@ -1453,8 +1419,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         if ((shouldShowCategory(LibraryCategory.documents) ||
                 selectedCategory == LibraryCategory.favorites ||
                 selectedCategory == LibraryCategory.all) &&
-            filteredDocuments.isNotEmpty &&
-            sourceFilterCount(selectedSourceFilter) > 0) ...[
+            filteredDocuments.isNotEmpty) ...[
           const SizedBox(height: 18),
           ...filteredDocuments.map(
             (document) {
@@ -1476,14 +1441,17 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   }
 
   Widget buildBody() {
+    final compact = MediaQuery.sizeOf(context).width < 600;
+
     return ListView(
-      padding: const EdgeInsets.all(22),
+      padding: EdgeInsets.all(compact ? AppTheme.space16 : AppTheme.space24),
       children: [
         Container(
-          padding: const EdgeInsets.all(26),
+          padding:
+              EdgeInsets.all(compact ? AppTheme.space20 : AppTheme.space24),
           decoration: BoxDecoration(
             gradient: AppTheme.mainGradient,
-            borderRadius: BorderRadius.circular(30),
+            borderRadius: BorderRadius.circular(AppTheme.radiusExtraLarge),
           ),
           child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1495,10 +1463,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
               ),
               SizedBox(height: 12),
               Text(
-                'Biblioteca Inteligente',
+                'Tu biblioteca',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 30,
+                  fontSize: 28,
                   fontWeight: FontWeight.w900,
                 ),
               ),

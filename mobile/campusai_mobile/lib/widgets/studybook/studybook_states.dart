@@ -9,6 +9,7 @@ class StudyBookEmptyState extends StatelessWidget {
   final String message;
   final String actionLabel;
   final VoidCallback? onAction;
+  final IconData icon;
 
   const StudyBookEmptyState({
     super.key,
@@ -16,6 +17,7 @@ class StudyBookEmptyState extends StatelessWidget {
     required this.message,
     this.actionLabel = '',
     this.onAction,
+    this.icon = Icons.auto_stories_rounded,
   });
 
   @override
@@ -25,8 +27,8 @@ class StudyBookEmptyState extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
-            Icons.auto_stories_rounded,
+          Icon(
+            icon,
             color: AppTheme.accent,
             size: 30,
           ),
@@ -52,6 +54,32 @@ class StudyBookEmptyState extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+}
+
+class StudyBookErrorState extends StatelessWidget {
+  final String title;
+  final String message;
+  final String retryLabel;
+  final VoidCallback? onRetry;
+
+  const StudyBookErrorState({
+    super.key,
+    this.title = 'No pudimos cargar esta sección',
+    required this.message,
+    this.retryLabel = 'Reintentar',
+    this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return StudyBookEmptyState(
+      title: title,
+      message: message,
+      icon: Icons.error_outline_rounded,
+      actionLabel: retryLabel,
+      onAction: onRetry,
     );
   }
 }

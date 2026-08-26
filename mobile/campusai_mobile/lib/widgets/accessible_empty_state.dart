@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_theme.dart';
-import 'studybook/studybook_buttons.dart';
+import 'studybook/studybook_states.dart';
 
 class AccessibleEmptyState extends StatelessWidget {
   final String title;
@@ -21,35 +20,12 @@ class AccessibleEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      container: true,
-      label: '$title. $message',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: AppTheme.accent, size: 30),
-          const SizedBox(height: 10),
-          Text(
-            title,
-            style: const TextStyle(
-              color: AppTheme.textPrimary,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            message,
-            style: const TextStyle(color: AppTheme.textMuted, height: 1.4),
-          ),
-          if (onAction != null && actionLabel.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            StudyBookSecondaryButton(
-              label: actionLabel,
-              onPressed: onAction,
-            ),
-          ],
-        ],
-      ),
+    return StudyBookEmptyState(
+      title: title,
+      message: message,
+      actionLabel: actionLabel,
+      onAction: onAction,
+      icon: icon,
     );
   }
 }

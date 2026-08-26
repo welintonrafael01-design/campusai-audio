@@ -32,6 +32,8 @@ class StudyBookAppShell extends StatelessWidget {
               Expanded(child: child),
               NavigationBar(
                 selectedIndex: _selectedIndex(navigationItems),
+                labelBehavior:
+                    NavigationDestinationLabelBehavior.onlyShowSelected,
                 onDestinationSelected: (index) {
                   context.go(navigationItems[index].route);
                 },
@@ -85,14 +87,14 @@ class StudyBookAppShell extends StatelessWidget {
         selectedIcon: Icons.library_books_rounded,
       ),
       const _ShellNavigationItem(
-        label: 'Aprendizaje',
+        label: 'Aprender',
         route: '/learning',
         icon: Icons.auto_stories_outlined,
         selectedIcon: Icons.auto_stories_rounded,
       ),
       if (includeTeacher)
         const _ShellNavigationItem(
-          label: 'Teacher',
+          label: 'Docente',
           route: '/teacher',
           icon: Icons.school_outlined,
           selectedIcon: Icons.school_rounded,
