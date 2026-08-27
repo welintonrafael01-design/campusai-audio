@@ -26,9 +26,7 @@ class ExportService {
         .timeout(ApiService.timeoutDuration);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(
-        'No se pudo exportar PDF: ${response.body}',
-      );
+      _throwExportError('No se pudo exportar PDF.', response);
     }
 
     await PlatformFileService.saveBinaryFile(
@@ -57,9 +55,7 @@ class ExportService {
         .timeout(ApiService.timeoutDuration);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(
-        'No se pudo exportar DOCX: ${response.body}',
-      );
+      _throwExportError('No se pudo exportar DOCX.', response);
     }
 
     await PlatformFileService.saveBinaryFile(
@@ -88,9 +84,7 @@ class ExportService {
         .timeout(ApiService.timeoutDuration);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(
-        'No se pudo exportar PPTX: ${response.body}',
-      );
+      _throwExportError('No se pudo exportar PPTX.', response);
     }
 
     await PlatformFileService.saveBinaryFile(
@@ -119,9 +113,7 @@ class ExportService {
         .timeout(ApiService.timeoutDuration);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(
-        'No se pudo exportar Excel: ${response.body}',
-      );
+      _throwExportError('No se pudo exportar Excel.', response);
     }
 
     await PlatformFileService.saveBinaryFile(
@@ -154,9 +146,7 @@ class ExportService {
         .timeout(ApiService.timeoutDuration);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(
-        'No se pudo exportar Acta PDF: ${response.body}',
-      );
+      _throwExportError('No se pudo exportar Acta PDF.', response);
     }
 
     await PlatformFileService.saveBinaryFile(
@@ -185,9 +175,7 @@ class ExportService {
         .timeout(ApiService.timeoutDuration);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(
-        'No se pudo exportar planificación PDF: ${response.body}',
-      );
+      _throwExportError('No se pudo exportar planificación PDF.', response);
     }
 
     await PlatformFileService.saveBinaryFile(
@@ -222,9 +210,7 @@ class ExportService {
         .timeout(ApiService.timeoutDuration);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(
-        'No se pudo exportar rúbrica PDF: ${response.body}',
-      );
+      _throwExportError('No se pudo exportar rúbrica PDF.', response);
     }
 
     await PlatformFileService.saveBinaryFile(
@@ -255,9 +241,7 @@ class ExportService {
         .timeout(ApiService.timeoutDuration);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(
-        'No se pudo exportar examen PDF: ${response.body}',
-      );
+      _throwExportError('No se pudo exportar examen PDF.', response);
     }
 
     await PlatformFileService.saveBinaryFile(
@@ -294,7 +278,7 @@ class ExportService {
         .timeout(ApiService.timeoutDuration);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('No se pudo exportar certificado PDF: ${response.body}');
+      _throwExportError('No se pudo exportar certificado PDF.', response);
     }
 
     await PlatformFileService.saveBinaryFile(
@@ -331,8 +315,10 @@ class ExportService {
         .timeout(ApiService.timeoutDuration);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(
-          'No se pudo exportar insignia académica PDF: ${response.body}');
+      _throwExportError(
+        'No se pudo exportar insignia académica PDF.',
+        response,
+      );
     }
 
     await PlatformFileService.saveBinaryFile(
@@ -379,8 +365,10 @@ class ExportService {
         .timeout(ApiService.timeoutDuration);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(
-          'No se pudo exportar expediente académico PDF: ${response.body}');
+      _throwExportError(
+        'No se pudo exportar expediente académico PDF.',
+        response,
+      );
     }
 
     await PlatformFileService.saveBinaryFile(
@@ -398,5 +386,13 @@ class ExportService {
     }
 
     return clean.length > 80 ? clean.substring(0, 80) : clean;
+  }
+
+  static Never _throwExportError(String action, http.Response response) {
+    final detail = ApiService.safeErrorMessage(
+      statusCode: response.statusCode,
+      body: response.body,
+    );
+    throw Exception('$action $detail');
   }
 }

@@ -20,6 +20,7 @@ import '../services/chat_history_service.dart';
 import '../services/study_result_repository.dart';
 import '../services/document_resource_cleanup_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/safe_external_url.dart';
 import '../utils/document_display_title.dart';
 import '../widgets/section_card.dart';
 import '../widgets/mini_player.dart';
@@ -420,6 +421,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       );
 
       final uri = Uri.parse(signedUrl);
+      if (!isSafeExternalUri(uri, allowLoopbackHttp: true)) {
+        throw StateError('La URL del documento no es segura.');
+      }
       final launched = await launchUrl(
         uri,
         mode: LaunchMode.externalApplication,

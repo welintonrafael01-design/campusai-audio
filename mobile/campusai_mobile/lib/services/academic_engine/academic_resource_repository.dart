@@ -34,7 +34,10 @@ class AcademicResourceRepository {
       }
       return true;
     } catch (cloudError) {
-      debugPrint('No se pudo guardar $cloudDebugLabel en cloud: $cloudError');
+      debugPrint(
+        'No se pudo guardar $cloudDebugLabel en cloud '
+        '(${cloudError.runtimeType}).',
+      );
       return false;
     }
   }

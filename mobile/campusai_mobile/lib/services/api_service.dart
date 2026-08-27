@@ -1134,7 +1134,10 @@ class ApiService {
       final body = await streamedResponse.stream.bytesToString();
 
       throw Exception(
-        'Error del servidor: $body',
+        safeErrorMessage(
+          statusCode: streamedResponse.statusCode,
+          body: body,
+        ),
       );
     }
 
@@ -1254,14 +1257,45 @@ class ApiService {
     final decoded = tryDecodeJson(body);
 
     if (statusCode < 200 || statusCode >= 300) {
-      final detail = decoded['detail'] ?? body;
-
       throw Exception(
-        'Error del servidor: $detail',
+        safeErrorMessage(
+          statusCode: statusCode,
+          body: body,
+          decoded: decoded,
+        ),
       );
     }
 
     return decoded;
+  }
+
+  static String safeErrorMessage({
+    required int statusCode,
+    required String body,
+    Map<String, dynamic>? decoded,
+  }) {
+    if (statusCode >= 500) {
+      return 'El servidor no pudo completar la solicitud. Inténtalo nuevamente.';
+    }
+
+    Map<String, dynamic> data = decoded ?? const {};
+    if (data.isEmpty) {
+      try {
+        data = tryDecodeJson(body);
+      } catch (_) {
+        return 'No se pudo completar la solicitud.';
+      }
+    }
+
+    final detail = data['detail'];
+    if (detail is String && detail.trim().isNotEmpty) {
+      final cleanDetail = detail.replaceAll(RegExp(r'[\r\n\t]+'), ' ').trim();
+      return cleanDetail.length <= 500
+          ? cleanDetail
+          : '${cleanDetail.substring(0, 497)}...';
+    }
+
+    return 'No se pudo completar la solicitud.';
   }
 
   // =========================

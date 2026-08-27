@@ -21,6 +21,11 @@ PATTERNS = (
         r"\1[REDACTED]",
     ),
     (re.compile(r"\bsk_(?:live|test)_[A-Za-z0-9_]+\b"), "[REDACTED_STRIPE_KEY]"),
+    (re.compile(r"\bsk-(?:proj-)?[A-Za-z0-9_-]{16,}\b"), "[REDACTED_OPENAI_KEY]"),
+    (
+        re.compile(r"\bsb_(?:publishable|secret)_[A-Za-z0-9_-]{16,}\b"),
+        "[REDACTED_SUPABASE_KEY]",
+    ),
     (re.compile(r"\b(?:eyJ[a-zA-Z0-9_-]+\.){2}[a-zA-Z0-9_-]+\b"), "[REDACTED_JWT]"),
 )
 

@@ -13,6 +13,8 @@ class SafeDebugLog {
   }
 
   static void uploadCompleted(Map<String, dynamic> response) {
-    debugPrint(uploadCompletedMessage(response));
+    if (kDebugMode) {
+      debugPrint(uploadCompletedMessage(response));
+    }
   }
 }

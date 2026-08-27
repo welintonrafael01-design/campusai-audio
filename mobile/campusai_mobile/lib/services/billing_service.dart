@@ -8,6 +8,7 @@ import 'api_service.dart';
 import 'auth_service.dart';
 import 'plan_guard_service.dart';
 import 'subscription_service.dart';
+import '../utils/safe_external_url.dart';
 
 class BillingService {
   const BillingService();
@@ -61,6 +62,9 @@ class BillingService {
     }
 
     final uri = Uri.parse(checkoutUrl);
+    if (!isSafeExternalUri(uri)) {
+      throw StateError('El servidor devolvió una URL de pago no segura.');
+    }
     final launched = await launchUrl(
       uri,
       mode: LaunchMode.externalApplication,
@@ -134,6 +138,10 @@ class BillingService {
     }
 
     final uri = Uri.parse(portalUrl);
+    if (!isSafeExternalUri(uri)) {
+      throw StateError(
+          'El servidor devolvió una URL de facturación no segura.');
+    }
     final launched = await launchUrl(
       uri,
       mode: LaunchMode.externalApplication,

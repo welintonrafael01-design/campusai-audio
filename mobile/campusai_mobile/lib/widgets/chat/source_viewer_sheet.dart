@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/document_service.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/safe_external_url.dart';
 
 class SourceViewerSheet extends StatelessWidget {
   final String documentId;
@@ -32,6 +33,9 @@ class SourceViewerSheet extends StatelessWidget {
       pageNumber: pageNumber,
     );
     final uri = Uri.parse(url);
+    if (!isSafeExternalUri(uri, allowLoopbackHttp: true)) {
+      throw StateError('La URL del documento no es segura.');
+    }
 
     final opened = await launchUrl(
       uri,
