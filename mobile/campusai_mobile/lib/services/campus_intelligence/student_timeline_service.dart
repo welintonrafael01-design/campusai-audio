@@ -152,7 +152,7 @@ class StudentTimelineService {
   ) {
     return StudentTimelineItem(
       itemId: itemId,
-      title: 'Snapshot CampusAI',
+      title: 'Snapshot StudyBook AI',
       description:
           'Score ${snapshot.studentScore}% · Riesgo ${snapshot.academicRisk}',
       category: 'snapshot',

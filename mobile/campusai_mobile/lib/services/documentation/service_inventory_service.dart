@@ -12,7 +12,10 @@ class ServiceInventoryService {
       ServiceInventoryItem(name: 'Academic Engine', module: 'Teacher Studio'),
       ServiceInventoryItem(name: 'Learning Engine', module: 'Student Studio'),
       ServiceInventoryItem(name: 'Voice Intelligence', module: 'Voice'),
-      ServiceInventoryItem(name: 'CampusAI Intelligence', module: 'CampusAI'),
+      ServiceInventoryItem(
+        name: 'StudyBook AI Intelligence',
+        module: 'StudyBook AI',
+      ),
       ServiceInventoryItem(name: 'Marketplace Service', module: 'Marketplace'),
       ServiceInventoryItem(name: 'Institution Service', module: 'Institution'),
       ServiceInventoryItem(name: 'Gamification Service', module: 'Student'),

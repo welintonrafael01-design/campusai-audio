@@ -10,7 +10,7 @@ class RcModuleStatusService {
         RcModuleStatus(module: 'Student Studio'),
         RcModuleStatus(module: 'AudioBook'),
         RcModuleStatus(module: 'Voice'),
-        RcModuleStatus(module: 'CampusAI'),
+        RcModuleStatus(module: 'StudyBook AI'),
         RcModuleStatus(module: 'Marketplace', status: 'foundation'),
         RcModuleStatus(module: 'Institution', status: 'foundation'),
         RcModuleStatus(module: 'Gamification'),

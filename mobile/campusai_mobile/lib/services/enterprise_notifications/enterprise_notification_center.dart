@@ -96,7 +96,7 @@ class EnterpriseNotificationCenter {
         if (snapshot?.alerts.isNotEmpty == true)
           EnterpriseNotification(
               id: 'campus_alert',
-              title: 'CampusAI',
+              title: 'StudyBook AI',
               message: snapshot!.alerts.first,
               priority: NotificationPriority.high,
               category: NotificationCategory.campus,

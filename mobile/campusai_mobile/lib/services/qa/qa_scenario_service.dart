@@ -50,8 +50,8 @@ class QaScenarioService {
         ),
         QaScenario(
           id: 'campusai_dashboard',
-          title: 'CampusAI Dashboard',
-          area: 'CampusAI',
+          title: 'StudyBook AI Dashboard',
+          area: 'StudyBook AI',
         ),
         QaScenario(
           id: 'gamification',

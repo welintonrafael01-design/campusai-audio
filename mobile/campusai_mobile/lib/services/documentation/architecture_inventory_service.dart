@@ -9,7 +9,7 @@ class ArchitectureInventoryService {
         ModuleInventoryItem(name: 'Student Studio'),
         ModuleInventoryItem(name: 'AudioBook Studio'),
         ModuleInventoryItem(name: 'Voice Intelligence'),
-        ModuleInventoryItem(name: 'CampusAI Intelligence'),
+        ModuleInventoryItem(name: 'StudyBook AI Intelligence'),
         ModuleInventoryItem(
             name: 'Marketplace Foundation', status: 'foundation'),
         ModuleInventoryItem(name: 'Institution Platform', status: 'foundation'),

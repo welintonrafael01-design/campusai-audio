@@ -19,8 +19,8 @@ class BetaProgramService {
           area: 'AudioBook',
         ),
         const QaManualChecklistItem(
-          title: 'Revisar snapshot y acciones de CampusAI',
-          area: 'CampusAI',
+          title: 'Revisar snapshot y acciones de StudyBook AI',
+          area: 'StudyBook AI',
         ),
         const QaManualChecklistItem(
           title: 'Enviar feedback local de beta',
