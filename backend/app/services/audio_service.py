@@ -2,8 +2,10 @@ from openai import OpenAI
 from dotenv import load_dotenv
 
 from pathlib import Path
+from hashlib import sha256
 
 import os
+import re
 import uuid
 
 load_dotenv()
@@ -24,7 +26,41 @@ AUDIO_FOLDER.mkdir(
 MAX_TTS_CHARACTERS = 4000
 
 
-def generate_audio_from_text(text: str) -> str:
+def _safe_audio_filename(value: str) -> str:
+    clean_value = re.sub(r"[^a-zA-Z0-9_.-]+", "_", value.strip())
+    return clean_value.strip("._")[:160]
+
+
+def audio_owner_scope(user_id: str) -> str:
+    clean_user_id = user_id.strip()
+    if not clean_user_id:
+        raise ValueError("No se pudo identificar al propietario del audio.")
+    return sha256(clean_user_id.encode("utf-8")).hexdigest()[:20]
+
+
+def audio_filename_belongs_to_user(*, user_id: str, filename: str) -> bool:
+    clean_filename = _safe_audio_filename(filename)
+    return bool(clean_filename) and clean_filename.startswith(
+        f"{audio_owner_scope(user_id)}_"
+    )
+
+
+def audio_file_path(filename: str) -> Path | None:
+    clean_filename = _safe_audio_filename(filename)
+    if (
+        not clean_filename
+        or clean_filename != filename
+        or not clean_filename.endswith(".mp3")
+    ):
+        return None
+
+    audio_path = AUDIO_FOLDER / clean_filename
+    if not audio_path.exists() or not audio_path.is_file():
+        return None
+    return audio_path
+
+
+def generate_audio_from_text(text: str, *, user_id: str) -> str:
     clean_text = clean_input_text(text)
 
     if not clean_text:
@@ -32,7 +68,7 @@ def generate_audio_from_text(text: str) -> str:
             "No hay texto válido para generar audio."
         )
 
-    audio_filename = f"{uuid.uuid4()}.mp3"
+    audio_filename = f"{audio_owner_scope(user_id)}_{uuid.uuid4().hex}.mp3"
 
     audio_path = AUDIO_FOLDER / audio_filename
 
@@ -48,9 +84,7 @@ def generate_audio_from_text(text: str) -> str:
         response.write_to_file(str(audio_path))
 
     except Exception as error:
-        raise Exception(
-            f"Error generando audio IA: {error}"
-        )
+        raise RuntimeError("No se pudo generar el audio solicitado.") from error
 
     return audio_filename
 
@@ -113,6 +147,8 @@ def split_text_into_chapters(
 
 def generate_audiobook_from_text(
     text: str,
+    *,
+    user_id: str,
     max_chapters: int = 6,
 ) -> list[dict]:
     chapters = split_text_into_chapters(text)
@@ -124,7 +160,10 @@ def generate_audiobook_from_text(
     audiobook: list[dict] = []
 
     for index, chapter_text in enumerate(selected_chapters, start=1):
-        audio_filename = generate_audio_from_text(chapter_text)
+        audio_filename = generate_audio_from_text(
+            chapter_text,
+            user_id=user_id,
+        )
 
         audiobook.append(
             {

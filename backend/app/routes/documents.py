@@ -113,6 +113,7 @@ UPLOAD_FOLDER.mkdir(
 )
 
 MAX_UPLOAD_SIZE_MB = 25
+MAX_UPLOAD_SIZE_BYTES = MAX_UPLOAD_SIZE_MB * 1024 * 1024
 
 
 def build_upload_response(
@@ -190,7 +191,17 @@ async def save_upload_file(
         file.filename or "document.pdf"
     )
 
-    content = await file.read()
+    content = await read_upload_content(file)
+
+    validate_pdf_signature(content)
+
+    file_path.write_bytes(content)
+
+    return file_path
+
+
+async def read_upload_content(file: UploadFile) -> bytes:
+    content = await file.read(MAX_UPLOAD_SIZE_BYTES + 1)
 
     if not content:
         raise HTTPException(
@@ -198,13 +209,7 @@ async def save_upload_file(
             detail="El archivo está vacío.",
         )
 
-    validate_pdf_signature(content)
-
-    size_mb = (
-        len(content) / (1024 * 1024)
-    )
-
-    if size_mb > MAX_UPLOAD_SIZE_MB:
+    if len(content) > MAX_UPLOAD_SIZE_BYTES:
         raise HTTPException(
             status_code=413,
             detail=(
@@ -213,9 +218,16 @@ async def save_upload_file(
             ),
         )
 
-    file_path.write_bytes(content)
+    return content
 
-    return file_path
+
+def remove_temporary_file(file_path: Path | None) -> None:
+    if file_path is None:
+        return
+    try:
+        file_path.unlink(missing_ok=True)
+    except OSError:
+        pass
 
 
 
@@ -304,6 +316,8 @@ async def import_grades_excel(
     file: UploadFile = File(...),
     current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
+    file_path: Path | None = None
+    workbook = None
     try:
         filename = file.filename or "grades.xlsx"
 
@@ -313,7 +327,12 @@ async def import_grades_excel(
                 detail="El archivo debe ser Excel .xlsx o .xlsm.",
             )
 
-        content = await file.read()
+        content = await read_upload_content(file)
+        if not content.startswith(b"PK"):
+            raise HTTPException(
+                status_code=400,
+                detail="El archivo no parece ser un Excel válido.",
+            )
 
         uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
         uploads_dir.mkdir(parents=True, exist_ok=True)
@@ -498,6 +517,10 @@ async def import_grades_excel(
             status_code=500,
             detail="No se pudo importar el archivo de calificaciones.",
         ) from error
+    finally:
+        if workbook is not None:
+            workbook.close()
+        remove_temporary_file(file_path)
 
 
 @router.post("/import-grades-pdf")
@@ -510,10 +533,11 @@ async def import_grades_pdf(
     bloom_level: str = Query(default=""),
     current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
+    file_path: Path | None = None
     try:
         validate_pdf_file(file)
 
-        content = await file.read()
+        content = await read_upload_content(file)
         validate_pdf_signature(content)
 
         uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
@@ -555,6 +579,8 @@ async def import_grades_pdf(
             status_code=500,
             detail="No se pudo importar el PDF de calificaciones.",
         ) from error
+    finally:
+        remove_temporary_file(file_path)
 
 @router.post("/import-students-pdf")
 async def import_students_pdf(
@@ -562,10 +588,11 @@ async def import_students_pdf(
     language: str = Query(default="es"),
     current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
+    file_path: Path | None = None
     try:
         validate_pdf_file(file)
 
-        content = await file.read()
+        content = await read_upload_content(file)
         validate_pdf_signature(content)
 
         uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
@@ -607,6 +634,8 @@ async def import_students_pdf(
             status_code=500,
             detail="No se pudo importar el PDF de estudiantes.",
         ) from error
+    finally:
+        remove_temporary_file(file_path)
 
 @router.post("/upload")
 async def upload_document(
@@ -1574,7 +1603,13 @@ async def document_info(
             current_user=current_user,
         )
 
-        return info
+        return {
+            "document_id": info.get("document_id") or document_id,
+            "filename": info.get("filename") or "document.pdf",
+            "uploaded_at": info.get("uploaded_at"),
+            "size_bytes": info.get("size_bytes") or 0,
+            "available": True,
+        }
     except HTTPException:
         raise
     except Exception as error:
@@ -1674,7 +1709,10 @@ async def generate_audio_endpoint(
                 detail="El texto para generar audio está vacío.",
             )
 
-        audio_filename = generate_audio_from_text(text)
+        audio_filename = generate_audio_from_text(
+            text,
+            user_id=current_user.user_id,
+        )
 
         print(f"[AUDIO] total: {time.perf_counter() - start_time:.2f}s")
 
@@ -1687,11 +1725,14 @@ async def generate_audio_endpoint(
         raise
 
     except Exception as error:
-        print(f"[AUDIO] error after {time.perf_counter() - start_time:.2f}s: {error}")
+        print(
+            f"[AUDIO] failed after {time.perf_counter() - start_time:.2f}s "
+            f"type={type(error).__name__}"
+        )
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo generar el audio en este momento.",
+        ) from error
 
 
 
@@ -1714,6 +1755,7 @@ async def generate_audiobook_endpoint(
 
         chapters = generate_audiobook_from_text(
             text=text,
+            user_id=current_user.user_id,
             max_chapters=max_chapters,
         )
 
@@ -1742,13 +1784,14 @@ async def generate_audiobook_endpoint(
 
     except Exception as error:
         print(
-            f"[AUDIOBOOK] error after "
-            f"{time.perf_counter() - start_time:.2f}s: {error}"
+            f"[AUDIOBOOK] failed after "
+            f"{time.perf_counter() - start_time:.2f}s "
+            f"type={type(error).__name__}"
         )
         raise HTTPException(
             status_code=500,
-            detail=str(error),
-        )
+            detail="No se pudo generar el AudioBook en este momento.",
+        ) from error
 
 
 

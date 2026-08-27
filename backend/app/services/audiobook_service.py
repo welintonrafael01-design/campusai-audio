@@ -7,6 +7,7 @@ from uuid import uuid4
 
 from app.services.ai_service import (
     MODEL_NAME,
+    UNTRUSTED_CONTENT_BOUNDARY,
     build_language_instruction,
     clean_text,
     client,
@@ -318,6 +319,7 @@ def generate_audiobook_payload(
                         "Eres StudyBook AI, un diseñador instruccional experto "
                         "en audio aprendizaje. Convierte contenido académico en "
                         "guiones narrados claros para estudiantes. "
+                        f"{UNTRUSTED_CONTENT_BOUNDARY}"
                         f"{language_instruction}"
                     ),
                 },
@@ -615,6 +617,7 @@ def generate_learning_pack(
                     "content": (
                         "Eres StudyBook AI, un diseñador de actividades de "
                         "aprendizaje para estudiantes. Devuelve solo JSON válido. "
+                        f"{UNTRUSTED_CONTENT_BOUNDARY}"
                         f"{language_instruction}"
                     ),
                 },

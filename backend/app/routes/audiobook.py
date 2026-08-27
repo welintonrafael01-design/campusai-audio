@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.security.user_auth import AuthenticatedUser, require_current_user
 from app.services.audiobook_service import (
@@ -21,38 +21,42 @@ router = APIRouter(
 )
 
 
-class AudioBookGeneratePayload(BaseModel):
-    title: str = ""
-    text: str = ""
-    source_mode: str = "solo"
-    source_type: str = "text"
-    source_document_id: str = ""
-    course_id: str = ""
-    course_name: str = ""
-    unit_id: str = ""
-    unit_topic: str = ""
-    language: str = "es"
-    voice_profile: str = "standard"
+class AudioBookRequestModel(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
 
-class AudioBookChapterAudioPayload(BaseModel):
-    audiobook_id: str = ""
-    chapter_id: str = ""
-    chapter_title: str = ""
-    script: str = ""
-    voice_profile: str = "standard"
-    language: str = "es"
+class AudioBookGeneratePayload(AudioBookRequestModel):
+    title: str = Field(default="", max_length=300)
+    text: str = Field(default="", max_length=120000)
+    source_mode: str = Field(default="solo", max_length=64)
+    source_type: str = Field(default="text", max_length=64)
+    source_document_id: str = Field(default="", max_length=255)
+    course_id: str = Field(default="", max_length=255)
+    course_name: str = Field(default="", max_length=300)
+    unit_id: str = Field(default="", max_length=255)
+    unit_topic: str = Field(default="", max_length=500)
+    language: str = Field(default="es", max_length=16)
+    voice_profile: str = Field(default="standard", max_length=64)
 
 
-class AudioBookLearningPackPayload(BaseModel):
-    audiobook_id: str = ""
-    chapter_id: str = ""
-    chapter_title: str = ""
-    summary: str = ""
-    script: str = ""
-    transcript: str = ""
-    key_concepts: list[str] = []
-    language: str = "es"
+class AudioBookChapterAudioPayload(AudioBookRequestModel):
+    audiobook_id: str = Field(default="", max_length=255)
+    chapter_id: str = Field(default="", max_length=255)
+    chapter_title: str = Field(default="", max_length=500)
+    script: str = Field(default="", max_length=12000)
+    voice_profile: str = Field(default="standard", max_length=64)
+    language: str = Field(default="es", max_length=16)
+
+
+class AudioBookLearningPackPayload(AudioBookRequestModel):
+    audiobook_id: str = Field(default="", max_length=255)
+    chapter_id: str = Field(default="", max_length=255)
+    chapter_title: str = Field(default="", max_length=500)
+    summary: str = Field(default="", max_length=12000)
+    script: str = Field(default="", max_length=12000)
+    transcript: str = Field(default="", max_length=20000)
+    key_concepts: list[str] = Field(default_factory=list, max_length=100)
+    language: str = Field(default="es", max_length=16)
 
 
 @router.post("/generate")
@@ -86,7 +90,7 @@ async def generate_audiobook_endpoint(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=f"No se pudo generar el Audio Libro: {error}",
+            detail="No se pudo generar el Audio Libro en este momento.",
         ) from error
 
 
@@ -115,7 +119,7 @@ async def generate_chapter_audio_endpoint(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=f"No se pudo generar el audio del capítulo: {error}",
+            detail="No se pudo generar el audio del capítulo en este momento.",
         ) from error
 
 
@@ -147,7 +151,7 @@ async def generate_learning_pack_endpoint(
     except Exception as error:
         raise HTTPException(
             status_code=500,
-            detail=f"No se pudo generar el paquete de aprendizaje: {error}",
+            detail="No se pudo generar el paquete de aprendizaje en este momento.",
         ) from error
 
 

@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from app.middleware.security_middleware import SecurityMiddleware
 
 load_dotenv()
@@ -21,16 +20,15 @@ from app.routes.billing import router as billing_router
 from app.routes.educator import router as educator_router
 from app.routes.audiobook import router as audiobook_router
 from app.routes.voice import router as voice_router
+from app.routes.audio import router as audio_router
 
 
 APP_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = APP_DIR.parent
 
-AUDIO_DIR = APP_DIR / "audio"
 UPLOADS_DIR = PROJECT_DIR / "uploads"
 CHROMA_DIR = PROJECT_DIR / "chroma_db"
 
-AUDIO_DIR.mkdir(parents=True, exist_ok=True)
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 CHROMA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -59,6 +57,17 @@ def get_cors_origin_regex() -> str | None:
     return value or None
 
 
+def api_docs_enabled() -> bool:
+    explicit = os.getenv("ENABLE_API_DOCS", "").strip().lower()
+    if explicit:
+        return explicit in {"1", "true", "yes", "on"}
+
+    environment = os.getenv("APP_ENV", "development").strip().lower()
+    return environment not in {"production", "prod"}
+
+
+docs_enabled = api_docs_enabled()
+
 app = FastAPI(
     title="StudyBook AI API",
     description=(
@@ -66,6 +75,9 @@ app = FastAPI(
         "RAG, chat académico y audio inteligente."
     ),
     version="1.0.0",
+    docs_url="/docs" if docs_enabled else None,
+    redoc_url="/redoc" if docs_enabled else None,
+    openapi_url="/openapi.json" if docs_enabled else None,
 )
 
 
@@ -74,8 +86,16 @@ app.add_middleware(
     allow_origins=get_cors_origins(),
     allow_origin_regex=get_cors_origin_regex(),
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "Accept",
+        "Origin",
+        "X-Admin-Key",
+        "X-Request-ID",
+    ],
+    expose_headers=["Content-Disposition", "X-Request-ID", "X-Process-Time"],
 )
 
 app.add_middleware(
@@ -96,13 +116,7 @@ app.include_router(billing_router)
 app.include_router(educator_router)
 app.include_router(audiobook_router)
 app.include_router(voice_router)
-
-
-app.mount(
-    "/audio",
-    StaticFiles(directory=str(AUDIO_DIR)),
-    name="audio",
-)
+app.include_router(audio_router)
 
 
 @app.get("/")
@@ -112,5 +126,4 @@ def home():
         "message": "StudyBook AI API funcionando correctamente.",
         "status": "online",
         "version": "1.0.0",
-        "audio_dir": str(AUDIO_DIR),
     }

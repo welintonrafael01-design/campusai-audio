@@ -156,7 +156,7 @@ async def export_student_transcript_pdf(
 @router.post("/academic-badge-pdf")
 async def export_academic_badge_pdf(
     payload: AcademicBadgePdfPayload,
-    current_user: AuthenticatedUser = Depends(require_current_user),
+    current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
     try:
         plan = enforce_export_permission(
@@ -168,7 +168,7 @@ async def export_academic_badge_pdf(
 
         if not certificate_id:
             year = datetime.now().strftime("%Y")
-            raw = f"BADGE|{payload.student_code}|{payload.student_name}|{payload.course_name}|{payload.average}|{payload.badge_title}|{year}"
+            raw = f"{current_user.user_id}|BADGE|{payload.student_code}|{payload.student_name}|{payload.course_name}|{payload.average}|{payload.badge_title}|{year}"
             digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:8].upper()
             certificate_id = f"BADGE-{year}-{digest}"
 
@@ -178,16 +178,19 @@ async def export_academic_badge_pdf(
             else "badge"
         )
 
-        save_certificate({
-            "certificate_id": certificate_id,
-            "student_name": payload.student_name,
-            "student_code": payload.student_code,
-            "course_name": payload.course_name,
-            "average": payload.average,
-            "period": payload.badge_title,
-            "recognition_type": badge_type,
-            "status": "valid",
-        })
+        save_certificate(
+            {
+                "certificate_id": certificate_id,
+                "student_name": payload.student_name,
+                "student_code": payload.student_code,
+                "course_name": payload.course_name,
+                "average": payload.average,
+                "period": payload.badge_title,
+                "recognition_type": badge_type,
+                "status": "valid",
+            },
+            user_id=current_user.user_id,
+        )
 
         pdf_bytes = build_academic_badge_pdf(
             student_name=payload.student_name,
@@ -229,7 +232,7 @@ async def export_academic_badge_pdf(
 @router.post("/certificate-pdf")
 async def export_certificate_pdf(
     payload: CertificatePdfPayload,
-    current_user: AuthenticatedUser = Depends(require_current_user),
+    current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
     try:
         plan = enforce_export_permission(
@@ -241,7 +244,7 @@ async def export_certificate_pdf(
 
         if not certificate_id:
             year = datetime.now().strftime("%Y")
-            raw = f"{payload.student_code}|{payload.student_name}|{payload.course_name}|{payload.average}|{payload.period}|{year}"
+            raw = f"{current_user.user_id}|{payload.student_code}|{payload.student_name}|{payload.course_name}|{payload.average}|{payload.period}|{year}"
             digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:8].upper()
             certificate_id = f"CERT-{year}-{digest}"
 
@@ -251,16 +254,19 @@ async def export_certificate_pdf(
             else "certificate"
         )
 
-        save_certificate({
-            "certificate_id": certificate_id,
-            "student_name": payload.student_name,
-            "student_code": payload.student_code,
-            "course_name": payload.course_name,
-            "average": payload.average,
-            "period": payload.period,
-            "recognition_type": certificate_type,
-            "status": "valid",
-        })
+        save_certificate(
+            {
+                "certificate_id": certificate_id,
+                "student_name": payload.student_name,
+                "student_code": payload.student_code,
+                "course_name": payload.course_name,
+                "average": payload.average,
+                "period": payload.period,
+                "recognition_type": certificate_type,
+                "status": "valid",
+            },
+            user_id=current_user.user_id,
+        )
 
         pdf_bytes = build_certificate_pdf(
             student_name=payload.student_name,

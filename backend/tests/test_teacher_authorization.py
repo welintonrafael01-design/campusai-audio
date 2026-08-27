@@ -2,9 +2,10 @@ import pytest
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
-from app.routes import certificates, documents, educator
+from app.routes import certificates, documents, educator, export
 from app.security import teacher_auth
 from app.security import user_auth
+from app.services import certificate_service
 from app.security.teacher_auth import has_teacher_access, require_teacher_access
 from app.security.user_auth import AuthenticatedUser, require_current_user
 
@@ -43,6 +44,7 @@ def _authorized_client(
     app.include_router(educator.router)
     app.include_router(documents.router)
     app.include_router(certificates.router)
+    app.include_router(export.router)
     app.dependency_overrides[require_current_user] = lambda: user
     monkeypatch.setattr(
         teacher_auth,
@@ -195,6 +197,24 @@ def test_educator_row_ids_are_scoped_per_user_and_namespace():
     assert len(first) == 32
 
 
+def test_educator_snapshot_never_expands_identity_by_email(monkeypatch):
+    monkeypatch.setattr(
+        educator,
+        "get_supabase_admin_client",
+        lambda: pytest.fail("Identity lookup must not query subscriptions by email."),
+    )
+
+    candidates = educator._candidate_user_ids(
+        AuthenticatedUser(
+            user_id="current-user-id",
+            email="reused@example.test",
+            app_metadata={"role": "teacher"},
+        )
+    )
+
+    assert candidates == ["current-user-id"]
+
+
 def test_educator_snapshot_identifies_only_stale_cloud_rows():
     stale = educator._stale_row_ids(
         existing_rows=[
@@ -232,6 +252,61 @@ def test_student_cannot_list_or_write_academic_recognitions(monkeypatch):
 
     assert listing.status_code == 403
     assert create.status_code == 403
+
+
+def test_student_cannot_issue_public_certificate_or_badge(monkeypatch):
+    client = _authorized_client(
+        monkeypatch,
+        user=_user(role="student"),
+        subscription=_subscription(plan="student"),
+    )
+
+    certificate = client.post(
+        "/export/certificate-pdf",
+        json={
+            "student_name": "Student",
+            "course_name": "Course",
+            "average": "100",
+        },
+    )
+    badge = client.post(
+        "/export/academic-badge-pdf",
+        json={
+            "student_name": "Student",
+            "course_name": "Course",
+        },
+    )
+
+    assert certificate.status_code == 403
+    assert badge.status_code == 403
+
+
+def test_certificate_store_is_scoped_to_issuing_teacher(monkeypatch, tmp_path):
+    store = tmp_path / "certificates.json"
+    monkeypatch.setattr(certificate_service, "DATA_DIR", tmp_path)
+    monkeypatch.setattr(certificate_service, "CERTIFICATES_FILE", store)
+
+    certificate_service.save_certificate(
+        {"certificate_id": "CERT-A", "student_name": "Student A"},
+        user_id="teacher-a",
+    )
+    certificate_service.save_certificate(
+        {"certificate_id": "CERT-B", "student_name": "Student B"},
+        user_id="teacher-b",
+    )
+
+    teacher_a = certificate_service.list_certificates(user_id="teacher-a")
+    teacher_b = certificate_service.list_certificates(user_id="teacher-b")
+
+    assert [item["certificate_id"] for item in teacher_a] == ["CERT-A"]
+    assert [item["certificate_id"] for item in teacher_b] == ["CERT-B"]
+    assert all("user_id" not in item for item in teacher_a + teacher_b)
+
+    with pytest.raises(PermissionError):
+        certificate_service.save_certificate(
+            {"certificate_id": "CERT-A", "student_name": "Intruder"},
+            user_id="teacher-b",
+        )
 
 
 def test_certificate_verification_remains_public(monkeypatch):

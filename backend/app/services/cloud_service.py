@@ -291,6 +291,7 @@ def delete_document(
         .delete()
         .is_("workspace_id", "null")
         .eq("document_id", document_id)
+        .like("storage_path", f"{user_id}/documents/%")
         .execute()
     )
 
@@ -566,15 +567,6 @@ def create_chat(
 
     if document_id:
         payload["document_id"] = document_id
-
-    print(
-        "[CLOUD_CHAT_CREATE]",
-        {
-            "workspace_id": payload.get("workspace_id"),
-            "document_id": payload.get("document_id"),
-            "title": payload.get("title"),
-        },
-    )
 
     response = (
         client

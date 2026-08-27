@@ -23,6 +23,14 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         self.window_seconds = window_seconds
         self.requests: dict[str, deque[float]] = defaultdict(deque)
 
+    @staticmethod
+    def _apply_security_headers(response):
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["Cache-Control"] = "no-store"
+        return response
+
     async def dispatch(self, request: Request, call_next):
         start_time = time.perf_counter()
         request_id = str(uuid.uuid4())
@@ -40,7 +48,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             bucket.popleft()
 
         if len(bucket) >= self.max_requests:
-            return JSONResponse(
+            response = JSONResponse(
                 status_code=429,
                 content={
                     "detail": "Demasiadas solicitudes. Intenta nuevamente en unos segundos.",
@@ -50,6 +58,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                     "X-Request-ID": request_id,
                 },
             )
+            return self._apply_security_headers(response)
 
         bucket.append(now)
 
@@ -66,7 +75,6 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             print(
                 "[REQUEST]",
                 f"id={request_id}",
-                f"ip={client_host}",
                 f"method={request.method}",
                 f"path={request.url.path}",
                 f"status={status_code}",
@@ -76,7 +84,6 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             log_usage_event(
                 {
                     "request_id": request_id,
-                    "ip": client_host,
                     "method": request.method,
                     "path": request.url.path,
                     "status_code": status_code,
@@ -87,4 +94,4 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         response.headers["X-Request-ID"] = request_id
         response.headers["X-Process-Time"] = f"{time.perf_counter() - start_time:.3f}"
 
-        return response
+        return self._apply_security_headers(response)

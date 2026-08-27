@@ -35,7 +35,7 @@ class AutoRecognitionPayload(BaseModel):
 async def recognition_stats(
     current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
-    certificates = list_certificates()
+    certificates = list_certificates(user_id=current_user.user_id)
     by_type: dict[str, int] = {}
 
     for item in certificates:
@@ -66,7 +66,8 @@ async def save_auto_recognitions(
         recognition_type = item.recognition_type.strip().lower() or "certificate"
         year = datetime.now().strftime("%Y")
         raw = (
-            f"{recognition_type}|{item.student_code}|{item.student_name}|"
+            f"{current_user.user_id}|{recognition_type}|{item.student_code}|"
+            f"{item.student_name}|"
             f"{item.course_name}|{item.average}|{year}"
         )
         digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:8].upper()
@@ -83,7 +84,8 @@ async def save_auto_recognitions(
                     "period": item.period or recognition_type,
                     "recognition_type": recognition_type,
                     "status": "valid",
-                }
+                },
+                user_id=current_user.user_id,
             )
         )
 
@@ -98,7 +100,7 @@ async def list_recognitions(
     current_user: AuthenticatedUser = Depends(require_teacher_access),
 ):
     return {
-        "certificates": list_certificates(),
+        "certificates": list_certificates(user_id=current_user.user_id),
     }
 
 

@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pathlib import Path
+from typing import Literal
 from uuid import uuid4
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.security.user_auth import (
     AuthenticatedUser,
@@ -44,51 +45,54 @@ router = APIRouter(
 )
 
 
-class WorkspaceCreate(BaseModel):
-    name: str
-    description: str = ""
+class StrictRequestModel(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
 
-class WorkspaceUpdate(BaseModel):
-    name: str
-    description: str = ""
+class WorkspaceCreate(StrictRequestModel):
+    name: str = Field(min_length=1, max_length=200)
+    description: str = Field(default="", max_length=4000)
 
 
-class DocumentCreate(BaseModel):
-    workspace_id: str
-    document_name: str
-    document_id: str
-    file_url: str = ""
-    summary: str = ""
-    audio_url: str = ""
+class WorkspaceUpdate(WorkspaceCreate):
+    pass
 
 
-class ChatCreate(BaseModel):
-    workspace_id: str | None = None
-    document_id: str | None = None
-    title: str = "Nuevo chat"
+class DocumentCreate(StrictRequestModel):
+    workspace_id: str = Field(min_length=1, max_length=255)
+    document_name: str = Field(min_length=1, max_length=255)
+    document_id: str = Field(min_length=1, max_length=255)
+    file_url: str = Field(default="", max_length=4096)
+    summary: str = Field(default="", max_length=100000)
+    audio_url: str = Field(default="", max_length=4096)
 
 
-class ChatUpdate(BaseModel):
-    title: str
+class ChatCreate(StrictRequestModel):
+    workspace_id: str | None = Field(default=None, max_length=255)
+    document_id: str | None = Field(default=None, max_length=255)
+    title: str = Field(default="Nuevo chat", min_length=1, max_length=300)
 
 
-class MessageCreate(BaseModel):
-    chat_id: str
-    role: str
-    content: str
+class ChatUpdate(StrictRequestModel):
+    title: str = Field(min_length=1, max_length=300)
 
 
-class StudyResultCreate(BaseModel):
-    document_id: str
-    type: str
-    content: str
+class MessageCreate(StrictRequestModel):
+    chat_id: str = Field(min_length=1, max_length=255)
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=50000)
 
 
-class AudiobookCreate(BaseModel):
-    document_id: str
-    file_name: str
-    chapters: list[dict]
+class StudyResultCreate(StrictRequestModel):
+    document_id: str = Field(min_length=1, max_length=255)
+    type: str = Field(min_length=1, max_length=64)
+    content: str = Field(min_length=1, max_length=2_000_000)
+
+
+class AudiobookCreate(StrictRequestModel):
+    document_id: str = Field(min_length=1, max_length=255)
+    file_name: str = Field(min_length=1, max_length=255)
+    chapters: list[dict] = Field(min_length=1, max_length=200)
 
 
 def handle_cloud_error(error: Exception) -> HTTPException:
@@ -177,7 +181,7 @@ async def rehydrate_document_endpoint(
         uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
         local_path = uploads_dir / f"rehydrated_{uuid4()}_{filename}"
 
-        storage_result = download_document_from_storage(
+        download_document_from_storage(
             bucket=bucket,
             storage_path=storage_path,
             destination_path=str(local_path),
@@ -185,14 +189,17 @@ async def rehydrate_document_endpoint(
 
         pages = extract_pages_from_pdf(str(local_path))
 
-        new_document_id = index_document_pages_for_rag(pages)
+        new_document_id = index_document_pages_for_rag(
+            pages,
+            owner_scope=current_user.user_id,
+        )
 
         if new_document_id != document_id:
             raise ValueError(
                 "El document_id rehidratado no coincide con el document_id cloud."
             )
 
-        document_record = register_document_file(
+        register_document_file(
             document_id=document_id,
             filename=filename,
             file_path=str(local_path),
@@ -206,10 +213,7 @@ async def rehydrate_document_endpoint(
             "ready": True,
             "document_id": document_id,
             "filename": filename,
-            "file_path": str(local_path),
             "page_count": len(pages),
-            "storage": storage_result,
-            "document_info": document_record,
         }
 
     except Exception as error:

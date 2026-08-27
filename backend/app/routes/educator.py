@@ -86,30 +86,8 @@ def _sync_user_rows(
 
 
 def _candidate_user_ids(current_user: AuthenticatedUser) -> list[str]:
-    ids: list[str] = []
-
     primary = _safe_text(current_user.user_id).strip()
-    if primary:
-        ids.append(primary)
-
-    email = _safe_text(getattr(current_user, "email", "")).strip().lower()
-    if email:
-        client = get_supabase_admin_client()
-        try:
-            response = (
-                client.table("user_subscriptions")
-                .select("user_id,email")
-                .eq("email", email)
-                .execute()
-            )
-            for row in response.data or []:
-                candidate = _safe_text(row.get("user_id")).strip()
-                if candidate and candidate not in ids:
-                    ids.append(candidate)
-        except Exception:
-            pass
-
-    return ids
+    return [primary] if primary else []
 
 
 def _select_for_user_candidates(

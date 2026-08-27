@@ -1,7 +1,7 @@
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.services.ai_service import ask_ai_coach
 from app.services.audio_service import build_audio_url, generate_audio_from_text
@@ -15,19 +15,23 @@ router = APIRouter(
 )
 
 
-class VoiceCoachRequest(BaseModel):
-    message: str = Field(default="")
-    mode: str = Field(default="general")
+class VoiceRequestModel(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+
+class VoiceCoachRequest(VoiceRequestModel):
+    message: str = Field(default="", max_length=12000)
+    mode: str = Field(default="general", max_length=64)
     context: dict[str, Any] = Field(default_factory=dict)
-    recent_messages: list[dict[str, Any]] = Field(default_factory=list)
-    language: str = Field(default="es")
+    recent_messages: list[dict[str, Any]] = Field(default_factory=list, max_length=20)
+    language: str = Field(default="es", max_length=16)
 
 
-class VoiceTtsRequest(BaseModel):
-    message_id: str = Field(default="")
-    text: str = Field(default="")
-    voice_profile: str = Field(default="standard")
-    language: str = Field(default="es")
+class VoiceTtsRequest(VoiceRequestModel):
+    message_id: str = Field(default="", max_length=255)
+    text: str = Field(default="", max_length=12000)
+    voice_profile: str = Field(default="standard", max_length=64)
+    language: str = Field(default="es", max_length=16)
 
 
 @router.post("/coach")
@@ -60,7 +64,10 @@ async def voice_tts(
         )
 
     try:
-        filename = generate_audio_from_text(clean_text)
+        filename = generate_audio_from_text(
+            clean_text,
+            user_id=current_user.user_id,
+        )
         return {
             "audio_url": build_audio_url(filename),
             "duration_seconds": max(1, round(len(clean_text.split()) / 2)),
