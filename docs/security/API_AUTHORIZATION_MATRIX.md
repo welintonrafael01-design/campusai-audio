@@ -41,6 +41,7 @@ SharedPreferences, and `user_metadata` never grant sensitive access.
 | `POST /audiobook/generate-learning-pack` | Yes | Input context | Student Pro | New pack generation |
 | `POST /documents/audio` | Yes | Input context | Student Pro | Legacy endpoint, now gated |
 | `POST /documents/audiobook` | Yes | Input context | Student Pro | Legacy endpoint, now gated |
+| `GET /audio/{filename}` | Yes | Owner-scoped TTS filename or verified legacy record | None | Former public static route is disabled |
 | `GET /audiobook/audio/{filename}` | Yes | Server-generated filename contract | None | Playback is not destructively blocked after downgrade |
 | `POST /voice/coach`, `/voice/tts` | Yes | Caller session | Student Pro | Server plan gate |
 
@@ -61,6 +62,11 @@ user data while preventing new paid-cost generation.
 Teacher authority is evaluated in FastAPI. A Student cannot obtain Teacher
 access by sending `role`, `plan`, or `capabilities` in a request. Legacy Ultra
 does not satisfy the Teacher plan requirement.
+
+Teacher certificate/academic-badge issuance also requires Teacher access.
+Certificate lists and statistics are scoped to the token user ID; a Teacher
+cannot list or overwrite another Teacher's records. Public verification accepts
+only a certificate ID and returns the established verification fields.
 
 ## Cloud resources
 
@@ -127,4 +133,7 @@ Automated contracts cover plan aliases, status fail-closed behavior, Free and
 Student boundaries, Teacher role-plus-plan authorization, Ultra denial,
 metadata-only Admin denial, spoofed payload denial, export policies, AudioBook
 generation gates, user-scoped cache replacement, and canonical plan UX at
-360/430 px with text scale 1.3.
+360/430 px with text scale 1.3. Plan Master 7D adds authenticated MP3 access,
+path traversal denial, upload bounds, strict owner-field rejection, prompt
+injection boundaries, redacted errors, external URL policy, standalone document
+delete ownership, educator identity isolation, and certificate issuer isolation.
