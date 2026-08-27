@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'config/app_environment.dart';
 import 'providers/theme_provider.dart';
 import 'providers/locale_provider.dart';
 import 'router/app_router.dart';
@@ -16,6 +17,7 @@ Future<void> main() async {
 
   if (kReleaseMode) {
     debugPrint = (String? message, {int? wrapWidth}) {};
+    AppEnvironment.apiBaseUrl;
   }
 
   await LocalStorageService.initialize();

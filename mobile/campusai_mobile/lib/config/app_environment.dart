@@ -8,13 +8,37 @@ class AppEnvironment {
   );
 
   static String get apiBaseUrl {
-    final configured = _configuredApiBaseUrl.trim();
+    return resolveApiBaseUrl(
+      configuredValue: _configuredApiBaseUrl,
+      isWeb: kIsWeb,
+      isRelease: kReleaseMode,
+    );
+  }
+
+  static String resolveApiBaseUrl({
+    required String configuredValue,
+    required bool isWeb,
+    required bool isRelease,
+  }) {
+    final configured = configuredValue.trim();
 
     if (configured.isNotEmpty) {
-      return _withoutTrailingSlash(configured);
+      final normalized = _withoutTrailingSlash(configured);
+
+      if (isRelease) {
+        _validateReleaseApiBaseUrl(normalized);
+      }
+
+      return normalized;
     }
 
-    return kIsWeb ? 'http://127.0.0.1:8000' : 'http://10.0.2.2:8000';
+    if (isRelease) {
+      throw StateError(
+        'API_BASE_URL debe configurarse para una build release.',
+      );
+    }
+
+    return isWeb ? 'http://127.0.0.1:8000' : 'http://10.0.2.2:8000';
   }
 
   static bool get isApiBaseUrlConfigured =>
@@ -28,5 +52,26 @@ class AppEnvironment {
     }
 
     return clean;
+  }
+
+  static void _validateReleaseApiBaseUrl(String value) {
+    final uri = Uri.tryParse(value);
+    final host = uri?.host.toLowerCase() ?? '';
+    final isLoopback = host == 'localhost' ||
+        host == '127.0.0.1' ||
+        host == '::1' ||
+        host == '10.0.2.2';
+
+    if (uri == null ||
+        uri.scheme != 'https' ||
+        host.isEmpty ||
+        uri.userInfo.isNotEmpty ||
+        uri.query.isNotEmpty ||
+        uri.fragment.isNotEmpty ||
+        isLoopback) {
+      throw StateError(
+        'API_BASE_URL de release debe ser un origen HTTPS no local.',
+      );
+    }
   }
 }

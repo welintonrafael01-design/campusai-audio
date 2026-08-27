@@ -1,9 +1,33 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.inputStream().use(keystoreProperties::load)
+}
+
+val signingPropertyNames =
+    listOf("storeFile", "storePassword", "keyAlias", "keyPassword")
+val hasCompleteReleaseSigning =
+    keystorePropertiesFile.exists() &&
+        signingPropertyNames.all { !keystoreProperties.getProperty(it).isNullOrBlank() }
+
+if (keystorePropertiesFile.exists() && !hasCompleteReleaseSigning) {
+    throw GradleException(
+        "android/key.properties existe, pero la configuracion de firma esta incompleta.",
+    )
+}
+
+val allowDebugReleaseSigning =
+    providers.environmentVariable("STUDYBOOK_ALLOW_DEBUG_RELEASE_SIGNING").orNull == "true"
 
 android {
     namespace = "com.example.campusai_mobile"
@@ -30,15 +54,41 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            if (hasCompleteReleaseSigning) {
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = when {
+                hasCompleteReleaseSigning -> signingConfigs.getByName("release")
+                allowDebugReleaseSigning -> signingConfigs.getByName("debug")
+                else -> null
+            }
         }
     }
 }
 
 flutter {
     source = "../.."
+}
+
+tasks.configureEach {
+    if (name in setOf("assembleRelease", "bundleRelease", "packageRelease")) {
+        doFirst {
+            if (!hasCompleteReleaseSigning && !allowDebugReleaseSigning) {
+                throw GradleException(
+                    "Release signing is not configured. Add an ignored android/key.properties " +
+                        "or set STUDYBOOK_ALLOW_DEBUG_RELEASE_SIGNING=true for a non-uploadable QA artifact.",
+                )
+            }
+        }
+    }
 }
