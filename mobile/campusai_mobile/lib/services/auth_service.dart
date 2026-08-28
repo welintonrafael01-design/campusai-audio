@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'plan_guard_service.dart';
+import 'security/user_scoped_storage.dart';
 import 'usage_limit_service.dart';
 
 class AuthService {
@@ -139,5 +140,32 @@ class AuthService {
 
     const PlanGuardService().resetToFree();
     const UsageLimitService().resetPdfUploadsToday();
+  }
+
+  static Future<void> reauthenticateCurrentUser(String password) async {
+    final user = currentUser;
+    final email = user?.email?.trim();
+    if (email == null || email.isEmpty || password.isEmpty) {
+      throw Exception('Confirma tu contraseña para continuar.');
+    }
+
+    await _client.auth.signInWithPassword(
+      email: email,
+      password: password,
+    );
+  }
+
+  static Future<void> clearAfterAccountDeletion() async {
+    final userScope = currentUser?.id.trim() ?? '';
+    if (userScope.isNotEmpty) {
+      await UserScopedStorage.clearUserScope(userScope);
+    }
+    await const PlanGuardService().clearCachedAccountState();
+
+    try {
+      await _client.auth.signOut(scope: SignOutScope.local);
+    } catch (_) {
+      await _client.auth.signOut();
+    }
   }
 }

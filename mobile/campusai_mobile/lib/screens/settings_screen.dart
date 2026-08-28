@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../config/app_environment.dart';
 import '../config/app_plans.dart';
 import '../l10n/app_localizations.dart';
 import '../providers/theme_provider.dart';
 import '../providers/locale_provider.dart';
+import '../providers/document_provider.dart';
+import '../services/account_deletion_service.dart';
 import '../services/api_service.dart';
 import '../services/access_control_service.dart';
 import '../services/auth_service.dart';
@@ -114,6 +118,158 @@ class SettingsScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> openPrivacyPolicy(BuildContext context) async {
+    try {
+      final uri = AppEnvironment.privacyPolicyUri;
+      if (uri == null) {
+        throw StateError('La política de privacidad aún no está publicada.');
+      }
+
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) throw StateError('No se pudo abrir el enlace.');
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'La política de privacidad estará disponible aquí antes de la publicación.',
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> confirmAccountDeletion(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final passwordController = TextEditingController();
+    final confirmationController = TextEditingController();
+    var isDeleting = false;
+
+    final result = await showDialog<AccountDeletionResponse>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            Future<void> deleteAccount() async {
+              final password = passwordController.text;
+              final confirmation = confirmationController.text.trim();
+              if (password.isEmpty || confirmation != 'ELIMINAR MI CUENTA') {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Escribe tu contraseña y ELIMINAR MI CUENTA para confirmar.',
+                    ),
+                  ),
+                );
+                return;
+              }
+
+              setDialogState(() => isDeleting = true);
+              try {
+                final response = await AccountDeletionService()
+                    .deleteCurrentAccount(password: password);
+                if (!dialogContext.mounted) return;
+                Navigator.of(dialogContext).pop(response);
+              } catch (error) {
+                if (!dialogContext.mounted) return;
+                setDialogState(() => isDeleting = false);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      error.toString().replaceFirst('Exception: ', ''),
+                    ),
+                  ),
+                );
+              }
+            }
+
+            return AlertDialog(
+              title: const Text('Eliminar mi cuenta'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Esta acción elimina tu cuenta y los datos asociados en StudyBook AI. No se puede deshacer.',
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Una suscripción externa activa debe cancelarse por separado en el proveedor donde fue adquirida.',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 18),
+                    TextField(
+                      controller: passwordController,
+                      obscureText: true,
+                      enabled: !isDeleting,
+                      autofillHints: const [AutofillHints.password],
+                      decoration: const InputDecoration(
+                        labelText: 'Contraseña actual',
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    TextField(
+                      controller: confirmationController,
+                      enabled: !isDeleting,
+                      decoration: const InputDecoration(
+                        labelText: 'Escribe ELIMINAR MI CUENTA',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isDeleting
+                      ? null
+                      : () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppTheme.danger,
+                  ),
+                  onPressed: isDeleting ? null : deleteAccount,
+                  child: isDeleting
+                      ? const SizedBox.square(
+                          dimension: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Eliminar definitivamente'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    passwordController.dispose();
+    confirmationController.dispose();
+    if (result == null || !context.mounted) return;
+
+    await ref.read(activeDocumentProvider.notifier).clearDocument();
+    if (!context.mounted) return;
+    ref.read(activeWorkspaceProvider.notifier).clearWorkspace();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          result.externalSubscriptionActionRequired
+              ? 'Cuenta eliminada. Recuerda gestionar por separado cualquier suscripción externa activa.'
+              : 'Tu cuenta y sus datos fueron eliminados.',
+        ),
+      ),
+    );
+    context.go('/auth');
   }
 
   Widget buildUsageSummaryCard(
@@ -784,6 +940,50 @@ class SettingsScreen extends ConsumerWidget {
 
           const SizedBox(height: 18),
 
+          /// PRIVACY
+          SectionCard(
+            onTap: () => openPrivacyPolicy(context),
+            child: const Row(
+              children: [
+                _SettingsActionIcon(
+                  icon: Icons.privacy_tip_outlined,
+                  color: AppTheme.accent,
+                ),
+                SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Política de privacidad',
+                        style: TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Consulta cómo StudyBook AI procesa y protege tus datos.',
+                        style: TextStyle(
+                          color: AppTheme.textMuted,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.open_in_new_rounded,
+                  size: 18,
+                  color: AppTheme.textMuted,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
           /// HISTORY
           SectionCard(
             onTap: () => clearHistory(context),
@@ -825,6 +1025,50 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 18,
+                  color: AppTheme.textMuted,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          /// DELETE ACCOUNT
+          SectionCard(
+            onTap: () => confirmAccountDeletion(context, ref),
+            child: const Row(
+              children: [
+                _SettingsActionIcon(
+                  icon: Icons.person_remove_outlined,
+                  color: AppTheme.danger,
+                ),
+                SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Eliminar mi cuenta',
+                        style: TextStyle(
+                          color: AppTheme.danger,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Elimina permanentemente tu cuenta y los datos asociados.',
+                        style: TextStyle(
+                          color: AppTheme.textMuted,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
                   Icons.arrow_forward_ios_rounded,
                   size: 18,
                   color: AppTheme.textMuted,
@@ -1212,6 +1456,28 @@ class _ProgressChip extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _SettingsActionIcon extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+
+  const _SettingsActionIcon({
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Icon(icon, color: color),
     );
   }
 }

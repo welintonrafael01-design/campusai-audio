@@ -51,6 +51,21 @@ class UserScopedStorage {
     await prefs.remove(key(baseKey));
   }
 
+  static Future<int> clearUserScope(String userScope) async {
+    final cleanScope = userScope.trim();
+    if (cleanScope.isEmpty || cleanScope == 'guest') return 0;
+
+    final prefs = await SharedPreferences.getInstance();
+    final suffix = '_$cleanScope';
+    final keys = prefs.getKeys().where((key) => key.endsWith(suffix)).toList();
+
+    for (final key in keys) {
+      await prefs.remove(key);
+    }
+
+    return keys.length;
+  }
+
   static void debugSetUserScopeForTesting(String? scope) {
     _debugUserScopeOverride = scope;
   }

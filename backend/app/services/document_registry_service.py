@@ -139,3 +139,37 @@ def is_document_owner(
         return False
 
     return owner_id == user_id
+
+
+def list_documents_for_user(*, user_id: str) -> list[dict]:
+    clean_user_id = str(user_id or "").strip()
+    if not clean_user_id:
+        raise ValueError("user_id es requerido para listar documentos.")
+
+    return [
+        record
+        for record in _read_registry().values()
+        if isinstance(record, dict)
+        and str(record.get("user_id") or "").strip() == clean_user_id
+    ]
+
+
+def delete_documents_for_user(*, user_id: str) -> list[dict]:
+    clean_user_id = str(user_id or "").strip()
+    if not clean_user_id:
+        raise ValueError("user_id es requerido para eliminar documentos.")
+
+    registry = _read_registry()
+    owned_records = list_documents_for_user(user_id=clean_user_id)
+
+    for record in owned_records:
+        file_path = Path(str(record.get("file_path") or ""))
+        if file_path.is_file():
+            file_path.unlink()
+
+        document_id = str(record.get("document_id") or "").strip()
+        if document_id:
+            registry.pop(document_id, None)
+
+    _write_registry(registry)
+    return owned_records

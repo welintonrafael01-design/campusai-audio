@@ -16,6 +16,17 @@ from app.security.entitlements import (
 VALID_PLANS = SUPPORTED_STORED_PLANS
 
 
+def auth_user_exists(*, user_id: str) -> bool:
+    if not str(user_id or "").strip():
+        return False
+
+    try:
+        response = get_supabase_admin_client().auth.admin.get_user_by_id(user_id)
+        return getattr(response, "user", None) is not None
+    except Exception:
+        return False
+
+
 def default_free_subscription(user_id: str) -> dict:
     return {
         "user_id": user_id,

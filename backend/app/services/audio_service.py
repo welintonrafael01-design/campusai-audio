@@ -60,6 +60,18 @@ def audio_file_path(filename: str) -> Path | None:
     return audio_path
 
 
+def delete_audio_for_user(*, user_id: str) -> int:
+    prefix = f"{audio_owner_scope(user_id)}_"
+    deleted = 0
+
+    for path in AUDIO_FOLDER.glob(f"{prefix}*.mp3"):
+        if path.is_file():
+            path.unlink()
+            deleted += 1
+
+    return deleted
+
+
 def generate_audio_from_text(text: str, *, user_id: str) -> str:
     clean_text = clean_input_text(text)
 

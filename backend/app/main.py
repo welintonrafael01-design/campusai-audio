@@ -21,6 +21,7 @@ from app.routes.educator import router as educator_router
 from app.routes.audiobook import router as audiobook_router
 from app.routes.voice import router as voice_router
 from app.routes.audio import router as audio_router
+from app.routes.account import router as account_router
 
 
 APP_DIR = Path(__file__).resolve().parent
@@ -117,6 +118,7 @@ app.include_router(educator_router)
 app.include_router(audiobook_router)
 app.include_router(voice_router)
 app.include_router(audio_router)
+app.include_router(account_router)
 
 
 @app.get("/")

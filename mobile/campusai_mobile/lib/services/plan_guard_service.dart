@@ -114,6 +114,19 @@ class PlanGuardService {
     LocalStorageService.setString(_serverRoleStorageKey, 'student');
   }
 
+  Future<void> clearCachedAccountState() async {
+    final preferences = LocalStorageService.preferences;
+    for (final key in <String>[
+      _planStorageKey,
+      _planSourceStorageKey,
+      _subscriptionStatusStorageKey,
+      _planOwnerStorageKey,
+      _serverRoleStorageKey,
+    ]) {
+      await preferences.remove(key);
+    }
+  }
+
   bool canGenerateFlashcards(int requestedAmount) {
     return requestedAmount <= limits.maxFlashcardsPerPdf;
   }

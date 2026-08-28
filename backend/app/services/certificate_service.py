@@ -107,3 +107,24 @@ def get_certificate(certificate_id: str) -> dict | None:
             return _public_record(item)
 
     return None
+
+
+def delete_certificates_for_user(*, user_id: str) -> int:
+    clean_user_id = str(user_id or "").strip()
+    if not clean_user_id:
+        raise ValueError("user_id es obligatorio.")
+
+    certificates = _read_certificates()
+    remaining = [
+        item
+        for item in certificates
+        if str(item.get("user_id") or "").strip() != clean_user_id
+    ]
+    deleted = len(certificates) - len(remaining)
+
+    _ensure_store()
+    CERTIFICATES_FILE.write_text(
+        json.dumps(remaining, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    return deleted

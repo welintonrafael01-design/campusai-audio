@@ -235,6 +235,15 @@ def collection_exists(collection_name: str) -> bool:
     )
 
 
+def delete_document_embeddings(document_id: str) -> bool:
+    collection_name = get_collection_name(document_id)
+    if not collection_exists(collection_name):
+        return False
+
+    client.delete_collection(name=collection_name)
+    return True
+
+
 def store_document_embeddings(text: str) -> str:
     document_id = generate_document_id(text)
     collection_name = get_collection_name(document_id)
