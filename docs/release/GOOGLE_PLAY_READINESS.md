@@ -1,112 +1,94 @@
 # Google Play Readiness - StudyBook AI
 
-Plan Master 7E status: `FAIL - NOT READY FOR INTERNAL TESTING UPLOAD`
+Plan Master 7E-R status: `TECHNICAL REMEDIATION IMPLEMENTED`
 
-This status is an engineering gate, not a Play Console or legal decision.
+No artifact has been uploaded. Internal Testing remains blocked until the
+human/deployment configuration listed below is supplied and a non-debug AAB is
+generated.
 
-## Android Identity And Build
+## Remediated Release Controls
 
 | Control | Result |
 | --- | --- |
-| App label | PASS: StudyBook AI |
-| Version | PASS: 1.0.0 (1); first-release proposal pending history confirmation |
-| minSdk | PASS: 24 |
-| compileSdk / targetSdk | PASS: 36 / 36 |
-| API 36 toolchain | PASS: Flutter 3.41.9, AGP 8.11.1, Gradle 8.14, JDK 21 |
-| Package ID | BLOCKER: `com.example.campusai_mobile` is provisional |
-| Release signing | BLOCKER: no upload key; QA artifact uses Android Debug certificate |
-| 64-bit | PASS: arm64-v8a present |
-| Other ABIs | armeabi-v7a and x86_64 present |
-| 16 KB ZIP alignment | PASS on release APK |
-| R8 / symbols | Mapping and native debug-symbol archive generated |
+| Android identity | `com.studybookai.app`; regression test rejects `com.example` |
+| Version | 1.0.0 (1) |
+| minSdk / compileSdk / targetSdk | 24 / 36 / 36 |
+| Release API | Fail-closed unless `API_BASE_URL` is a non-local HTTPS origin |
+| Release signing | Reads ignored `key.properties`; production build fails without it |
+| Android checkout | Google Play Billing client; Android never opens Stripe Checkout |
+| Web checkout | Stripe preserved |
+| Entitlement authority | Backend subscription state only |
+| Play purchase verification | Authenticated server contract; fail-closed verifier pending external credentials |
+| Account deletion | In-app reauthentication plus owner-scoped backend purge, Auth last |
+| Privacy action | Visible and configurable; no false URL when absent |
+| Data Safety | Technical draft updated for deletion and Play Billing |
 
-## Validation Artifacts (Not Uploadable)
+## Account Deletion Scope
 
-| Artifact | Size | SHA-256 |
-| --- | --- | --- |
-| `build/app/outputs/flutter-apk/app-release.apk` | 69,297,556 bytes | `f41e38a997ee7b082060793ae1e4f9f7720e9623e2f9128eded2138dd2fe6678` |
-| `build/app/outputs/bundle/release/app-release.aab` | 53,325,810 bytes | `2654032ce29e2433e1848b96a9cbb8bb5a6c223c617f51637e87eaf08181bcd5` |
+`DELETE /account/me` derives the account exclusively from the bearer token and
+rejects extra owner fields. It inventories private Storage objects and document
+IDs, removes Storage, local PDFs, Chroma collections, owner-prefixed MP3s,
+certificates, chats/messages, StudyResults, AudioBooks, educator tables, usage,
+subscription mappings, workspaces/documents and finally Supabase Auth. If a
+stage fails, Auth remains available and the response requires a retry.
 
-Both artifacts were built with the explicit QA debug-signing override. The APK
-signature verifies, but its certificate owner is `CN=Android Debug`; the AAB
-is therefore not an upload candidate.
+External Stripe/Google subscriptions are not silently canceled. The user must
+manage them with the provider; web deletion requirements are documented in
+`ACCOUNT_DELETION_WEB_REQUIREMENTS.md`.
 
-Artifact scanning found no QA account identifier, hardcoded admin key,
-service-role marker, bearer token value or credible OpenAI key. Loopback text
-is present only in the release URL rejection guard and Flutter engine strings;
-no loopback `API_BASE_URL` was supplied. Generic `password`, `Authorization`
-and `Bearer` labels are expected auth/UI code, not credentials.
+## Billing Safety
 
-Changing the application ID requires authorization and coordinated edits to:
+Android product IDs are supplied through release configuration and queried via
+the official Flutter `in_app_purchase` plugin. Purchased/restored results are
+sent to `/billing/google-play/verify-purchase`; unknown products, inactive
+purchases, wrong account bindings and client-injected plans are denied. The
+default backend verifier grants nothing until Google Play Developer API
+credentials and the approved verifier are deployed.
 
-- `mobile/campusai_mobile/android/app/build.gradle.kts` (`namespace`,
-  `applicationId`)
-- `mobile/campusai_mobile/android/app/src/main/kotlin/com/example/campusai_mobile/MainActivity.kt`
-  and its directory/package declaration
-- Supabase redirect URLs, any OAuth/app-link configuration, release automation,
-  Play package registration and signing/API-provider registrations
-- tests/docs that assert the old identifier
+## Remaining Human / Deployment Actions
 
-No final identifier was invented in 7E.
+1. Register `com.studybookai.app` in Play Console and enroll in Play App Signing.
+2. Generate and securely back up the upload key; configure ignored
+   `android/key.properties`.
+3. Provision the approved production HTTPS API and public Supabase client
+   values outside the repository.
+4. Create Student Pro and Teacher Pro subscription products and deploy backend
+   Google Play verification credentials.
+5. Publish the legally approved privacy policy and external account-deletion
+   page, then supply both HTTPS URLs.
+6. Complete Play Data Safety, app access, content rating, audience, support and
+   store assets.
+7. Build a non-debug AAB and rerun `tools/qa/check_android_release.sh` before
+   any upload.
 
-## Manifest And Security
+## 7E-R Validation Evidence
 
-- Release is non-debuggable by default and shows no debug banner.
-- `usesCleartextTraffic=false`; debug/profile alone allow local HTTP.
-- `allowBackup=false`, `fullBackupContent=false`.
-- Only launcher activity is intentionally exported. Plugin activity/provider
-  are not exported; Profile Installer receiver is protected by `DUMP`.
-- No deep link intent filter exists in the release manifest.
-- Permissions are minimal: Internet, Record Audio, Network State and the
-  signature-protected AndroidX compatibility permission.
-- Release code now rejects missing, cleartext or local `API_BASE_URL` values.
-
-## Technical Blockers
-
-1. Authorize the immutable production application ID.
-2. Create/configure an upload key and enroll in Play App Signing.
-3. Provide the approved production or remotely reachable internal-test HTTPS
-   API URL and matching Supabase public configuration.
-4. Resolve Android digital subscription purchase UX. The app currently opens
-   Stripe Checkout from the Plans screen, which is a potential Google Play
-   Payments policy violation unless an applicable program/exception is
-   approved. No Play Billing implementation was added in 7E.
-5. Add an in-app and web account-deletion request, backed by a tested complete
-   owner-scoped erasure lifecycle.
-
-## Policy / Human Actions
-
-- Publish and link an approved privacy policy.
-- Complete Data Safety from the technical draft and processor contracts.
-- Confirm target audience, content rating, AI-generated-content declaration,
-  support contact and app-access credentials.
-- Approve feature graphic, phone/tablet screenshots and store copy.
-- Confirm developer account type/date and whether 12 testers for 14 continuous
-  days applies before production access.
-- Confirm Google Play developer/package verification in the account.
-
-## 7D Residual Risk Impact
-
-| Risk | Internal | Closed | Production |
-| --- | --- | --- | --- |
-| Deployed Supabase RLS not evidenced | Conditional gate; backend ownership is primary | Verify | Block production until verified |
-| Complete delete lifecycle absent | Blocks truthful account-deletion claim | Blocks | Blocks |
-| Legacy certificate history | Does not affect artifact; verify synthetic/real status | Conditional | Conditional privacy gate |
-| In-memory rate limiting | Acceptable for controlled internal cohort | Capacity review | Distributed protection review required |
-| Web CSP/HSTS | Does not block Android track | Does not block Android track | Blocks web deployment, not Android artifact |
-| CIAG legacy data | No current isolation bypass; separate migration | Does not block | Does not block absent new evidence |
+- Backend: 117 tests passed; `compileall` passed.
+- Flutter: 125 tests passed; `flutter analyze` reported no issues.
+- Web release build: passed with a non-local HTTPS validation origin.
+- QA APK: passed; SHA-256
+  `00a61a46e790f261cfbfb24a95a468dec6637f370dcc56ba441d9d0040dbdd75`.
+- QA AAB: passed; SHA-256
+  `0d839129122f7f3156bf19603c6dffc85a8085d6b0132d929bf9e9442b5f9ea1`.
+- Both Android artifacts report `com.studybookai.app`, version `1.0.0` (1),
+  target SDK 36 and the Play Billing permission. They are local QA artifacts
+  signed by the Android debug certificate under the explicit QA override and
+  are not uploadable release candidates.
+- The production AAB command without the override stopped as required because
+  no upload signing configuration exists. Release config and artifact scans
+  passed; the placeholder example config was rejected.
 
 ## Decision
 
-The codebase can generate API-36 APK/AAB artifacts and has adequate manifest,
-permission, branding and ABI foundations. The current artifact must not be
-uploaded because identity, signing, production endpoint, billing policy and
-account deletion are unresolved. No Google Play Console action was performed.
+The five 7E technical designs are remediated. Internal Testing remains `NO`
+because signing, production URLs, Play products/verifier and Play Console/legal
+publication are external actions. A QA artifact generated with the explicit
+debug-signing override is never uploadable.
 
-Official policy references:
+Official references:
 
 - <https://developer.android.com/google/play/requirements/target-sdk>
+- <https://developer.android.com/google/play/billing/integrate>
 - <https://support.google.com/googleplay/android-developer/answer/9858738>
 - <https://support.google.com/googleplay/android-developer/answer/13327111>
 - <https://support.google.com/googleplay/android-developer/answer/10787469>
-- <https://support.google.com/googleplay/android-developer/answer/14151465>

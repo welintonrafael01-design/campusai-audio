@@ -2,8 +2,9 @@
 
 Status: `BLOCKER FOR CLOSED/PRODUCTION - HUMAN LEGAL REVIEW REQUIRED`
 
-No approved privacy-policy URL or in-app privacy link was found in the current
-repository. This document contains implementation facts, not legal language.
+The app now exposes a visible configurable privacy action and an authenticated
+account-deletion flow. No approved public privacy-policy URL exists yet. This
+document contains implementation facts, not legal language.
 
 ## Facts The Policy Must Cover
 
@@ -22,19 +23,21 @@ repository. This document contains implementation facts, not legal language.
 - Security controls, retention rules, user rights, contact channel and age/
   educational-context decisions approved by the product owner.
 
-## Known Deletion Limitation
+## Deletion Implementation
 
-The app does not currently expose an in-app account-deletion request. Complete
-erasure across Supabase Auth/database/storage, backend PDFs, Chroma vectors,
-generated MP3s and local caches is not proven. The policy must not promise a
-complete deletion SLA until an owner-scoped, tested lifecycle exists.
+The in-app flow reauthenticates, requires explicit destructive confirmation and
+calls `DELETE /account/me`. The backend inventories and purges owner-scoped
+Storage, runtime files, Chroma collections, database rows and Auth in that
+order. Auth remains available for retry after a partial failure. External
+subscription cancellation and any legally required provider retention must be
+described separately.
 
 ## Publication Checklist
 
 - `MISSING`: approved policy text.
 - `MISSING`: public HTTPS URL, stable and reachable without login.
-- `MISSING`: in-app privacy link.
-- `MISSING`: account-deletion web request URL.
+- `READY`: in-app privacy action; it fails safely until a URL is configured.
+- `SPEC READY / HUMAN ACTION`: account-deletion web request page.
 - `HUMAN ACTION`: legal/privacy review of processors, retention and age scope.
 - `HUMAN ACTION`: confirm that Play Console Data Safety answers match the
   published policy and the final production build.

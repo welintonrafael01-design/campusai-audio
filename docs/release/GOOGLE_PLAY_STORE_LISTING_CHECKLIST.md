@@ -2,7 +2,7 @@
 
 | Item | Status | Evidence / required action |
 | --- | --- | --- |
-| Final application ID | `BLOCKER` | `com.example.campusai_mobile` is provisional. Product owner must authorize the immutable production ID before app creation. |
+| Final application ID | `READY` | Authorized Android identity: `com.studybookai.app`. |
 | App name | `READY` | StudyBook AI; merged Android label verified. |
 | Short description | `MISSING` | Product/marketing approval required. |
 | Full description | `MISSING` | Product/legal review required, including AI limitations and plan language. |
@@ -15,12 +15,12 @@
 | Contact email | `HUMAN ACTION` | Must be a monitored release/support address. |
 | Website | `HUMAN ACTION` | Confirm approved public product/support URL. |
 | Privacy-policy URL | `BLOCKER` | No approved public URL found. |
-| Account-deletion URL | `BLOCKER` | No public request path found. |
+| Account-deletion URL | `HUMAN ACTION` | In-app deletion is implemented; publish the external page defined in `ACCOUNT_DELETION_WEB_REQUIREMENTS.md`. |
 | Content rating | `HUMAN ACTION` | Complete questionnaire using education, AI-generated and user-uploaded content facts. |
 | Target audience | `HUMAN ACTION` | Do not select children/families status without age-scope decision and policy review. |
 | Ads declaration | `READY FOR HUMAN CONFIRMATION` | No ads SDK or ad feature found. |
 | App access | `HUMAN ACTION` | Supply Student and Teacher reviewer accounts in Play Console only. |
 | Data Safety | `DRAFT READY` | Human review and submission required before closed/production tracks. |
 
-The package ID must be settled before creating the Play app because it cannot
-be changed as a normal update after publication.
+The package ID is settled. Confirm the same value in Play Console, signing,
+backend purchase verification and any future deep-link/OAuth registration.

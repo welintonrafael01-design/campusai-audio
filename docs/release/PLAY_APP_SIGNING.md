@@ -14,7 +14,7 @@ Status: `BLOCKED - HUMAN ACTION REQUIRED`
 
 ## Required Human Procedure
 
-1. Confirm the final application ID before generating or registering keys.
+1. Confirm `com.studybookai.app` in the authorized Play Console account.
 2. Create an upload key in an approved secure workstation or key-management
    process. Do not create it in the repository.
 3. Store the keystore and passwords in the approved secret manager and backup
@@ -29,6 +29,43 @@ Status: `BLOCKED - HUMAN ACTION REQUIRED`
    controlled release record. Never commit private key material or passwords.
 
 The repository ignores `key.properties`, `*.jks`, and `*.keystore`.
+
+## Safe Command Template
+
+Run interactively from an approved workstation so passwords are prompted and
+never placed in shell history:
+
+```bash
+mkdir -p /secure/private/studybook
+keytool -genkeypair -v \
+  -keystore /secure/private/studybook/studybook-upload.jks \
+  -alias studybook-upload \
+  -keyalg RSA -keysize 4096 -validity 10000
+```
+
+Create the ignored local file
+`mobile/campusai_mobile/android/key.properties`:
+
+```properties
+storeFile=/secure/private/studybook/studybook-upload.jks
+storePassword=<PROMPTED_SECRET>
+keyAlias=studybook-upload
+keyPassword=<PROMPTED_SECRET>
+```
+
+Verify only public certificate details and the final AAB signature:
+
+```bash
+keytool -list -v \
+  -keystore /secure/private/studybook/studybook-upload.jks \
+  -alias studybook-upload
+
+keytool -printcert -jarfile build/app/outputs/bundle/release/app-release.aab
+```
+
+Keep an encrypted backup of the upload keystore and recovery instructions in
+separate approved locations. Never commit the keystore, `key.properties`,
+passwords or secret-manager exports.
 
 ## Release Gate
 
