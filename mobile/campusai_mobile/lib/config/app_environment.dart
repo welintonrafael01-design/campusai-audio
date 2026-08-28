@@ -6,6 +6,9 @@ class AppEnvironment {
   static const String _configuredApiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
   );
+  static const String _configuredPrivacyPolicyUrl = String.fromEnvironment(
+    'PRIVACY_POLICY_URL',
+  );
 
   static String get apiBaseUrl {
     return resolveApiBaseUrl(
@@ -43,6 +46,34 @@ class AppEnvironment {
 
   static bool get isApiBaseUrlConfigured =>
       _configuredApiBaseUrl.trim().isNotEmpty;
+
+  static Uri? get privacyPolicyUri {
+    return resolveOptionalHttpsUrl(_configuredPrivacyPolicyUrl);
+  }
+
+  static Uri? resolveOptionalHttpsUrl(String value) {
+    final clean = value.trim();
+    if (clean.isEmpty) return null;
+
+    final uri = Uri.tryParse(clean);
+    final host = uri?.host.toLowerCase() ?? '';
+    final isLoopback = host == 'localhost' ||
+        host == '127.0.0.1' ||
+        host == '::1' ||
+        host == '10.0.2.2';
+
+    if (uri == null ||
+        uri.scheme != 'https' ||
+        host.isEmpty ||
+        uri.userInfo.isNotEmpty ||
+        uri.query.isNotEmpty ||
+        uri.fragment.isNotEmpty ||
+        isLoopback) {
+      throw StateError('La URL publica debe ser HTTPS y no local.');
+    }
+
+    return uri;
+  }
 
   static String _withoutTrailingSlash(String value) {
     var clean = value.trim();

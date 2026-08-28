@@ -1,4 +1,4 @@
-package com.example.campusai_mobile
+package com.studybookai.app
 
 import io.flutter.embedding.android.FlutterActivity
 

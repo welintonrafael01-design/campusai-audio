@@ -30,7 +30,7 @@ val allowDebugReleaseSigning =
     providers.environmentVariable("STUDYBOOK_ALLOW_DEBUG_RELEASE_SIGNING").orNull == "true"
 
 android {
-    namespace = "com.example.campusai_mobile"
+    namespace = "com.studybookai.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -44,8 +44,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.campusai_mobile"
+        applicationId = "com.studybookai.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

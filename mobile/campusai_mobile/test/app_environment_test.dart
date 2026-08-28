@@ -63,4 +63,31 @@ void main() {
       );
     });
   });
+
+  group('AppEnvironment public URL safety', () {
+    test('allows an absent optional privacy URL', () {
+      expect(AppEnvironment.resolveOptionalHttpsUrl(''), isNull);
+    });
+
+    test('accepts a production HTTPS privacy URL', () {
+      expect(
+        AppEnvironment.resolveOptionalHttpsUrl(
+          'https://www.studybook.example/privacy',
+        ),
+        Uri.parse('https://www.studybook.example/privacy'),
+      );
+    });
+
+    test('rejects local or cleartext privacy URLs', () {
+      for (final value in <String>[
+        'http://studybook.example/privacy',
+        'https://localhost/privacy',
+      ]) {
+        expect(
+          () => AppEnvironment.resolveOptionalHttpsUrl(value),
+          throwsStateError,
+        );
+      }
+    });
+  });
 }
