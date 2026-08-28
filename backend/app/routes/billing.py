@@ -2,7 +2,7 @@ import os
 
 import stripe
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.security.admin_auth import is_admin_user
 from app.security.entitlements import (
@@ -14,7 +14,19 @@ from app.security.entitlements import (
 from app.security.user_auth import AuthenticatedUser, require_current_user
 
 from app.services.usage_limit_service import get_usage_summary_for_user
-from app.services.subscription_service import upsert_user_subscription, downgrade_user_to_free, get_user_subscription
+from app.services.subscription_service import (
+    auth_user_exists,
+    downgrade_user_to_free,
+    get_user_subscription,
+    upsert_user_subscription,
+)
+from app.services.play_billing_service import (
+    PLAY_PACKAGE_NAME,
+    PlayPurchaseVerifier,
+    PlayVerificationUnavailable,
+    configured_play_products,
+    get_play_purchase_verifier,
+)
 
 
 router = APIRouter(
@@ -52,6 +64,14 @@ class CheckoutSessionRequest(BaseModel):
 
 class CheckoutSessionResponse(BaseModel):
     checkout_url: str
+
+
+class PlayPurchaseVerificationRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    product_id: str = Field(min_length=1, max_length=255)
+    purchase_token: str = Field(min_length=16, max_length=20000)
+    transaction_id: str | None = Field(default=None, max_length=512)
 
 
 class CustomerPortalResponse(BaseModel):
@@ -386,6 +406,64 @@ def get_my_usage_endpoint(
         ) from error
 
 
+@router.post("/google-play/verify-purchase")
+def verify_google_play_purchase(
+    payload: PlayPurchaseVerificationRequest,
+    current_user: AuthenticatedUser = Depends(require_current_user),
+    verifier: PlayPurchaseVerifier = Depends(get_play_purchase_verifier),
+):
+    products = configured_play_products()
+    plan = products.get(payload.product_id)
+    if not plan:
+        raise HTTPException(
+            status_code=400,
+            detail="El producto de Google Play no está configurado.",
+        )
+
+    try:
+        purchase = verifier.verify(
+            package_name=PLAY_PACKAGE_NAME,
+            product_id=payload.product_id,
+            purchase_token=payload.purchase_token,
+        )
+    except PlayVerificationUnavailable as error:
+        raise HTTPException(
+            status_code=503,
+            detail="La verificación de Google Play aún no está disponible.",
+        ) from error
+    except Exception as error:
+        raise HTTPException(
+            status_code=502,
+            detail="No se pudo verificar la compra con Google Play.",
+        ) from error
+
+    if (
+        not purchase.active
+        or purchase.product_id != payload.product_id
+        or purchase.purchase_token != payload.purchase_token
+        or purchase.user_id != current_user.user_id
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="La compra no pertenece a esta cuenta o no está activa.",
+        )
+
+    subscription = upsert_user_subscription(
+        user_id=current_user.user_id,
+        email=current_user.email,
+        plan=plan,
+        subscription_status="active",
+    )
+    return {
+        "verified": True,
+        "plan": subscription.get("plan", plan),
+        "subscription_status": subscription.get(
+            "subscription_status",
+            "active",
+        ),
+    }
+
+
 @router.post("/webhook")
 async def stripe_webhook(request: Request):
     payload = await request.body()
@@ -435,6 +513,13 @@ async def stripe_webhook(request: Request):
                 "ignored": "missing_user_id",
             }
 
+        if not auth_user_exists(user_id=user_id):
+            return {
+                "received": True,
+                "type": event_type,
+                "ignored": "unknown_or_deleted_user",
+            }
+
         upsert_user_subscription(
             user_id=user_id,
             email=email,
@@ -477,6 +562,13 @@ async def stripe_webhook(request: Request):
                 "received": True,
                 "type": event_type,
                 "ignored": "missing_user_id",
+            }
+
+        if not auth_user_exists(user_id=user_id):
+            return {
+                "received": True,
+                "type": event_type,
+                "ignored": "unknown_or_deleted_user",
             }
 
         status = data_object.get("status")

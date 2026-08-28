@@ -80,6 +80,7 @@ dependencies:
   url_launcher: ^6.3.2
   speech_to_text: ^7.4.0
   permission_handler: ^12.0.3
+  in_app_purchase: ^3.3.0
 
 # =========================================================
 # DEV DEPENDENCIES

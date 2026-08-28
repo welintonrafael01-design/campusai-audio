@@ -11,6 +11,7 @@ import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 import 'l10n/app_localizations.dart';
 import 'services/local_storage_service.dart';
+import 'services/billing_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +32,8 @@ Future<void> main() async {
       anonKey: supabaseAnonKey,
     );
   }
+
+  await const BillingService().initialize();
 
   runApp(
     const ProviderScope(
