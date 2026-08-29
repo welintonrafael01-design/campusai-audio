@@ -57,10 +57,7 @@ class AppEnvironment {
 
     final uri = Uri.tryParse(clean);
     final host = uri?.host.toLowerCase() ?? '';
-    final isLoopback = host == 'localhost' ||
-        host == '127.0.0.1' ||
-        host == '::1' ||
-        host == '10.0.2.2';
+    final isBlockedHost = _isBlockedPublicHost(host);
 
     if (uri == null ||
         uri.scheme != 'https' ||
@@ -68,7 +65,7 @@ class AppEnvironment {
         uri.userInfo.isNotEmpty ||
         uri.query.isNotEmpty ||
         uri.fragment.isNotEmpty ||
-        isLoopback) {
+        isBlockedHost) {
       throw StateError('La URL publica debe ser HTTPS y no local.');
     }
 
@@ -88,21 +85,27 @@ class AppEnvironment {
   static void _validateReleaseApiBaseUrl(String value) {
     final uri = Uri.tryParse(value);
     final host = uri?.host.toLowerCase() ?? '';
-    final isLoopback = host == 'localhost' ||
-        host == '127.0.0.1' ||
-        host == '::1' ||
-        host == '10.0.2.2';
+    final isBlockedHost = _isBlockedPublicHost(host);
 
     if (uri == null ||
         uri.scheme != 'https' ||
         host.isEmpty ||
         uri.userInfo.isNotEmpty ||
+        (uri.path.isNotEmpty && uri.path != '/') ||
         uri.query.isNotEmpty ||
         uri.fragment.isNotEmpty ||
-        isLoopback) {
+        isBlockedHost) {
       throw StateError(
         'API_BASE_URL de release debe ser un origen HTTPS no local.',
       );
     }
+  }
+
+  static bool _isBlockedPublicHost(String host) {
+    return host == 'localhost' ||
+        host == '127.0.0.1' ||
+        host == '::1' ||
+        host == '10.0.2.2' ||
+        host.endsWith('.invalid');
   }
 }

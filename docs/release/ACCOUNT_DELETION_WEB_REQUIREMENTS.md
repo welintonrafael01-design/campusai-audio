@@ -6,6 +6,10 @@ Google Play requires a public, discoverable web resource where a person can
 request deletion without reinstalling the application. No final URL is
 invented by this repository.
 
+The proposed public copy is maintained in
+`docs/privacy/ACCOUNT_DELETION_PUBLIC_PAGE_DRAFT.md`. It must not be presented
+as operational until the verified Web request flow is deployed.
+
 ## Public Page Contract
 
 - Public HTTPS page, reachable without an existing app session.

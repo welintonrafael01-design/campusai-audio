@@ -6,6 +6,12 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.middleware.security_middleware import SecurityMiddleware
+from app.public_urls import (
+    PublicUrlConfigurationError,
+    configured_app_web_origin,
+    is_production_environment,
+    validate_public_https_url,
+)
 
 load_dotenv()
 
@@ -35,10 +41,15 @@ CHROMA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def get_cors_origins() -> list[str]:
-    raw_origins = os.getenv(
-        "BACKEND_CORS_ORIGINS",
-        "http://localhost:54713,http://localhost:3000,http://127.0.0.1:54713",
-    )
+    raw_origins = os.getenv("BACKEND_CORS_ORIGINS", "").strip()
+
+    if not raw_origins:
+        if is_production_environment():
+            return [configured_app_web_origin(required=True)]
+        raw_origins = (
+            "http://localhost:54713,http://localhost:3000,"
+            "http://127.0.0.1:54713"
+        )
 
     origins = [
         origin.strip()
@@ -46,14 +57,33 @@ def get_cors_origins() -> list[str]:
         if origin.strip()
     ]
 
+    if is_production_environment():
+        origins = [
+            validate_public_https_url(
+                origin,
+                variable_name="BACKEND_CORS_ORIGINS",
+                origin_only=True,
+            )
+            for origin in origins
+        ]
+
     return origins
 
 
 def get_cors_origin_regex() -> str | None:
     """Allow ephemeral Flutter Web ports only on the local loopback host."""
-    value = os.getenv(
-        "BACKEND_CORS_ORIGIN_REGEX",
-        r"^http://(?:localhost|127\.0\.0\.1)(?::\d+)?$",
+    configured = os.getenv("BACKEND_CORS_ORIGIN_REGEX")
+    if is_production_environment():
+        if configured and configured.strip():
+            raise PublicUrlConfigurationError(
+                "BACKEND_CORS_ORIGIN_REGEX no se permite en produccion."
+            )
+        return None
+
+    value = (
+        configured
+        if configured is not None
+        else r"^http://(?:localhost|127\.0\.0\.1)(?::\d+)?$"
     ).strip()
     return value or None
 

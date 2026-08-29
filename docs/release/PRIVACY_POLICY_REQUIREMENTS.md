@@ -6,6 +6,11 @@ The app now exposes a visible configurable privacy action and an authenticated
 account-deletion flow. No approved public privacy-policy URL exists yet. This
 document contains implementation facts, not legal language.
 
+The public-facing working draft is
+`docs/privacy/PRIVACY_POLICY_PUBLIC_DRAFT.md`; it remains explicitly blocked on
+legal entity, contact, effective date, retention, jurisdiction and age-scope
+decisions.
+
 ## Facts The Policy Must Cover
 
 - Supabase account identity, authentication session, email, user ID, role and

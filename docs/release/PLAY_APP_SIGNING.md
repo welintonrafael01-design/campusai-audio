@@ -1,47 +1,34 @@
 # Play App Signing - StudyBook AI
 
-Status: `BLOCKED - HUMAN ACTION REQUIRED`
+Status: `UPLOAD SIGNING VERIFIED - PLAY APP SIGNING SETUP PENDING`
 
 ## Current Evidence
 
-- The Android release variant previously used the local Android debug key.
-- The Gradle configuration now accepts an ignored `android/key.properties`
-  file for release signing.
+- The upload keystore exists outside the repository and local
+  `android/key.properties` remains ignored.
+- The signed AAB reports upload certificate SHA-256
+  `CD:33:79:B9:43:54:34:31:2C:20:87:DA:53:95:5E:AF:2D:AD:C7:AC:88:AF:02:9B:43:2F:69:58:44:D1:1E:36`.
+- The verified AAB SHA-256 is
+  `7d127a533944eb3f4f4e3258bb777af37e6c9411462b54eaca0926eda8062d76`.
 - A debug-signed release can only be produced when
   `STUDYBOOK_ALLOW_DEBUG_RELEASE_SIGNING=true` is explicitly set. That artifact
   is for local QA only and must never be uploaded to Google Play.
-- No production keystore or upload key was created by Plan Master 7E.
 
-## Required Human Procedure
+## Remaining Human Procedure
 
 1. Confirm `com.studybookai.app` in the authorized Play Console account.
-2. Create an upload key in an approved secure workstation or key-management
-   process. Do not create it in the repository.
-3. Store the keystore and passwords in the approved secret manager and backup
-   process.
-4. Create local `mobile/campusai_mobile/android/key.properties` with these
-   keys: `storeFile`, `storePassword`, `keyAlias`, `keyPassword`.
-5. Build the AAB with the canonical release command and verify that its signer
-   is not `CN=Android Debug`.
-6. Enroll the app in Play App Signing when creating the first Play release.
+2. Store the existing keystore and passwords in the approved secret manager
+   and backup process.
+3. Keep local `mobile/campusai_mobile/android/key.properties` outside Git with
+   these keys: `storeFile`, `storePassword`, `keyAlias`, `keyPassword`.
+4. Enroll the app in Play App Signing when creating the first Play release.
    Prefer a Play-managed app signing key and retain the separate upload key.
-7. Record the public upload and app-signing certificate fingerprints in the
+5. Record the public upload and app-signing certificate fingerprints in the
    controlled release record. Never commit private key material or passwords.
 
 The repository ignores `key.properties`, `*.jks`, and `*.keystore`.
 
-## Safe Command Template
-
-Run interactively from an approved workstation so passwords are prompted and
-never placed in shell history:
-
-```bash
-mkdir -p /secure/private/studybook
-keytool -genkeypair -v \
-  -keystore /secure/private/studybook/studybook-upload.jks \
-  -alias studybook-upload \
-  -keyalg RSA -keysize 4096 -validity 10000
-```
+## Local Configuration Template
 
 Create the ignored local file
 `mobile/campusai_mobile/android/key.properties`:
@@ -69,9 +56,10 @@ passwords or secret-manager exports.
 
 ## Release Gate
 
-Release signing is `READY` only when a non-debug upload key signs the final AAB
-and the authorized owner has confirmed the Play App Signing setup. The current
-debug-signed QA artifact is `NOT UPLOADABLE`.
+Upload signing is verified. The current AAB remains a preparation artifact and
+must not be uploaded until final public URLs, Play products, server verification
+and Play Console setup are complete. Build a new AAB after those values are
+approved and record its new hash.
 
 Official reference:
 <https://developer.android.com/studio/publish/app-signing>

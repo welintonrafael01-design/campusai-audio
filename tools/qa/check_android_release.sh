@@ -22,7 +22,9 @@ path = Path(sys.argv[1])
 data = json.loads(path.read_text(encoding="utf-8"))
 required = {
     "API_BASE_URL",
+    "APP_WEB_URL",
     "PRIVACY_POLICY_URL",
+    "ACCOUNT_DELETION_URL",
     "SUPABASE_URL",
     "SUPABASE_ANON_KEY",
     "STUDENT_PRO_PLAY_PRODUCT_ID",
@@ -32,13 +34,27 @@ missing = sorted(key for key in required if not str(data.get(key, "")).strip())
 if missing:
     raise SystemExit(f"Missing release values: {', '.join(missing)}")
 
-for key in ("API_BASE_URL", "PRIVACY_POLICY_URL", "SUPABASE_URL"):
+for key in (
+    "API_BASE_URL",
+    "APP_WEB_URL",
+    "PRIVACY_POLICY_URL",
+    "ACCOUNT_DELETION_URL",
+    "SUPABASE_URL",
+):
     value = str(data[key]).strip()
     parsed = urlparse(value)
     if parsed.scheme != "https" or not parsed.hostname:
         raise SystemExit(f"{key} must be a production HTTPS URL")
+    if parsed.username or parsed.password or parsed.query or parsed.fragment:
+        raise SystemExit(f"{key} contains unsupported URL components")
     if parsed.hostname in {"localhost", "127.0.0.1", "10.0.2.2", "::1"}:
         raise SystemExit(f"{key} cannot use a loopback host")
+    if parsed.hostname.endswith(".invalid"):
+        raise SystemExit(f"{key} cannot use a reserved .invalid host")
+
+for key in ("API_BASE_URL", "APP_WEB_URL", "SUPABASE_URL"):
+    if urlparse(str(data[key])).path not in {"", "/"}:
+        raise SystemExit(f"{key} must contain only the public origin")
 
 serialized = json.dumps(data, sort_keys=True)
 for pattern in (

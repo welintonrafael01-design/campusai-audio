@@ -1,10 +1,10 @@
 # Google Play Readiness - StudyBook AI
 
-Plan Master 7E-R status: `TECHNICAL REMEDIATION IMPLEMENTED`
+Plan Master public-infrastructure status: `SIGNING VERIFIED - PUBLIC CONFIG PENDING`
 
-No artifact has been uploaded. Internal Testing remains blocked until the
-human/deployment configuration listed below is supplied and a non-debug AAB is
-generated.
+No artifact has been uploaded. A non-debug upload-signed AAB is verified, but
+Internal Testing remains blocked until the human/deployment configuration
+listed below is supplied and a new final-config artifact is generated.
 
 ## Remediated Release Controls
 
@@ -14,7 +14,7 @@ generated.
 | Version | 1.0.0 (1) |
 | minSdk / compileSdk / targetSdk | 24 / 36 / 36 |
 | Release API | Fail-closed unless `API_BASE_URL` is a non-local HTTPS origin |
-| Release signing | Reads ignored `key.properties`; production build fails without it |
+| Release signing | Upload certificate and signed AAB verified; secrets remain ignored |
 | Android checkout | Google Play Billing client; Android never opens Stripe Checkout |
 | Web checkout | Stripe preserved |
 | Entitlement authority | Backend subscription state only |
@@ -48,18 +48,17 @@ credentials and the approved verifier are deployed.
 ## Remaining Human / Deployment Actions
 
 1. Register `com.studybookai.app` in Play Console and enroll in Play App Signing.
-2. Generate and securely back up the upload key; configure ignored
-   `android/key.properties`.
-3. Provision the approved production HTTPS API and public Supabase client
-   values outside the repository.
+2. Confirm encrypted backup and recovery ownership for the existing upload key.
+3. Approve a public domain and provision the production HTTPS API/Web origins
+   and public Supabase client values outside the repository.
 4. Create Student Pro and Teacher Pro subscription products and deploy backend
    Google Play verification credentials.
 5. Publish the legally approved privacy policy and external account-deletion
    page, then supply both HTTPS URLs.
 6. Complete Play Data Safety, app access, content rating, audience, support and
    store assets.
-7. Build a non-debug AAB and rerun `tools/qa/check_android_release.sh` before
-   any upload.
+7. Build a new non-debug AAB with final public config and rerun
+   `tools/qa/check_android_release.sh` before any upload.
 
 ## 7E-R Validation Evidence
 
@@ -74,16 +73,26 @@ credentials and the approved verifier are deployed.
   target SDK 36 and the Play Billing permission. They are local QA artifacts
   signed by the Android debug certificate under the explicit QA override and
   are not uploadable release candidates.
-- The production AAB command without the override stopped as required because
-  no upload signing configuration exists. Release config and artifact scans
-  passed; the placeholder example config was rejected.
+- During 7E-R, the production AAB command stopped as required before the upload
+  key was provisioned. The current productive-signing evidence is recorded
+  below; placeholder release configuration remains rejected.
+
+## Productive Signing Evidence
+
+- Upload certificate SHA-256:
+  `CD:33:79:B9:43:54:34:31:2C:20:87:DA:53:95:5E:AF:2D:AD:C7:AC:88:AF:02:9B:43:2F:69:58:44:D1:1E:36`.
+- Signed preparation AAB SHA-256:
+  `7d127a533944eb3f4f4e3258bb777af37e6c9411462b54eaca0926eda8062d76`.
+- Package `com.studybookai.app`, version `1.0.0` (1), target SDK 36.
+- This proves upload signing only. The artifact must be rebuilt after final
+  domain and Play configuration.
 
 ## Decision
 
 The five 7E technical designs are remediated. Internal Testing remains `NO`
-because signing, production URLs, Play products/verifier and Play Console/legal
-publication are external actions. A QA artifact generated with the explicit
-debug-signing override is never uploadable.
+because production URLs, Play products/verifier and Play Console/legal
+publication are external actions. Debug-signing override artifacts remain
+non-uploadable.
 
 Official references:
 

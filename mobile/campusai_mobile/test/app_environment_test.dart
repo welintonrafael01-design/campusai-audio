@@ -20,6 +20,8 @@ void main() {
         'http://127.0.0.1:8000',
         'https://localhost:8000',
         'https://10.0.2.2:8000',
+        'https://release-validation.invalid',
+        'https://example.com/api',
       ]) {
         expect(
           () => AppEnvironment.resolveApiBaseUrl(
@@ -82,6 +84,7 @@ void main() {
       for (final value in <String>[
         'http://studybook.example/privacy',
         'https://localhost/privacy',
+        'https://release-validation.invalid/privacy',
       ]) {
         expect(
           () => AppEnvironment.resolveOptionalHttpsUrl(value),

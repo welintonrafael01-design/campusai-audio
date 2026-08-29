@@ -28,6 +28,21 @@ the entitlement authority and can be consumed after login. The current default
 verifier returns `503` and grants nothing until external Play verification is
 configured.
 
+## Server Integration Points
+
+- Client endpoint: `POST /billing/google-play/verify-purchase`.
+- Package binding: `com.studybookai.app`.
+- Backend product mappings: `GOOGLE_PLAY_STUDENT_PRODUCT_ID` and
+  `GOOGLE_PLAY_TEACHER_PRODUCT_ID`.
+- Client public product IDs: `STUDENT_PRO_PLAY_PRODUCT_ID` and
+  `TEACHER_PRO_PLAY_PRODUCT_ID`.
+- Live verifier replacement point:
+  `backend/app/services/play_billing_service.py:get_play_purchase_verifier`.
+
+Google Play service-account credentials, project identifiers and API access
+remain backend-only deployment configuration. No such credential belongs in
+Flutter, Dart defines or Play listing files.
+
 Official references:
 
 - <https://pub.dev/packages/in_app_purchase>

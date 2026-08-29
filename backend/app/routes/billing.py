@@ -12,6 +12,7 @@ from app.security.entitlements import (
     resolve_role,
 )
 from app.security.user_auth import AuthenticatedUser, require_current_user
+from app.public_urls import PublicUrlConfigurationError, resolve_web_redirect
 
 from app.services.usage_limit_service import get_usage_summary_for_user
 from app.services.subscription_service import (
@@ -205,6 +206,25 @@ def _get_price_id(plan: str) -> str:
     return price_id
 
 
+def _billing_redirect_url(
+    variable_name: str,
+    *,
+    app_path: str,
+    development_default: str,
+) -> str:
+    try:
+        return resolve_web_redirect(
+            variable_name,
+            app_path=app_path,
+            development_default=development_default,
+        )
+    except PublicUrlConfigurationError as error:
+        raise HTTPException(
+            status_code=503,
+            detail="La configuracion publica de billing esta incompleta.",
+        ) from error
+
+
 @router.post(
     "/create-checkout-session",
     response_model=CheckoutSessionResponse,
@@ -236,13 +256,15 @@ def create_checkout_session(
 
     price_id = _get_price_id(plan)
 
-    success_url_base = os.getenv(
+    success_url_base = _billing_redirect_url(
         "APP_SUCCESS_URL",
-        "http://localhost:5000/#/plans?checkout=success",
+        app_path="/#/plans?checkout=success",
+        development_default="http://localhost:5000/#/plans?checkout=success",
     )
-    cancel_url_base = os.getenv(
+    cancel_url_base = _billing_redirect_url(
         "APP_CANCEL_URL",
-        "http://localhost:5000/#/plans?checkout=cancel",
+        app_path="/#/plans?checkout=cancel",
+        development_default="http://localhost:5000/#/plans?checkout=cancel",
     )
 
     separator_success = "&" if "?" in success_url_base else "?"
@@ -327,12 +349,10 @@ def create_customer_portal_session(
             ),
         )
 
-    return_url = os.getenv(
+    return_url = _billing_redirect_url(
         "STRIPE_CUSTOMER_PORTAL_RETURN_URL",
-        os.getenv(
-            "APP_SUCCESS_URL",
-            "http://localhost:54713/#/settings",
-        ),
+        app_path="/#/settings",
+        development_default="http://localhost:54713/#/settings",
     )
 
     try:

@@ -58,9 +58,9 @@ paths. QA redaction is defense in depth, not a substitute for safe logging.
 
 ## Deletion and Retention Reality
 
-The product can delete local user-scoped records and owner-filtered cloud rows,
-but the current implementation does not establish a complete retention or
-cascade guarantee for backend PDFs, Chroma embeddings, Supabase Storage files,
-all generated results, and MP3 files. No legal retention period is asserted by
-this document. Complete erasure orchestration remains a documented release
-risk.
+The authenticated account-deletion orchestrator inventories owner documents
+and removes known Supabase Storage objects, backend PDFs, Chroma collections,
+cloud rows, generated results and owner-prefixed MP3 files before deleting Auth.
+Partial completion is reported for retry. Deployment schema/storage evidence
+and legally approved retention exceptions remain required; no legal retention
+period is asserted by this document.

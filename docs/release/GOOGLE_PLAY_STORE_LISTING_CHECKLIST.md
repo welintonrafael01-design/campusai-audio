@@ -14,8 +14,8 @@
 | 7/10-inch tablet screenshots | `HUMAN ACTION` | Confirm listing/device support and capture if used. |
 | Contact email | `HUMAN ACTION` | Must be a monitored release/support address. |
 | Website | `HUMAN ACTION` | Confirm approved public product/support URL. |
-| Privacy-policy URL | `BLOCKER` | No approved public URL found. |
-| Account-deletion URL | `HUMAN ACTION` | In-app deletion is implemented; publish the external page defined in `ACCOUNT_DELETION_WEB_REQUIREMENTS.md`. |
+| Privacy-policy URL | `BLOCKER` | Public draft ready; domain, legal review and publication pending. |
+| Account-deletion URL | `HUMAN ACTION` | In-app deletion is implemented; verified Web flow, public draft review and hosting remain pending. |
 | Content rating | `HUMAN ACTION` | Complete questionnaire using education, AI-generated and user-uploaded content facts. |
 | Target audience | `HUMAN ACTION` | Do not select children/families status without age-scope decision and policy review. |
 | Ads declaration | `READY FOR HUMAN CONFIRMATION` | No ads SDK or ad feature found. |
