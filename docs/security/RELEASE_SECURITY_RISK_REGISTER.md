@@ -17,8 +17,10 @@
 | POL-7E-004 | P1 | Android digital purchases previously opened Stripe Checkout. | Google Play Payments | Android now uses Google Play Billing and server verification contract; Stripe remains Web-only. Configure Play products and live verifier externally. | Yes until Play configuration | Technical architecture ready; external Play gate open |
 | POL-7E-005 | P1 | Account deletion and complete erasure were absent. | Google Play User Data | In-app reauthentication and owner-scoped retry-safe backend deletion are implemented; publish the specified external request page. | Yes until public page exists | Technical lifecycle closed; human hosting gate open |
 | REL-7E-006 | P2 | Privacy URL, final Data Safety answers, store copy, feature graphic and screenshots are not approved. | Play listing/app content | Complete human/legal/brand review using 7E drafts before track promotion. | No for artifact build; yes by required track | Open human gate |
+| REL-7F-001 | P1 | Certificate, badge and transcript exports embedded a localhost verification URL. | Public verification QR codes | Verification URLs now derive from the validated `APP_WEB_URL`; production fails closed when the public origin is missing. Regression tests cover development and production behavior. | No | Closed in 7F |
 
 P0 open: 0. Plan Master 7E-R closes the five P1 technical implementation gaps.
+Plan Master 7F closes the remaining export verification URL defect.
 Upload remains blocked by external signing, HTTPS deployment, Google Play
 product/verifier configuration, privacy/deletion hosting and Play Console
 actions. Conditional deployment gates must be completed before production.

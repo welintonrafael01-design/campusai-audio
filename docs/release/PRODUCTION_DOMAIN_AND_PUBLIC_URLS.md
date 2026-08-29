@@ -14,9 +14,12 @@ must be replaced only after DNS, TLS, hosting and ownership are approved.
 | Public API | `API_BASE_URL=https://api.<DOMAIN>` | Flutter release build |
 | Privacy policy | `PRIVACY_POLICY_URL=https://<DOMAIN>/privacy` | Flutter settings and Play Console |
 | Account deletion | `ACCOUNT_DELETION_URL=https://<DOMAIN>/account-deletion` | Play Console and public support |
+| Public verification | `https://<DOMAIN>/#/verify/<RECORD_ID>` | Certificate, badge and transcript QR codes |
 
 `APP_WEB_URL` must be an HTTPS origin without a path. The other public URLs
 must be HTTPS, non-local and must not use the reserved `.invalid` suffix.
+Backend-generated verification links derive from `APP_WEB_URL`; production
+does not fall back to a development host when this origin is missing.
 
 ## Backend Environment Contract
 

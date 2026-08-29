@@ -3,11 +3,22 @@ from __future__ import annotations
 import textwrap
 from datetime import datetime
 from io import BytesIO
+from urllib.parse import quote
+
 import qrcode
 
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
+
+from app.public_urls import configured_app_web_origin
+
+
+def public_verification_url(record_id: str) -> str:
+    app_origin = configured_app_web_origin()
+    if app_origin is None:
+        app_origin = "http://localhost:3000"
+    return f"{app_origin}/#/verify/{quote(str(record_id), safe='')}"
 
 
 def build_text_pdf(
@@ -1128,7 +1139,7 @@ def build_certificate_pdf(
 
     # QR y URL pública
     if certificate_id:
-        verification_url = f"http://localhost:3000/#/verify/{certificate_id}"
+        verification_url = public_verification_url(certificate_id)
 
         qr = qrcode.make(verification_url)
         qr_buffer = BytesIO()
@@ -1271,7 +1282,7 @@ def build_academic_badge_pdf(
     y = box_y - 25
 
     if certificate_id:
-        verification_url = f"http://localhost:3000/#/verify/{certificate_id}"
+        verification_url = public_verification_url(certificate_id)
 
         pdf.setStrokeColorRGB(*gold)
         pdf.setLineWidth(1)
@@ -1554,7 +1565,7 @@ def build_student_transcript_pdf(
     )
     transcript_digest = hashlib.sha256(transcript_id_raw.encode("utf-8")).hexdigest()[:8].upper()
     transcript_id = f"EXP-{datetime.now().strftime('%Y')}-{transcript_digest}"
-    verification_url = f"http://localhost:3000/#/verify/{transcript_id}"
+    verification_url = public_verification_url(transcript_id)
 
     y = 148
     pdf.setStrokeColorRGB(*blue)
@@ -1598,4 +1609,3 @@ def build_student_transcript_pdf(
     pdf.save()
     buffer.seek(0)
     return buffer.read()
-
