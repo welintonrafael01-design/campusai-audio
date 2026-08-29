@@ -1,0 +1,6 @@
+# Copy this file to android/key.properties and fill it locally.
+# Never commit key.properties, keystores, or passwords.
+storeFile=<ABSOLUTE_PATH_TO_UPLOAD_KEY>
+storePassword=<INTRODUCIR_LOCALMENTE>
+keyAlias=studybook-upload
+keyPassword=<INTRODUCIR_LOCALMENTE>
