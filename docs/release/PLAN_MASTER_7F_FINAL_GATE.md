@@ -26,7 +26,7 @@ the approved public URLs and Play products are configured.
 | Gate | Result | Evidence |
 | --- | --- | --- |
 | Backend compile | Pass | `python -m compileall -q app` |
-| Backend tests | Pass | 129 passed, 0 failed, 0 skipped |
+| Backend tests | Pass | 134 passed, 0 failed, 0 skipped |
 | Dart formatting | Pass | 346 files checked, 0 changed |
 | Flutter analyze | Pass | No issues found |
 | Flutter tests | Pass | 125 passed, 0 failed |
@@ -119,11 +119,12 @@ deployed API.
 ## Supabase Gate
 
 Repository-side app metadata authority, user-metadata denial, owner filters and
-service-role boundaries are verified. No repository-owned Supabase migrations,
-RLS definitions, storage policies or schema dump exist, so repository RLS
-security cannot be marked complete and the deployed environment is unverified.
-The project owner must inspect table RLS, bucket privacy and policies directly
-before external production.
+service-role boundaries are verified. Plan 7F-S1 versions RLS, privileges and
+private document Storage policies for all 13 observed tables and the confirmed
+document bucket, with negative owner/metadata/path tests. Repository security
+is therefore complete for the observed schema. The migration was not applied;
+the deployed environment remains unverified and requires a catalog/policy
+review plus real two-user tests before external production.
 
 ## Public Documents
 

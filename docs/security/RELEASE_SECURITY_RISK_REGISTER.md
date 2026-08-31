@@ -2,7 +2,7 @@
 
 | ID | Severity | Description | Affected area | Mitigation / next action | Release blocker? | Status |
 |---|---|---|---|---|---|---|
-| SEC-7D-001 | P2 | Deployed Supabase RLS/storage policy state is not evidenced by repository SQL. Service-role calls bypass RLS. | Supabase | Deployment owner must verify private bucket, RLS, policies, and least privilege before external production. | Conditional yes | Open deployment gate |
+| SEC-7D-001 | P2 | Deployed Supabase RLS/storage policy state remains unverified. Service-role calls bypass RLS. | Supabase | 7F-S1 versions least-privilege RLS and private Storage policy contracts. Deployment owner must review/apply them and verify the live catalog before external production. | Conditional yes | Repository mitigation complete; deployment gate open |
 | SEC-7D-002 | P2 | Account erasure must remain consistent across backend PDF, Chroma, Supabase Storage/rows, MP3s and Auth. | Privacy/deletion | 7E-R added an owner-scoped retry-safe orchestrator with Auth last; verify deployed Supabase schema/storage and retention policy. | Conditional deployment gate | Mitigated in code; deployment evidence open |
 | SEC-7D-003 | P2 | Three unowned legacy certificate records were tracked in recent Git history and are not clearly marked synthetic. | Repository/privacy | Removed from tracked HEAD and runtime file ignored. Confirm synthetic status; if real, authorize restricted history cleanup and privacy response. | Conditional yes | Mitigated in HEAD; verification open |
 | SEC-7D-004 | P2 | Rate limiting is per-IP, in-memory, and per process. | Costly AI/API endpoints | Move to distributed/user-aware limits at production scale; retain subscription usage gates. | No for controlled RC | Accepted for RC |

@@ -15,7 +15,7 @@ These are release-critical gates, but are not unresolved product-code defects.
 | ID | Type | Gate | Owner action | Exit evidence |
 | --- | --- | --- | --- | --- |
 | 7F-P1-01 | Human action / external config | Public domain, DNS and TLS are not approved | Register the authorized domain and configure Web/API DNS plus valid TLS | Public HTTPS Web and API smoke tests |
-| 7F-P1-02 | External config | Production backend/Supabase environment is not deployed or verified | Configure production environment in a secret manager; validate CORS, private Storage, RLS and owner isolation | Sanitized deployment checklist and two-user authorization evidence |
+| 7F-P1-02 | External config | Repository RLS is versioned, but production backend/Supabase is not deployed or verified | Review and apply the versioned contract in an approved window; validate CORS, private Storage, RLS and owner isolation | Sanitized policy catalog plus two-user authorization evidence |
 | 7F-P1-03 | Human action / external config | Play products and live purchase verification are absent | Create actual products, configure Play Developer API server credentials and license testers | Backend-verified test purchase and restore/cancel evidence |
 | 7F-P1-04 | Human/legal action | Privacy and account-deletion pages remain drafts | Approve legal fields, monitored contacts, retention/age decisions and deploy both public pages | Accessible public URLs accepted by Play Console |
 | 7F-P1-05 | Human action | Play Console application, declarations and internal track are not complete | Complete App Signing, App Content, Data Safety, reviewer access and listing inputs | Play Console checklist plus internal-track processing result |
@@ -25,7 +25,7 @@ These are release-critical gates, but are not unresolved product-code defects.
 
 | Source | Risk | Disposition |
 | --- | --- | --- |
-| `SEC-7D-001` | Deployed Supabase RLS/storage policy state lacks repository evidence | Conditional deployment gate |
+| `SEC-7D-001` | Repository RLS/Storage evidence is closed; deployed policy state remains unknown | Conditional deployment verification gate |
 | `SEC-7D-002` | Account erasure requires deployed schema/Storage and retention evidence | Verify before production |
 | `SEC-7D-003` | Legacy unowned certificate records require synthetic/real-data confirmation | Verify before external release if records were real |
 | `SEC-7D-004` | Rate limiting is in-memory and per-IP | Accepted only for controlled RC; monitor and plan distributed limits |

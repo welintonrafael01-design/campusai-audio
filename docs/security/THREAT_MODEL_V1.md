@@ -79,9 +79,9 @@ hostile client and is never an authorization authority.
 
 ## Residual Risk
 
-- RLS policy state is not represented by SQL/migrations in this repository and
-  must be verified in the deployed Supabase project. Backend service-role calls
-  bypass RLS by design.
+- The 7F-S1 migration represents required RLS/Storage policy state in the
+  repository, but the deployed catalog remains unverified. Backend service-role
+  calls bypass RLS by design and retain explicit owner checks.
 - Document deletion does not yet prove complete deletion of local PDFs, Chroma
   chunks, Supabase objects, and generated MP3 files.
 - API rate limiting is in-memory and per backend process, not distributed.

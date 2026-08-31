@@ -39,8 +39,9 @@ Stop if any input is represented by `REQUIRED_*`, `<...>`, localhost, HTTP,
    AudioBooks, Teacher data and signed downloads.
 8. Record policy evidence without exporting secrets or personal content.
 
-Repository SQL cannot be used as deployment evidence because this repository
-does not contain the production migrations/RLS policy definitions.
+Use the versioned 7F-S1 migration as the intended policy contract, not as proof
+of deployed state. Compare it with the real schema and existing policy catalog
+before an approved apply, then run the SQL contract and two-user verification.
 
 ## 4. Backend Deployment
 

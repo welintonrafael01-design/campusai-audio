@@ -40,10 +40,14 @@ This list is code-derived, not a declaration of the complete production schema.
 
 ## RLS Status
 
-No Supabase migrations, SQL policies, or schema dump were found in the
-repository. Therefore this audit does **not** claim that RLS is enabled or that
-any specific policy exists. Because server operations use service role, RLS
-would not replace backend owner filters for these calls.
+Plan 7F-S1 adds a versioned repository contract at
+`supabase/migrations/20260829000100_studybook_rls_security.sql`, with SQL and
+Python contract tests. It covers every application table and Storage bucket
+observed in production code. Because server operations use service role, RLS
+does not replace backend owner filters for those calls.
+
+The migration has not been applied to the deployed Supabase project. This
+document therefore claims repository coverage, not deployed policy state.
 
 Before an external production release, the deployed project owner must verify:
 
