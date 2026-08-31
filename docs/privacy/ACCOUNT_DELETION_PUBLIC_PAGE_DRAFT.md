@@ -2,7 +2,7 @@
 
 Status: `DRAFT ONLY - VERIFIED WEB FLOW AND HUMAN REVIEW REQUIRED`
 
-Planned public path: `https://<DOMAIN>/account-deletion`
+Planned public path: `https://studybookai.com/account-deletion`
 
 Do not publish this page as an active deletion mechanism until the Web identity
 verification and backend request workflow are deployed and tested.

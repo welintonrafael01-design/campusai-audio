@@ -1,6 +1,6 @@
 # Final Release Blockers
 
-Date: `2026-08-29`
+Date: `2026-08-31`
 
 Technical P0: `0`
 
@@ -14,7 +14,8 @@ These are release-critical gates, but are not unresolved product-code defects.
 
 | ID | Type | Gate | Owner action | Exit evidence |
 | --- | --- | --- | --- | --- |
-| 7F-P1-01 | Human action / external config | Public domain, DNS and TLS are not approved | Register the authorized domain and configure Web/API DNS plus valid TLS | Public HTTPS Web and API smoke tests |
+| 7F-P1-01 | External config | `studybookai.com` is registered, but Vercel/Render DNS and TLS are not configured | Create the approved services, copy provider-issued DNS targets and verify Web/API TLS | Public HTTPS Web and API smoke tests |
+| 7F-P1-07 | Architecture / external config | Render's filesystem is ephemeral while the backend still writes Chroma, registry, audio and other state to multiple local paths | Approve a single persistent data root/disk or migrate remaining state to shared services | Restart/redeploy persistence tests for documents, RAG and AudioBook |
 | 7F-P1-02 | External config | Repository RLS is versioned, but production backend/Supabase is not deployed or verified | Review and apply the versioned contract in an approved window; validate CORS, private Storage, RLS and owner isolation | Sanitized policy catalog plus two-user authorization evidence |
 | 7F-P1-03 | Human action / external config | Play products and live purchase verification are absent | Create actual products, configure Play Developer API server credentials and license testers | Backend-verified test purchase and restore/cancel evidence |
 | 7F-P1-04 | Human/legal action | Privacy and account-deletion pages remain drafts | Approve legal fields, monitored contacts, retention/age decisions and deploy both public pages | Accessible public URLs accepted by Play Console |

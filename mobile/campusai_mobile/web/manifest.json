@@ -3,9 +3,9 @@
     "short_name": "StudyBook AI",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#0B1120",
+    "theme_color": "#0B1120",
+    "description": "Aprendizaje y herramientas docentes potenciadas por inteligencia artificial.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

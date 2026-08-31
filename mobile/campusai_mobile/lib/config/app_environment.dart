@@ -6,6 +6,9 @@ class AppEnvironment {
   static const String _configuredApiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
   );
+  static const String _configuredPrivacyUrl = String.fromEnvironment(
+    'PRIVACY_URL',
+  );
   static const String _configuredPrivacyPolicyUrl = String.fromEnvironment(
     'PRIVACY_POLICY_URL',
   );
@@ -48,7 +51,20 @@ class AppEnvironment {
       _configuredApiBaseUrl.trim().isNotEmpty;
 
   static Uri? get privacyPolicyUri {
-    return resolveOptionalHttpsUrl(_configuredPrivacyPolicyUrl);
+    return resolveOptionalHttpsUrl(
+      preferredPublicUrl(
+        primaryValue: _configuredPrivacyUrl,
+        legacyValue: _configuredPrivacyPolicyUrl,
+      ),
+    );
+  }
+
+  static String preferredPublicUrl({
+    required String primaryValue,
+    required String legacyValue,
+  }) {
+    final primary = primaryValue.trim();
+    return primary.isNotEmpty ? primary : legacyValue.trim();
   }
 
   static Uri? resolveOptionalHttpsUrl(String value) {

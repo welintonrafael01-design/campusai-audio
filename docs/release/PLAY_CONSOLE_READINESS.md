@@ -17,8 +17,8 @@ document.
 | Signed AAB SHA-256 | `7d127a533944eb3f4f4e3258bb777af37e6c9411462b54eaca0926eda8062d76` | Verified locally |
 
 The AAB proves productive upload signing. It is not approved for upload because
-the final production domain, public URLs, Play products and live server
-verification are still pending.
+the registered domain is not deployed, the legal pages remain drafts, and Play
+products plus live server verification are still pending.
 
 ## Play Console Human Checklist
 

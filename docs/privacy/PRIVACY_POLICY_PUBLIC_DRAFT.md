@@ -10,7 +10,7 @@ Privacy contact: `<PRIVACY_CONTACT_REQUIRED>`
 
 This draft translates the current technical inventory into public-facing
 language. Bracketed fields and legal decisions must be completed before it is
-published at `https://<DOMAIN>/privacy`.
+published at `https://studybookai.com/privacy`.
 
 ## 1. Data We Process
 
@@ -82,7 +82,7 @@ identity. A partial failure is reported for retry rather than presented as a
 completed deletion.
 
 A public alternative will be documented at
-`https://<DOMAIN>/account-deletion`. It is not available until the verified Web
+`https://studybookai.com/account-deletion`. It is not available until the verified Web
 request workflow is deployed. External subscriptions must be managed with the
 provider where they were purchased.
 

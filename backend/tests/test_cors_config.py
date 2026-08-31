@@ -50,3 +50,19 @@ def test_production_cors_uses_exact_https_origin_without_regex(monkeypatch):
 
     assert get_cors_origins() == ["https://example.com"]
     assert get_cors_origin_regex() is None
+
+
+def test_production_cors_accepts_only_studybook_web_origins(monkeypatch):
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("APP_WEB_URL", "https://studybookai.com")
+    monkeypatch.setenv(
+        "BACKEND_CORS_ORIGINS",
+        "https://studybookai.com,https://www.studybookai.com",
+    )
+    monkeypatch.delenv("BACKEND_CORS_ORIGIN_REGEX", raising=False)
+
+    assert get_cors_origins() == [
+        "https://studybookai.com",
+        "https://www.studybookai.com",
+    ]
+    assert get_cors_origin_regex() is None

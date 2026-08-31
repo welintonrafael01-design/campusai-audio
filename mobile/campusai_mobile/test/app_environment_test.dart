@@ -67,6 +67,23 @@ void main() {
   });
 
   group('AppEnvironment public URL safety', () {
+    test('prefers PRIVACY_URL while preserving the legacy key', () {
+      expect(
+        AppEnvironment.preferredPublicUrl(
+          primaryValue: 'https://studybookai.com/privacy',
+          legacyValue: 'https://legacy.example/privacy',
+        ),
+        'https://studybookai.com/privacy',
+      );
+      expect(
+        AppEnvironment.preferredPublicUrl(
+          primaryValue: '',
+          legacyValue: 'https://legacy.example/privacy',
+        ),
+        'https://legacy.example/privacy',
+      );
+    });
+
     test('allows an absent optional privacy URL', () {
       expect(AppEnvironment.resolveOptionalHttpsUrl(''), isNull);
     });
@@ -74,9 +91,9 @@ void main() {
     test('accepts a production HTTPS privacy URL', () {
       expect(
         AppEnvironment.resolveOptionalHttpsUrl(
-          'https://www.studybook.example/privacy',
+          'https://studybookai.com/privacy',
         ),
-        Uri.parse('https://www.studybook.example/privacy'),
+        Uri.parse('https://studybookai.com/privacy'),
       );
     });
 

@@ -49,8 +49,8 @@ credentials and the approved verifier are deployed.
 
 1. Register `com.studybookai.app` in Play Console and enroll in Play App Signing.
 2. Confirm encrypted backup and recovery ownership for the existing upload key.
-3. Approve a public domain and provision the production HTTPS API/Web origins
-   and public Supabase client values outside the repository.
+3. Provision `studybookai.com` and `api.studybookai.com` on the approved hosts,
+   then configure public Supabase client values outside the repository.
 4. Create Student Pro and Teacher Pro subscription products and deploy backend
    Google Play verification credentials.
 5. Publish the legally approved privacy policy and external account-deletion

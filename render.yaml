@@ -1,0 +1,48 @@
+services:
+  - type: web
+    name: studybook-ai-api
+    runtime: python
+    rootDir: backend
+    autoDeployTrigger: "off"
+    buildCommand: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+    startCommand: python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_WEB_URL
+        value: https://studybookai.com
+      - key: BACKEND_CORS_ORIGINS
+        value: https://studybookai.com,https://www.studybookai.com
+      - key: ENABLE_API_DOCS
+        value: "false"
+      - key: FILE_ACCESS_SECRET
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_STUDENT_PRICE_ID
+        sync: false
+      - key: STRIPE_TEACHER_PRICE_ID
+        sync: false
+      - key: STRIPE_ACCESSIBILITY_PRICE_ID
+        sync: false
+      - key: STRIPE_ULTRA_PRICE_ID
+        sync: false
+      - key: GOOGLE_PLAY_STUDENT_PRODUCT_ID
+        sync: false
+      - key: GOOGLE_PLAY_TEACHER_PRODUCT_ID
+        sync: false
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: ADMIN_API_KEY
+        sync: false

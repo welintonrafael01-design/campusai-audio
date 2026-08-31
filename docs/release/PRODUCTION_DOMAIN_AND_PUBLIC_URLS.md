@@ -1,87 +1,127 @@
 # Production Domain And Public URLs
 
-Status: `CONFIGURATION CONTRACT READY - HUMAN DOMAIN REQUIRED`
+Status: `DOMAIN CONFIRMED - DEPLOYMENT AND DNS PENDING`
 
-This document defines the production URL contract without selecting or
-claiming ownership of a domain. Every `<DOMAIN>` value is a placeholder and
-must be replaced only after DNS, TLS, hosting and ownership are approved.
+The registered production domain is `studybookai.com`. This document fixes the
+public URL contract but does not claim that DNS, TLS, Vercel, Render, Supabase
+redirects, Stripe redirects or the legal pages are already deployed.
 
 ## Canonical Public URLs
 
 | Purpose | Required value | Consumer |
 | --- | --- | --- |
-| Public Web app | `APP_WEB_URL=https://<DOMAIN>` | Backend CORS and billing redirects |
-| Public API | `API_BASE_URL=https://api.<DOMAIN>` | Flutter release build |
-| Privacy policy | `PRIVACY_POLICY_URL=https://<DOMAIN>/privacy` | Flutter settings and Play Console |
-| Account deletion | `ACCOUNT_DELETION_URL=https://<DOMAIN>/account-deletion` | Play Console and public support |
-| Public verification | `https://<DOMAIN>/#/verify/<RECORD_ID>` | Certificate, badge and transcript QR codes |
+| Public Web app | `APP_WEB_URL=https://studybookai.com` | Backend CORS, billing and QR links |
+| Web alias | `https://www.studybookai.com` | Redirect to canonical apex |
+| Public API | `API_BASE_URL=https://api.studybookai.com` | Flutter Web and Android release |
+| Privacy policy | `PRIVACY_URL=https://studybookai.com/privacy` | Flutter, public Web and Play Console |
+| Account deletion | `ACCOUNT_DELETION_URL=https://studybookai.com/account-deletion` | Public Web and Play Console |
+| Verification | `https://studybookai.com/#/verify/<RECORD_ID>` | Certificate, badge and transcript QR codes |
 
-`APP_WEB_URL` must be an HTTPS origin without a path. The other public URLs
-must be HTTPS, non-local and must not use the reserved `.invalid` suffix.
-Backend-generated verification links derive from `APP_WEB_URL`; production
-does not fall back to a development host when this origin is missing.
-
-## Backend Environment Contract
-
-Production must set:
-
-```text
-APP_ENV=production
-APP_WEB_URL=https://<DOMAIN>
-BACKEND_CORS_ORIGINS=https://<DOMAIN>
-APP_SUCCESS_URL=https://<DOMAIN>/#/plans?checkout=success
-APP_CANCEL_URL=https://<DOMAIN>/#/plans?checkout=cancel
-STRIPE_CUSTOMER_PORTAL_RETURN_URL=https://<DOMAIN>/#/settings
-```
-
-`BACKEND_CORS_ORIGIN_REGEX` must remain unset in production. If exact Stripe
-redirect variables are omitted, the backend derives them from `APP_WEB_URL`.
-Production startup/requests fail closed when required public configuration is
-missing or uses HTTP, loopback, credentials in the URL, or `.invalid`.
-
-The Stripe webhook destination, configured in Stripe rather than Flutter, is:
-
-```text
-https://api.<DOMAIN>/billing/webhook
-```
+`PRIVACY_POLICY_URL` remains accepted by Flutter and the Android release
+scanner as a legacy alias. New configuration must use `PRIVACY_URL`.
 
 ## Flutter Release Contract
 
-Start from `mobile/campusai_mobile/config/release.example.json` and create an
-external public configuration file. It may contain public URLs, the Supabase
-publishable/anon key and Play product IDs. It must never contain service-role,
-OpenAI, Stripe, Google service-account, password, bearer-token or keystore
-secrets.
+The checked-in public template is
+`mobile/campusai_mobile/config/release.example.json`. The four registered URLs
+are now concrete. Supabase public values and Play product IDs remain human
+inputs and must not be replaced with guessed values.
 
-Validate before building:
+Android production must compile with:
 
-```bash
-tools/qa/check_android_release.sh \
-  /secure/path/release-public-config.json
-
-flutter build appbundle --release \
-  --dart-define-from-file=/secure/path/release-public-config.json
+```text
+API_BASE_URL=https://api.studybookai.com
+APP_WEB_URL=https://studybookai.com
+PRIVACY_URL=https://studybookai.com/privacy
+ACCOUNT_DELETION_URL=https://studybookai.com/account-deletion
 ```
 
-The current signed AAB is signing evidence only. It must not be uploaded until
-the final domain values pass this validation and a new artifact is generated.
+Release validation rejects HTTP, loopback, URL credentials, `.invalid` hosts,
+missing values and server-side secrets.
 
-## Supabase Dashboard Actions
+## Vercel Web Contract
 
-After the domain is approved, configure the production project with:
+Create the Vercel project with:
 
-- Site URL: `https://<DOMAIN>`.
-- Allowed password-reset redirect: `https://<DOMAIN>/#/reset-password`.
-- Any future mobile deep link only after the app implements and tests it.
+```text
+Root Directory: mobile/campusai_mobile
+Framework Preset: Other
+Build Command: bash tool/build_vercel_web.sh
+Output Directory: build/web
+```
 
-Do not add wildcard redirect domains unless a separate security review
-authorizes them.
+`vercel.json` supplies the build/output contract, direct rewrites for
+`/privacy` and `/account-deletion`, and the Flutter SPA fallback. The build
+script requires these environment values:
 
-## Human Deployment Gate
+```text
+API_BASE_URL=https://api.studybookai.com
+APP_WEB_URL=https://studybookai.com
+PRIVACY_URL=https://studybookai.com/privacy
+ACCOUNT_DELETION_URL=https://studybookai.com/account-deletion
+SUPABASE_URL=<AUTHORIZED_PUBLIC_PROJECT_ORIGIN>
+SUPABASE_ANON_KEY=<AUTHORIZED_PUBLIC_PUBLISHABLE_OR_ANON_KEY>
+```
 
-1. Approve and register `<DOMAIN>`.
-2. Configure DNS and valid TLS for Web and API hosts.
-3. Deploy the API with exact CORS origins and production environment values.
-4. Configure Supabase and Stripe redirects.
-5. Publish privacy and deletion pages after legal review.
-6. Rebuild, scan and hash the final AAB. Do not reuse a validation artifact.
+The Supabase service role, OpenAI, Stripe and Google credentials are forbidden
+in Vercel's Flutter build environment.
+
+## Render API Contract
+
+The repository-root `render.yaml` defines a manual FastAPI service:
+
+```text
+Root Directory: backend
+Build Command: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+Start Command: python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+Health Check: /health
+Auto Deploy: off
+```
+
+Production CORS is exact:
+
+```text
+APP_ENV=production
+APP_WEB_URL=https://studybookai.com
+BACKEND_CORS_ORIGINS=https://studybookai.com,https://www.studybookai.com
+```
+
+`BACKEND_CORS_ORIGIN_REGEX` must remain unset. API docs remain disabled in
+production. Secret values are prompted by Render through `sync: false`; no
+secret value is committed.
+
+## Billing And Identity Redirects
+
+The backend derives these Stripe destinations from `APP_WEB_URL` unless an
+exact approved override is supplied:
+
+```text
+https://studybookai.com/#/plans?checkout=success
+https://studybookai.com/#/plans?checkout=cancel
+https://studybookai.com/#/settings
+```
+
+The Stripe webhook destination is:
+
+```text
+https://api.studybookai.com/billing/webhook
+```
+
+Supabase production settings must be updated manually after the Vercel domain
+is active:
+
+- Site URL: `https://studybookai.com`.
+- Password-reset redirect: `https://studybookai.com/#/reset-password`.
+- No wildcard redirect domain.
+
+## Remaining Deployment Gates
+
+1. Create Vercel and Render projects without promoting production traffic.
+2. Supply authorized environment values through each provider dashboard.
+3. Resolve the backend local-state/persistent-storage decision before Render
+   receives production traffic.
+4. Copy provider-issued DNS targets exactly; do not guess targets.
+5. Complete legal fields and remove `noindex` only after approval.
+6. Verify TLS, CORS, Supabase redirects, Stripe webhook and two-user isolation.
+7. Rebuild and scan the final Android AAB with the registered URLs and real
+   Play product IDs.

@@ -23,7 +23,6 @@ data = json.loads(path.read_text(encoding="utf-8"))
 required = {
     "API_BASE_URL",
     "APP_WEB_URL",
-    "PRIVACY_POLICY_URL",
     "ACCOUNT_DELETION_URL",
     "SUPABASE_URL",
     "SUPABASE_ANON_KEY",
@@ -31,17 +30,26 @@ required = {
     "TEACHER_PRO_PLAY_PRODUCT_ID",
 }
 missing = sorted(key for key in required if not str(data.get(key, "")).strip())
+privacy_url = str(
+    data.get("PRIVACY_URL") or data.get("PRIVACY_POLICY_URL") or ""
+).strip()
+if not privacy_url:
+    missing.append("PRIVACY_URL")
 if missing:
     raise SystemExit(f"Missing release values: {', '.join(missing)}")
 
-for key in (
+public_urls = {
+    key: str(data[key]).strip()
+    for key in (
     "API_BASE_URL",
     "APP_WEB_URL",
-    "PRIVACY_POLICY_URL",
     "ACCOUNT_DELETION_URL",
     "SUPABASE_URL",
-):
-    value = str(data[key]).strip()
+    )
+}
+public_urls["PRIVACY_URL"] = privacy_url
+
+for key, value in public_urls.items():
     parsed = urlparse(value)
     if parsed.scheme != "https" or not parsed.hostname:
         raise SystemExit(f"{key} must be a production HTTPS URL")

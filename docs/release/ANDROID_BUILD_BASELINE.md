@@ -21,8 +21,9 @@ Captured during Plan Master 7E on branch `qa/studybook-ai-rc1`.
 ## Release Configuration Contract
 
 - `API_BASE_URL` is mandatory in release and must be a non-local HTTPS origin.
-- `APP_WEB_URL`, `PRIVACY_POLICY_URL` and `ACCOUNT_DELETION_URL` must be final
+- `APP_WEB_URL`, `PRIVACY_URL` and `ACCOUNT_DELETION_URL` must be final
   public HTTPS values before any Play upload.
+- `PRIVACY_POLICY_URL` remains accepted only as a legacy alias.
 - Supabase URL and anon/publishable key are public client configuration, not
   secret storage. They still must match the approved production project.
 - Never provide admin, service-role, Stripe secret, OpenAI secret, password or

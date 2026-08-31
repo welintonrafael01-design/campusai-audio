@@ -1,148 +1,149 @@
 # Production Deployment Runbook
 
-Status: `PREPARED - DO NOT EXECUTE WITHOUT APPROVED INPUTS`
+Status: `DOMAIN READY - DO NOT DEPLOY WITHOUT REMAINING APPROVALS`
 
-This runbook intentionally contains no real domain, product ID, credential or
-secret. It does not authorize deployment, Play upload, push or tagging.
+Registered domain: `studybookai.com`.
 
-## 1. Required Human Inputs
+This runbook prepares Vercel and Render but does not authorize deployment, DNS
+changes, Play upload, push or tagging.
 
-- Approved `<DOMAIN>` with DNS/TLS ownership.
+## 1. Remaining Human Inputs
+
 - Approved legal entity, privacy/support contacts, effective date, retention
-  criteria, age scope and account-deletion process.
-- Authorized production Supabase project and reviewed RLS/Storage policies.
-- Backend secret-manager entries for the existing server-side variable names.
+  criteria, age scope and account-deletion response process.
+- Authorized production Supabase project and reviewed deployed RLS/Storage.
+- Backend secret-manager values for the implemented variable names.
 - Actual Student Pro and Teacher Pro product IDs from Play Console.
-- Backend-only Google Play Developer API service identity.
-- Authorized Play Console application, testers, reviewer access and listing.
+- Backend-only Google Play Developer API verifier and service identity.
+- A decision for backend local writable state on Render.
 
-Stop if any input is represented by `REQUIRED_*`, `<...>`, localhost, HTTP,
-`.invalid`, a guessed value or a client-side secret.
+Stop if any required value is represented by `REQUIRED_*`, a bracketed
+placeholder, localhost, HTTP, `.invalid`, a guessed value or a client-side
+secret.
 
-## 2. DNS And TLS
+## 2. Create The Vercel Project
 
-1. Configure the approved Web host at `https://<DOMAIN>`.
-2. Configure the API host at `https://api.<DOMAIN>`.
-3. Issue valid public TLS certificates and enforce HTTPS redirects.
-4. Confirm certificates, hostname coverage and renewal monitoring.
-5. Do not enable broad wildcard CORS or Supabase redirects.
-
-## 3. Supabase Production Review
-
-1. Confirm the project is the authorized production project.
-2. Inventory every table/bucket used by the backend.
-3. Verify RLS on sensitive tables where anon/authenticated access is possible.
-4. Verify the document bucket is private and policies do not expose prefixes.
-5. Confirm app metadata is role authority and user metadata cannot elevate it.
-6. Confirm service-role access exists only in the backend runtime.
-7. Execute two-user owner-isolation tests against documents, StudyResults,
-   AudioBooks, Teacher data and signed downloads.
-8. Record policy evidence without exporting secrets or personal content.
-
-Use the versioned 7F-S1 migration as the intended policy contract, not as proof
-of deployed state. Compare it with the real schema and existing policy catalog
-before an approved apply, then run the SQL contract and two-user verification.
-
-## 4. Backend Deployment
-
-Configure these value names in the approved server secret/config system:
+Use the repository and select:
 
 ```text
-APP_ENV=production
-APP_WEB_URL=https://<DOMAIN>
-BACKEND_CORS_ORIGINS=https://<DOMAIN>
-OPENAI_API_KEY=<SERVER_SECRET>
-SUPABASE_URL=<APPROVED_PROJECT_URL>
-SUPABASE_ANON_KEY=<SERVER_CONFIG>
-SUPABASE_SERVICE_ROLE_KEY=<SERVER_SECRET>
-STRIPE_SECRET_KEY=<SERVER_SECRET>
-STRIPE_WEBHOOK_SECRET=<SERVER_SECRET>
-GOOGLE_PLAY_STUDENT_PRODUCT_ID=<PLAY_PRODUCT_ID>
-GOOGLE_PLAY_TEACHER_PRODUCT_ID=<PLAY_PRODUCT_ID>
+Root Directory: mobile/campusai_mobile
+Framework Preset: Other
+Build Command: bash tool/build_vercel_web.sh
+Output Directory: build/web
 ```
 
-Use only variable names implemented by the selected production verifier; do
-not create an undocumented credential contract. Add its backend-only Google
-credential variables only after that implementation is selected and reviewed.
-Configure billing success, cancel and portal destinations from `APP_WEB_URL`
-or exact approved HTTPS URLs.
+Add the exact public variables and authorized Supabase public values listed in
+`PRODUCTION_DOMAIN_AND_PUBLIC_URLS.md`. Do not add service-role, OpenAI, Stripe,
+Google service-account, password or signing values.
+
+Keep the initial deployment as preview evidence. The legal pages intentionally
+carry `noindex` and draft notices until human review is complete.
+
+## 3. Create The Render Service
+
+Review and import `render.yaml`. It uses:
+
+```text
+Python: backend/.python-version
+Build: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+Start: python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+Health: /health
+Auto deploy: off
+```
+
+Render prompts for each `sync: false` value. Supply only authorized values in
+the dashboard; never place them in Git. Confirm `/health` reports `status=ok`,
+service `StudyBook AI API` and the Render commit SHA before attaching DNS.
+
+### Render Persistent-State Blocker
+
+The backend currently writes mutable data to several local locations,
+including `backend/chroma_db`, `backend/app/database/document_registry.json`,
+`backend/app/audio`, `backend/storage` and certificate/usage files. Render's
+filesystem is ephemeral unless a paid persistent disk is attached, and one
+disk preserves only its mount subtree.
+
+Do not send production traffic until one of these is reviewed and tested:
+
+1. Consolidate all required mutable paths under one configurable persistent
+   data root and attach a single-instance Render disk; or
+2. Move the remaining state to Supabase/object storage and a shared vector
+   store so the API is stateless and horizontally scalable.
+
+This runbook does not choose a paid plan, disk size or architecture by guess.
+
+## 4. Configure Domains And DNS
+
+After both projects exist:
+
+1. Add `studybookai.com` and `www.studybookai.com` to Vercel.
+2. Add `api.studybookai.com` to the Render service.
+3. Copy the exact records displayed by each provider into the DNS dashboard.
+4. Wait for provider verification and valid public TLS.
+5. Redirect `www` to canonical `https://studybookai.com`.
+
+Use `PRODUCTION_DNS_SETUP.md`. Never substitute a remembered Vercel IP or a
+guessed Render CNAME.
+
+## 5. Supabase And Stripe
+
+After Web TLS is active:
+
+1. Set Supabase Site URL to `https://studybookai.com`.
+2. Add only `https://studybookai.com/#/reset-password` as the tested Web reset
+   redirect.
+3. Configure the Stripe webhook at
+   `https://api.studybookai.com/billing/webhook`.
+4. Confirm success, cancel and portal returns remain under
+   `https://studybookai.com`.
+5. Verify webhook signatures, checkout ownership and subscription sync.
+
+## 6. Public Legal Pages
+
+The static paths exist at `/privacy` and `/account-deletion`, but they are
+drafts. Before public launch:
+
+1. Approve every legal/contact/retention/age field.
+2. Deploy and test the verified account-deletion alternative.
+3. Remove draft banners and `noindex` only after approval.
+4. Test keyboard, mobile width, screen reader and plain-language readability.
+5. Submit the final public URLs to Play Console.
+
+## 7. Production Verification
 
 Before traffic:
 
-1. Run backend compile/tests from the release commit.
-2. Start the production process with health/readiness checks.
-3. Verify exact CORS preflight from the approved Web origin.
-4. Verify authentication, owner isolation, AI errors and redaction.
-5. Verify Stripe webhook signature and Play verification fail closed.
-6. Verify certificate/badge/transcript QR links use the public Web origin.
-7. Keep rollback artifact/config available.
+1. Run backend compile and tests from the release commit.
+2. Run Flutter analyze/tests and the Vercel build contract.
+3. Verify exact CORS preflight from apex and `www`; reject other origins.
+4. Verify Student A/B isolation, Teacher authorization and denied Admin.
+5. Verify uploads, RAG, Voice Tutor and AudioBook across a restart.
+6. Verify privacy-safe logs, health/build SHA and rollback procedure.
+7. Verify the deployed filesystem strategy survives redeploy/restart.
 
-## 5. Public Web And Legal Pages
+## 8. Final Android Artifact
 
-1. Complete legal review of the privacy and deletion drafts.
-2. Remove every draft placeholder only with approved facts.
-3. Deploy `/privacy` and `/account-deletion` over HTTPS.
-4. Deploy the Flutter Web app with the approved API/public configuration.
-5. Configure CSP, HSTS, MIME types and cache rules at the CDN/reverse proxy.
-6. Smoke-test Student, Teacher and denied Admin behavior.
-7. Verify Settings links and the authenticated account deletion flow.
-
-Do not describe a public deletion alternative as operational until its identity
-verification workflow is deployed and tested.
-
-## 6. Google Play Billing And Console
-
-1. Register `com.studybookai.app` in the authorized developer account.
-2. Enroll in Play App Signing using the approved upload certificate.
-3. Create actual subscription products and activate the intended base plans.
-4. Configure license testers and internal track access.
-5. Configure the backend-only Developer API verifier and product mapping.
-6. Test purchase, acknowledgement, restore, cancellation, expiry, replay and an
-   unknown product; the backend must remain entitlement authority.
-7. Complete App Content, Data Safety, content rating, target audience, reviewer
-   access and public policy URLs.
-
-## 7. Final Android Artifact
-
-Create an external public configuration file based on
-`mobile/campusai_mobile/config/release.example.json`. Never place server
-secrets, passwords or signing data in it.
+Create an external configuration from
+`mobile/campusai_mobile/config/release.example.json`, fill only authorized
+public Supabase/Play values, then run:
 
 ```bash
 tools/qa/check_android_release.sh /secure/path/release-public-config.json
 
 cd mobile/campusai_mobile
-flutter analyze
-flutter test
 flutter build appbundle --release \
   --dart-define-from-file=/secure/path/release-public-config.json
 ```
 
-Then verify:
-
-- package `com.studybookai.app`, version `1.0.0+1`, target SDK `36`;
-- approved upload certificate;
-- new AAB SHA-256;
-- release manifest, cleartext/backup/exported components and 64-bit ABIs;
-- absence of secrets, QA identities, local hosts and reserved invalid hosts;
-- working production API/auth/billing/account-deletion flows.
-
-The 7F AAB hash is not the hash of this future final-config artifact.
-
-## 8. Internal Test And Promotion
-
-1. Upload only after every P1 gate in `FINAL_RELEASE_BLOCKERS.md` is closed.
-2. Validate install/update, signup/login/logout, Student A/B isolation, Teacher
-   authorization, denied Admin, documents, AI, Voice Tutor and AudioBook.
-3. Validate purchase lifecycle and account deletion on the distributed build.
-4. Review crashes, ANRs, startup, accessibility and privacy-safe logs.
-5. Promote only with an explicit GO decision and recorded evidence.
+Confirm package `com.studybookai.app`, version `1.0.0+1`, target SDK `36`, the
+approved signer and a new SHA-256. The prior signing artifact is not the final
+domain-configured artifact.
 
 ## 9. Rollback
 
 - Preserve the previous backend/Web artifact and configuration revision.
-- Roll back application code and configuration together when contracts differ.
-- Disable affected billing products or AI routes server-side if authorization,
-  verification or cost controls fail.
+- Roll back application and configuration together when contracts differ.
+- Disable affected billing/AI routes server-side if verification or cost
+  controls fail.
 - Never restore a client-side entitlement or bypass server verification.
 - Document incident scope without copying tokens, documents or user content.
