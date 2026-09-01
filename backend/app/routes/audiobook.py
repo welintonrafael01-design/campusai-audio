@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import Response
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.security.user_auth import AuthenticatedUser, require_current_user
 from app.services.audiobook_service import (
     audio_filename_belongs_to_user,
-    audiobook_audio_path,
     generate_audiobook_payload,
     generate_chapter_audio_payload,
     generate_learning_pack,
+    read_audiobook_audio_content,
     scoped_audiobook_storage_id,
 )
 from app.services.cloud_service import user_owns_legacy_audiobook_audio
@@ -102,6 +102,7 @@ async def generate_chapter_audio_endpoint(
     try:
         enforce_audiobook_permission(user_id=current_user.user_id)
         return generate_chapter_audio_payload(
+            user_id=current_user.user_id,
             audiobook_id=scoped_audiobook_storage_id(
                 user_id=current_user.user_id,
                 audiobook_id=payload.audiobook_id,
@@ -174,15 +175,19 @@ async def get_audiobook_audio(
             detail="Audio de capítulo no encontrado.",
         )
 
-    audio_path = audiobook_audio_path(filename)
-    if audio_path is None:
+    content = read_audiobook_audio_content(
+        user_id=current_user.user_id,
+        filename=filename,
+        owner_verified=owns_legacy_audio,
+    )
+    if content is None:
         raise HTTPException(
             status_code=404,
             detail="Audio de capítulo no encontrado.",
         )
 
-    return FileResponse(
-        str(audio_path),
+    return Response(
+        content=content,
         media_type="audio/mpeg",
-        filename=audio_path.name,
+        headers={"Content-Disposition": f'inline; filename="{filename}"'},
     )

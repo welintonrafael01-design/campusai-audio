@@ -5,6 +5,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 MIGRATION = ROOT / "supabase/migrations/20260829000100_studybook_rls_security.sql"
 SQL_TEST = ROOT / "supabase/tests/rls_policy_contract.sql"
+PERSISTENCE_MIGRATION = (
+    ROOT / "supabase/migrations/20260831000100_production_persistence.sql"
+)
 
 EXPECTED_TABLES = {
     "workspaces",
@@ -20,6 +23,8 @@ EXPECTED_TABLES = {
     "educator_attendance",
     "educator_gradebook",
     "educator_question_banks",
+    "certificates",
+    "document_chunks",
 }
 
 
@@ -35,12 +40,31 @@ def test_migration_covers_every_backend_supabase_table():
     )
     literal_tables = set(re.findall(r'\.table\("([a-z_]+)"\)', source))
     educator_tables = set(re.findall(r'table="(educator_[a-z_]+)"', source))
+    configured_tables = set(
+        re.findall(r'[A-Z_]+_TABLE\s*=\s*"([a-z_]+)"', source)
+    )
 
-    assert literal_tables | educator_tables == EXPECTED_TABLES
+    assert literal_tables | educator_tables | configured_tables == EXPECTED_TABLES
 
     sql = _migration_sql()
-    for table in EXPECTED_TABLES:
+    for table in EXPECTED_TABLES - {"certificates", "document_chunks"}:
         assert f"alter table public.{table} enable row level security" in sql
+
+    persistence_sql = PERSISTENCE_MIGRATION.read_text(encoding="utf-8").lower()
+    for table in {"certificates", "document_chunks"}:
+        assert f"alter table public.{table} enable row level security" in persistence_sql
+
+
+def test_persistence_migration_keeps_private_data_server_side():
+    sql = PERSISTENCE_MIGRATION.read_text(encoding="utf-8").lower()
+
+    assert "public.document_chunks" in sql
+    assert "extensions.vector(1536)" in sql
+    assert "where chunk.user_id = p_user_id" in sql
+    assert "studybook-private-artifacts" in sql
+    assert "public=false" not in sql
+    assert "public)\nvalues ('studybook-private-artifacts'" in sql
+    assert "revoke all on public.document_chunks from public, anon, authenticated" in sql
 
 
 def test_migration_preserves_server_authorities_and_denies_owner_spoof():

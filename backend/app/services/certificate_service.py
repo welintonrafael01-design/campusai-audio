@@ -4,8 +4,11 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+from app.database.supabase_client import get_supabase_admin_client
+from app.public_urls import is_production_environment
 
-DATA_DIR = Path("data")
+
+DATA_DIR = Path(__file__).resolve().parents[2] / "data"
 CERTIFICATES_FILE = DATA_DIR / "certificates.json"
 
 
@@ -38,6 +41,17 @@ def list_certificates(*, user_id: str) -> list[dict]:
     if not clean_user_id:
         return []
 
+    if is_production_environment():
+        response = (
+            get_supabase_admin_client()
+            .table("certificates")
+            .select("*")
+            .eq("user_id", clean_user_id)
+            .order("issued_at", desc=True)
+            .execute()
+        )
+        return [_public_record(item) for item in (response.data or [])]
+
     return [
         _public_record(item)
         for item in _read_certificates()
@@ -46,13 +60,10 @@ def list_certificates(*, user_id: str) -> list[dict]:
 
 
 def save_certificate(record: dict, *, user_id: str) -> dict:
-    _ensure_store()
-
     clean_user_id = str(user_id or "").strip()
     if not clean_user_id:
         raise ValueError("user_id es obligatorio.")
 
-    certificates = _read_certificates()
     certificate_id = str(record.get("certificate_id", "")).strip()
 
     if not certificate_id:
@@ -71,6 +82,30 @@ def save_certificate(record: dict, *, user_id: str) -> dict:
         "status": str(record.get("status", "valid")).strip() or "valid",
     }
 
+    if is_production_environment():
+        existing = (
+            get_supabase_admin_client()
+            .table("certificates")
+            .select("user_id")
+            .eq("certificate_id", certificate_id)
+            .limit(1)
+            .execute()
+        )
+        if existing.data and existing.data[0].get("user_id") != clean_user_id:
+            raise PermissionError(
+                "El identificador del certificado no esta disponible."
+            )
+        result = (
+            get_supabase_admin_client()
+            .table("certificates")
+            .upsert(clean_record, on_conflict="certificate_id")
+            .execute()
+        )
+        saved = (result.data or [clean_record])[0]
+        return _public_record(saved)
+
+    _ensure_store()
+    certificates = _read_certificates()
     existing = next(
         (
             item
@@ -102,6 +137,17 @@ def get_certificate(certificate_id: str) -> dict | None:
     if not clean_id:
         return None
 
+    if is_production_environment():
+        response = (
+            get_supabase_admin_client()
+            .table("certificates")
+            .select("*")
+            .eq("certificate_id", clean_id)
+            .limit(1)
+            .execute()
+        )
+        return _public_record(response.data[0]) if response.data else None
+
     for item in _read_certificates():
         if item.get("certificate_id") == clean_id:
             return _public_record(item)
@@ -113,6 +159,19 @@ def delete_certificates_for_user(*, user_id: str) -> int:
     clean_user_id = str(user_id or "").strip()
     if not clean_user_id:
         raise ValueError("user_id es obligatorio.")
+
+    if is_production_environment():
+        existing = (
+            get_supabase_admin_client()
+            .table("certificates")
+            .select("certificate_id")
+            .eq("user_id", clean_user_id)
+            .execute()
+        )
+        get_supabase_admin_client().table("certificates").delete().eq(
+            "user_id", clean_user_id
+        ).execute()
+        return len(existing.data or [])
 
     certificates = _read_certificates()
     remaining = [

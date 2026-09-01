@@ -3,10 +3,18 @@ from dotenv import load_dotenv
 
 from pathlib import Path
 from hashlib import sha256
+from tempfile import NamedTemporaryFile
 
 import os
 import re
 import uuid
+
+from app.public_urls import is_production_environment
+from app.services.private_artifact_storage import (
+    delete_private_artifacts_for_user,
+    download_private_artifact,
+    upload_private_artifact,
+)
 
 load_dotenv()
 
@@ -18,10 +26,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 AUDIO_FOLDER = BASE_DIR / "audio"
 
-AUDIO_FOLDER.mkdir(
-    parents=True,
-    exist_ok=True,
-)
+if not is_production_environment():
+    AUDIO_FOLDER.mkdir(parents=True, exist_ok=True)
 
 MAX_TTS_CHARACTERS = 4000
 
@@ -61,6 +67,9 @@ def audio_file_path(filename: str) -> Path | None:
 
 
 def delete_audio_for_user(*, user_id: str) -> int:
+    if is_production_environment():
+        return delete_private_artifacts_for_user(user_id=user_id)
+
     prefix = f"{audio_owner_scope(user_id)}_"
     deleted = 0
 
@@ -82,9 +91,8 @@ def generate_audio_from_text(text: str, *, user_id: str) -> str:
 
     audio_filename = f"{audio_owner_scope(user_id)}_{uuid.uuid4().hex}.mp3"
 
-    audio_path = AUDIO_FOLDER / audio_filename
-
     short_text = clean_text[:MAX_TTS_CHARACTERS]
+    temporary_path: Path | None = None
 
     try:
         response = client.audio.speech.create(
@@ -93,12 +101,52 @@ def generate_audio_from_text(text: str, *, user_id: str) -> str:
             input=short_text,
         )
 
-        response.write_to_file(str(audio_path))
+        if is_production_environment():
+            with NamedTemporaryFile(suffix=".mp3", delete=False) as temp_file:
+                temporary_path = Path(temp_file.name)
+            response.write_to_file(str(temporary_path))
+            upload_private_artifact(
+                user_id=user_id,
+                category="audio",
+                filename=audio_filename,
+                content=temporary_path.read_bytes(),
+                content_type="audio/mpeg",
+            )
+        else:
+            AUDIO_FOLDER.mkdir(parents=True, exist_ok=True)
+            response.write_to_file(str(AUDIO_FOLDER / audio_filename))
 
     except Exception as error:
         raise RuntimeError("No se pudo generar el audio solicitado.") from error
+    finally:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
 
     return audio_filename
+
+
+def read_audio_content(
+    *,
+    user_id: str,
+    filename: str,
+    owner_verified: bool = False,
+) -> bytes | None:
+    if (
+        not owner_verified
+        and not audio_filename_belongs_to_user(user_id=user_id, filename=filename)
+    ):
+        return None
+    if is_production_environment():
+        try:
+            return download_private_artifact(
+                user_id=user_id,
+                category="audio",
+                filename=filename,
+            )
+        except Exception:
+            return None
+    path = audio_file_path(filename)
+    return path.read_bytes() if path is not None else None
 
 
 def clean_input_text(text: str) -> str:

@@ -26,6 +26,10 @@ services:
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        value: studybook-documents
+      - key: SUPABASE_PRIVATE_ARTIFACTS_BUCKET
+        value: studybook-private-artifacts
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: STRIPE_WEBHOOK_SECRET

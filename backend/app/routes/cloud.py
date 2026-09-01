@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pathlib import Path
+import tempfile
 from typing import Literal
 from uuid import uuid4
 from pydantic import BaseModel, ConfigDict, Field
@@ -14,6 +15,7 @@ from app.services.storage_service import download_document_from_storage
 from app.services.pdf_service import extract_pages_from_pdf
 from app.services.ai_service import index_document_pages_for_rag
 from app.services.document_registry_service import register_document_file
+from app.public_urls import is_production_environment
 from app.services.cloud_service import (
     create_workspace,
     list_workspaces,
@@ -168,6 +170,7 @@ async def rehydrate_document_endpoint(
     document_id: str,
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
+    local_path: Path | None = None
     try:
         download_info = get_document_download_url(
             document_id=document_id,
@@ -178,7 +181,12 @@ async def rehydrate_document_endpoint(
         storage_path = download_info["storage_path"]
 
         filename = Path(storage_path).name
-        uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
+        uploads_dir = (
+            Path(tempfile.gettempdir()) / "studybook-ai"
+            if is_production_environment()
+            else Path(__file__).resolve().parent.parent / "uploads"
+        )
+        uploads_dir.mkdir(parents=True, exist_ok=True)
         local_path = uploads_dir / f"rehydrated_{uuid4()}_{filename}"
 
         download_document_from_storage(
@@ -218,6 +226,9 @@ async def rehydrate_document_endpoint(
 
     except Exception as error:
         raise handle_cloud_error(error)
+    finally:
+        if is_production_environment() and local_path is not None:
+            local_path.unlink(missing_ok=True)
 
 
 @router.get("/document-download-url/{document_id}")

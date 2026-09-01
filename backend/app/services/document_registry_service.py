@@ -4,6 +4,9 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+from app.database.supabase_client import get_supabase_admin_client
+from app.public_urls import is_production_environment
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATABASE_DIR = BASE_DIR / "database"
@@ -64,8 +67,6 @@ def register_document_file(
             "user_id es requerido para registrar documentos reales.",
         )
 
-    registry = _read_registry()
-
     record = {
         "document_id": document_id,
         "filename": filename,
@@ -79,6 +80,15 @@ def register_document_file(
         "storage_path": storage_path,
     }
 
+    if is_production_environment():
+        if not storage_bucket or not storage_path:
+            raise RuntimeError(
+                "El documento no tiene almacenamiento durable configurado."
+            )
+        return record
+
+    registry = _read_registry()
+
     registry[document_id] = record
 
     _write_registry(registry)
@@ -88,7 +98,31 @@ def register_document_file(
 
 def get_document_info(
     document_id: str,
+    *,
+    user_id: str | None = None,
 ) -> dict:
+    if is_production_environment():
+        clean_user_id = str(user_id or "").strip()
+        if not clean_user_id:
+            raise PermissionError(
+                "user_id es requerido para consultar documentos en produccion."
+            )
+        response = (
+            get_supabase_admin_client()
+            .table("documents")
+            .select("*")
+            .eq("document_id", document_id)
+            .eq("user_id", clean_user_id)
+            .limit(1)
+            .execute()
+        )
+        if not response.data:
+            raise ValueError("No se encontro informacion del documento.")
+        record = dict(response.data[0])
+        record.setdefault("filename", record.get("document_name"))
+        record["user_id"] = clean_user_id
+        return record
+
     registry = _read_registry()
 
     record = registry.get(document_id)
@@ -106,7 +140,7 @@ def require_document_owner(
     document_id: str,
     user_id: str,
 ) -> dict:
-    record = get_document_info(document_id)
+    record = get_document_info(document_id, user_id=user_id)
 
     owner_id = record.get("user_id")
 
@@ -129,7 +163,7 @@ def is_document_owner(
     user_id: str,
 ) -> bool:
     try:
-        record = get_document_info(document_id)
+        record = get_document_info(document_id, user_id=user_id)
     except Exception:
         return False
 
@@ -146,6 +180,16 @@ def list_documents_for_user(*, user_id: str) -> list[dict]:
     if not clean_user_id:
         raise ValueError("user_id es requerido para listar documentos.")
 
+    if is_production_environment():
+        response = (
+            get_supabase_admin_client()
+            .table("documents")
+            .select("*")
+            .eq("user_id", clean_user_id)
+            .execute()
+        )
+        return [dict(item) for item in (response.data or [])]
+
     return [
         record
         for record in _read_registry().values()
@@ -159,8 +203,12 @@ def delete_documents_for_user(*, user_id: str) -> list[dict]:
     if not clean_user_id:
         raise ValueError("user_id es requerido para eliminar documentos.")
 
-    registry = _read_registry()
     owned_records = list_documents_for_user(user_id=clean_user_id)
+
+    if is_production_environment():
+        return owned_records
+
+    registry = _read_registry()
 
     for record in owned_records:
         file_path = Path(str(record.get("file_path") or ""))

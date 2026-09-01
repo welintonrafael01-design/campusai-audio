@@ -19,6 +19,8 @@ user ID, role and subscription status. Depending on the features selected, it
 may also process uploaded documents, extracted text, prompts, chats, generated
 learning resources, quizzes, flashcards, AudioBooks, voice-derived transcripts,
 and Teacher academic records such as courses, rosters, attendance and grades.
+Private document files, generated audio and retrieval chunks are stored in
+owner-scoped Supabase database or private Storage records in production.
 
 The app also processes limited operational and usage information needed for
 authentication, security, limits and reliability. The final policy must list
@@ -76,7 +78,7 @@ Required decision: `<RETENTION_SCHEDULE_AND_EXCEPTIONS_REQUIRED>`.
 
 An authenticated user can open Settings, choose "Eliminar mi cuenta",
 reauthenticate and confirm the request. The backend deletes known owner-scoped
-Storage objects, documents, RAG collections, generated results, chats,
+Storage objects, documents, RAG chunks, generated results, chats,
 AudioBooks, Teacher records, usage/subscription mappings and finally the Auth
 identity. A partial failure is reported for retry rather than presented as a
 completed deletion.

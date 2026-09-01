@@ -3,6 +3,7 @@ import json
 import asyncio
 import openpyxl
 from pathlib import Path
+import tempfile
 from uuid import uuid4
 
 from fastapi.responses import StreamingResponse, FileResponse
@@ -60,7 +61,11 @@ from app.services.pdf_service import (
     extract_pages_from_pdf,
 )
 
-from app.services.storage_service import upload_document_to_storage
+from app.services.storage_service import (
+    delete_document_storage_object,
+    download_document_bytes,
+    upload_document_to_storage,
+)
 from app.services.documents_cloud_service import create_document as create_cloud_document
 from app.services.document_registry_service import (
     register_document_file,
@@ -75,12 +80,14 @@ from app.services.file_access_service import (
 )
 
 from app.services.rag_service import (
+    delete_document_embeddings,
     search_similar_chunks_multi,
     search_similar_chunks,
     semantic_search_all_documents,
     get_source_chunk,
     get_retrieval_citations,
 )
+from app.public_urls import is_production_environment
 
 from app.security.user_auth import (
     AuthenticatedUser,
@@ -107,10 +114,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 UPLOAD_FOLDER = BASE_DIR / "uploads"
 
-UPLOAD_FOLDER.mkdir(
-    parents=True,
-    exist_ok=True,
-)
+if not is_production_environment():
+    UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
 
 MAX_UPLOAD_SIZE_MB = 25
 MAX_UPLOAD_SIZE_BYTES = MAX_UPLOAD_SIZE_MB * 1024 * 1024
@@ -179,7 +184,13 @@ def build_safe_file_path(
         f"{uuid4()}_{safe_name}"
     )
 
-    return UPLOAD_FOLDER / unique_name
+    target_dir = (
+        Path(tempfile.gettempdir()) / "studybook-ai"
+        if is_production_environment()
+        else UPLOAD_FOLDER
+    )
+    target_dir.mkdir(parents=True, exist_ok=True)
+    return target_dir / unique_name
 
 
 async def save_upload_file(
@@ -228,6 +239,42 @@ def remove_temporary_file(file_path: Path | None) -> None:
         file_path.unlink(missing_ok=True)
     except OSError:
         pass
+
+
+def temporary_import_directory() -> Path:
+    directory = (
+        Path(tempfile.gettempdir()) / "studybook-ai"
+        if is_production_environment()
+        else Path(__file__).resolve().parent.parent / "uploads"
+    )
+    directory.mkdir(parents=True, exist_ok=True)
+    return directory
+
+
+def rollback_incomplete_document_upload(
+    *,
+    document_id: str,
+    owner_scope: str,
+    storage_result: dict,
+) -> None:
+    bucket = str(storage_result.get("bucket") or "").strip()
+    storage_path = str(storage_result.get("storage_path") or "").strip()
+    if bucket and storage_path:
+        try:
+            delete_document_storage_object(
+                bucket=bucket,
+                storage_path=storage_path,
+            )
+        except Exception as error:
+            print(
+                "[UPLOAD] storage_rollback_failed "
+                f"type={type(error).__name__}"
+            )
+    if document_id:
+        try:
+            delete_document_embeddings(document_id, owner_scope=owner_scope)
+        except Exception as error:
+            print(f"[UPLOAD] rag_rollback_failed type={type(error).__name__}")
 
 
 
@@ -279,6 +326,7 @@ def build_document_context(
     document_id: str,
     question: str,
     top_k: int = 10,
+    owner_scope: str | None = None,
 ) -> str:
     clean_document_id = (
         document_id.strip()
@@ -294,6 +342,7 @@ def build_document_context(
         document_id=clean_document_id,
         question=question,
         top_k=top_k,
+        owner_scope=owner_scope,
     )
 
     if not context.strip():
@@ -334,8 +383,7 @@ async def import_grades_excel(
                 detail="El archivo no parece ser un Excel válido.",
             )
 
-        uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
-        uploads_dir.mkdir(parents=True, exist_ok=True)
+        uploads_dir = temporary_import_directory()
 
         safe_filename = secure_filename(filename)
         file_path = uploads_dir / f"grades_import_{uuid4()}_{safe_filename}"
@@ -540,8 +588,7 @@ async def import_grades_pdf(
         content = await read_upload_content(file)
         validate_pdf_signature(content)
 
-        uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
-        uploads_dir.mkdir(parents=True, exist_ok=True)
+        uploads_dir = temporary_import_directory()
 
         safe_filename = secure_filename(
             file.filename or "grades.pdf"
@@ -595,8 +642,7 @@ async def import_students_pdf(
         content = await read_upload_content(file)
         validate_pdf_signature(content)
 
-        uploads_dir = Path(__file__).resolve().parent.parent / "uploads"
-        uploads_dir.mkdir(parents=True, exist_ok=True)
+        uploads_dir = temporary_import_directory()
 
         safe_filename = secure_filename(
             file.filename or "students.pdf"
@@ -644,6 +690,10 @@ async def upload_document(
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
     start_time = time.perf_counter()
+    file_path: Path | None = None
+    storage_result: dict = {"bucket": None, "storage_path": None}
+    document_id = ""
+    durable_document_committed = False
 
     try:
         plan = enforce_pdf_upload_limit(
@@ -670,11 +720,6 @@ async def upload_document(
         print(f"[UPLOAD] rag_page_index: {time.perf_counter() - step:.2f}s")
 
         step = time.perf_counter()
-        storage_result = {
-            "bucket": None,
-            "storage_path": None,
-        }
-
         try:
             storage_result = upload_document_to_storage(
                 user_id=current_user.user_id,
@@ -688,6 +733,10 @@ async def upload_document(
                 "[UPLOAD] storage_upload_failed "
                 f"type={type(storage_error).__name__}"
             )
+            if is_production_environment():
+                raise RuntimeError(
+                    "No se pudo persistir el documento de forma durable."
+                ) from storage_error
 
         step = time.perf_counter()
         document_record = register_document_file(
@@ -727,16 +776,23 @@ async def upload_document(
                 filename=file.filename or file_path.name,
                 storage_bucket=document_record.get("storage_bucket"),
                 storage_path=document_record.get("storage_path"),
-                file_path=str(file_path),
+                file_path=(
+                    None if is_production_environment() else str(file_path)
+                ),
                 size_bytes=file_path.stat().st_size,
                 summary=ai_summary,
             )
+            durable_document_committed = True
             print(f"[UPLOAD] cloud_document_insert: {time.perf_counter() - step:.2f}s")
         except Exception as cloud_document_error:
             print(
                 "[UPLOAD] cloud_document_insert_failed "
                 f"type={type(cloud_document_error).__name__}"
             )
+            if is_production_environment():
+                raise RuntimeError(
+                    "No se pudo registrar el documento de forma durable."
+                ) from cloud_document_error
 
         print(f"[UPLOAD] total: {time.perf_counter() - start_time:.2f}s")
 
@@ -758,6 +814,15 @@ async def upload_document(
             status_code=500,
             detail="No se pudo procesar el documento.",
         )
+    finally:
+        if is_production_environment():
+            if document_id and not durable_document_committed:
+                rollback_incomplete_document_upload(
+                    document_id=document_id,
+                    owner_scope=current_user.user_id,
+                    storage_result=storage_result,
+                )
+            remove_temporary_file(file_path)
 
 
 def calculate_rag_confidence(
@@ -829,6 +894,7 @@ async def chat_document_by_id(
                 document_id=document_id,
                 question=question,
                 language=language,
+                owner_scope=current_user.user_id,
             )
         )
 
@@ -845,6 +911,7 @@ async def chat_document_by_id(
         citations = get_retrieval_citations(
             document_id=document_id,
             question=question,
+            owner_scope=current_user.user_id,
         )
         document_title = str(
             document_record.get("filename")
@@ -899,6 +966,7 @@ async def teaching_plan_document_by_id(
                 "contenidos actividades evaluación recursos cronograma"
             ),
             top_k=14,
+            owner_scope=current_user.user_id,
         )
 
         teaching_plan = generate_teaching_plan_from_context(
@@ -957,6 +1025,7 @@ async def rubric_document_by_id(
                 "aprendizaje metodología contenido académico"
             ),
             top_k=12,
+            owner_scope=current_user.user_id,
         )
 
         rubric = generate_academic_rubric_from_context(
@@ -1029,6 +1098,7 @@ async def study_guide_document_by_id(
                 f"competencia: {competency}"
             ),
             top_k=14,
+            owner_scope=current_user.user_id,
         )
 
         study_guide = generate_study_guide_from_context(
@@ -1111,6 +1181,7 @@ async def teaching_resources_document_by_id(
                 f"competencia: {competency}"
             ),
             top_k=14,
+            owner_scope=current_user.user_id,
         )
 
         teaching_resources = generate_teaching_resources_from_context(
@@ -1246,6 +1317,7 @@ async def question_bank_document_by_id(
                 f"nivel bloom: {bloom_level}"
             ),
             top_k=14,
+            owner_scope=current_user.user_id,
         )
 
         questions = generate_exam_questions_from_context(
@@ -1320,6 +1392,7 @@ async def exam_document_by_id(
                 "conceptos clave"
             ),
             top_k=10,
+            owner_scope=current_user.user_id,
         )
 
         questions = generate_exam_questions_from_context(
@@ -1394,6 +1467,7 @@ async def flashcards_document_by_id(
                 "y elementos memorables"
             ),
             top_k=10,
+            owner_scope=current_user.user_id,
         )
 
         flashcards = (
@@ -1462,6 +1536,7 @@ async def stream_chat_document(
                 document_id=document_id,
                 question=question,
                 language=language,
+                owner_scope=current_user.user_id,
             ):
                 yield chunk
 
@@ -1543,14 +1618,33 @@ async def document_file_secure(
                 detail="Falta token de acceso al PDF.",
             )
 
-        verify_file_access_token(
+        token_payload = verify_file_access_token(
             token=token,
             document_id=document_id,
         )
 
         info = get_document_info(
             document_id=document_id,
+            user_id=str(token_payload.get("user_id") or ""),
         )
+
+        if is_production_environment():
+            bucket = str(info.get("storage_bucket") or "").strip()
+            storage_path = str(info.get("storage_path") or "").strip()
+            if not bucket or not storage_path:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Archivo PDF no encontrado.",
+                )
+            content = download_document_bytes(
+                bucket=bucket,
+                storage_path=storage_path,
+            )
+            return StreamingResponse(
+                iter([content]),
+                media_type="application/pdf",
+                headers={"Content-Disposition": "inline"},
+            )
 
         file_path = Path(info["file_path"])
 
@@ -1633,6 +1727,7 @@ async def source_chunk(
         return get_source_chunk(
             document_id=document_id,
             chunk_index=chunk_index,
+            owner_scope=current_user.user_id,
         )
 
     except HTTPException:
@@ -1657,6 +1752,7 @@ async def semantic_search(
                 document_id=document_id,
                 user_id=current_user.user_id,
             ),
+            owner_scope=current_user.user_id,
         )
 
         filtered_results = []
@@ -1844,6 +1940,7 @@ async def chat_workspace(
             question=question,
             history=history,
             language=language,
+            owner_scope=current_user.user_id,
         )
 
         register_usage_event(
@@ -1903,6 +2000,7 @@ async def stream_chat_workspace(
                 document_ids=document_ids,
                 question=question,
                 language=language,
+                owner_scope=current_user.user_id,
             ):
                 yield chunk
 
@@ -1952,6 +2050,7 @@ async def workspace_flashcards(
                 "preguntas de estudio evaluación académica"
             ),
             top_k_per_document=6,
+            owner_scope=current_user.user_id,
         )
 
         if not context.strip():
@@ -2020,6 +2119,7 @@ async def workspace_question_bank(
                 "aplicación análisis académico preguntas objetivas"
             ),
             top_k_per_document=8,
+            owner_scope=current_user.user_id,
         )
 
         if not context.strip():
@@ -2087,6 +2187,7 @@ async def workspace_exam(
                 "aplicación análisis académico evaluación"
             ),
             top_k_per_document=6,
+            owner_scope=current_user.user_id,
         )
 
         if not context.strip():

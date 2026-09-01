@@ -5,6 +5,8 @@ from collections import Counter
 from pathlib import Path
 from statistics import mean
 
+from app.public_urls import is_production_environment
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 LOG_FILE = BASE_DIR / "logs" / "usage_events.jsonl"
@@ -39,23 +41,15 @@ def classify_activity(path: str) -> str:
 
 
 def get_usage_summary() -> dict:
-    if not LOG_FILE.exists():
+    if is_production_environment():
         return {
-            "total_requests": 0,
-            "errors": 0,
-            "average_duration_seconds": 0,
-            "requests_by_path": {},
-            "requests_by_status": {},
-            "activity_counts": {},
-            "pdf_uploads": 0,
-            "chat_requests": 0,
-            "flashcards_generated": 0,
-            "exams_generated": 0,
-            "exports_generated": 0,
-            "source_views": 0,
-            "pdf_views": 0,
-            "health_score": 100,
+            **_empty_usage_summary(),
+            "source": "production_telemetry",
+            "local_log_available": False,
         }
+
+    if not LOG_FILE.exists():
+        return _empty_usage_summary()
 
     events = []
 
@@ -136,4 +130,23 @@ def get_usage_summary() -> dict:
         "source_views": activity_counts.get("source_views", 0),
         "pdf_views": activity_counts.get("pdf_views", 0),
         "health_score": health_score,
+    }
+
+
+def _empty_usage_summary() -> dict:
+    return {
+            "total_requests": 0,
+            "errors": 0,
+            "average_duration_seconds": 0,
+            "requests_by_path": {},
+            "requests_by_status": {},
+            "activity_counts": {},
+            "pdf_uploads": 0,
+            "chat_requests": 0,
+            "flashcards_generated": 0,
+            "exams_generated": 0,
+            "exports_generated": 0,
+            "source_views": 0,
+            "pdf_views": 0,
+            "health_score": 100,
     }

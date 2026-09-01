@@ -118,8 +118,9 @@ is active:
 
 1. Create Vercel and Render projects without promoting production traffic.
 2. Supply authorized environment values through each provider dashboard.
-3. Resolve the backend local-state/persistent-storage decision before Render
-   receives production traffic.
+3. Apply and verify the durable persistence migration documented in
+   `docs/release/PRODUCTION_PERSISTENCE_REMEDIATION.md`; Render must not receive
+   production traffic before the remote migration/backfill gate passes.
 4. Copy provider-issued DNS targets exactly; do not guess targets.
 5. Complete legal fields and remove `noindex` only after approval.
 6. Verify TLS, CORS, Supabase redirects, Stripe webhook and two-user isolation.

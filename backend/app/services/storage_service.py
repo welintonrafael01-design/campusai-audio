@@ -1,19 +1,17 @@
 from __future__ import annotations
 
-import os
 from pathlib import Path
+import re
 
 from app.database.supabase_client import get_supabase_admin_client
-
-
-DEFAULT_BUCKET = "studybook-documents"
+from app.persistence_config import (
+    document_storage_bucket,
+    validate_storage_segment,
+)
 
 
 def get_storage_bucket() -> str:
-    return os.getenv(
-        "SUPABASE_STORAGE_BUCKET",
-        DEFAULT_BUCKET,
-    ).strip() or DEFAULT_BUCKET
+    return document_storage_bucket()
 
 
 def build_document_storage_path(
@@ -22,11 +20,19 @@ def build_document_storage_path(
     document_id: str,
     filename: str,
 ) -> str:
-    safe_name = Path(filename).name.replace(" ", "_")
+    owner = validate_storage_segment(user_id, field_name="user_id")
+    document = validate_storage_segment(document_id, field_name="document_id")
+    safe_name = re.sub(
+        r"[^A-Za-z0-9_.-]+",
+        "_",
+        Path(filename).name,
+    ).strip("._")
+    safe_name = safe_name[:255] or "document.pdf"
+    safe_name = validate_storage_segment(safe_name, field_name="filename")
 
     return (
-        f"{user_id}/documents/"
-        f"{document_id}/{safe_name}"
+        f"{owner}/documents/"
+        f"{document}/{safe_name}"
     )
 
 
@@ -76,13 +82,9 @@ def download_document_from_storage(
     storage_path: str,
     destination_path: str,
 ) -> dict:
-    client = get_supabase_admin_client()
-
-    content = (
-        client
-        .storage
-        .from_(bucket)
-        .download(storage_path)
+    content = download_document_bytes(
+        bucket=bucket,
+        storage_path=storage_path,
     )
 
     Path(destination_path).parent.mkdir(
@@ -98,3 +100,30 @@ def download_document_from_storage(
         "destination_path": destination_path,
         "size_bytes": Path(destination_path).stat().st_size,
     }
+
+
+def download_document_bytes(*, bucket: str, storage_path: str) -> bytes:
+    clean_bucket = validate_storage_segment(bucket, field_name="bucket")
+    parts = str(storage_path or "").split("/")
+    if len(parts) != 4 or parts[1] != "documents":
+        raise ValueError("storage_path de documento no permitido.")
+    for index, part in enumerate(parts):
+        validate_storage_segment(part, field_name=f"storage_path[{index}]")
+    content = (
+        get_supabase_admin_client()
+        .storage.from_(clean_bucket)
+        .download("/".join(parts))
+    )
+    return bytes(content)
+
+
+def delete_document_storage_object(*, bucket: str, storage_path: str) -> None:
+    clean_bucket = validate_storage_segment(bucket, field_name="bucket")
+    parts = str(storage_path or "").split("/")
+    if len(parts) != 4 or parts[1] != "documents":
+        raise ValueError("storage_path de documento no permitido.")
+    for index, part in enumerate(parts):
+        validate_storage_segment(part, field_name=f"storage_path[{index}]")
+    get_supabase_admin_client().storage.from_(clean_bucket).remove(
+        ["/".join(parts)]
+    )

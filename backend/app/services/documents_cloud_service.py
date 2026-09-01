@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from app.database.supabase_client import get_supabase_admin_client
+from app.public_urls import is_production_environment
 
 
 def _document_path_pattern(user_id: str) -> str:
@@ -59,7 +60,7 @@ def create_document(
     try:
         result = client.table("documents").insert(payload).execute()
     except Exception as error:
-        if not _missing_user_id_column(error):
+        if is_production_environment() or not _missing_user_id_column(error):
             raise
 
         # Production still has the legacy documents schema in some projects.

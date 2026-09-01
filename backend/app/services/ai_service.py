@@ -152,7 +152,11 @@ def generate_ai_summary(text: str, language: str = "es") -> str:
     return response.choices[0].message.content.strip()
 
 
-def index_document_for_rag(text: str) -> str:
+def index_document_for_rag(
+    text: str,
+    *,
+    owner_scope: str | None = None,
+) -> str:
     clean = clean_text(text)
 
     if not clean:
@@ -160,7 +164,7 @@ def index_document_for_rag(text: str) -> str:
             "No hay texto válido para indexar."
         )
 
-    return store_document_embeddings(clean)
+    return store_document_embeddings(clean, owner_scope=owner_scope)
 
 
 def index_document_pages_for_rag(
@@ -205,6 +209,7 @@ def chat_with_document_id(
     question: str,
     history: list[dict] | None = None,
     language: str = "es",
+    owner_scope: str | None = None,
 ) -> str:
     clean_question = clean_text(question)
     language_instruction = build_language_instruction(language)
@@ -223,6 +228,7 @@ def chat_with_document_id(
         document_id=document_id,
         question=clean_question,
         top_k=5,
+        owner_scope=owner_scope,
     )
 
     if not relevant_context.strip():
@@ -271,13 +277,15 @@ def chat_with_document(
     text: str,
     question: str,
     language: str = "es",
+    owner_scope: str | None = None,
 ) -> str:
-    document_id = index_document_for_rag(text)
+    document_id = index_document_for_rag(text, owner_scope=owner_scope)
 
     return chat_with_document_id(
         document_id=document_id,
         question=question,
         language=language,
+        owner_scope=owner_scope,
     )
 
 
@@ -608,6 +616,7 @@ async def stream_chat_with_document_id(
     document_id: str,
     question: str,
     language: str = "es",
+    owner_scope: str | None = None,
 ):
     clean_question = clean_text(question)
     language_instruction = build_language_instruction(language)
@@ -626,6 +635,7 @@ async def stream_chat_with_document_id(
         document_id=document_id,
         question=clean_question,
         top_k=5,
+        owner_scope=owner_scope,
     )
 
     if not relevant_context.strip():
@@ -679,6 +689,7 @@ def chat_with_workspace(
     question: str,
     history: list[dict] | None = None,
     language: str = "es",
+    owner_scope: str | None = None,
 ) -> str:
     clean_question = clean_text(question)
     language_instruction = build_language_instruction(language)
@@ -692,6 +703,7 @@ def chat_with_workspace(
         document_ids=document_ids,
         question=clean_question,
         top_k_per_document=4,
+        owner_scope=owner_scope,
     )
 
     if not relevant_context.strip():
@@ -740,6 +752,7 @@ async def stream_chat_with_workspace(
     document_ids: list[str],
     question: str,
     language: str = "es",
+    owner_scope: str | None = None,
 ):
     clean_question = clean_text(question)
     language_instruction = build_language_instruction(language)
@@ -753,6 +766,7 @@ async def stream_chat_with_workspace(
         document_ids=document_ids,
         question=clean_question,
         top_k_per_document=4,
+        owner_scope=owner_scope,
     )
 
     if not relevant_context.strip():

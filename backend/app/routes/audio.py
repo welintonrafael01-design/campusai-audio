@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import Response
 
 from app.security.user_auth import AuthenticatedUser, require_current_user
 from app.services.audio_service import (
-    audio_file_path,
     audio_filename_belongs_to_user,
+    read_audio_content,
 )
 from app.services.cloud_service import user_owns_legacy_audiobook_audio
 
@@ -31,12 +31,16 @@ async def get_audio_file(
     if not owns_legacy_audio:
         raise HTTPException(status_code=404, detail="Audio no encontrado.")
 
-    audio_path = audio_file_path(filename)
-    if audio_path is None:
+    content = read_audio_content(
+        user_id=current_user.user_id,
+        filename=filename,
+        owner_verified=owns_legacy_audio,
+    )
+    if content is None:
         raise HTTPException(status_code=404, detail="Audio no encontrado.")
 
-    return FileResponse(
-        str(audio_path),
+    return Response(
+        content=content,
         media_type="audio/mpeg",
-        filename=audio_path.name,
+        headers={"Content-Disposition": f'inline; filename="{filename}"'},
     )

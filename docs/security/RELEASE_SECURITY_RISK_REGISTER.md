@@ -1,5 +1,14 @@
 # Release Security Risk Register
 
+## 7F-S2 Durable Persistence Update
+
+Production persistence no longer uses Chroma SQLite, local registry JSON,
+local certificate JSON or local audio as source of truth. The code requires
+private Supabase Storage plus owner-scoped Postgres/pgvector configuration and
+fails startup when it is absent. Deployment remains blocked until migration
+`20260831000100_production_persistence.sql`, private-bucket posture and any
+required legacy backfill are verified against the target Supabase project.
+
 | ID | Severity | Description | Affected area | Mitigation / next action | Release blocker? | Status |
 |---|---|---|---|---|---|---|
 | SEC-7D-001 | P2 | Deployed Supabase RLS/storage policy state remains unverified. Service-role calls bypass RLS. | Supabase | 7F-S1 versions least-privilege RLS and private Storage policy contracts. Deployment owner must review/apply them and verify the live catalog before external production. | Conditional yes | Repository mitigation complete; deployment gate open |

@@ -3,7 +3,14 @@ from hashlib import sha256
 import json
 from pathlib import Path
 import re
+from tempfile import NamedTemporaryFile
 from uuid import uuid4
+
+from app.public_urls import is_production_environment
+from app.services.private_artifact_storage import (
+    download_private_artifact,
+    upload_private_artifact,
+)
 
 from app.services.ai_service import (
     MODEL_NAME,
@@ -371,6 +378,7 @@ def generate_audiobook_payload(
 
 def generate_chapter_audio_payload(
     *,
+    user_id: str,
     audiobook_id: str,
     chapter_id: str,
     chapter_title: str = "",
@@ -393,9 +401,8 @@ def generate_chapter_audio_payload(
     if len(clean_script) > MAX_CHAPTER_TTS_CHARACTERS:
         print("AudioBook TTS: script truncado para generación de audio.")
 
-    AUDIOBOOK_AUDIO_DIR.mkdir(parents=True, exist_ok=True)
     filename = f"{clean_audiobook_id}_{clean_chapter_id}.mp3"
-    audio_path = AUDIOBOOK_AUDIO_DIR / filename
+    temporary_path: Path | None = None
 
     try:
         response = client.audio.speech.create(
@@ -403,13 +410,33 @@ def generate_chapter_audio_payload(
             voice="marin",
             input=source_text,
         )
-        response.write_to_file(str(audio_path))
+        if is_production_environment():
+            with NamedTemporaryFile(suffix=".mp3", delete=False) as temp_file:
+                temporary_path = Path(temp_file.name)
+            response.write_to_file(str(temporary_path))
+            upload_private_artifact(
+                user_id=user_id,
+                category="audiobook",
+                filename=filename,
+                content=temporary_path.read_bytes(),
+                content_type="audio/mpeg",
+            )
+        else:
+            AUDIOBOOK_AUDIO_DIR.mkdir(parents=True, exist_ok=True)
+            response.write_to_file(str(AUDIOBOOK_AUDIO_DIR / filename))
     except Exception as error:
         print(f"AudioBook TTS no disponible: {type(error).__name__}")
+        if is_production_environment():
+            raise RuntimeError(
+                "No se pudo guardar el audio del capitulo de forma durable."
+            ) from error
         return {
             "audio_url": "",
             "duration_seconds": estimated_duration,
         }
+    finally:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
 
     print(
         "AudioBook TTS generado:",
@@ -676,3 +703,27 @@ def audiobook_audio_path(filename: str) -> Path | None:
         return None
 
     return audio_path
+
+
+def read_audiobook_audio_content(
+    *,
+    user_id: str,
+    filename: str,
+    owner_verified: bool = False,
+) -> bytes | None:
+    if (
+        not owner_verified
+        and not audio_filename_belongs_to_user(user_id=user_id, filename=filename)
+    ):
+        return None
+    if is_production_environment():
+        try:
+            return download_private_artifact(
+                user_id=user_id,
+                category="audiobook",
+                filename=filename,
+            )
+        except Exception:
+            return None
+    path = audiobook_audio_path(filename)
+    return path.read_bytes() if path is not None else None

@@ -12,6 +12,7 @@ from app.public_urls import (
     is_production_environment,
     validate_public_https_url,
 )
+from app.persistence_config import validate_production_persistence_configuration
 
 load_dotenv()
 
@@ -36,8 +37,11 @@ PROJECT_DIR = APP_DIR.parent
 UPLOADS_DIR = PROJECT_DIR / "uploads"
 CHROMA_DIR = PROJECT_DIR / "chroma_db"
 
-UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
-CHROMA_DIR.mkdir(parents=True, exist_ok=True)
+if not is_production_environment():
+    UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+    CHROMA_DIR.mkdir(parents=True, exist_ok=True)
+
+validate_production_persistence_configuration()
 
 
 def get_cors_origins() -> list[str]:

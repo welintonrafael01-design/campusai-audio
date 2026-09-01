@@ -36,8 +36,9 @@ message automatically deletes data.
 The current backend deletion workflow is designed to remove known owner-scoped:
 
 - Supabase Auth identity and internal subscription mapping.
-- Uploaded documents, private Storage objects and backend document files.
-- Extracted/RAG collections associated with inventoried documents.
+- Uploaded documents and owner-scoped private Storage objects.
+- Durable extracted/RAG chunks associated with inventoried documents.
+- Generated voice and AudioBook files in private artifact Storage.
 - Chats, messages, StudyResults and generated learning resources.
 - AudioBook records and owner-scoped generated MP3 files.
 - Teacher courses, students, attendance, grades and question banks.

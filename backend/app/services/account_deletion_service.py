@@ -13,6 +13,11 @@ from app.services.document_registry_service import (
 )
 from app.services.rag_service import delete_document_embeddings
 from app.services.storage_service import get_storage_bucket
+from app.services.private_artifact_storage import (
+    list_private_artifacts_for_user,
+)
+from app.persistence_config import private_artifacts_bucket
+from app.public_urls import is_production_environment
 
 
 logger = logging.getLogger(__name__)
@@ -31,6 +36,8 @@ USER_TABLES = (
     *EDUCATOR_TABLES,
     "user_usage_events",
     "user_subscriptions",
+    "certificates",
+    "document_chunks",
 )
 
 
@@ -136,19 +143,29 @@ class SupabaseAccountDeletionOperations:
                 }
             )
         )
-        storage_objects = tuple(
-            sorted(
-                {
-                    (
-                        str(row.get("storage_bucket") or get_storage_bucket()),
-                        str(row.get("storage_path") or "").strip(),
-                    )
-                    for row in all_documents
-                    if str(row.get("storage_path") or "").strip().startswith(
-                        f"{user_id}/documents/"
-                    )
-                }
+        document_storage_objects = {
+            (
+                str(row.get("storage_bucket") or get_storage_bucket()),
+                str(row.get("storage_path") or "").strip(),
             )
+            for row in all_documents
+            if str(row.get("storage_path") or "").strip().startswith(
+                f"{user_id}/documents/"
+            )
+        }
+        artifact_storage_objects = (
+            {
+                (private_artifacts_bucket(), path)
+                for path in list_private_artifacts_for_user(
+                    user_id=user_id,
+                    client=client,
+                )
+            }
+            if is_production_environment()
+            else set()
+        )
+        storage_objects = tuple(
+            sorted(document_storage_objects | artifact_storage_objects)
         )
         external_subscription = any(
             str(row.get("stripe_subscription_id") or "").strip()
@@ -185,7 +202,7 @@ class SupabaseAccountDeletionOperations:
         inventory: AccountDeletionInventory,
     ) -> None:
         for document_id in inventory.document_ids:
-            delete_document_embeddings(document_id)
+            delete_document_embeddings(document_id, owner_scope=user_id)
 
         delete_documents_for_user(user_id=user_id)
         delete_audio_for_user(user_id=user_id)
