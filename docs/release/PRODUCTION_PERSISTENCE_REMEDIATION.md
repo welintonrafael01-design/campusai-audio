@@ -1,6 +1,6 @@
 # Production Persistence Remediation
 
-Status: `CODE COMPLETE - REMOTE MIGRATION AND BACKFILL NOT APPLIED`
+Status: `LOCAL INTEGRATION PASS - REMOTE MIGRATION AND BACKFILL NOT APPLIED`
 
 This document is the 7F-S2 filesystem-write inventory and deployment gate. No
 remote Supabase project was changed during this sprint.
@@ -42,10 +42,13 @@ categories. No Render persistent disk is part of the design.
 
 ## Database Migration
 
-Review and apply through the controlled Supabase migration workflow:
+The reproducible migration chain is:
 
 ```text
+supabase/migrations/20260828000100_studybook_core_schema.sql
+supabase/migrations/20260829000100_studybook_rls_security.sql
 supabase/migrations/20260831000100_production_persistence.sql
+supabase/migrations/20260901000100_document_ownership_hardening.sql
 ```
 
 It creates `public.document_chunks`, service-role-only vector retrieval,
@@ -72,6 +75,12 @@ Do not copy repository or container files blindly. Before production cutover:
 8. Keep the source snapshot read-only until retention is approved. Delete it
    only through an authorized migration procedure.
 
+The deterministic document-owner backfill is versioned at
+`supabase/backfills/document_ownership_backfill.sql`. Run it transactionally
+and audit unresolved/conflicting rows before ownership hardening. It never
+deletes records and infers ownership only from an owned workspace or a valid
+Auth UUID at the private Storage path prefix.
+
 Backfill must be idempotent. `document_chunks` upserts on
 `(user_id, document_id, chunk_index)`. A failed item must not mark the overall
 migration complete.
@@ -90,3 +99,14 @@ migration complete.
 Render deployment remains blocked until the migration is applied, the bucket
 is verified non-public, required owned legacy data is backfilled, and restart
 plus multiuser tests pass against the real production project.
+
+## 7F-S3 Local Evidence
+
+On 2026-09-01, Supabase CLI `2.116.0` applied the complete chain to an empty
+disposable local stack. The RLS, Storage, pgvector, ownership-spoof and Teacher
+entitlement contracts passed. A real local document object, private audio
+object, document row, StudyResult, AudioBook, vector and certificate survived
+a restart of Postgres, REST, Storage and Auth. Student B could not read Student
+A data. The account-deletion service then removed rows, objects and identities.
+The document ownership backfill was run twice against synthetic legacy rows and
+remained idempotent. Remote readiness remains conditional on the runbook.

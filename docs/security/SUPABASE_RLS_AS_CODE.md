@@ -1,14 +1,20 @@
 # Supabase RLS As Code
 
-Status: `REPOSITORY CONTRACT READY - DEPLOYED PROJECT UNVERIFIED`
+Status: `LOCAL INTEGRATION VERIFIED - DEPLOYED PROJECT UNVERIFIED`
 
 The versioned contract is:
 
+- `supabase/migrations/20260828000100_studybook_core_schema.sql`
 - `supabase/migrations/20260829000100_studybook_rls_security.sql`
+- `supabase/migrations/20260831000100_production_persistence.sql`
+- `supabase/migrations/20260901000100_document_ownership_hardening.sql`
 - `supabase/tests/rls_policy_contract.sql`
+- `supabase/tests/production_persistence_contract.sql`
+- `supabase/tests/document_ownership_backfill_contract.sql`
 - `backend/tests/test_supabase_rls_as_code.py`
 
-Nothing in this sprint was applied to a local or remote Supabase project.
+On 2026-09-01 the complete chain was reset and tested in disposable local
+Supabase CLI `2.116.0`. No remote Supabase project was linked or modified.
 
 ## Architecture And Authority
 
@@ -37,7 +43,7 @@ The authority contract is:
 | `workspaces` | `user_id = auth.uid()` | Owner | Owner; `WITH CHECK` owner | Existing and resulting owner | Owner | No cross-user or privileged client path |
 | `documents` | Own `user_id`, workspace and/or `<uid>/documents/...` path | Owner, including legacy rows | Requires current `user_id`; every anchor must match | Result must retain current `user_id` and owned anchors | Owner | Adds the backend-expected `user_id` when absent; rejects owner/bucket spoof |
 | `study_results` | `user_id = auth.uid()` | Owner | Owner | Existing and resulting owner | Owner | No cross-user resource sharing in current model |
-| `audiobooks` | `user_id = auth.uid()` | Owner | Owner | Existing and resulting owner | Owner | Audio files themselves are backend-local, not a Supabase bucket |
+| `audiobooks` | `user_id = auth.uid()` | Owner | Owner | Existing and resulting owner | Owner | Chapter audio is stored in the private artifacts bucket |
 | `chats` | `user_id = auth.uid()` | Owner | Owner | Existing and resulting owner | Owner | Parent authority for messages |
 | `messages` | Parent chat belongs to `auth.uid()` | Owner chat | Owner chat; direct client role limited to `user` | Denied | Owner chat | Assistant/system writes remain backend-only |
 | `user_subscriptions` | `user_id = auth.uid()` | Owner | Denied | Denied | Denied | Plan/status and provider IDs remain server-managed |
@@ -47,31 +53,36 @@ The authority contract is:
 | `educator_attendance` | `user_id = auth.uid()` | Authorized Teacher owner | Authorized Teacher owner | Authorized Teacher owner | Authorized Teacher owner | Same dual Teacher gate |
 | `educator_gradebook` | `user_id = auth.uid()` | Authorized Teacher owner | Authorized Teacher owner | Authorized Teacher owner | Authorized Teacher owner | Same dual Teacher gate |
 | `educator_question_banks` | `user_id = auth.uid()` | Authorized Teacher owner | Authorized Teacher owner | Authorized Teacher owner | Authorized Teacher owner | Same dual Teacher gate |
+| `document_chunks` | `user_id`, server RPC parameter | Denied | Denied | Denied | Denied | Service-role-only pgvector persistence and retrieval |
+| `certificates` | `user_id` | Denied | Denied | Denied | Denied | Backend-only persistence; public verification returns a reduced record by opaque ID |
 
 The migration revokes application-table privileges from `anon`. It grants only
 the operations represented above to `authenticated`. RLS remains defense in
 depth even though the current Flutter application uses the backend API.
 
-## Resources Not Represented As Supabase Tables
+## Durable Server-Only Resources
 
 - No `profiles` application table is referenced by production code.
 - User identities live in Supabase Auth; no policy is created on `auth.users`.
-- Certificates are currently owner-scoped in the backend JSON store.
-- RAG/vector resources are managed by the backend Chroma/runtime layer.
-- Generated MP3 files are managed by the backend audio store.
-
-Creating policies or tables for these resources would invent a schema not used
-by the application, so this migration deliberately does not do so.
+- Certificates use owner-scoped `public.certificates`.
+- RAG uses `public.document_chunks` with pgvector and a service-role-only RPC.
+- Voice and AudioBook bytes use `studybook-private-artifacts` under
+  `<user_id>/audio/` and `<user_id>/audiobook/`.
+- Chroma, JSON and local audio remain development adapters only and are not a
+  production source of truth.
 
 ## Storage
 
-The only confirmed Supabase bucket is the configurable document bucket whose
-code default is `studybook-documents`. The migration creates or converts that
-confirmed bucket to private and limits object operations to:
+Both production buckets are private:
+
+- `studybook-documents` permits direct authenticated access only to:
 
 ```text
 <auth.uid()>/documents/<document_id>/<filename>
 ```
+
+- `studybook-private-artifacts` has no `authenticated` policy or grant. FastAPI
+  uses the server-side service role after checking the authenticated owner.
 
 The row and object policies require the confirmed bucket. The object policy
 also validates the authenticated prefix, `documents` namespace, non-empty
@@ -97,7 +108,7 @@ ownership with the server-controlled Teacher entitlement predicate.
 3. Review every existing policy. The migration aborts when it finds an unknown
    policy instead of deleting or silently coexisting with it.
 4. Run the migration locally using the normal Supabase migration workflow.
-5. Run `supabase/tests/rls_policy_contract.sql` against that disposable stack.
+5. Run all SQL contracts under `supabase/tests/` against that disposable stack.
 6. Run backend authorization and two-user E2E tests.
 7. Have the deployment owner approve a separate production apply window.
 8. After production apply, repeat policy catalog inspection, Storage privacy,
@@ -108,16 +119,27 @@ deployed project as part of repository review.
 
 ## Deployment Differences And Assumptions
 
-- The repository has no authoritative production schema dump. The migration
-  asserts every required relation and ownership column and fails if they differ.
-- `documents` validates every non-empty ownership anchor. The migration adds
-  the backend-expected nullable `user_id` when a legacy schema lacks it, while
-  still accepting owner workspace/path evidence for existing legacy rows.
+- The core schema migration makes clean environments reproducible, but the
+  deployed catalog still must be compared before any remote apply.
+- `documents` validates every non-empty ownership anchor. Legacy null owners are
+  filled only from an owned workspace or a valid private Storage path whose UUID
+  exists in Auth. Conflicts or unresolved rows stop hardening for quarantine.
 - Existing policy definitions are unknown until the deployed catalog is
   inspected. Unknown policy names stop the migration for manual review.
 - Service role bypasses RLS by design, so backend owner filters remain required
   and are independently tested.
 - Public legal/retention and backup behavior are outside this SQL contract.
+
+## Local Gate Evidence
+
+- Clean migration reset: pass, including pgvector `0.8.2` and HNSW index.
+- RLS catalog contract: pass, 45 public and 4 document Storage policies.
+- Row-level Student A/B, Teacher entitlement and metadata spoof tests: pass.
+- Both buckets private; direct private-artifact client access denied.
+- Postgres, REST, Storage and Auth restart retained document, StudyResult,
+  AudioBook, vector, certificate and both private objects.
+- Account deletion removed database rows, Storage objects and Auth identity.
+- Ownership backfill ran twice without duplication or corruption.
 
 ## Rollback Strategy
 

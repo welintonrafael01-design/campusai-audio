@@ -193,6 +193,7 @@ def create_document(
 
     payload = {
         "workspace_id": workspace_id,
+        "user_id": user_id,
         "document_name": document_name,
         "document_id": document_id,
         "file_url": file_url,

@@ -103,11 +103,13 @@ as $$
     chunk.page_number,
     chunk.content,
     chunk.metadata,
-    (chunk.embedding <=> p_query_embedding)::double precision as distance
+    (
+      chunk.embedding OPERATOR(extensions.<=>) p_query_embedding
+    )::double precision as distance
   from public.document_chunks chunk
   where chunk.user_id = p_user_id
     and (p_document_ids is null or chunk.document_id = any(p_document_ids))
-  order by chunk.embedding <=> p_query_embedding
+  order by chunk.embedding OPERATOR(extensions.<=>) p_query_embedding
   limit greatest(1, least(coalesce(p_match_count, 5), 100));
 $$;
 

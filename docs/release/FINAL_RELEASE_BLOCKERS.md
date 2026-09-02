@@ -15,8 +15,7 @@ These are release-critical gates, but are not unresolved product-code defects.
 | ID | Type | Gate | Owner action | Exit evidence |
 | --- | --- | --- | --- | --- |
 | 7F-P1-01 | External config | `studybookai.com` is registered, but Vercel/Render DNS and TLS are not configured | Create the approved services, copy provider-issued DNS targets and verify Web/API TLS | Public HTTPS Web and API smoke tests |
-| 7F-P1-07 | Architecture / external config | Render's filesystem is ephemeral while the backend still writes Chroma, registry, audio and other state to multiple local paths | Approve a single persistent data root/disk or migrate remaining state to shared services | Restart/redeploy persistence tests for documents, RAG and AudioBook |
-| 7F-P1-02 | External config | Repository RLS is versioned, but production backend/Supabase is not deployed or verified | Review and apply the versioned contract in an approved window; validate CORS, private Storage, RLS and owner isolation | Sanitized policy catalog plus two-user authorization evidence |
+| 7F-P1-02 | External config | Schema, RLS and durable persistence pass locally, but production Supabase is not migrated or verified | Follow the controlled migration runbook in an approved window; validate private Storage, pgvector, backfill and owner isolation | Backup plus sanitized catalog and two-user authorization evidence |
 | 7F-P1-03 | Human action / external config | Play products and live purchase verification are absent | Create actual products, configure Play Developer API server credentials and license testers | Backend-verified test purchase and restore/cancel evidence |
 | 7F-P1-04 | Human/legal action | Privacy and account-deletion pages remain drafts | Approve legal fields, monitored contacts, retention/age decisions and deploy both public pages | Accessible public URLs accepted by Play Console |
 | 7F-P1-05 | Human action | Play Console application, declarations and internal track are not complete | Complete App Signing, App Content, Data Safety, reviewer access and listing inputs | Play Console checklist plus internal-track processing result |
@@ -47,6 +46,11 @@ These are release-critical gates, but are not unresolved product-code defects.
 `REL-7F-001`: certificate, badge and transcript QR links no longer embed a
 localhost URL. Production verification URLs derive from the validated
 `APP_WEB_URL`, with regression coverage for fail-closed behavior.
+
+`7F-P1-07`: production code no longer depends on Render filesystem persistence.
+The disposable local gate verified restart restoration for documents, RAG,
+AudioBook audio and certificates, plus account-deletion cleanup. Remote
+Supabase migration remains tracked separately by `7F-P1-02`.
 
 ## Stop Conditions
 

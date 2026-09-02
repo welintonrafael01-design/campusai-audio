@@ -4,9 +4,21 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 MIGRATION = ROOT / "supabase/migrations/20260829000100_studybook_rls_security.sql"
+CORE_SCHEMA_MIGRATION = (
+    ROOT / "supabase/migrations/20260828000100_studybook_core_schema.sql"
+)
 SQL_TEST = ROOT / "supabase/tests/rls_policy_contract.sql"
 PERSISTENCE_MIGRATION = (
     ROOT / "supabase/migrations/20260831000100_production_persistence.sql"
+)
+OWNERSHIP_MIGRATION = (
+    ROOT / "supabase/migrations/20260901000100_document_ownership_hardening.sql"
+)
+OWNERSHIP_BACKFILL = (
+    ROOT / "supabase/backfills/document_ownership_backfill.sql"
+)
+PERSISTENCE_SQL_TEST = (
+    ROOT / "supabase/tests/production_persistence_contract.sql"
 )
 
 EXPECTED_TABLES = {
@@ -30,6 +42,19 @@ EXPECTED_TABLES = {
 
 def _migration_sql() -> str:
     return MIGRATION.read_text(encoding="utf-8").lower()
+
+
+def test_core_schema_makes_clean_migration_chain_reproducible():
+    sql = CORE_SCHEMA_MIGRATION.read_text(encoding="utf-8").lower()
+
+    for table in EXPECTED_TABLES - {"certificates", "document_chunks"}:
+        assert f"create table if not exists public.{table}" in sql
+
+    assert "drop table" not in sql
+    assert "drop schema" not in sql
+    assert "references auth.users(id) on delete cascade" in sql
+    assert "unique (user_id, document_id, type)" in sql
+    assert "unique (user_id, document_id)" in sql
 
 
 def test_migration_covers_every_backend_supabase_table():
@@ -65,6 +90,26 @@ def test_persistence_migration_keeps_private_data_server_side():
     assert "public=false" not in sql
     assert "public)\nvalues ('studybook-private-artifacts'" in sql
     assert "revoke all on public.document_chunks from public, anon, authenticated" in sql
+    assert "operator(extensions.<=>)" in sql
+
+
+def test_document_ownership_backfill_is_deterministic_and_fail_closed():
+    migration = OWNERSHIP_MIGRATION.read_text(encoding="utf-8").lower()
+    backfill = OWNERSHIP_BACKFILL.read_text(encoding="utf-8").lower()
+
+    for statement in (
+        "set user_id = workspace.user_id",
+        "auth_user.id::text = substring",
+        "document/workspace ownership conflict requires quarantine",
+        "document/storage ownership conflict requires quarantine",
+        "unowned documents require quarantine before hardening",
+    ):
+        assert statement in migration
+        assert statement in backfill
+
+    assert "alter table public.documents alter column user_id set not null" in migration
+    assert "delete from" not in backfill
+    assert "truncate" not in backfill
 
 
 def test_migration_preserves_server_authorities_and_denies_owner_spoof():
@@ -122,4 +167,17 @@ def test_sql_contract_covers_negative_identity_and_storage_cases():
     assert "app_metadata admin bypassed the backend admin boundary" in sql
     assert "teacher role without an entitled subscription was accepted" in sql
     assert "unknown identity did not fail closed" in sql
+    assert sql.strip().endswith("rollback;")
+
+
+def test_local_persistence_contract_covers_real_rows_storage_and_vectors():
+    sql = PERSISTENCE_SQL_TEST.read_text(encoding="utf-8").lower()
+
+    assert "student a workspace isolation failed" in sql
+    assert "student a storage isolation failed" in sql
+    assert "student a reached teacher data" in sql
+    assert "owner spoof was accepted" in sql
+    assert "storage owner-path spoof was accepted" in sql
+    assert "direct private-artifact write was accepted" in sql
+    assert "owner-scoped vector retrieval failed" in sql
     assert sql.strip().endswith("rollback;")
