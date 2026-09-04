@@ -18,7 +18,7 @@ Baseline: `4a8a17b7268b972c7424112bd209f03962fadadb`
 | ID | Severity | Area | Impact | Current evidence | Required closure |
 |---|---|---|---|---|---|
 | QA-005 | P2 | External AI latency | A provider call was observed at 187 seconds once | Subsequent full journey passed; QA timeout now classifies the dependency honestly | Monitor production latency and define server-side request budgets before broad launch |
-| QA-006 | P2 | Physical Android | Microphone, current Booky welcome audibility and current-build TalkBack cannot be certified without a device | APK/AAB and Android regression tests pass; no ADB device connected | Run the short physical gate on the Samsung or release device |
+| QA-006 | P2 | Physical Android | Microphone and current-build TalkBack cannot be certified without a device | Booky Web welcome audibility, APK/AAB and Android regression tests pass; no ADB device connected | Run the short microphone and TalkBack gate on the Samsung or release device |
 | QA-007 | P1 | Production Supabase | Local RLS/persistence evidence does not prove deployed remote policy state | Disposable local migration, restart, isolation and deletion all pass | Approved controlled migration, backup and two-user verification on the intended remote project |
 | QA-008 | P1 | Google Play billing | Public product IDs and Play Console server credentials are still human configuration | Billing contracts and signed AAB pass | Configure approved product IDs and verification credentials, then run internal-track billing QA |
 

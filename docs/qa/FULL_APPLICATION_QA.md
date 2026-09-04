@@ -33,7 +33,7 @@ written to tracked files.
   logout/login restore, Student B isolation, direct ownership denial, Teacher
   course/student/plan and guest route denial: PASS.
 - Booky welcome pipeline: authenticated MP3 generation, authenticated Web fetch
-  and player handoff: PASS. Human audibility remains the final physical check.
+  and player handoff: PASS. Human audibility confirmed in Chrome on 2026-09-04.
 - 7F-S3 inherited at the tested baseline: local RLS, private Storage, pgvector,
   restart persistence, deterministic backfill and disposable account deletion:
   PASS.
@@ -46,7 +46,7 @@ written to tracked files.
 | Logout | PASS | Not required | PASS | - | - |
 | Session restore | PASS: hard reload, app restart and tab reopen | Not required | PASS | QA-001 fixed | P1 |
 | Auth guards | PASS: guest, Student, Teacher and Admin boundaries | Not required | PASS | - | - |
-| Booky welcome generation | PASS: valid MP3 and authenticated Web playback request | Pending audible welcome check | PARTIAL | QA-002 fixed technically | P1 |
+| Booky welcome generation | PASS: valid MP3 and authenticated Web playback request | PASS: audible welcome confirmed in Chrome | PASS | QA-002 fixed | P1 |
 | Booky timeout/error UX | PASS: loading exits, inline error, retry and skip remain available | Not required | PASS | QA-002 fixed | P1 |
 | Library | PASS: empty/data render, persistence and ownership | Native picker visual gate pending | PASS automated | - | - |
 | Document upload | PASS: synthetic PDF, summary and cloud row | Native picker pending | PASS automated | - | - |
@@ -69,7 +69,7 @@ written to tracked files.
 | Account deletion | PASS: local disposable lifecycle and 7 backend regression tests | Not required | PASS | - | - |
 | Responsive Web | PASS: 320/390/411/430 and text scale coverage across suites | Visual review optional | PASS | - | - |
 | Accessibility | PASS: semantics/error live region, text scale and compact layouts | Prior TalkBack evidence exists; current run not physical | PASS automated | - | - |
-| Android | APK/AAB build PASS; regression tests PASS | No device connected | PARTIAL | QA-006 | P2 |
+| Android | APK/AAB build PASS; regression tests PASS | No device connected; microphone and current-build TalkBack remain pending | PARTIAL | QA-006 | P2 |
 | Web | Release build and lifecycle probe PASS | Not required | PASS | - | - |
 | Security | PASS: RLS, IDOR/BOLA, role/plan spoof, private audio and secret scans | Production deployment state not tested | PASS local | QA-007 | P1 |
 
