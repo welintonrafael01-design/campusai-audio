@@ -102,21 +102,24 @@ async function openRoute(page, route) {
 async function main() {
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
-  const page = await context.newPage();
+  let page = await context.newPage();
   const unexpected = [];
 
-  page.on('pageerror', (error) => unexpected.push(`pageerror: ${error.message}`));
-  page.on('console', (message) => {
-    if (message.type() !== 'error') return;
-    const text = message.text();
-    if (text.includes('favicon.ico') || text.includes('manifest.json')) return;
-    unexpected.push(`console: ${text}`);
-  });
-  page.on('response', (response) => {
-    if (response.status() >= 500) {
-      unexpected.push(`network: ${response.status()} ${new URL(response.url()).pathname}`);
-    }
-  });
+  const observePage = (target) => {
+    target.on('pageerror', (error) => unexpected.push(`pageerror: ${error.message}`));
+    target.on('console', (message) => {
+      if (message.type() !== 'error') return;
+      const text = message.text();
+      if (text.includes('favicon.ico') || text.includes('manifest.json')) return;
+      unexpected.push(`console: ${text}`);
+    });
+    target.on('response', (response) => {
+      if (response.status() >= 500) {
+        unexpected.push(`network: ${response.status()} ${new URL(response.url()).pathname}`);
+      }
+    });
+  };
+  observePage(page);
 
   try {
     const storageKey = `sb-${projectRef()}-auth-token`;
@@ -144,6 +147,17 @@ async function main() {
     await page.screenshot({ path: path.join(outputDir, 'library-after-reload.png') });
     console.log('E2E_RESULT HARD_RELOAD=PASS');
 
+    await page.close();
+    page = await context.newPage();
+    observePage(page);
+    await openRoute(page, '/library');
+    const afterTabReopenUser = await storedUserId(page, storageKey);
+    assert(
+      afterTabReopenUser === studentA.user.id,
+      'Closing and reopening the tab did not restore Student A',
+    );
+    console.log('E2E_RESULT TAB_REOPEN=PASS');
+
     await openRoute(page, '/dashboard');
     await openRoute(page, '/library');
     await page.goBack({ waitUntil: 'domcontentloaded' });
@@ -156,6 +170,9 @@ async function main() {
     await openRoute(page, '/dashboard');
     await page.screenshot({ path: path.join(outputDir, 'dashboard-390.png'), fullPage: true });
     await openRoute(page, '/library');
+    await openRoute(page, '/learning');
+    await page.screenshot({ path: path.join(outputDir, 'learning-390.png'), fullPage: true });
+    console.log('E2E_RESULT LEARNING=PASS');
     await openRoute(page, '/account');
     console.log('E2E_RESULT RESPONSIVE_BROWSER=PASS');
 
@@ -187,6 +204,7 @@ async function main() {
       JSON.stringify(
         {
           hard_reload: 'PASS',
+          tab_reopen: 'PASS',
           back_forward: 'PASS',
           responsive: 'PASS',
           session_switch: 'PASS',

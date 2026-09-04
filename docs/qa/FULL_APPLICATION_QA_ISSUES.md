@@ -1,0 +1,36 @@
+# StudyBook AI - Full Application QA Issues
+
+Date: 2026-09-04
+
+Baseline: `4a8a17b7268b972c7424112bd209f03962fadadb`
+
+## Fixed
+
+| ID | Severity | Area | Reproduction | Root cause | Resolution | Regression |
+|---|---|---|---|---|---|---|
+| QA-001 | P1 | Auth/Web | Authenticate, close the tab, reopen the app | Router guard did not refresh after asynchronous Supabase recovery | Auth stream notifier refreshes `GoRouter` | Unit notifier tests plus real tab-reopen probe |
+| QA-002 | P1 | Booky onboarding | Request welcome audio during a slow/failing response | 180-second wait and transient-only error | 45-second timeout, persistent live-region error and retry | Timeout and success widget tests; authenticated MP3 probe |
+| QA-003 | P2 | Student/Teacher boundary | Save a Student question bank | Shared repository attempted educator sync for Student | Capability check before educator reads/writes | Access-control suite and clean browser probe |
+| QA-004 | P3 | QA infrastructure | Serve local profile build on affected macOS host | `http.server` blocked in reverse DNS; runner mixed release with loopback | Deterministic static server, profile build and explicit IPv4 | Browser lifecycle probe PASS |
+
+## Open Or Conditional
+
+| ID | Severity | Area | Impact | Current evidence | Required closure |
+|---|---|---|---|---|---|
+| QA-005 | P2 | External AI latency | A provider call was observed at 187 seconds once | Subsequent full journey passed; QA timeout now classifies the dependency honestly | Monitor production latency and define server-side request budgets before broad launch |
+| QA-006 | P2 | Physical Android | Microphone, current Booky welcome audibility and current-build TalkBack cannot be certified without a device | APK/AAB and Android regression tests pass; no ADB device connected | Run the short physical gate on the Samsung or release device |
+| QA-007 | P1 | Production Supabase | Local RLS/persistence evidence does not prove deployed remote policy state | Disposable local migration, restart, isolation and deletion all pass | Approved controlled migration, backup and two-user verification on the intended remote project |
+| QA-008 | P1 | Google Play billing | Public product IDs and Play Console server credentials are still human configuration | Billing contracts and signed AAB pass | Configure approved product IDs and verification credentials, then run internal-track billing QA |
+
+## Priority Summary
+
+- P0 open: 0
+- P1 fixed: 2
+- P1 open/conditional: 2 (`QA-007`, `QA-008`)
+- P2 fixed: 1
+- P2 open: 2 (`QA-005`, `QA-006`)
+- P3 fixed: 1
+- P3 open: 0
+
+No open issue justifies weakening RLS, using a client-side privileged key,
+falling back to local production persistence or bypassing Play verification.

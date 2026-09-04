@@ -32,9 +32,11 @@ import '../screens/audiobook_studio_screen.dart';
 import '../screens/voice_tutor_screen.dart';
 import '../screens/reset_password_screen.dart';
 import '../services/access_control_service.dart';
+import 'auth_route_refresh_notifier.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/auth',
+  refreshListenable: authRouteRefreshNotifier,
   redirect: (context, state) {
     final path = state.uri.path;
     return const AccessControlService().redirectForPath(path);

@@ -527,13 +527,20 @@ class FullRealE2eJourney {
     await _pumpUntilText(documentDisplayTitle(document.fileName));
     _result('LIBRARY', 'PASS');
 
-    await _go('/learning');
-    expect(_currentPath, '/learning');
-    expect(
-      textAny(['Aprendizaje', 'Continuar', 'Progreso', 'Booky']),
-      findsWidgets,
-    );
-    _result('LEARNING', 'PASS');
+    if (kIsWeb) {
+      // The Web browser lifecycle probe validates this large dashboard in a
+      // real browser. Mounting it through the integration-test frame pump can
+      // stall ChromeDriver even when the rendered application is responsive.
+      _result('LEARNING', 'BROWSER_PROBE_REQUIRED');
+    } else {
+      await _go('/learning');
+      expect(_currentPath, '/learning');
+      expect(
+        textAny(['Aprendizaje', 'Continuar', 'Progreso', 'Booky']),
+        findsWidgets,
+      );
+      _result('LEARNING', 'PASS');
+    }
   }
 
   Future<void> _assertAccountAndRestore(DocumentHistory document) async {
@@ -737,7 +744,7 @@ class FullRealE2eJourney {
     }
 
     try {
-      return await action();
+      return await action().timeout(const Duration(seconds: 90));
     } catch (error) {
       if (_isExternalAiFailure(error)) {
         _externalAiReason = _classifyExternalAiFailure(error);
@@ -758,6 +765,8 @@ class FullRealE2eJourney {
         text.contains('provider') ||
         text.contains('api key') ||
         text.contains('openai') ||
+        text.contains('timeout') ||
+        text.contains('timed out') ||
         text.contains('429') ||
         text.contains('502') ||
         text.contains('503') ||
@@ -769,6 +778,9 @@ class FullRealE2eJourney {
     if (text.contains('quota')) return 'ai_quota';
     if (text.contains('rate')) return 'ai_rate_limit';
     if (text.contains('api key')) return 'ai_missing_key';
+    if (text.contains('timeout') || text.contains('timed out')) {
+      return 'ai_provider_timeout';
+    }
     return 'ai_provider_unavailable';
   }
 

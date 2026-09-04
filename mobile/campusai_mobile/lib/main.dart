@@ -8,6 +8,7 @@ import 'config/app_environment.dart';
 import 'providers/theme_provider.dart';
 import 'providers/locale_provider.dart';
 import 'router/app_router.dart';
+import 'router/auth_route_refresh_notifier.dart';
 import 'theme/app_theme.dart';
 import 'l10n/app_localizations.dart';
 import 'services/local_storage_service.dart';
@@ -30,6 +31,9 @@ Future<void> main() async {
     await Supabase.initialize(
       url: supabaseUrl,
       anonKey: supabaseAnonKey,
+    );
+    await authRouteRefreshNotifier.bind(
+      Supabase.instance.client.auth.onAuthStateChange,
     );
   }
 

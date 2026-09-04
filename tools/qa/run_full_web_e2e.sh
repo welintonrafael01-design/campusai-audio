@@ -20,7 +20,7 @@ if [[ -z "$WEB_PORT" ]]; then
   echo "No free local Web QA port is available (3000-3002)." >&2
   exit 1
 fi
-WEB_BASE_URL="http://localhost:$WEB_PORT"
+WEB_BASE_URL="http://127.0.0.1:$WEB_PORT"
 WEB_SERVER_PID=""
 WEBDRIVER_PORT="${QA_WEBDRIVER_PORT:-4444}"
 WEBDRIVER_PID=""
@@ -161,7 +161,9 @@ PY
   set +e
   (
     cd "$FLUTTER_DIR"
-    flutter build web --dart-define-from-file="$BUILD_DEFINES"
+    # Local QA endpoints are intentionally rejected by release mode. Profile
+    # keeps production-like compilation while allowing the disposable stack.
+    flutter build web --profile --dart-define-from-file="$BUILD_DEFINES"
   ) 2>&1 | PYTHONUNBUFFERED=1 \
     python3 "$ROOT_DIR/tools/qa/redact_qa_output.py" | tee "$RUN_DIR/web-build.log"
   BUILD_STATUS=${PIPESTATUS[0]}
@@ -180,7 +182,8 @@ if [[ "$TEST_STATUS" -eq 0 ]]; then
     echo "Web QA port $WEB_PORT is already in use." >&2
     TEST_STATUS=1
   else
-    python3 -m http.server "$WEB_PORT" \
+    python3 "$ROOT_DIR/tools/qa/serve_static.py" \
+      --port "$WEB_PORT" \
       --bind 127.0.0.1 \
       --directory "$FLUTTER_DIR/build/web" \
       > "$RUN_DIR/web-server.log" 2>&1 &

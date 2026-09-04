@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api_service.dart';
+import 'access_control_service.dart';
 import 'auth_service.dart';
 import 'security/user_scoped_storage.dart';
 
@@ -20,7 +21,8 @@ class EducatorSyncService {
   static String scopedKey(String key) => UserScopedStorage.key(key);
 
   static Future<Map<String, dynamic>> getSnapshot() async {
-    if (!AuthService.isLoggedIn) {
+    if (!AuthService.isLoggedIn ||
+        !const AccessControlService().hasTeacherTools) {
       return {};
     }
 
@@ -45,7 +47,8 @@ class EducatorSyncService {
   }
 
   static Future<void> pushLocalSnapshot() async {
-    if (!AuthService.isLoggedIn) {
+    if (!AuthService.isLoggedIn ||
+        !const AccessControlService().hasTeacherTools) {
       return;
     }
 

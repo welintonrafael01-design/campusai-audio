@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,8 +9,20 @@ import '../../services/launch/onboarding_readiness_service.dart';
 import '../../services/onboarding_service.dart';
 import '../../theme/app_theme.dart';
 
+typedef WelcomeAudioLoader = Future<Map<String, dynamic>> Function(String text);
+typedef WelcomeAudioPlayer = Future<void> Function(String url, String title);
+
 class StudyBookOnboardingDialog extends ConsumerStatefulWidget {
-  const StudyBookOnboardingDialog({super.key});
+  const StudyBookOnboardingDialog({
+    super.key,
+    this.welcomeAudioLoader,
+    this.welcomeAudioPlayer,
+    this.welcomeAudioTimeout = const Duration(seconds: 45),
+  });
+
+  final WelcomeAudioLoader? welcomeAudioLoader;
+  final WelcomeAudioPlayer? welcomeAudioPlayer;
+  final Duration welcomeAudioTimeout;
 
   @override
   ConsumerState<StudyBookOnboardingDialog> createState() =>
@@ -18,6 +32,7 @@ class StudyBookOnboardingDialog extends ConsumerStatefulWidget {
 class _StudyBookOnboardingDialogState
     extends ConsumerState<StudyBookOnboardingDialog> {
   bool isGeneratingWelcomeAudio = false;
+  String welcomeAudioError = '';
 
   String get welcomeText {
     return '''
@@ -48,12 +63,14 @@ Empecemos por algo sencillo. Puedes crear tu primera experiencia en menos de dos
 
     setState(() {
       isGeneratingWelcomeAudio = true;
+      welcomeAudioError = '';
     });
 
     try {
-      final data = await ApiService.generateAudioFromText(
-        text: welcomeText,
-      );
+      final loader = widget.welcomeAudioLoader ??
+          (String text) => ApiService.generateAudioFromText(text: text);
+      final data =
+          await loader(welcomeText).timeout(widget.welcomeAudioTimeout);
 
       final audioUrl = data['audio_url']?.toString() ?? '';
 
@@ -63,18 +80,25 @@ Empecemos por algo sencillo. Puedes crear tu primera experiencia en menos de dos
 
       final fullAudioUrl = ApiService.buildAudioUrl(audioUrl);
 
-      await ref.read(audioProvider.notifier).play(
-            audioUrl: fullAudioUrl,
-            title: 'Bienvenida a StudyBook AI',
-          );
+      final player = widget.welcomeAudioPlayer ??
+          (String url, String title) => ref.read(audioProvider.notifier).play(
+                audioUrl: url,
+                title: title,
+              );
+
+      await player(fullAudioUrl, 'Bienvenida a StudyBook AI');
+    } on TimeoutException {
+      if (!mounted) return;
+      setState(() {
+        welcomeAudioError =
+            'La bienvenida tardó demasiado. Puedes continuar o intentarlo de nuevo.';
+      });
     } catch (_) {
       if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Booky no pudo reproducir la bienvenida esta vez.'),
-        ),
-      );
+      setState(() {
+        welcomeAudioError =
+            'Booky no pudo preparar la bienvenida. Puedes continuar y reintentar.';
+      });
     } finally {
       if (mounted) {
         setState(() {
@@ -152,10 +176,27 @@ Empecemos por algo sencillo. Puedes crear tu primera experiencia en menos de dos
                   label: Text(
                     isGeneratingWelcomeAudio
                         ? 'Generando bienvenida...'
-                        : 'Escuchar bienvenida',
+                        : welcomeAudioError.isNotEmpty
+                            ? 'Reintentar bienvenida'
+                            : 'Escuchar bienvenida',
                   ),
                 ),
               ),
+              if (welcomeAudioError.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    welcomeAudioError,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: AppTheme.textSecondary,
+                      height: 1.35,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 18),
               _OnboardingStep(
                 icon: Icons.upload_file_rounded,
