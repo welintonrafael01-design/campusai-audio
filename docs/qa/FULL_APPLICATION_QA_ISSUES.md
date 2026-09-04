@@ -9,7 +9,7 @@ Baseline: `4a8a17b7268b972c7424112bd209f03962fadadb`
 | ID | Severity | Area | Reproduction | Root cause | Resolution | Regression |
 |---|---|---|---|---|---|---|
 | QA-001 | P1 | Auth/Web | Authenticate, close the tab, reopen the app | Router guard did not refresh after asynchronous Supabase recovery | Auth stream notifier refreshes `GoRouter` | Unit notifier tests plus real tab-reopen probe |
-| QA-002 | P1 | Booky onboarding | Request welcome audio during a slow/failing response | 180-second wait and transient-only error | 45-second timeout, persistent live-region error and retry | Timeout and success widget tests; authenticated MP3 probe |
+| QA-002 | P1 | Booky onboarding | Request welcome audio in Web or during a slow/failing response | 180-second wait, transient-only error and an HTML media request that omitted the bearer header | 45-second timeout, persistent live-region error and authenticated same-origin Web audio fetch before playback | Timeout/success widget tests, authenticated MP3 browser probe and Web audio loader tests |
 | QA-003 | P2 | Student/Teacher boundary | Save a Student question bank | Shared repository attempted educator sync for Student | Capability check before educator reads/writes | Access-control suite and clean browser probe |
 | QA-004 | P3 | QA infrastructure | Serve local profile build on affected macOS host | `http.server` blocked in reverse DNS; runner mixed release with loopback | Deterministic static server, profile build and explicit IPv4 | Browser lifecycle probe PASS |
 

@@ -32,7 +32,8 @@ written to tracked files.
   question bank, exam, AudioBook, Voice Tutor text, Library, account,
   logout/login restore, Student B isolation, direct ownership denial, Teacher
   course/student/plan and guest route denial: PASS.
-- Booky welcome pipeline: authenticated MP3 generation and fetch: PASS (56 KB).
+- Booky welcome pipeline: authenticated MP3 generation, authenticated Web fetch
+  and player handoff: PASS. Human audibility remains the final physical check.
 - 7F-S3 inherited at the tested baseline: local RLS, private Storage, pgvector,
   restart persistence, deterministic backfill and disposable account deletion:
   PASS.
@@ -45,7 +46,7 @@ written to tracked files.
 | Logout | PASS | Not required | PASS | - | - |
 | Session restore | PASS: hard reload, app restart and tab reopen | Not required | PASS | QA-001 fixed | P1 |
 | Auth guards | PASS: guest, Student, Teacher and Admin boundaries | Not required | PASS | - | - |
-| Booky welcome generation | PASS: valid authenticated MP3 | Pending audible welcome check | PARTIAL | QA-002 fixed technically | P1 |
+| Booky welcome generation | PASS: valid MP3 and authenticated Web playback request | Pending audible welcome check | PARTIAL | QA-002 fixed technically | P1 |
 | Booky timeout/error UX | PASS: loading exits, inline error, retry and skip remain available | Not required | PASS | QA-002 fixed | P1 |
 | Library | PASS: empty/data render, persistence and ownership | Native picker visual gate pending | PASS automated | - | - |
 | Document upload | PASS: synthetic PDF, summary and cloud row | Native picker pending | PASS automated | - | - |
@@ -89,7 +90,13 @@ The welcome action inherited a 180-second API timeout and only emitted a brief
 SnackBar on failure. It could therefore appear stuck and leave no useful error.
 The dialog now applies a 45-second welcome timeout, keeps Skip/Continue
 available, exposes a persistent accessible error and changes the action to
-Retry. Loader and player seams provide deterministic success and timeout tests.
+Retry. A second browser-level defect was found during the audible gate: the
+HTML media request could not attach the bearer header required by `/audio`, so
+the generated MP3 returned `401` during playback. Web playback now fetches
+same-origin API audio with the authenticated HTTP client and passes a local
+data URL to the player. Android and other IO targets retain direct URL playback
+with request headers. Unit coverage verifies authenticated fetch, external URL
+passthrough and authorization failure behavior.
 
 ### QA-003 Student-to-Educator noise
 

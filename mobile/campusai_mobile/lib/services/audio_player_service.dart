@@ -1,8 +1,64 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:just_audio/just_audio.dart';
 
+import '../config/app_environment.dart';
 import 'auth_service.dart';
+
+typedef AudioResponseLoader = Future<http.Response> Function(
+  Uri uri,
+  Map<String, String> headers,
+);
+
+bool shouldFetchAuthenticatedAudio({
+  required bool isWeb,
+  required String audioUrl,
+  required String apiBaseUrl,
+  required bool isAuthenticated,
+}) {
+  if (!isWeb || !isAuthenticated) return false;
+
+  final audioUri = Uri.tryParse(audioUrl);
+  final apiUri = Uri.tryParse(apiBaseUrl);
+  if (audioUri == null || apiUri == null || !audioUri.hasScheme) return false;
+
+  return audioUri.origin == apiUri.origin;
+}
+
+Future<String> prepareAudioPlaybackUrl({
+  required String audioUrl,
+  required String apiBaseUrl,
+  required bool isWeb,
+  required Map<String, String> requestHeaders,
+  AudioResponseLoader? responseLoader,
+}) async {
+  if (!shouldFetchAuthenticatedAudio(
+    isWeb: isWeb,
+    audioUrl: audioUrl,
+    apiBaseUrl: apiBaseUrl,
+    isAuthenticated: requestHeaders.isNotEmpty,
+  )) {
+    return audioUrl;
+  }
+
+  final loader = responseLoader ??
+      (Uri uri, Map<String, String> headers) => http.get(uri, headers: headers);
+  final response = await loader(Uri.parse(audioUrl), requestHeaders);
+
+  if (response.statusCode < 200 || response.statusCode >= 300) {
+    throw Exception('El servidor no autorizó la reproducción del audio.');
+  }
+
+  final mimeType =
+      response.headers['content-type']?.split(';').first.trim() ?? 'audio/mpeg';
+
+  return Uri.dataFromBytes(
+    response.bodyBytes,
+    mimeType: mimeType.isEmpty ? 'audio/mpeg' : mimeType,
+  ).toString();
+}
 
 bool shouldRestartAudioPlayback({
   required String? currentUrl,
@@ -50,7 +106,18 @@ class AudioPlayerService {
 
         await player.stop();
 
-        await player.setUrl(cleanUrl, headers: _requestHeaders);
+        final requestHeaders = _requestHeaders ?? const <String, String>{};
+        final playbackUrl = await prepareAudioPlaybackUrl(
+          audioUrl: cleanUrl,
+          apiBaseUrl: AppEnvironment.apiBaseUrl,
+          isWeb: kIsWeb,
+          requestHeaders: requestHeaders,
+        );
+
+        await player.setUrl(
+          playbackUrl,
+          headers: kIsWeb ? null : _requestHeaders,
+        );
 
         await player.setSpeed(_currentSpeed);
       } else if (shouldRestartAudioPlayback(
@@ -88,10 +155,18 @@ class AudioPlayerService {
 
     _currentUrl = cleanUrl;
 
+    final requestHeaders = _requestHeaders ?? const <String, String>{};
+    final playbackUrl = await prepareAudioPlaybackUrl(
+      audioUrl: cleanUrl,
+      apiBaseUrl: AppEnvironment.apiBaseUrl,
+      isWeb: kIsWeb,
+      requestHeaders: requestHeaders,
+    );
+
     await player.setAudioSource(
       AudioSource.uri(
-        Uri.parse(cleanUrl),
-        headers: _requestHeaders,
+        Uri.parse(playbackUrl),
+        headers: kIsWeb ? null : _requestHeaders,
       ),
     );
 
