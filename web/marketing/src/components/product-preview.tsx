@@ -1,8 +1,9 @@
 import Image from "next/image";
 
-export function ProductPreview() {
+export function ProductPreview({ compact = false }: { compact?: boolean }) {
   return (
-    <figure className="product-preview">
+    <figure className={compact ? "product-preview product-preview-compact" : "product-preview"}>
+      <span className="product-real-label">Producto real</span>
       <div className="product-browser-bar" aria-hidden="true">
         <span />
         <span />
@@ -17,10 +18,12 @@ export function ProductPreview() {
         sizes="(max-width: 900px) 94vw, 1080px"
         priority
       />
-      <figcaption>
-        Vista de producto en entorno de QA. El contenido puede evolucionar antes
-        del lanzamiento.
-      </figcaption>
+      {!compact ? (
+        <figcaption>
+          Vista de producto en entorno de QA. El contenido puede evolucionar antes
+          del lanzamiento.
+        </figcaption>
+      ) : null}
     </figure>
   );
 }

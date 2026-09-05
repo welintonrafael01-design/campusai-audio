@@ -1,6 +1,6 @@
 # StudyBook AI Web Content
 
-Status: `W1 CONTENT BASELINE`
+Status: `W2 PREMIUM CONTENT BASELINE`
 
 ## Core Message
 
@@ -28,9 +28,22 @@ quizzes, question banks and exams.
 The source of truth is `web/marketing/src/config/plans.ts`. Do not duplicate
 prices in new components.
 
+## W2 Visual Narrative
+
+- Home: clean document-to-learning promise with factual capabilities.
+- How it works: Upload, Transform, Learn and Master as one progression.
+- Student: cyan emphasis for reading, listening and practice.
+- Teacher: violet emphasis for preparation, evaluation and follow-up.
+- Booky: companion copy only; no unapproved character rendering or voice claim.
+- Trust: private documents, authenticated access, user isolation and account
+  deletion, with a direct link to the Security page.
+- Final CTA: "Convierte lo que estudias en lo que sabes."
+
 ## Content Guardrails
 
 No testimonials, ratings, customer logos, adoption metrics, awards or partner
 institutions may be added without approved evidence. Security language must
 remain qualified. Legal routes remain visibly marked as drafts and `noindex`
 until approved.
+
+The website does not publish social accounts until real URLs are configured.

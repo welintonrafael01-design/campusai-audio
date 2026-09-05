@@ -23,12 +23,21 @@ export const siteConfig = {
 } as const;
 
 export const primaryNavigation = [
+  { href: "/", label: "Inicio" },
   { href: "/features", label: "Funciones" },
-  { href: "/students", label: "Estudiantes" },
-  { href: "/teachers", label: "Docentes" },
+  { href: "/students", label: "Para estudiantes" },
+  { href: "/teachers", label: "Para docentes" },
   { href: "/pricing", label: "Planes" },
-  { href: "/faq", label: "Preguntas" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/contact", label: "Contacto" },
 ] as const;
+
+export const accountLinks = {
+  login: `${siteConfig.urls.app}/auth`,
+  signup: `${siteConfig.urls.app}/auth?mode=signup`,
+  studentSignup: `${siteConfig.urls.app}/auth?mode=signup&plan=student`,
+  teacherPlans: `${siteConfig.urls.app}/plans?plan=teacher`,
+} as const;
 
 export const publicRoutes = [
   "/",

@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpenCheck,
+  CheckCircle2,
+  ClipboardCheck,
+  GraduationCap,
+  Users,
+} from "lucide-react";
 import { PageHero } from "@/components/page-hero";
-import { siteConfig } from "@/config/site";
+import { accountLinks } from "@/config/site";
 import { teacherTools } from "@/content/site-content";
 
 export const metadata: Metadata = {
@@ -15,13 +22,22 @@ export default function TeachersPage() {
     <>
       <PageHero
         eyebrow="StudyBook AI para docentes"
-        title="Más tiempo para enseñar. Menos tiempo preparando."
+        title="Menos tiempo preparando. Más tiempo para enseñar."
         description="Organiza el curso, transforma el programa de clase y conecta planificación, recursos y seguimiento en un mismo flujo."
         actions={
-          <a className="button" href={`${siteConfig.urls.app}/plans?plan=teacher`}>
+          <a className="button" href={accountLinks.teacherPlans}>
             Descubrir Teacher Pro
             <ArrowRight aria-hidden="true" size={18} />
           </a>
+        }
+        tone="violet"
+        visual={
+          <div className="teacher-hero-visual" aria-label="Flujo de herramientas para docentes">
+            <div><GraduationCap aria-hidden="true" /><span>Curso</span></div>
+            <div><BookOpenCheck aria-hidden="true" /><span>Planificación</span></div>
+            <div><ClipboardCheck aria-hidden="true" /><span>Evaluación</span></div>
+            <div><Users aria-hidden="true" /><span>Seguimiento</span></div>
+          </div>
         }
       />
       <section className="section" aria-labelledby="teacher-tools-title">
@@ -34,7 +50,7 @@ export default function TeachersPage() {
               trabajo entre múltiples espacios.
             </p>
           </div>
-          <ul className="teacher-tool-grid">
+          <ul className="teacher-tool-grid teacher-tool-grid-premium">
             {teacherTools.map((tool) => (
               <li key={tool}><CheckCircle2 aria-hidden="true" size={19} />{tool}</li>
             ))}

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { ArrowRight, CheckCircle2, Headphones, Library, Sparkles } from "lucide-react";
 import { PageHero } from "@/components/page-hero";
-import { siteConfig } from "@/config/site";
+import { ProductPreview } from "@/components/product-preview";
+import { accountLinks } from "@/config/site";
 import { studentBenefits } from "@/content/site-content";
 
 export const metadata: Metadata = {
@@ -18,11 +19,12 @@ export default function StudentsPage() {
         title="Estudia de una forma diferente."
         description="Convierte cada documento en explicaciones, audio y práctica para comprender mejor y avanzar a tu propio ritmo."
         actions={
-          <a className="button" href={`${siteConfig.urls.app}/auth?mode=signup&plan=student`}>
+          <a className="button" href={accountLinks.studentSignup}>
             Comenzar como estudiante
             <ArrowRight aria-hidden="true" size={18} />
           </a>
         }
+        visual={<ProductPreview compact />}
       />
       <section className="section" aria-labelledby="student-benefits-title">
         <div className="container split-grid">
@@ -47,10 +49,10 @@ export default function StudentsPage() {
             <p className="eyebrow">Todo conectado</p>
             <h2 id="student-flow-title">Una biblioteca que también te ayuda a estudiar.</h2>
           </div>
-          <div className="three-column-grid">
-            <article><Library aria-hidden="true" /><h3>Organiza</h3><p>Reúne el material que quieres comprender.</p></article>
-            <article><Headphones aria-hidden="true" /><h3>Escucha</h3><p>Transforma contenido en una experiencia AudioBook.</p></article>
-            <article><Sparkles aria-hidden="true" /><h3>Practica</h3><p>Usa preguntas, flashcards y quizzes para continuar.</p></article>
+          <div className="three-column-grid student-experience-grid">
+            <article><span className="icon-box"><Library aria-hidden="true" /></span><h3>Organiza</h3><p>Reúne el material que quieres comprender.</p></article>
+            <article><span className="icon-box"><Headphones aria-hidden="true" /></span><h3>Escucha</h3><p>Transforma contenido en una experiencia AudioBook.</p></article>
+            <article><span className="icon-box"><Sparkles aria-hidden="true" /></span><h3>Practica</h3><p>Usa preguntas, flashcards y quizzes para continuar.</p></article>
           </div>
         </div>
       </section>

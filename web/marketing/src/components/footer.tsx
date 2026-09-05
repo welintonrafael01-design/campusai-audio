@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { accountLinks } from "@/config/site";
 import { Brand } from "./brand";
 
 const footerGroups = [
@@ -12,11 +13,12 @@ const footerGroups = [
     ],
   },
   {
-    title: "Ayuda",
+    title: "Recursos",
     links: [
+      ["Cómo funciona", "/#como-funciona"],
       ["Preguntas frecuentes", "/faq"],
-      ["Contacto", "/contact"],
       ["Seguridad", "/security"],
+      ["Contacto", "/contact"],
     ],
   },
   {
@@ -50,10 +52,15 @@ export function Footer() {
             ))}
           </nav>
         ))}
+        <nav aria-label="Cuenta">
+          <h2>Cuenta</h2>
+          <a href={accountLinks.login}>Iniciar sesión</a>
+          <a href={accountLinks.signup}>Crear cuenta</a>
+        </nav>
       </div>
       <div className="container footer-bottom">
-        <p>© {new Date().getFullYear()} StudyBook AI.</p>
-        <p>Sitio público en preparación para lanzamiento.</p>
+        <p>© 2026 StudyBook AI. Todos los derechos reservados.</p>
+        <p>Aprendizaje y enseñanza, conectados por IA.</p>
       </div>
     </footer>
   );

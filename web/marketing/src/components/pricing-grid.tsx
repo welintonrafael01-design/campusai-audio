@@ -16,6 +16,7 @@ export function PricingGrid() {
             className={plan.featured ? "price-card price-card-featured" : "price-card"}
             key={plan.id}
           >
+            {plan.featured ? <span className="popular-badge">Más popular</span> : null}
             <p className="plan-audience">{plan.audience}</p>
             <h2>{plan.name}</h2>
             <p className="plan-price">

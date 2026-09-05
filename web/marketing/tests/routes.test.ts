@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import robots from "@/app/robots";
@@ -31,5 +31,13 @@ describe("public routes and SEO", () => {
 
   it("includes a custom not-found route", () => {
     expect(existsSync(join(root, "not-found.tsx"))).toBe(true);
+  });
+
+  it("keeps motion optional and avoids fabricated social proof", () => {
+    const css = readFileSync(join(root, "globals.css"), "utf8");
+    const home = readFileSync(join(root, "page.tsx"), "utf8");
+
+    expect(css).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(home).not.toMatch(/50,000|1M documents|4\.9\/5|universidades aliadas/i);
   });
 });

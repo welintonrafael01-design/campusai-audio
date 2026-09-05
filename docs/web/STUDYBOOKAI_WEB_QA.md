@@ -1,6 +1,6 @@
 # StudyBook AI Web QA
 
-Status: `LOCAL W1 GATE`
+Status: `LOCAL W2 VISUAL GATE`
 
 ## W1 Result
 
@@ -16,6 +16,36 @@ Status: `LOCAL W1 GATE`
 | Legal draft indexing | PASS | Privacy, Terms and Account Deletion emit `noindex, nofollow`. |
 | Flutter URL integration | PASS | 11 focused tests and `flutter analyze` with no issues. |
 | Secret scan | PASS | No credential-shaped value in the W1 source or documentation. |
+
+## W2 Result
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Premium Home hero | PASS | Clean two-column composition; application screenshot removed from hero background. |
+| Booky structure | BLOCKED FOR FINAL ASSET | Replaceable branded stage uses the existing mark; no unofficial mascot was generated. |
+| Header and actions | PASS | Seven public routes plus Login and Start Free; accessible mobile menu. |
+| Visual system | PASS | Navy foundation, balanced cyan/violet hierarchy, layered surfaces and restrained glow. |
+| Real product preview | PASS | Existing anonymized Voice Tutor capture in a truthful browser frame. |
+| Student and Teacher pages | PASS | Distinct cyan/violet hierarchy and truthful product capabilities. |
+| Pricing hierarchy | PASS | Student Pro marked `Más popular`; prices remain centralized and unchanged. |
+| Factual trust | PASS | No absolute security claim, metrics, testimonials or fabricated affiliations. |
+| Responsive overflow | PASS | 320, 360, 390, 411, 430, 768, 1024, 1280 and 1440 px. |
+| Reduced motion | PASS | Float, pulse, hover and chevron transitions collapse under the media query. |
+| Route and metadata regression | PASS | All public routes retain title, H1, canonical behavior and legal `noindex`. |
+| W2 automated tests | PASS | 4 files, 25 tests, including Header/Booky axe structure. |
+| Flutter regression | PASS | 11 focused tests and `flutter analyze` with no issues. |
+
+## W2 Screenshot Evidence
+
+- `docs/web/qa/w2/home-desktop-1440.png`
+- `docs/web/qa/w2/home-mobile-390.png`
+- `docs/web/qa/w2/students-desktop-1440.png`
+- `docs/web/qa/w2/teachers-desktop-1440.png`
+- `docs/web/qa/w2/pricing-desktop-1440.png`
+
+These are clean viewport captures. Full-page stitching was excluded because the
+local browser capture introduced repeated tiles that were not present in the
+DOM.
 
 ## Automated Gate
 
@@ -54,5 +84,5 @@ inaccessible menu, hidden CTA or layout shift from the product image.
 - Measure Lighthouse on Vercel preview; local design targets are Performance
   >=90, Accessibility >=95, Best Practices >=95 and SEO >=95.
 
-The numeric Lighthouse targets remain a preview-environment gate. W1 does not
+The numeric Lighthouse targets remain a preview-environment gate. W2 does not
 claim scores that were not measured against a deployed Vercel preview.
