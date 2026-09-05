@@ -1,6 +1,6 @@
 # StudyBook AI Web QA
 
-Status: `LOCAL W2 VISUAL GATE`
+Status: `LOCAL W2.2 BOOKY VISUAL GATE`
 
 ## W1 Result
 
@@ -98,3 +98,30 @@ claim scores that were not measured against a deployed Vercel preview.
 | Premium claim accuracy | PASS | Free does not advertise AudioBook, Voice Tutor, Question Bank, exams, or unlimited use. |
 | W2 composition | PASS | Existing Hero and sections preserved; pricing checked locally at 1280 and 390 px with no horizontal overflow or console errors. |
 | W2.1 automated regression | PASS | ESLint clean, 26 marketing tests passed, and Next production build generated all 16 routes. |
+
+## W2.2 Official Booky Integration
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Isolated production asset | PASS | Approved `1254x1254` transparent PNG tracked as the master asset. |
+| Visual identity match | PASS | Flame silhouette, face, eyes, mouth, galaxy body, emblem, arms, palette and proportions match V2 authority. |
+| Optimized delivery | PASS | Quality-92 WebP with full alpha quality is 202790 bytes, 78.5% smaller than the 942801-byte PNG master. |
+| Home hero | PASS | Informative Booky image has meaningful alt text, explicit dimensions, responsive sizes and priority loading. |
+| Booky section | PASS | Official artwork replaces the structural mark and is hidden as a decorative repeat from assistive technology. |
+| Final CTA | NOT USED | A third Booky placement was intentionally omitted to protect hierarchy and page weight. |
+| Reduced motion | PASS | Existing reduced-motion rule collapses Booky float and ambient pulse animations. |
+| Responsive matrix | PASS | Production build checked at 320, 360, 390, 411, 430, 768, 1024, 1280 and 1440 px with no overflow, clipped text or escaped Booky image. |
+| Production console | PASS | No warnings or errors; Hero image is eager and the decorative repeat remains lazy. |
+| W2.2 automated regression | PASS | ESLint clean, 27 marketing tests passed, all 16 routes built, route smoke passed and no broken internal links were found. |
+| Flutter regression | PASS | 13 focused configuration, URL-safety and plan-responsive tests passed; `flutter analyze` reports no issues. |
+
+### W2.2 Screenshot Evidence
+
+- `docs/web/qa/w2.2/home-desktop-1440.png`
+- `docs/web/qa/w2.2/home-mobile-390.png`
+- `docs/web/qa/w2.2/booky-section-desktop.png`
+- `docs/web/qa/w2.2/pricing-desktop.png`
+
+The screenshots were captured from the local production build, not the Next.js
+development server. The final CTA intentionally does not include a third Booky
+instance.

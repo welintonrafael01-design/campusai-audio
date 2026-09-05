@@ -372,11 +372,17 @@ textarea {
 
 .booky-stage {
   position: relative;
-  display: grid;
-  min-height: 520px;
+  display: flex;
+  min-height: 620px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   margin: 0;
-  place-items: center;
   isolation: isolate;
+}
+
+.booky-stage-compact {
+  min-height: 520px;
 }
 
 .booky-atmosphere,
@@ -446,50 +452,46 @@ textarea {
   bottom: 16%;
 }
 
-.booky-mark {
+.booky-art {
   position: relative;
-  display: grid;
-  width: 230px;
-  height: 230px;
-  place-items: center;
-  border: 1px solid rgba(141, 197, 255, 0.34);
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 50% 42%, rgba(24, 51, 92, 0.92), rgba(3, 8, 23, 0.96) 72%);
-  box-shadow:
-    0 0 0 14px rgba(0, 212, 255, 0.035),
-    0 0 80px rgba(92, 103, 255, 0.34),
-    inset 0 0 45px rgba(0, 212, 255, 0.1);
+  z-index: 1;
+  width: min(100%, 540px);
+  aspect-ratio: 1;
   animation: booky-float 5s ease-in-out infinite;
 }
 
-.booky-mark img {
-  width: 116px;
-  height: 116px;
-  border-radius: 8px;
-  filter: drop-shadow(0 0 18px rgba(0, 212, 255, 0.34));
-}
-
-.booky-mark strong {
+.booky-art::after {
   position: absolute;
-  bottom: 24px;
-  color: var(--cyan-soft);
-  font-size: 11px;
-  letter-spacing: 0;
-}
-
-.booky-mark-ring {
-  position: absolute;
-  inset: -22px;
-  border: 1px solid rgba(138, 92, 255, 0.28);
+  right: 13%;
+  bottom: 8%;
+  left: 13%;
+  z-index: -1;
+  height: 9%;
   border-radius: 50%;
+  background: rgba(0, 212, 255, 0.27);
+  content: "";
+  filter: blur(24px);
+}
+
+.booky-art img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 24px 44px rgba(0, 5, 18, 0.38));
+}
+
+.booky-stage-compact .booky-art {
+  width: min(88%, 430px);
 }
 
 .booky-bubble {
-  position: absolute;
-  top: 54px;
-  right: 0;
+  position: relative;
+  z-index: 2;
+  order: -1;
+  align-self: flex-end;
   max-width: 250px;
+  margin: 0 0 -6px;
   padding: 14px 16px;
   border: 1px solid rgba(0, 212, 255, 0.28);
   border-radius: 8px;
@@ -1675,7 +1677,11 @@ textarea {
   }
 
   .booky-stage {
-    min-height: 430px;
+    min-height: 620px;
+  }
+
+  .booky-stage-compact {
+    min-height: 510px;
   }
 
   .page-hero-grid,
@@ -1792,7 +1798,7 @@ textarea {
   }
 
   .booky-bubble {
-    right: 4%;
+    margin-right: 2%;
   }
 
   .footer-grid {
@@ -1842,27 +1848,24 @@ textarea {
   }
 
   .booky-stage {
-    min-height: 350px;
+    min-height: 450px;
   }
 
-  .booky-mark {
-    width: 180px;
-    height: 180px;
+  .booky-stage-compact {
+    min-height: 420px;
   }
 
-  .booky-mark img {
-    width: 88px;
-    height: 88px;
+  .booky-art {
+    width: min(100%, 390px);
   }
 
-  .booky-mark strong {
-    bottom: 17px;
+  .booky-stage-compact .booky-art {
+    width: min(92%, 350px);
   }
 
   .booky-bubble {
-    top: 14px;
-    right: 0;
     max-width: 210px;
+    margin-right: 0;
     font-size: 12px;
   }
 
@@ -1910,7 +1913,7 @@ textarea {
   .product-preview,
   .price-card,
   .audience-grid article,
-  .booky-mark,
+  .booky-art,
   .draft-notice,
   .trust-grid > div {
     border: 1px solid CanvasText;

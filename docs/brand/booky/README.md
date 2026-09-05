@@ -19,12 +19,31 @@ It is not tracked, embedded, or shipped. It may guide only subtle float, idle,
 halo, particle, and depth behavior. The character sheet overrides the video
 whenever they differ.
 
-## Production handoff required
+## Isolated production asset
 
-Human action remains required: provide an approved isolated frontal Booky
-PNG or WebP with transparency, canonical proportions, untouched anatomy, and
-enough resolution for the Home hero. The marketing `BookyStage` is deliberately
-replaceable without changing the surrounding layout.
+The approved isolated frontal asset was supplied as
+`8ebed8b4-c114-4cd5-8a15-4d2e22abc72f.png` and is tracked as:
 
-Do not redraw, recolor, accessorize, synthesize, or extract Booky from the
-character sheet.
+- Master PNG: `web/marketing/public/brand/booky/booky-official-front.png`
+- Dimensions: `1254x1254`
+- Format: 8-bit RGBA PNG with transparency
+- Master SHA-256: `dfec83e401f14e1766f4492f7bd753fcd820d8ad187c4eee71060ceeb130eb7a`
+- Optimized WebP: `web/marketing/public/brand/booky/booky-official-front.webp`
+- WebP settings: quality `92`, alpha quality `100`, metadata removed
+- WebP SHA-256: `c9d3a4d86e068daba09509d999cac742eefadc782c70d7867286ac92d1023df8`
+- WebP size: `202790` bytes, versus `942801` bytes for the master PNG
+
+The WebP reduces transfer size by 78.5%. It was visually checked at original
+resolution after encoding; no material degradation was found. No Booky pixels
+were redrawn, recolored, cropped, accessorized, or otherwise edited. Visual
+review against the canonical sheet passed for the flame silhouette, face, eyes,
+mouth, translucent galaxy body, emblem, arms, cyan/violet palette, and overall
+proportions. The stronger edge glow is accepted as a minor production variation.
+
+The marketing site uses the WebP in the Home hero as informative content and
+in the `Conoce a Booky` section as a decorative repeat. The final CTA does not
+repeat the asset. CSS provides only ambient light, a soft floor glow, subtle
+particles, and reduced-motion-aware floating behavior.
+
+Do not redraw, recolor, accessorize, synthesize, or extract alternate Booky
+assets from the character sheet.

@@ -1,6 +1,6 @@
 # StudyBook AI Web Master Plan
 
-Status: `W2 VISUAL CLOSURE IMPLEMENTED LOCALLY - NO DEPLOYMENT`
+Status: `W2.2 BOOKY VISUAL CLOSURE IMPLEMENTED LOCALLY - NO DEPLOYMENT`
 
 ## URL Contract
 
@@ -31,17 +31,19 @@ pages. Effects use CSS only and are disabled when reduced motion is requested.
 ## Brand And Booky
 
 The approved colors are `#08152E`, `#00D4FF`, `#8A5CFF` and `#FFFFFF`. The
-site uses the existing StudyBook AI brand mark and an anonymized real product
-capture. No isolated production-ready Booky PNG/WebP exists in the repository.
-W2/W2.1 therefore uses `BookyStage`, a replaceable branded scene built around
-`web/marketing/public/brand-mark.png`; it does not draw or claim to reproduce
-Booky's anatomy. No technical placeholder copy is exposed to visitors. Replace
-the central mark only when an approved isolated transparent PNG/WebP is
-delivered; do not crop the full sheet, redraw, recolor, or accessorize Booky.
+site uses the existing StudyBook AI brand mark, an anonymized real product
+capture, and the approved isolated frontal Booky. `BookyStage` now renders the
+optimized WebP at
+`web/marketing/public/brand/booky/booky-official-front.webp`, while the supplied
+transparent PNG remains tracked beside it as the production master. Explicit
+image dimensions and responsive `sizes` prevent layout shift and avoid serving
+desktop-sized output unnecessarily on small screens.
 
 The canonical full character sheet is stored for internal review at
 `docs/brand/booky/BOOKY_PRODUCTION_CHARACTER_SHEET_V2.jpeg`, with provenance
-and hashes in the adjacent README. It is not served by the marketing app.
+and hashes in the adjacent README. It remains the identity authority and is not
+served by the marketing app. Visual comparison passed; no anatomy, face,
+palette, texture, emblem, or proportions were modified.
 
 The ten-second animation was treated as motion reference only. It is not
 embedded, loaded or shipped by the marketing site.
@@ -55,7 +57,7 @@ and USD 13.99 monthly positions.
 
 ## Remaining Phases
 
-1. Human visual review and official isolated Booky asset handoff.
+1. Human review of the W2.2 local screenshots with the official Booky asset.
 2. Legal completion of entity, contacts, retention, jurisdiction and age scope.
 3. Reviewed contact endpoint with server-side validation and rate limiting.
 4. Vercel preview QA, Lighthouse measurements and cross-browser review.

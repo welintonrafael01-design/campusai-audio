@@ -63,7 +63,22 @@ describe("marketing components", () => {
     expect(
       screen.getByLabelText("Presentación de Booky, compañero inteligente de aprendizaje"),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", {
+        name: "Booky, el compañero inteligente de aprendizaje de StudyBook AI",
+      }),
+    ).toHaveAttribute(
+      "src",
+      expect.stringContaining("booky-official-front.webp"),
+    );
     expect(screen.queryByText(/asset oficial|pendiente de integración/i)).toBeNull();
+  });
+
+  it("hides repeated decorative Booky artwork from assistive technology", () => {
+    const { container } = render(<BookyStage compact decorative />);
+
+    expect(container.querySelector("figure")).toHaveAttribute("aria-hidden", "true");
+    expect(container.querySelector("img")).toHaveAttribute("alt", "");
   });
 
   it("keeps the W2 header and Booky structure accessible", async () => {

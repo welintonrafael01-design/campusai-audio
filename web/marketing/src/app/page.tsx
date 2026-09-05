@@ -67,7 +67,7 @@ export default function HomePage() {
               Empieza gratis. Sin tarjeta de crédito.
             </p>
           </div>
-          <BookyStage />
+          <BookyStage priority />
         </div>
       </section>
 
@@ -163,9 +163,9 @@ export default function HomePage() {
             <p className="eyebrow">Tu compañero de aprendizaje</p>
             <h2 id="booky-title">Conoce a Booky</h2>
             <p className="lede-small">
-              Booky organiza la experiencia para ayudarte a comprender,
-              practicar y continuar. Te explica, te escucha, te pregunta y te
-              acompaña.
+              Booky es tu compañero inteligente de aprendizaje. Te acompaña
+              mientras transformas información en conocimiento y te ayuda a
+              comprender, practicar y avanzar.
             </p>
             <div className="booky-actions" aria-label="Lo que Booky puede hacer">
               <span>Te explica</span>
@@ -175,6 +175,8 @@ export default function HomePage() {
             </div>
           </div>
           <BookyStage
+            compact
+            decorative
             message="Estoy aquí para ayudarte a comprender, practicar y avanzar paso a paso."
           />
         </div>
