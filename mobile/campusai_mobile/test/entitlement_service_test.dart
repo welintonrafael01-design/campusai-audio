@@ -57,6 +57,7 @@ void main() {
       expect(entitlements.can(ProductCapability.summary), isTrue);
       expect(entitlements.can(ProductCapability.flashcards), isTrue);
       expect(entitlements.can(ProductCapability.quiz), isTrue);
+      expect(entitlements.can(ProductCapability.examGeneration), isFalse);
       expect(entitlements.can(ProductCapability.cloudRestore), isTrue);
       expect(entitlements.can(ProductCapability.audioBook), isFalse);
       expect(entitlements.can(ProductCapability.voiceTutor), isFalse);
@@ -74,6 +75,7 @@ void main() {
       expect(entitlements.can(ProductCapability.voiceTutor), isTrue);
       expect(entitlements.can(ProductCapability.cloudRestore), isTrue);
       expect(entitlements.can(ProductCapability.questionBank), isTrue);
+      expect(entitlements.can(ProductCapability.examGeneration), isTrue);
       expect(entitlements.can(ProductCapability.teacherWorkspace), isFalse);
     });
 
@@ -109,6 +111,8 @@ void main() {
     test('commercial labels hide internal aliases', () {
       expect(AppPlans.planNames[CampusPlan.student], 'Student Pro');
       expect(AppPlans.planNames[CampusPlan.teacher], 'Teacher Pro');
+      expect(AppPlans.planPrices[CampusPlan.student], r'US$6.99');
+      expect(AppPlans.planPrices[CampusPlan.teacher], r'US$13.99');
       expect(
         AppPlans.canonicalPlan(CampusPlan.accessibility),
         CampusPlan.student,

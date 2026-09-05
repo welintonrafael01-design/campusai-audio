@@ -1,6 +1,23 @@
 # Release Readiness
 
-Current status: RELEASE CANDIDATE READY FOR MANUAL QA.
+Current status: RELEASE CANDIDATE IMPLEMENTATION UNDER LOCAL QA.
+
+## W2.1 Free Cost Control
+
+- FastAPI is the entitlement and quota authority.
+- Free quotas are monthly: 3 documents, 10 chat messages, 3 summaries, one
+  flashcard set, and one quiz.
+- Free AudioBook, Voice Tutor, Question Bank, Exam Generator, and Teacher Core
+  are rejected server-side with structured upgrade guidance.
+- Student Pro retains learning capabilities; Teacher Pro adds Teacher Core and
+  still requires a server-authorized Teacher role.
+- `user_usage_events` remains the single usage ledger with user-scoped RLS and
+  service-side writes.
+- Marketing copy reflects the enforceable contract and does not promise
+  unlimited generation.
+
+Release still requires a production migration/configuration verification and
+human concurrency/load review of quota enforcement before broad public scale.
 
 The rebuilt StudyBook AI v1 core is now coherent across Inicio, Biblioteca, Aprendizaje, Teacher Studio and Cuenta.
 

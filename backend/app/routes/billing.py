@@ -38,9 +38,9 @@ router = APIRouter(
 
 PLAN_MONTHLY_PRICES = {
     "free": 0.0,
-    "student": 4.99,
+    "student": 6.99,
     "accessibility": 3.99,
-    "teacher": 9.99,
+    "teacher": 13.99,
     "ultra": 24.99,
     # Institution is provisioned contractually; no public Stripe price exists.
     "institution": None,

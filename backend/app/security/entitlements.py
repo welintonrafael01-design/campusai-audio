@@ -57,7 +57,6 @@ FREE_CAPABILITIES = {
     ProductCapability.SUMMARY,
     ProductCapability.FLASHCARDS,
     ProductCapability.QUIZ,
-    ProductCapability.EXAM_GENERATION,
     ProductCapability.CLOUD_RESTORE,
     ProductCapability.EXPORT_PDF,
 }
@@ -65,6 +64,7 @@ FREE_CAPABILITIES = {
 STUDENT_CAPABILITIES = FREE_CAPABILITIES | {
     ProductCapability.AUDIOBOOK,
     ProductCapability.VOICE_TUTOR,
+    ProductCapability.EXAM_GENERATION,
     ProductCapability.QUESTION_BANK,
     ProductCapability.EXPORT_DOCX,
 }
@@ -223,3 +223,21 @@ def commercial_plan_code(value: Any) -> str:
         "teacher": "teacher_pro",
         "institution": "institution",
     }[canonical_plan(value)]
+
+
+def entitlement_denial_detail(
+    *,
+    capability: ProductCapability,
+    required_plan: str = "student_pro",
+) -> dict[str, Any]:
+    plan_name = "Teacher Pro" if required_plan == "teacher_pro" else "Student Pro"
+    return {
+        "code": "capability_required",
+        "message": f"Esta función está disponible en {plan_name}.",
+        "capability": capability.value,
+        "required_plan": required_plan,
+        "cta": {
+            "label": f"Ver {plan_name}",
+            "plan": "teacher" if required_plan == "teacher_pro" else "student",
+        },
+    }

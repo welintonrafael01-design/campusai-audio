@@ -1,5 +1,18 @@
 # Release Security Risk Register
 
+## W2.1 Entitlement And Cost-Control Update
+
+Free premium generation is now denied by the backend capability resolver, and
+the five allowed Free AI actions use user-scoped monthly counts from
+`user_usage_events`. Direct exam, AudioBook, Voice Tutor, and Question Bank
+requests cannot rely on Flutter visibility to gain access. Structured denial
+payloads expose only plan guidance, never subscription or credential data.
+
+Residual release risk: application-level count-then-generate enforcement is
+not a transactional distributed reservation. Treat concurrent quota racing as
+P2 for controlled RC traffic and move reservation into an atomic Postgres RPC
+before materially higher public concurrency.
+
 ## 7F-S2 Durable Persistence Update
 
 Production persistence no longer uses Chroma SQLite, local registry JSON,

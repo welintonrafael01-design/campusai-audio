@@ -43,8 +43,11 @@ from app.services.ai_service import (
 from app.services.usage_limit_service import (
     enforce_pdf_upload_limit,
     enforce_chat_limit,
+    enforce_summary_limit,
     enforce_flashcard_limit,
+    enforce_quiz_limit,
     enforce_exam_limit,
+    enforce_question_count_limit,
     enforce_audiobook_permission,
     enforce_question_bank_permission,
     register_usage_event,
@@ -699,6 +702,7 @@ async def upload_document(
         plan = enforce_pdf_upload_limit(
             user_id=current_user.user_id,
         )
+        enforce_summary_limit(user_id=current_user.user_id)
 
         step = time.perf_counter()
         file_path = await save_upload_file(file)
@@ -767,6 +771,16 @@ async def upload_document(
             language=language,
         )
         print(f"[UPLOAD] ai_summary: {time.perf_counter() - step:.2f}s")
+
+        register_usage_event(
+            user_id=current_user.user_id,
+            event_type="summary_generated",
+            plan=plan,
+            metadata={
+                "document_id": document_id,
+                "mode": "upload_summary",
+            },
+        )
 
         step = time.perf_counter()
         try:
@@ -1301,7 +1315,7 @@ async def question_bank_document_by_id(
 
         enforce_question_bank_permission(user_id=current_user.user_id)
 
-        plan = enforce_exam_limit(
+        plan = enforce_question_count_limit(
             user_id=current_user.user_id,
             requested_amount=number_of_questions,
         )
@@ -1371,6 +1385,7 @@ async def exam_document_by_id(
     total_points: int = Query(default=100),
     exam_topic: str = Query(default=""),
     exam_objective: str = Query(default=""),
+    generation_type: str = Query(default="exam", pattern="^(exam|quiz)$"),
     language: str = Query(default="es"),
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
@@ -1380,10 +1395,16 @@ async def exam_document_by_id(
             current_user=current_user,
         )
 
-        plan = enforce_exam_limit(
-            user_id=current_user.user_id,
-            requested_amount=number_of_questions,
-        )
+        if generation_type == "quiz":
+            plan = enforce_quiz_limit(
+                user_id=current_user.user_id,
+                requested_amount=number_of_questions,
+            )
+        else:
+            plan = enforce_exam_limit(
+                user_id=current_user.user_id,
+                requested_amount=number_of_questions,
+            )
 
         context = build_document_context(
             document_id=document_id,
@@ -1411,13 +1432,17 @@ async def exam_document_by_id(
             "questions",
         )
 
+        event_type = (
+            "quiz_generated" if generation_type == "quiz" else "exam_generated"
+        )
         register_usage_event(
             user_id=current_user.user_id,
-            event_type="exam_generated",
+            event_type=event_type,
             plan=plan,
             metadata={
                 "document_id": document_id,
                 "number_of_questions": number_of_questions,
+                "generation_type": generation_type,
             },
         )
 
@@ -1425,6 +1450,7 @@ async def exam_document_by_id(
             "document_id": document_id,
             "number_of_questions":
                 number_of_questions,
+            "generation_type": generation_type,
             "questions": parsed_questions,
         }
 
@@ -2107,7 +2133,7 @@ async def workspace_question_bank(
 
         enforce_question_bank_permission(user_id=current_user.user_id)
 
-        plan = enforce_exam_limit(
+        plan = enforce_question_count_limit(
             user_id=current_user.user_id,
             requested_amount=number,
         )

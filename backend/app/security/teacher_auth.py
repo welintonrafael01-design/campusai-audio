@@ -8,6 +8,7 @@ from app.security.admin_auth import is_admin_user
 from app.security.entitlements import (
     ProductCapability,
     canonical_plan,
+    entitlement_denial_detail,
     has_capability,
     normalized_value,
     resolve_role,
@@ -61,5 +62,8 @@ def require_teacher_access(
 
     raise HTTPException(
         status_code=403,
-        detail="No tienes permiso para acceder a las herramientas docentes.",
+        detail=entitlement_denial_detail(
+            capability=ProductCapability.TEACHER_WORKSPACE,
+            required_plan="teacher_pro",
+        ),
     )

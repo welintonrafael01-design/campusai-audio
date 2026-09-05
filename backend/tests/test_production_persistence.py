@@ -281,6 +281,7 @@ def test_document_upload_rolls_back_durable_state_on_partial_failure(
     )
     monkeypatch.setattr(documents, "is_production_environment", lambda: True)
     monkeypatch.setattr(documents, "enforce_pdf_upload_limit", lambda **kwargs: "student")
+    monkeypatch.setattr(documents, "enforce_summary_limit", lambda **kwargs: "student")
     monkeypatch.setattr(documents, "save_upload_file", save_upload)
     monkeypatch.setattr(
         documents,

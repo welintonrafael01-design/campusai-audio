@@ -22,6 +22,7 @@ enum DocumentUploadStatus {
   unsupported,
   networkError,
   authError,
+  planLimit,
   serverError,
   processingError,
 }
@@ -31,11 +32,13 @@ class DocumentUploadResult {
     required this.status,
     required this.message,
     this.data = const <String, dynamic>{},
+    this.upgradeActionLabel,
   });
 
   final DocumentUploadStatus status;
   final String message;
   final Map<String, dynamic> data;
+  final String? upgradeActionLabel;
 
   bool get isSuccess => status == DocumentUploadStatus.success;
   bool get isCancelled => status == DocumentUploadStatus.cancelled;
@@ -43,6 +46,7 @@ class DocumentUploadResult {
       status == DocumentUploadStatus.networkError ||
       status == DocumentUploadStatus.serverError ||
       status == DocumentUploadStatus.processingError;
+  bool get hasUpgradeAction => upgradeActionLabel?.isNotEmpty == true;
 }
 
 class DocumentUploadController {
@@ -156,6 +160,14 @@ class DocumentUploadController {
   }
 
   DocumentUploadResult _classifyUploadError(Object error) {
+    if (error is ApiEntitlementException) {
+      return DocumentUploadResult(
+        status: DocumentUploadStatus.planLimit,
+        message: error.message,
+        upgradeActionLabel: error.ctaLabel,
+      );
+    }
+
     final message = error.toString().toLowerCase();
 
     if (error is TimeoutException || message.contains('clientexception')) {

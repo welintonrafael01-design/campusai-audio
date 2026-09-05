@@ -102,9 +102,8 @@ def test_teacher_dependency_returns_consistent_403(monkeypatch):
         require_teacher_access(_user(role="student"))
 
     assert exc.value.status_code == 403
-    assert exc.value.detail == (
-        "No tienes permiso para acceder a las herramientas docentes."
-    )
+    assert exc.value.detail["required_plan"] == "teacher_pro"
+    assert exc.value.detail["cta"]["label"] == "Ver Teacher Pro"
 
 
 def test_authenticated_identity_keeps_only_server_app_metadata(monkeypatch):
@@ -333,6 +332,11 @@ def test_student_keeps_shared_question_bank_and_exam_access(monkeypatch):
     monkeypatch.setattr(
         documents,
         "enforce_exam_limit",
+        lambda **kwargs: "student",
+    )
+    monkeypatch.setattr(
+        documents,
+        "enforce_question_count_limit",
         lambda **kwargs: "student",
     )
     monkeypatch.setattr(

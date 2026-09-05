@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flip_card/flip_card.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/study_result.dart';
@@ -32,6 +33,7 @@ class FlashcardsScreen extends StatefulWidget {
 class _FlashcardsScreenState extends State<FlashcardsScreen> {
   bool isLoading = false;
   String errorMessage = '';
+  String? upgradeActionLabel;
   int currentIndex = 0;
 
   List<Map<String, dynamic>> flashcards = [];
@@ -74,6 +76,7 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
     setState(() {
       isLoading = true;
       errorMessage = '';
+      upgradeActionLabel = null;
     });
 
     try {
@@ -123,8 +126,13 @@ class _FlashcardsScreenState extends State<FlashcardsScreen> {
       if (!mounted) return;
 
       setState(() {
-        errorMessage =
-            'Booky no pudo preparar las flashcards esta vez. Podemos intentarlo otra vez.';
+        if (error is ApiEntitlementException) {
+          errorMessage = error.message;
+          upgradeActionLabel = error.ctaLabel;
+        } else {
+          errorMessage =
+              'Booky no pudo preparar las flashcards esta vez. Podemos intentarlo otra vez.';
+        }
       });
     } finally {
       if (mounted) {
@@ -463,9 +471,21 @@ ${getBack(card)}
               ),
             if (errorMessage.isNotEmpty)
               SectionCard(
-                child: Text(
-                  errorMessage,
-                  style: const TextStyle(color: Colors.redAccent),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      errorMessage,
+                      style: const TextStyle(color: Colors.redAccent),
+                    ),
+                    if (upgradeActionLabel != null) ...[
+                      const SizedBox(height: 10),
+                      TextButton(
+                        onPressed: () => context.go('/plans'),
+                        child: Text(upgradeActionLabel!),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             buildPremiumCard(),

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:campusai_mobile/controllers/document_upload_controller.dart';
+import 'package:campusai_mobile/services/api_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -79,5 +80,25 @@ void main() {
 
     expect(result.status, DocumentUploadStatus.networkError);
     expect(result.canRetry, isTrue);
+  });
+
+  test('monthly quota denial preserves human message and upgrade action',
+      () async {
+    final controller = DocumentUploadController(
+      picker: () async => pdfFile(),
+      uploader: (_) async => throw const ApiEntitlementException(
+        message: 'Has utilizado tus 3 usos gratuitos de este mes.',
+        code: 'monthly_quota_exceeded',
+        requiredPlan: 'student_pro',
+        ctaLabel: 'Ver Student Pro',
+      ),
+    );
+
+    final result = await controller.pickAndUploadPdf();
+
+    expect(result.message, 'Has utilizado tus 3 usos gratuitos de este mes.');
+    expect(result.upgradeActionLabel, 'Ver Student Pro');
+    expect(result.hasUpgradeAction, isTrue);
+    expect(result.canRetry, isFalse);
   });
 }

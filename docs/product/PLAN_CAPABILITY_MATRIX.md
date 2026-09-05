@@ -52,10 +52,12 @@ the authoritative enforcement used by production routes.
 | Capability | Free | Student Pro | Teacher Pro | Institution | Backend authority |
 |---|---:|---:|---:|---:|---|
 | Library and owned cloud restore | Yes | Yes | Yes | Yes | Auth + owner scope |
-| PDF upload | Limited | Limited | Limited | Limited | Auth + server usage limit |
-| Chat and summary | Limited | Limited | Limited | Limited | Auth + owner + server usage limit |
-| Flashcards and quiz | Limited | Limited | Limited | Limited | Auth + owner + server usage limit |
-| Exam generation | Limited | Limited | Limited | Limited | Auth + owner + server usage limit |
+| PDF upload | 3/month | Expanded | Expanded | Expanded | Auth + monthly server quota |
+| Chat | 10/month | Expanded | Expanded | Expanded | Auth + owner + monthly server quota |
+| Summary | 3/month | Expanded | Expanded | Expanded | Auth + monthly server quota |
+| Flashcards | 1 set/month | Expanded | Expanded | Expanded | Auth + owner + monthly server quota |
+| Quiz | 1 quiz/month | Expanded | Expanded | Expanded | Auth + owner + monthly server quota |
+| Exam generation | No | Yes | Yes | Yes | Auth + owner + server capability |
 | AudioBook generation | No | Yes | Yes | Yes | Auth + server plan capability |
 | Owned AudioBook restore/playback | Yes | Yes | Yes | Yes | Auth + owner scope |
 | Voice Tutor / TTS | No | Yes | Yes | Yes | Auth + server plan capability |
@@ -70,21 +72,33 @@ the authoritative enforcement used by production routes.
 | Certificates and recognitions | No | No | Yes* | Yes* | Server role + active plan |
 | Admin console / analytics | No | No | No | No | Backend admin allowlist |
 
-## Existing numeric limits
+## Launch quota contract
 
-These values are existing product limits, not new commercial promises.
+Free quotas reset at the beginning of each UTC calendar month and are counted
+from server-owned `user_usage_events`. Flutter may display cached usage but
+cannot grant access or reset the server quota.
 
-| Limit | Free | Student Pro | Teacher Pro | Institution |
-|---|---:|---:|---:|---:|
-| PDF uploads per day | 3 | 25 | 100 | 100 |
-| Chats per day | 30 | 300 | 1,000 | 1,000 |
-| Flashcards per PDF | 20 | 200 | 1,000 | 1,000 |
-| Exam questions per PDF | 10 | 100 | 300 | 300 |
+| Free event | Monthly limit | Usage event |
+|---|---:|---|
+| Document upload | 3 | `pdf_upload` |
+| Chat message | 10 | `chat_message` |
+| Summary generation | 3 | `summary_generated` |
+| Flashcard set generation | 1 | `flashcards_generated` |
+| Quiz generation | 1 | `quiz_generated` |
 
-Audio-minute values remain in the legacy client model for compatibility, but
-there is no robust monthly server counter for them. The Plans screen therefore
-does not advertise an exact monthly AudioBook quota. New AudioBook generation
-is plan-gated by FastAPI.
+Paid plans retain their existing expanded operational safeguards and
+per-generation size caps. Marketing does not describe them as unlimited.
+AudioBook, Voice Tutor, Question Bank, Exam Generator, and Teacher Core are
+server-denied for Free. Audio-minute values remain in the legacy client model
+for compatibility and are not a public quota promise.
+
+## Structured denials
+
+FastAPI returns `capability_required` or `monthly_quota_exceeded` with a human
+message, required commercial plan, and CTA metadata. Free premium learning
+operations point to Student Pro. Teacher Core points to Teacher Pro. Flutter
+preserves the human message and upgrade metadata; sensitive authorization is
+still decided exclusively by FastAPI.
 
 ## Subscription states
 

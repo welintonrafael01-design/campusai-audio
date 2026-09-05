@@ -319,7 +319,8 @@ class SettingsScreen extends ConsumerWidget {
             return '0 / -';
           }
 
-          final used = item['used_today']?.toString() ?? '0';
+          final used =
+              item['used']?.toString() ?? item['used_today']?.toString() ?? '0';
           final limit = item[limitKey]?.toString() ?? '-';
 
           return '$used / $limit';
@@ -334,7 +335,8 @@ class SettingsScreen extends ConsumerWidget {
             return '0 hoy';
           }
 
-          final used = item['used_today']?.toString() ?? '0';
+          final used =
+              item['used']?.toString() ?? item['used_today']?.toString() ?? '0';
           final permissions = item['permissions'];
 
           if (permissions is! Map) {
@@ -412,6 +414,7 @@ class SettingsScreen extends ConsumerWidget {
             : rawUsage is Map
                 ? Map<String, dynamic>.from(rawUsage)
                 : <String, dynamic>{};
+        final usesMonthlyFreeQuota = data['quota_period'] == 'month';
 
         return SectionCard(
           child: Column(
@@ -443,7 +446,9 @@ class SettingsScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               usageRow(
-                l10n.pdfsUploadedToday,
+                usesMonthlyFreeQuota
+                    ? 'Documentos este mes'
+                    : l10n.pdfsUploadedToday,
                 usedLimit(
                   usage,
                   'pdf_uploads',
@@ -451,29 +456,47 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ),
               usageRow(
-                l10n.chatMessagesToday,
+                usesMonthlyFreeQuota
+                    ? 'Mensajes de chat este mes'
+                    : l10n.chatMessagesToday,
                 usedLimit(
                   usage,
                   'chat_messages',
                   'limit',
                 ),
               ),
-              usageRow(
-                'Flashcards',
-                '${usedLimit(
-                  usage,
-                  'flashcards_generated',
-                  'limit_per_pdf',
-                )} por PDF',
-              ),
-              usageRow(
-                l10n.exams,
-                '${usedLimit(
-                  usage,
-                  'exams_generated',
-                  'limit_per_pdf',
-                )} por PDF',
-              ),
+              if (usesMonthlyFreeQuota) ...[
+                usageRow(
+                  'Resúmenes este mes',
+                  usedLimit(usage, 'summaries_generated', 'limit'),
+                ),
+                usageRow(
+                  'Sets de flashcards este mes',
+                  usedLimit(usage, 'flashcards_generated', 'limit'),
+                ),
+                usageRow(
+                  'Quizzes este mes',
+                  usedLimit(usage, 'quizzes_generated', 'limit'),
+                ),
+                usageRow(l10n.exams, 'Student Pro'),
+              ] else ...[
+                usageRow(
+                  'Flashcards',
+                  '${usedLimit(
+                    usage,
+                    'flashcards_generated',
+                    'limit_per_pdf',
+                  )} por PDF',
+                ),
+                usageRow(
+                  l10n.exams,
+                  '${usedLimit(
+                    usage,
+                    'exams_generated',
+                    'limit_per_pdf',
+                  )} por PDF',
+                ),
+              ],
               usageRow(
                 l10n.exports,
                 exportsText(usage),

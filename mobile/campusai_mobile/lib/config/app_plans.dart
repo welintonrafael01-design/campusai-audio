@@ -63,9 +63,9 @@ class AppPlans {
 
   static const Map<CampusPlan, String> planPrices = {
     CampusPlan.free: r'US$0',
-    CampusPlan.student: r'US$4.99',
+    CampusPlan.student: r'US$6.99',
     CampusPlan.accessibility: r'US$3.99',
-    CampusPlan.teacher: r'US$9.99',
+    CampusPlan.teacher: r'US$13.99',
     CampusPlan.ultra: r'US$24.99',
     CampusPlan.institution: '',
   };
@@ -73,10 +73,10 @@ class AppPlans {
   static const Map<CampusPlan, PlanLimits> limits = {
     CampusPlan.free: PlanLimits(
       maxPdfUploadsPerDay: 3,
-      maxChatsPerDay: 30,
+      maxChatsPerDay: 10,
       maxFlashcardsPerPdf: 20,
-      maxExamQuestionsPerPdf: 10,
-      maxAudioMinutesPerMonth: 5,
+      maxExamQuestionsPerPdf: 0,
+      maxAudioMinutesPerMonth: 0,
       canExportPdf: true,
       canExportDocx: false,
       canExportPptx: false,

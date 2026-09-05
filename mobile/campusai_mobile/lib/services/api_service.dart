@@ -9,6 +9,26 @@ import '../config/app_environment.dart';
 import 'usage_limit_service.dart';
 import 'auth_service.dart';
 
+class ApiEntitlementException implements Exception {
+  const ApiEntitlementException({
+    required this.message,
+    required this.code,
+    this.requiredPlan,
+    this.ctaLabel,
+  });
+
+  final String message;
+  final String code;
+  final String? requiredPlan;
+  final String? ctaLabel;
+
+  bool get hasUpgradeAction =>
+      requiredPlan != null && ctaLabel != null && ctaLabel!.isNotEmpty;
+
+  @override
+  String toString() => message;
+}
+
 class ApiService {
   static String get baseUrl => AppEnvironment.apiBaseUrl;
 
@@ -103,12 +123,6 @@ class ApiService {
     AuthService.requireAccessToken;
 
     const usageLimitService = UsageLimitService();
-
-    if (!usageLimitService.canUploadPdfToday()) {
-      throw Exception(
-        usageLimitService.pdfUploadLimitMessage(),
-      );
-    }
 
     final language = await getCurrentLanguageCode();
 
@@ -362,6 +376,7 @@ class ApiService {
     int totalPoints = 100,
     String examTopic = '',
     String examObjective = '',
+    String generationType = 'exam',
   }) async {
     final cleanDocumentId = requireValue(
       documentId,
@@ -380,6 +395,7 @@ class ApiService {
         'total_points': totalPoints.toString(),
         'exam_topic': examTopic,
         'exam_objective': examObjective,
+        'generation_type': generationType == 'quiz' ? 'quiz' : 'exam',
         'language': language,
       },
     );
@@ -1257,6 +1273,23 @@ class ApiService {
     final decoded = tryDecodeJson(body);
 
     if (statusCode < 200 || statusCode >= 300) {
+      final detail = decoded['detail'];
+      if (detail is Map) {
+        final message = detail['message']?.toString().trim();
+        final code = detail['code']?.toString().trim();
+        final cta = detail['cta'];
+        if (message != null &&
+            message.isNotEmpty &&
+            code != null &&
+            code.isNotEmpty) {
+          throw ApiEntitlementException(
+            message: message,
+            code: code,
+            requiredPlan: detail['required_plan']?.toString(),
+            ctaLabel: cta is Map ? cta['label']?.toString() : null,
+          );
+        }
+      }
       throw Exception(
         safeErrorMessage(
           statusCode: statusCode,
@@ -1288,6 +1321,16 @@ class ApiService {
     }
 
     final detail = data['detail'];
+    if (detail is Map) {
+      final message = detail['message']?.toString().trim();
+      if (message != null && message.isNotEmpty) {
+        final cleanMessage =
+            message.replaceAll(RegExp(r'[\r\n\t]+'), ' ').trim();
+        return cleanMessage.length <= 500
+            ? cleanMessage
+            : '${cleanMessage.substring(0, 497)}...';
+      }
+    }
     if (detail is String && detail.trim().isNotEmpty) {
       final cleanDetail = detail.replaceAll(RegExp(r'[\r\n\t]+'), ' ').trim();
       return cleanDetail.length <= 500

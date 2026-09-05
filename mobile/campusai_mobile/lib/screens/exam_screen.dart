@@ -39,6 +39,7 @@ class ExamScreen extends StatefulWidget {
 class _ExamScreenState extends State<ExamScreen> {
   bool isLoading = false;
   String errorMessage = '';
+  String? upgradeActionLabel;
 
   int currentIndex = 0;
   int score = 0;
@@ -236,6 +237,7 @@ class _ExamScreenState extends State<ExamScreen> {
     setState(() {
       isLoading = true;
       errorMessage = '';
+      upgradeActionLabel = null;
     });
 
     try {
@@ -245,6 +247,7 @@ class _ExamScreenState extends State<ExamScreen> {
         examType: currentExamType,
         difficulty: currentDifficulty,
         totalPoints: examTotalPoints.round(),
+        generationType: widget.practiceMode ? 'quiz' : 'exam',
       );
 
       final parsedQuestions = _parseQuestions(data['questions']);
@@ -288,8 +291,13 @@ class _ExamScreenState extends State<ExamScreen> {
       if (!mounted) return;
 
       setState(() {
-        errorMessage =
-            'Booky no pudo preparar ${widget.practiceMode ? 'el quiz' : 'el examen'} esta vez. Podemos intentarlo otra vez.';
+        if (error is ApiEntitlementException) {
+          errorMessage = error.message;
+          upgradeActionLabel = error.ctaLabel;
+        } else {
+          errorMessage =
+              'Booky no pudo preparar ${widget.practiceMode ? 'el quiz' : 'el examen'} esta vez. Podemos intentarlo otra vez.';
+        }
       });
     } finally {
       if (mounted) {
@@ -628,6 +636,7 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
         totalPoints: examTotalPoints.round(),
         examTopic: currentExamTopic,
         examObjective: currentExamObjective,
+        generationType: widget.practiceMode ? 'quiz' : 'exam',
       );
 
       final parsedQuestions = _parseQuestions(data['questions']);
@@ -1610,11 +1619,21 @@ ${writtenAnswers[entry.key] ?? selectedAnswers[entry.key] ?? ''}
               ),
             if (errorMessage.isNotEmpty)
               SectionCard(
-                child: Text(
-                  errorMessage,
-                  style: const TextStyle(
-                    color: Colors.redAccent,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      errorMessage,
+                      style: const TextStyle(color: Colors.redAccent),
+                    ),
+                    if (upgradeActionLabel != null) ...[
+                      const SizedBox(height: 10),
+                      TextButton(
+                        onPressed: () => context.go('/plans'),
+                        child: Text(upgradeActionLabel!),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             buildQuiz(),

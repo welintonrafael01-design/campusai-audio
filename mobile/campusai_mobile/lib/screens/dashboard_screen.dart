@@ -939,11 +939,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       if (!mounted) return;
 
       setState(() {
-        errorMessage =
-            'Booky no pudo procesar el documento esta vez. ${result.canRetry ? 'Puedes reintentarlo.' : 'Revisa el archivo e intenta de nuevo.'}';
+        errorMessage = result.hasUpgradeAction
+            ? result.message
+            : 'Booky no pudo procesar el documento esta vez. ${result.canRetry ? 'Puedes reintentarlo.' : 'Revisa el archivo e intenta de nuevo.'}';
       });
 
-      if (result.canRetry) {
+      if (result.hasUpgradeAction) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.message),
+            action: SnackBarAction(
+              label: result.upgradeActionLabel!,
+              onPressed: () => context.go('/plans'),
+            ),
+          ),
+        );
+      } else if (result.canRetry) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result.message),

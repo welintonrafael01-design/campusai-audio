@@ -173,7 +173,8 @@ def test_audiobook_generation_uses_server_plan(monkeypatch, plan, allowed):
     with pytest.raises(HTTPException) as exc:
         usage_limit_service.enforce_audiobook_permission(user_id="user-1")
     assert exc.value.status_code == 403
-    assert "Student Pro" in exc.value.detail
+    assert exc.value.detail["required_plan"] == "student_pro"
+    assert exc.value.detail["cta"]["label"] == "Ver Student Pro"
 
 
 @pytest.mark.parametrize(

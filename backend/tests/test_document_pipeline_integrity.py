@@ -224,6 +224,7 @@ def test_upload_summarizes_selected_document_and_hides_internal_fields(
         return f"Resumen {text.split()[0]}"
 
     monkeypatch.setattr(documents, "enforce_pdf_upload_limit", lambda **kwargs: "student")
+    monkeypatch.setattr(documents, "enforce_summary_limit", lambda **kwargs: "student")
     monkeypatch.setattr(documents, "save_upload_file", fake_save_upload)
     monkeypatch.setattr(documents, "extract_pages_from_pdf", fake_extract_pages)
     monkeypatch.setattr(
@@ -247,7 +248,12 @@ def test_upload_summarizes_selected_document_and_hides_internal_fields(
             "user_id": "user-a",
         },
     )
-    monkeypatch.setattr(documents, "register_usage_event", lambda **kwargs: None)
+    usage_events: list[str] = []
+    monkeypatch.setattr(
+        documents,
+        "register_usage_event",
+        lambda **kwargs: usage_events.append(kwargs["event_type"]),
+    )
     monkeypatch.setattr(documents, "generate_ai_summary", fake_summary)
     monkeypatch.setattr(documents, "create_cloud_document", lambda **kwargs: None)
 
@@ -269,6 +275,12 @@ def test_upload_summarizes_selected_document_and_hides_internal_fields(
     ]
     assert alpha.json()["ai_summary"] == "Resumen ALPHA"
     assert beta.json()["ai_summary"] == "Resumen BETA"
+    assert usage_events == [
+        "pdf_upload",
+        "summary_generated",
+        "pdf_upload",
+        "summary_generated",
+    ]
 
     forbidden = {
         "text_preview",

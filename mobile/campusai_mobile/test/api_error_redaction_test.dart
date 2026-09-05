@@ -21,4 +21,21 @@ void main() {
 
     expect(message, 'Tu plan no incluye esta función.');
   });
+
+  test('structured entitlement errors preserve upgrade metadata', () {
+    expect(
+      () => ApiService.decodeBody(
+        statusCode: 403,
+        body: '''
+          {"detail":{"code":"monthly_quota_exceeded","message":"Has utilizado tus 3 usos gratuitos de este mes.","required_plan":"student_pro","cta":{"label":"Ver Student Pro"}}}
+        ''',
+      ),
+      throwsA(
+        isA<ApiEntitlementException>()
+            .having((error) => error.code, 'code', 'monthly_quota_exceeded')
+            .having((error) => error.requiredPlan, 'plan', 'student_pro')
+            .having((error) => error.ctaLabel, 'cta', 'Ver Student Pro'),
+      ),
+    );
+  });
 }

@@ -94,12 +94,12 @@ class EntitlementService {
       ProductCapability.summary ||
       ProductCapability.flashcards ||
       ProductCapability.quiz ||
-      ProductCapability.examGeneration ||
       ProductCapability.cloudRestore =>
         true,
       ProductCapability.audioBook ||
       ProductCapability.voiceTutor ||
       ProductCapability.voiceExperience ||
+      ProductCapability.examGeneration ||
       ProductCapability.questionBank =>
         hasPaidStudentCapabilities,
       ProductCapability.exportPdf => limits.canExportPdf,

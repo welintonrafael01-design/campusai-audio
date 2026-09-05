@@ -53,6 +53,7 @@ def test_free_demonstrates_value_without_premium_cost_capabilities():
     assert ProductCapability.FLASHCARDS in capabilities
     assert ProductCapability.QUIZ in capabilities
     assert ProductCapability.CLOUD_RESTORE in capabilities
+    assert ProductCapability.EXAM_GENERATION not in capabilities
     assert ProductCapability.AUDIOBOOK not in capabilities
     assert ProductCapability.VOICE_TUTOR not in capabilities
     assert ProductCapability.QUESTION_BANK not in capabilities
@@ -64,6 +65,7 @@ def test_student_pro_has_learning_capabilities_but_not_teacher_tools():
         ProductCapability.VOICE_TUTOR,
         ProductCapability.FLASHCARDS,
         ProductCapability.QUIZ,
+        ProductCapability.EXAM_GENERATION,
         ProductCapability.QUESTION_BANK,
         ProductCapability.CLOUD_RESTORE,
     }:

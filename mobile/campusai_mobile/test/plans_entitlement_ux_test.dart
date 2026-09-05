@@ -43,6 +43,8 @@ void main() {
         expect(find.text('Student Pro'), findsOneWidget);
         expect(find.text('Teacher Pro'), findsOneWidget);
         expect(find.text('Institution'), findsOneWidget);
+        expect(find.text('3 documentos al mes'), findsOneWidget);
+        expect(find.text('10 mensajes de Chat IA al mes'), findsOneWidget);
         expect(find.text('Accessibility'), findsNothing);
         expect(find.text('Ultra Premium'), findsNothing);
         expect(tester.takeException(), isNull);

@@ -10,19 +10,17 @@ class UsageLimitService {
   String get _scopedUploadDateKey => UserScopedStorage.key(_pdfUploadDateKey);
   String get _scopedUploadCountKey => UserScopedStorage.key(_pdfUploadCountKey);
 
-  String _todayKey() {
+  String _monthKey() {
     final now = DateTime.now();
     final month = now.month.toString().padLeft(2, '0');
-    final day = now.day.toString().padLeft(2, '0');
-
-    return '${now.year}-$month-$day';
+    return '${now.year}-$month';
   }
 
-  int getPdfUploadsToday() {
-    final today = _todayKey();
+  int getPdfUploadsThisMonth() {
+    final month = _monthKey();
     final storedDate = LocalStorageService.getString(_scopedUploadDateKey);
 
-    if (storedDate != today) {
+    if (storedDate != month) {
       return 0;
     }
 
@@ -35,21 +33,23 @@ class UsageLimitService {
     return const PlanGuardService().limits.maxPdfUploadsPerDay;
   }
 
+  int getPdfUploadsToday() => getPdfUploadsThisMonth();
+
   bool canUploadPdfToday() {
-    return getPdfUploadsToday() < maxPdfUploadsPerDay;
+    return getPdfUploadsThisMonth() < maxPdfUploadsPerDay;
   }
 
   void registerPdfUpload() {
-    final today = _todayKey();
+    final month = _monthKey();
     final storedDate = LocalStorageService.getString(_scopedUploadDateKey);
 
-    if (storedDate != today) {
-      LocalStorageService.setString(_scopedUploadDateKey, today);
+    if (storedDate != month) {
+      LocalStorageService.setString(_scopedUploadDateKey, month);
       LocalStorageService.setString(_scopedUploadCountKey, '1');
       return;
     }
 
-    final currentCount = getPdfUploadsToday();
+    final currentCount = getPdfUploadsThisMonth();
 
     LocalStorageService.setString(
       _scopedUploadCountKey,
@@ -58,8 +58,7 @@ class UsageLimitService {
   }
 
   String pdfUploadLimitMessage() {
-    return 'Tu plan actual permite $maxPdfUploadsPerDay PDFs por día. '
-        'Ya alcanzaste el límite de hoy.';
+    return 'Has utilizado tus $maxPdfUploadsPerDay usos gratuitos de este mes.';
   }
 
   void resetPdfUploadsToday() {

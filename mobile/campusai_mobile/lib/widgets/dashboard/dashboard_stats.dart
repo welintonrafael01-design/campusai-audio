@@ -52,7 +52,8 @@ class _DashboardStatsState extends State<DashboardStats> {
       return '0 / -';
     }
 
-    final used = item['used_today']?.toString() ?? '0';
+    final used =
+        item['used']?.toString() ?? item['used_today']?.toString() ?? '0';
     final limit = item[limitKey]?.toString() ?? '-';
 
     return '$used/$limit';
