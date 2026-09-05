@@ -1,8 +1,77 @@
 import 'package:permission_handler/permission_handler.dart';
-import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 typedef MicrophonePermissionRequester = Future<PermissionStatus> Function();
+
+abstract interface class VoiceSpeechRecognizer {
+  bool get isListening;
+
+  Future<bool> initialize({
+    required void Function(String status) onStatus,
+    required void Function(String message) onError,
+  });
+
+  Future<void> listen({
+    required String localeId,
+    required Duration listenFor,
+    required Duration pauseFor,
+    required void Function(String text, bool isFinal) onResult,
+  });
+
+  Future<void> stop();
+
+  Future<void> cancel();
+}
+
+class DeviceVoiceSpeechRecognizer implements VoiceSpeechRecognizer {
+  DeviceVoiceSpeechRecognizer({SpeechToText? speech})
+      : _speech = speech ?? SpeechToText();
+
+  final SpeechToText _speech;
+
+  @override
+  bool get isListening => _speech.isListening;
+
+  @override
+  Future<bool> initialize({
+    required void Function(String status) onStatus,
+    required void Function(String message) onError,
+  }) {
+    return _speech.initialize(
+      onStatus: onStatus,
+      onError: (error) => onError(error.errorMsg),
+      debugLogging: false,
+    );
+  }
+
+  @override
+  Future<void> listen({
+    required String localeId,
+    required Duration listenFor,
+    required Duration pauseFor,
+    required void Function(String text, bool isFinal) onResult,
+  }) {
+    return _speech.listen(
+      onResult: (result) => onResult(
+        result.recognizedWords.trim(),
+        result.finalResult,
+      ),
+      listenOptions: SpeechListenOptions(
+        localeId: localeId,
+        partialResults: true,
+        listenMode: ListenMode.confirmation,
+        listenFor: listenFor,
+        pauseFor: pauseFor,
+      ),
+    );
+  }
+
+  @override
+  Future<void> stop() => _speech.stop();
+
+  @override
+  Future<void> cancel() => _speech.cancel();
+}
 
 class VoiceConversationState {
   final String status;
@@ -64,10 +133,12 @@ class VoiceConversationService {
 
   VoiceConversationService({
     MicrophonePermissionRequester? requestMicrophonePermission,
-  }) : _requestMicrophonePermission =
-            requestMicrophonePermission ?? Permission.microphone.request;
+    VoiceSpeechRecognizer? speechRecognizer,
+  })  : _requestMicrophonePermission =
+            requestMicrophonePermission ?? Permission.microphone.request,
+        _speech = speechRecognizer ?? DeviceVoiceSpeechRecognizer();
 
-  final SpeechToText _speech = SpeechToText();
+  final VoiceSpeechRecognizer _speech;
   final MicrophonePermissionRequester _requestMicrophonePermission;
   VoiceConversationState _state = VoiceConversationState.idleState;
   DateTime? _startedAt;
@@ -94,7 +165,12 @@ class VoiceConversationService {
       onStateChanged,
     );
 
-    final permission = await _requestMicrophonePermission();
+    PermissionStatus permission;
+    try {
+      permission = await _requestMicrophonePermission();
+    } catch (_) {
+      return _emitPluginError(onStateChanged);
+    }
     if (!permission.isGranted) {
       final requiresSettings = permission.isPermanentlyDenied;
       return _emit(
@@ -109,30 +185,34 @@ class VoiceConversationService {
       );
     }
 
-    final available = await _speech.initialize(
-      onStatus: (status) {
-        final normalized = status.toLowerCase();
-        if (normalized == 'done' || normalized == 'notlistening') {
-          _completeTurn(onStateChanged);
-        }
-      },
-      onError: (speechError) {
-        _emit(
-          VoiceConversationState(
-            status: error,
-            errorMessage: speechError.errorMsg,
-            partialText: _latestText,
-            finalText: _latestText,
-            isListening: false,
-            startedAt: _startedAt,
-            endedAt: DateTime.now(),
-            durationSeconds: _durationSeconds(),
-          ),
-          onStateChanged,
-        );
-      },
-      debugLogging: false,
-    );
+    bool available;
+    try {
+      available = await _speech.initialize(
+        onStatus: (status) {
+          final normalized = status.toLowerCase();
+          if (normalized == 'done' || normalized == 'notlistening') {
+            _completeTurn(onStateChanged);
+          }
+        },
+        onError: (message) {
+          _emit(
+            VoiceConversationState(
+              status: error,
+              errorMessage: message,
+              partialText: _latestText,
+              finalText: _latestText,
+              isListening: false,
+              startedAt: _startedAt,
+              endedAt: DateTime.now(),
+              durationSeconds: _durationSeconds(),
+            ),
+            onStateChanged,
+          );
+        },
+      );
+    } catch (_) {
+      return _emitPluginError(onStateChanged);
+    }
 
     if (!available) {
       return _emit(
@@ -154,41 +234,43 @@ class VoiceConversationService {
       onStateChanged,
     );
 
-    await _speech.listen(
-      onResult: (SpeechRecognitionResult result) {
-        _latestText = result.recognizedWords.trim();
-        _emit(
-          VoiceConversationState(
-            status: result.finalResult ? processing : listening,
-            partialText: _latestText,
-            finalText: result.finalResult ? _latestText : '',
-            isListening: !result.finalResult,
-            startedAt: _startedAt,
-            endedAt: result.finalResult ? DateTime.now() : null,
-            durationSeconds: _durationSeconds(),
-          ),
-          onStateChanged,
-        );
-
-        if (result.finalResult) {
-          _completedTurn = true;
-        }
-      },
-      listenOptions: SpeechListenOptions(
+    try {
+      await _speech.listen(
         localeId: localeId,
-        partialResults: true,
-        listenMode: ListenMode.confirmation,
         listenFor: const Duration(seconds: 45),
         pauseFor: const Duration(seconds: 3),
-      ),
-    );
+        onResult: (text, isFinal) {
+          _latestText = text.trim();
+          _emit(
+            VoiceConversationState(
+              status: isFinal ? processing : listening,
+              partialText: _latestText,
+              finalText: isFinal ? _latestText : '',
+              isListening: !isFinal,
+              startedAt: _startedAt,
+              endedAt: isFinal ? DateTime.now() : null,
+              durationSeconds: _durationSeconds(),
+            ),
+            onStateChanged,
+          );
+
+          if (isFinal) {
+            _completedTurn = true;
+          }
+        },
+      );
+    } catch (_) {
+      return _emitPluginError(onStateChanged);
+    }
 
     return _state;
   }
 
   Future<void> release() async {
     if (_speech.isListening) {
-      await _speech.cancel();
+      try {
+        await _speech.cancel();
+      } catch (_) {}
     }
   }
 
@@ -197,8 +279,12 @@ class VoiceConversationService {
   Future<VoiceConversationState> stopListening({
     required void Function(VoiceConversationState state) onStateChanged,
   }) async {
-    if (_speech.isListening) {
-      await _speech.stop();
+    try {
+      if (_speech.isListening) {
+        await _speech.stop();
+      }
+    } catch (_) {
+      return _emitPluginError(onStateChanged);
     }
     return _completeTurn(onStateChanged);
   }
@@ -206,13 +292,35 @@ class VoiceConversationService {
   Future<VoiceConversationState> cancelListening({
     required void Function(VoiceConversationState state) onStateChanged,
   }) async {
-    if (_speech.isListening) {
-      await _speech.cancel();
+    try {
+      if (_speech.isListening) {
+        await _speech.cancel();
+      }
+    } catch (_) {
+      return _emitPluginError(onStateChanged);
     }
     _completedTurn = true;
     return _emit(
       VoiceConversationState(
         status: idle,
+        startedAt: _startedAt,
+        endedAt: DateTime.now(),
+        durationSeconds: _durationSeconds(),
+      ),
+      onStateChanged,
+    );
+  }
+
+  VoiceConversationState _emitPluginError(
+    void Function(VoiceConversationState state) onStateChanged,
+  ) {
+    return _emit(
+      VoiceConversationState(
+        status: error,
+        errorMessage: 'No se pudo iniciar el reconocimiento de voz.',
+        partialText: _latestText,
+        finalText: _latestText,
+        isListening: false,
         startedAt: _startedAt,
         endedAt: DateTime.now(),
         durationSeconds: _durationSeconds(),

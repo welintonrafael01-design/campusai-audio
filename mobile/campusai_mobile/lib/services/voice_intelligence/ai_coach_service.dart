@@ -2,11 +2,20 @@ import '../api_service.dart';
 import 'voice_memory_service.dart';
 import 'voice_models.dart';
 
+typedef AiCoachRequester = Future<Map<String, dynamic>> Function({
+  required String message,
+  required String mode,
+  required Map<String, dynamic> context,
+  required List<Map<String, dynamic>> recentMessages,
+});
+
 class AiCoachService {
   final VoiceMemoryService memoryService;
+  final AiCoachRequester? requester;
 
   const AiCoachService({
     this.memoryService = const VoiceMemoryService(),
+    this.requester,
   });
 
   Future<AiCoachResponse> askCoach({
@@ -21,7 +30,7 @@ class AiCoachService {
     final detectedIntent = _detectIntent(cleanMessage, mode);
 
     try {
-      final response = await ApiService.askAiCoach(
+      final response = await (requester ?? ApiService.askAiCoach)(
         message: cleanMessage,
         mode: detectedIntent,
         context: _safeContext(context),

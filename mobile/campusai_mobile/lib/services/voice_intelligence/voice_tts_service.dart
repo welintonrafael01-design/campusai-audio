@@ -1,8 +1,17 @@
 import '../api_service.dart';
 import 'voice_models.dart';
 
+typedef VoiceTtsGenerator = Future<Map<String, dynamic>> Function({
+  required String messageId,
+  required String text,
+  required String voiceProfile,
+  required String language,
+});
+
 class VoiceTtsService {
-  const VoiceTtsService();
+  const VoiceTtsService({this.generator});
+
+  final VoiceTtsGenerator? generator;
 
   Future<VoiceMessage> generateAudioForMessage({
     required VoiceMessage message,
@@ -13,7 +22,7 @@ class VoiceTtsService {
 
     if (cleanText.isEmpty) return message;
 
-    final response = await ApiService.generateVoiceTts(
+    final response = await (generator ?? ApiService.generateVoiceTts)(
       messageId: message.messageId,
       text: cleanText,
       voiceProfile: voiceProfile,

@@ -1,10 +1,10 @@
 # StudyBook AI - Full Application QA
 
-Date: 2026-09-04
+Date: 2026-09-05
 
 Branch: `qa/studybook-ai-rc1`
 
-Baseline: `4a8a17b7268b972c7424112bd209f03962fadadb`
+Baseline before final Voice Tutor closure: `87546e517a5c024b07de11ebe79e051a14151705`
 
 Environment: disposable local Supabase, local FastAPI, Chrome 152, Flutter 3.41.9
 
@@ -19,8 +19,13 @@ written to tracked files.
 ## Automated Evidence
 
 - Backend: `152 passed`, `0 failed`, 5 dependency deprecation warnings.
-- Flutter: `130 passed`, `0 failed`.
+- Flutter: `141 passed`, `0 failed`.
 - Flutter analyze: `No issues found`.
+- Voice Tutor service coverage: `16 passed`, including permission, start,
+  partial/final transcript, stop, cancel, cleanup, retryable failures, AI/TTS
+  integration and owner-scoped session isolation.
+- Backend security-focused suite: `88 passed`, `0 failed`, 5 known dependency
+  deprecation warnings.
 - Web release build: PASS with `https://api.studybookai.com`.
 - Signed Android APK: PASS, 70.7 MB.
 - Signed Android AAB: PASS, 54.3 MB.
@@ -34,6 +39,12 @@ written to tracked files.
   course/student/plan and guest route denial: PASS.
 - Booky welcome pipeline: authenticated MP3 generation, authenticated Web fetch
   and player handoff: PASS. Human audibility confirmed in Chrome on 2026-09-04.
+- Voice Tutor local API pipeline: authenticated coach response, authenticated
+  TTS generation/fetch and cross-user audio denial: PASS. Human Web microphone,
+  response and audible playback confirmed on 2026-09-05.
+- Physical evidence retained from the unaffected Android paths: Samsung
+  microphone recognition/response/audio, AudioBook audible playback and
+  TalkBack traversal: PASS.
 - 7F-S3 inherited at the tested baseline: local RLS, private Storage, pgvector,
   restart persistence, deterministic backfill and disposable account deletion:
   PASS.
@@ -48,8 +59,8 @@ written to tracked files.
 | Auth guards | PASS: guest, Student, Teacher and Admin boundaries | Not required | PASS | - | - |
 | Booky welcome generation | PASS: valid MP3 and authenticated Web playback request | PASS: audible welcome confirmed in Chrome | PASS | QA-002 fixed | P1 |
 | Booky timeout/error UX | PASS: loading exits, inline error, retry and skip remain available | Not required | PASS | QA-002 fixed | P1 |
-| Library | PASS: empty/data render, persistence and ownership | Native picker visual gate pending | PASS automated | - | - |
-| Document upload | PASS: synthetic PDF, summary and cloud row | Native picker pending | PASS automated | - | - |
+| Library | PASS: empty/data render, persistence and ownership | Physical Android library and native picker previously passed | PASS | - | - |
+| Document upload | PASS: synthetic PDF, summary and cloud row | Physical native picker and real PDF previously passed | PASS | - | - |
 | Invalid/corrupt upload | PASS by PDF signature, MIME and size contracts | Not required | PASS | - | - |
 | DOCX upload | Rejected by the current PDF-only product contract | Not required | N/A | - | - |
 | Document detail | PASS in responsive/widget suite | Not required | PASS | - | - |
@@ -59,17 +70,17 @@ written to tracked files.
 | Quiz | PASS: generation, payload and persistence | Not required | PASS | - | - |
 | Question bank | PASS: generation and persistence | Not required | PASS | QA-003 fixed | P2 |
 | Exam generator | PASS: generation and persistence | Not required | PASS | - | - |
-| AudioBook | PASS: generation, local/cloud state, restore and owner-scoped audio contracts | Prior physical audible evidence exists; current run not physical | PASS automated | - | - |
-| Voice Tutor | PASS: text/AI/TTS authorization contracts | Real microphone pending | PARTIAL | - | - |
+| AudioBook | PASS: generation, local/cloud state, restore and owner-scoped audio contracts | Physical Samsung audible/player/cloud restore evidence remains valid; current changes do not alter IO playback | PASS | - | - |
+| Voice Tutor | PASS: permission/listen/stop/cancel/transcript/error/cleanup plus authenticated AI/TTS and ownership | PASS: Web real mic heard the user, returned a response and played audible audio; prior Samsung physical mic evidence remains valid | PASS | QA-006 closed | P2 |
 | Free/Student Pro | PASS: capabilities, limits, spoof denial and legacy mappings | Not required | PASS | - | - |
 | Teacher Pro | PASS: server role plus active plan required | Not required | PASS | - | - |
-| Teacher core | PASS: course, student and teaching plan journey; service persistence tests for remaining core | Physical UX not rerun | PASS automated | - | - |
+| Teacher core | PASS: course, student and teaching plan journey; service persistence tests for remaining core | Prior physical Teacher closure remains valid | PASS | - | - |
 | Multiuser | PASS: cloud, local cache and direct resource attack | Not required | PASS | - | - |
 | Account | PASS: plan, route and logout | Not required | PASS | - | - |
 | Account deletion | PASS: local disposable lifecycle and 7 backend regression tests | Not required | PASS | - | - |
 | Responsive Web | PASS: 320/390/411/430 and text scale coverage across suites | Visual review optional | PASS | - | - |
-| Accessibility | PASS: semantics/error live region, text scale and compact layouts | Prior TalkBack evidence exists; current run not physical | PASS automated | - | - |
-| Android | APK/AAB build PASS; regression tests PASS | No device connected; microphone and current-build TalkBack remain pending | PARTIAL | QA-006 | P2 |
+| Accessibility | PASS: semantics/error live region, text scale and compact layouts | PASS: prior physical TalkBack traversal covered core Student, Voice Tutor, AudioBook, Teacher and Account flows | PASS | QA-006 closed | P2 |
+| Android | APK/AAB build PASS; regression tests PASS | PASS: retained Samsung Android 12 evidence covers login, upload, microphone, AudioBook, Teacher, TalkBack and isolation; affected current changes are service seams/Web audio only | PASS | QA-006 closed | P2 |
 | Web | Release build and lifecycle probe PASS | Not required | PASS | - | - |
 | Security | PASS: RLS, IDOR/BOLA, role/plan spoof, private audio and secret scans | Production deployment state not tested | PASS local | QA-007 | P1 |
 
@@ -115,10 +126,22 @@ browser remaining responsive. AI calls in the journey have a 90-second QA
 budget and report provider latency as an external block instead of a product
 assertion failure.
 
+### QA-006 physical and human closure
+
+The earlier Samsung production retest already certified real microphone input,
+Voice Tutor processing and audible response, AudioBook audible playback and a
+TalkBack traversal across the critical routes. The final local closure added
+deterministic service tests for the Voice Tutor lifecycle and repeated the real
+microphone, response and audible TTS interaction in Chrome on 2026-09-05. The
+tester reported all three checks working correctly. No current change altered
+the Android audio or accessibility UI paths, so the physical evidence remains
+applicable and `QA-006` is closed.
+
 ## Release Decision
 
-Local application quality gate: PASS with human/remote conditions. Controlled
-production Supabase migration remains blocked until an approved window applies
-and verifies the already-tested migrations against the intended remote project.
-Google Play internal release also remains blocked until final Play Console
-product IDs and physical-device gates are confirmed.
+Local application quality gate: PASS. Controlled production Supabase migration
+remains an external release gate until an approved window applies and verifies
+the already-tested migrations against the intended remote project. Google Play
+internal release also remains an external gate until final Play Console product
+IDs and verification configuration are supplied. Neither is an open product
+bug in the locally tested application.
