@@ -33,14 +33,25 @@ pages. Effects use CSS only and are disabled when reduced motion is requested.
 The approved colors are `#08152E`, `#00D4FF`, `#8A5CFF` and `#FFFFFF`. The
 site uses the existing StudyBook AI brand mark and an anonymized real product
 capture. No isolated production-ready Booky PNG/WebP exists in the repository.
-W2 therefore uses `BookyStage`, a replaceable branded scene built around
+W2/W2.1 therefore uses `BookyStage`, a replaceable branded scene built around
 `web/marketing/public/brand-mark.png`; it does not draw or claim to reproduce
 Booky's anatomy. No technical placeholder copy is exposed to visitors. Replace
-the central mark only with the approved Character Sheet export when delivered;
-do not redraw, recolor or accessorize Booky.
+the central mark only when an approved isolated transparent PNG/WebP is
+delivered; do not crop the full sheet, redraw, recolor, or accessorize Booky.
+
+The canonical full character sheet is stored for internal review at
+`docs/brand/booky/BOOKY_PRODUCTION_CHARACTER_SHEET_V2.jpeg`, with provenance
+and hashes in the adjacent README. It is not served by the marketing app.
 
 The ten-second animation was treated as motion reference only. It is not
 embedded, loaded or shipped by the marketing site.
+
+## W2.1 Commercial Accuracy
+
+The Free pricing card now states the enforced monthly discovery quotas and
+does not imply access to AudioBook, Voice Tutor, Question Bank, Exam Generator,
+or unlimited AI. Student Pro and Teacher Pro retain their approved USD 6.99
+and USD 13.99 monthly positions.
 
 ## Remaining Phases
 

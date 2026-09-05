@@ -23,4 +23,17 @@ describe("commercial catalog", () => {
       api: "https://api.studybookai.com",
     });
   });
+
+  it("describes Free limits without promising premium generation", () => {
+    const free = commercialPlans.find((plan) => plan.id === "free");
+    const copy = free?.features.join(" ") ?? "";
+
+    expect(copy).toContain("3 documentos");
+    expect(copy).toContain("10 mensajes");
+    expect(copy).toContain("1 set de flashcards");
+    expect(copy).toContain("1 quiz");
+    expect(copy).not.toContain("AudioBook");
+    expect(copy).not.toContain("Voice Tutor");
+    expect(copy.toLowerCase()).not.toContain("ilimitado");
+  });
 });

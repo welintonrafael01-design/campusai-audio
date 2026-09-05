@@ -28,13 +28,20 @@ quizzes, question banks and exams.
 The source of truth is `web/marketing/src/config/plans.ts`. Do not duplicate
 prices in new components.
 
+Free is a discovery tier: 3 documents, 10 Chat IA messages, 3 summaries, one
+flashcard set, and one quiz per UTC calendar month. It does not include
+AudioBook, Voice Tutor, Question Bank, Exam Generator, or Teacher Studio.
+Student Pro provides expanded AI learning access without an unlimited-use
+claim. Teacher Pro adds Teacher Studio to the Student Pro learning foundation.
+
 ## W2 Visual Narrative
 
 - Home: clean document-to-learning promise with factual capabilities.
 - How it works: Upload, Transform, Learn and Master as one progression.
 - Student: cyan emphasis for reading, listening and practice.
 - Teacher: violet emphasis for preparation, evaluation and follow-up.
-- Booky: companion copy only; no unapproved character rendering or voice claim.
+- Booky: companion copy only; the approved V2 character sheet is an internal
+  identity reference, not a production-isolated Hero asset.
 - Trust: private documents, authenticated access, user isolation and account
   deletion, with a direct link to the Security page.
 - Final CTA: "Convierte lo que estudias en lo que sabes."

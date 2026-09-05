@@ -86,3 +86,15 @@ inaccessible menu, hidden CTA or layout shift from the product image.
 
 The numeric Lighthouse targets remain a preview-environment gate. W2 does not
 claim scores that were not measured against a deployed Vercel preview.
+
+## W2.1 Booky And Plan Gate
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Character authority | PASS | Canonical V2 sheet stored internally with SHA-256 provenance. |
+| Isolated production asset | HUMAN ACTION | Supplied source is a complete sheet, not a transparent isolated Booky. |
+| Video usage | PASS | Motion reference only; not embedded or shipped. |
+| Free catalog accuracy | PASS | Monthly document, chat, summary, flashcard-set and quiz limits are explicit. |
+| Premium claim accuracy | PASS | Free does not advertise AudioBook, Voice Tutor, Question Bank, exams, or unlimited use. |
+| W2 composition | PASS | Existing Hero and sections preserved; pricing checked locally at 1280 and 390 px with no horizontal overflow or console errors. |
+| W2.1 automated regression | PASS | ESLint clean, 26 marketing tests passed, and Next production build generated all 16 routes. |
