@@ -1,6 +1,6 @@
 # StudyBook AI Web QA
 
-Status: `LOCAL W2.2 BOOKY VISUAL GATE`
+Status: `W3 TEMPORARY VERCEL PREVIEW VALIDATED`
 
 ## W1 Result
 
@@ -125,3 +125,75 @@ claim scores that were not measured against a deployed Vercel preview.
 The screenshots were captured from the local production build, not the Next.js
 development server. The final CTA intentionally does not include a third Booky
 instance.
+
+## W3 Vercel Preview
+
+Validation timestamp: `2026-09-05T23:56:24Z`
+
+Preview URL:
+`https://temporary-snappy-valley-ek1cq74.vercel.app`
+
+This was an anonymous temporary Vercel Preview of `web/marketing` only. Vercel
+advertises a 60-minute lifetime for this temporary deployment, so the URL is QA
+evidence rather than a durable project or production endpoint. No custom domain,
+DNS record, production deployment or Git push was created.
+
+### W3 Result
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| Preview deployment | PASS | Next.js marketing root deployed independently from Flutter Web. |
+| Preview indexing protection | PASS | HTML robots metadata, `robots.txt` and `X-Robots-Tag` block indexing only when `VERCEL_ENV=preview`. |
+| Public routes | PASS | 11 routes returned 200; the deliberate unknown route returned 404. |
+| Broken links and assets | PASS | 27 same-origin targets crawled with query strings preserved; zero failures. |
+| Booky delivery | PASS | WebP and PNG master returned 200 with correct MIME; remote hashes match the repository assets. |
+| Responsive | PASS | 44 route/viewport combinations plus all nine required Home widths had no horizontal overflow. |
+| Cross-browser | PASS | The same production-like journey passed in Chrome/Chromium, Firefox and WebKit: 3 passed. |
+| Interaction | PASS | Mobile menu, FAQ accordion, contact status, focus path and reduced-motion behavior validated. |
+| Console | PASS | No console errors or uncaught page errors in the cross-browser journey. |
+| Contact | HUMAN ACTION | Endpoint is intentionally unset; submission states that no data was sent. |
+| Legal | PASS DRAFT | Privacy, Terms and Account Deletion remain explicit drafts and retain `noindex`. |
+| App CTA | HUMAN ACTION | CTA targets are centralized under `app.studybookai.com`, which did not resolve during W3. |
+| Security headers | PARTIAL | HSTS, frame denial, MIME sniffing protection, referrer and permissions policies pass; CSP remains a follow-up. |
+| Secret exposure | PASS | Nine JS bundles and route HTML had no credential-shaped findings; no source maps were exposed. |
+| Truthful marketing | PASS | Free limits match product policy and no fake proof, $1 trial, unlimited claim or absolute security claim was found. |
+
+### Lighthouse On Preview
+
+| Page / mode | Performance | Accessibility | Best Practices | SEO | FCP | LCP | CLS | TBT |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Home mobile | 94 | 100 | 100 | 69 | 1.570 s | 2.441 s | 0 | 4 ms |
+| Home desktop | 100 | 100 | 100 | 69 | 0.262 s | 0.533 s | 0 | 0 ms |
+| Students desktop | 100 | 100 | 100 | 69 | 0.236 s | 0.405 s | 0 | 0 ms |
+| Teachers desktop | 100 | 100 | 100 | 69 | 0.253 s | 0.282 s | 0 | 0 ms |
+| Pricing desktop | 100 | 100 | 100 | 69 | 0.251 s | 0.319 s | 0 | 0 ms |
+
+The only failed SEO audit was `is-crawlable`. This is expected and required for
+the temporary Preview because it is deliberately `noindex`. Titles,
+descriptions, canonical URLs, OpenGraph, sitemap and robots rendering were
+validated separately. The preview protection must not be removed to inflate a
+Lighthouse score.
+
+### W3 Screenshot Evidence
+
+- `docs/web/qa/w3/home-desktop-1440.png`
+- `docs/web/qa/w3/home-mobile-390.png`
+- `docs/web/qa/w3/students-desktop.png`
+- `docs/web/qa/w3/teachers-desktop.png`
+- `docs/web/qa/w3/pricing-desktop.png`
+- `docs/web/qa/w3/booky-hero.png`
+
+These are stable viewport captures from the deployed Preview. Full-page stitched
+captures were excluded because the browser capture surface repeated tiles while
+scrolling; DOM counts and screenshots confirmed that repetition was not present
+in the deployed page.
+
+### Open W3 Items
+
+1. Create an authenticated, durable Vercel project before production promotion.
+2. Deploy and verify `app.studybookai.com` before treating account CTAs as live.
+3. Approve and configure a rate-limited contact endpoint.
+4. Approve legal entity, jurisdiction, effective date, contacts, retention rules,
+   age/minor policy and contractual billing language.
+5. Design and test a production CSP without breaking Next.js or analytics that may
+   be approved later.

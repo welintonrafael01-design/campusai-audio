@@ -1,7 +1,16 @@
 import type { MetadataRoute } from "next";
-import { siteConfig } from "@/config/site";
+import { isPreviewDeployment, siteConfig } from "@/config/site";
 
-export default function robots(): MetadataRoute.Robots {
+export function buildRobots(isPreview: boolean): MetadataRoute.Robots {
+  if (isPreview) {
+    return {
+      rules: {
+        userAgent: "*",
+        disallow: "/",
+      },
+    };
+  }
+
   return {
     rules: {
       userAgent: "*",
@@ -11,4 +20,8 @@ export default function robots(): MetadataRoute.Robots {
     sitemap: `${siteConfig.urls.web}/sitemap.xml`,
     host: siteConfig.urls.web,
   };
+}
+
+export default function robots(): MetadataRoute.Robots {
+  return buildRobots(isPreviewDeployment);
 }

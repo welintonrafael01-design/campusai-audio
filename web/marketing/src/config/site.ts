@@ -1,6 +1,8 @@
 const normalizeUrl = (value: string | undefined, fallback: string) =>
   (value?.trim() || fallback).replace(/\/$/, "");
 
+export const isPreviewDeployment = process.env.VERCEL_ENV === "preview";
+
 export const siteConfig = {
   name: "StudyBook AI",
   description:

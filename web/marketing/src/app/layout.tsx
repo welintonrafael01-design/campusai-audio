@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { StructuredData } from "@/components/structured-data";
-import { siteConfig } from "@/config/site";
+import { isPreviewDeployment, siteConfig } from "@/config/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -28,6 +28,14 @@ export const metadata: Metadata = {
     description: siteConfig.description,
   },
   icons: { icon: "/brand-mark.png", apple: "/brand-mark.png" },
+  robots: isPreviewDeployment
+    ? {
+        index: false,
+        follow: false,
+        noarchive: true,
+        nocache: true,
+      }
+    : undefined,
 };
 
 export const viewport: Viewport = {
