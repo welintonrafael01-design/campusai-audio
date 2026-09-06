@@ -2,7 +2,11 @@ import type { Metadata, Viewport } from "next";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { StructuredData } from "@/components/structured-data";
-import { isPreviewDeployment, siteConfig } from "@/config/site";
+import {
+  isPreviewDeployment,
+  shouldBlockIndexing,
+  siteConfig,
+} from "@/config/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -28,7 +32,7 @@ export const metadata: Metadata = {
     description: siteConfig.description,
   },
   icons: { icon: "/brand-mark.png", apple: "/brand-mark.png" },
-  robots: isPreviewDeployment
+  robots: shouldBlockIndexing
     ? {
         index: false,
         follow: false,
@@ -52,6 +56,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         </a>
         <StructuredData />
         <Header />
+        {isPreviewDeployment ? (
+          <div className="preview-notice" role="status">
+            <strong>Vista previa.</strong> El acceso a la aplicación todavía no
+            está habilitado desde este entorno.
+          </div>
+        ) : null}
         <main id="main-content">{children}</main>
         <Footer />
       </body>

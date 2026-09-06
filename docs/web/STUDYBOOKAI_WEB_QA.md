@@ -1,6 +1,6 @@
 # StudyBook AI Web QA
 
-Status: `W3 TEMPORARY VERCEL PREVIEW VALIDATED`
+Status: `W4 LOCAL PRE-PRODUCTION CLOSURE PASS - REMOTE PREVIEW PENDING`
 
 ## W1 Result
 
@@ -197,3 +197,53 @@ in the deployed page.
    age/minor policy and contractual billing language.
 5. Design and test a production CSP without breaking Next.js or analytics that may
    be approved later.
+
+## W4 Pre-production Closure
+
+| Check | Result | Evidence |
+| --- | --- | --- |
+| CSP | PASS LOCAL | Narrow production policy added; development-only eval/WebSocket allowances are isolated and unit-tested. Chrome, Firefox and WebKit reported zero console violations. |
+| Security headers | PASS LOCAL | CSP, HSTS, MIME sniffing, framing, referrer and permissions policies are emitted by Next configuration and verified over HTTP. |
+| Indexing gate | PASS LOCAL | Only `VERCEL_ENV=production` plus `ENABLE_PUBLIC_INDEXING=true` enables indexing; legal drafts remain excluded. |
+| Contact validation | PASS | Same-origin, typed limits, honeypot, dwell window, body limit and structured errors are tested. |
+| Contact delivery | HUMAN ACTION | Server-only provider adapter fails honestly until monitored delivery is configured. |
+| Spam protection | PARTIAL | Per-instance limiter exists; distributed Vercel/provider control is still required. |
+| Legal technical facts | VERIFIED | Privacy, Terms and Account Deletion align with current durable Storage, RAG, audio, certificate and deletion behavior. |
+| Legal approval | HUMAN ACTION | Entity, jurisdiction, contacts, retention, age/minors and subscription terms remain unresolved. |
+| Persistent Vercel project | HUMAN ACTION | Exact creation/environment/promotion procedure is documented; no project, domain or DNS was modified. |
+| Marketing tests | PASS | 7 files and 41 tests passed. |
+| Production build | PASS | Next.js generated 17 routes, including the dynamic same-origin contact endpoint. |
+| Route/broken links | PASS | 11 public routes returned 200, custom missing route returned 404 and 27 internal targets had zero failures. |
+| Responsive | PASS LOCAL | Home passed 320, 390, 768 and 1440 in the in-app browser; cross-browser passed 390 and 1440 without overflow. |
+| Flutter regression | PASS | 13 focused environment, URL and plan-responsive tests passed; `flutter analyze` returned no issues. |
+| Dependency audit | PASS | `pnpm audit --audit-level high` reported no known vulnerabilities. |
+| Secret scan | PASS | 9,364 tracked files produced zero credential-shaped findings; no tracked keystore, private environment file or private key path was found. |
+
+### W4 Local Gate
+
+Run from `web/marketing`:
+
+```bash
+pnpm lint
+pnpm test
+pnpm build
+```
+
+Start the production build twice for HTTP/browser verification:
+
+1. With indexing approval absent: expect HTML `noindex`, deny-all
+   `robots.txt`, `X-Robots-Tag`, CSP and the complete header set.
+2. With `VERCEL_ENV=production ENABLE_PUBLIC_INDEXING=true`: expect public
+   routes indexable, sitemap exposed and legal pages still page-level noindex.
+
+The durable Vercel Preview must repeat CSP console, Chrome/Firefox/WebKit,
+responsive, accessibility, broken-link and Lighthouse checks before production
+promotion. W3 performance evidence remains the most recent deployed evidence;
+W4 does not claim an unmeasured remote score.
+
+The local cross-browser gate used Chrome, Firefox and WebKit against a Preview-
+mode production build. Each returned status 200, emitted the CSP, showed the
+Preview notice and official Booky, had no console/page errors and had no
+horizontal overflow at 390 or 1440 pixels. The production-approved SEO build
+was separately verified: public Home was indexable, `X-Robots-Tag` was absent,
+`robots.txt` allowed public routes and legal drafts remained `noindex`.

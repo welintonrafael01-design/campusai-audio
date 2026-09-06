@@ -49,7 +49,7 @@ export default function PrivacyPage() {
           </p>
           <h2>7. Eliminación de cuenta</h2>
           <p>
-            Una persona autenticada puede iniciar el flujo desde Configuración, reautenticarse y confirmar. El backend intenta eliminar los objetos y registros inventariados; una falla parcial se comunica para permitir un reintento seguro.
+            Una persona autenticada puede iniciar el flujo desde Configuración, reautenticarse y confirmar. El backend intenta eliminar documentos privados, fragmentos de recuperación, contenido generado, conversaciones, AudioBooks, certificados y registros académicos inventariados antes de eliminar la identidad. Una falla parcial se comunica para permitir un reintento seguro.
           </p>
           <h2>8. Derechos, menores y uso educativo</h2>
           <p>
@@ -61,7 +61,7 @@ export default function PrivacyPage() {
           </p>
           <h2>10. Contacto y vigencia</h2>
           <p>
-            El contacto de privacidad, el contacto de soporte, la entidad responsable y la fecha de vigencia están pendientes de aprobación.
+            El contacto de privacidad, el contacto de soporte, la entidad responsable y la fecha de vigencia están pendientes de aprobación. El formulario público no debe considerarse un canal de privacidad activo hasta que su proveedor monitorizado sea configurado y verificado.
           </p>
         </div>
       </article>

@@ -40,8 +40,8 @@ claim. Teacher Pro adds Teacher Studio to the Student Pro learning foundation.
 - How it works: Upload, Transform, Learn and Master as one progression.
 - Student: cyan emphasis for reading, listening and practice.
 - Teacher: violet emphasis for preparation, evaluation and follow-up.
-- Booky: companion copy only; the approved V2 character sheet is an internal
-  identity reference, not a production-isolated Hero asset.
+- Booky: the approved isolated production asset appears in the Hero and Booky
+  section; the V2 character sheet remains the canonical identity authority.
 - Trust: private documents, authenticated access, user isolation and account
   deletion, with a direct link to the Security page.
 - Final CTA: "Convierte lo que estudias en lo que sabes."

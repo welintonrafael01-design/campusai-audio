@@ -28,8 +28,8 @@ export function ContactForm({ defaultReason = "support" }: { defaultReason?: str
     };
 
     try {
-      await submitContactForm(payload);
-      setStatus("Mensaje enviado.");
+      const message = await submitContactForm(payload);
+      setStatus(message);
       event.currentTarget.reset();
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "No se pudo validar el mensaje.");
@@ -81,8 +81,8 @@ export function ContactForm({ defaultReason = "support" }: { defaultReason?: str
           {isSubmitting ? "Enviando..." : "Enviar mensaje"}
         </button>
         <p className="form-note">
-          El endpoint permanecerá desactivado hasta completar su revisión de
-          seguridad y privacidad.
+          Los mensajes solo se transmiten cuando el canal seguro está
+          configurado. Nunca incluyas contraseñas ni documentos privados.
         </p>
       </div>
       <p className="form-status" aria-live="polite">

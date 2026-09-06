@@ -3,15 +3,19 @@
 ## PDF and Document Learning
 
 1. Flutter uploads a PDF to authenticated FastAPI.
-2. FastAPI reads at most 25 MB, validates MIME/extension and `%PDF`, and writes
-   a generated local filename under `backend/uploads`.
+2. FastAPI reads at most 25 MB and validates MIME/extension and `%PDF`. Local
+   files are a development adapter; production persists private source objects
+   in the configured Supabase Storage bucket and fails closed when durable
+   storage is not configured.
 3. PyMuPDF extracts text locally. Pages without embedded text are rendered in
    memory and processed locally by Tesseract OCR (`eng+spa`).
-4. Extracted chunks are sent to OpenAI for embeddings and stored in local
-   Chroma. Up to bounded context is sent to OpenAI for summaries, chat,
-   flashcards, quizzes, plans, rubrics, exams, and other requested AI results.
-5. The PDF may be copied to the private Supabase bucket. Metadata and generated
-   results may be saved in Supabase and user-scoped local Flutter storage.
+4. Extracted chunks are sent to OpenAI for embeddings. Production stores the
+   owner-scoped chunks in Supabase `document_chunks`; local Chroma is available
+   only as a non-production adapter. Up to bounded context is sent to OpenAI for
+   summaries, chat, flashcards, quizzes, plans, rubrics, exams, and other
+   requested AI results.
+5. Production document metadata and generated results are stored in durable,
+   owner-scoped Supabase records. Flutter may also keep user-scoped local cache.
 
 OpenAI is therefore an external processor for document excerpts, questions,
 transcripts, generated prompts, embeddings, and TTS text. Tesseract OCR runs in
@@ -34,8 +38,9 @@ shell, or filesystem commands.
   user-scoped `voice_session` StudyResult.
 - The transcript/context is sent through authenticated FastAPI to OpenAI for the
   coach response.
-- Optional TTS sends response text to OpenAI and stores an owner-scoped MP3 on
-  the backend. Playback requires the bearer token.
+- Optional TTS sends response text to OpenAI. Production stores generated audio
+  in the configured private artifact bucket; authenticated routes enforce
+  owner access for playback.
 
 The OS/browser speech service may have its own processing behavior; StudyBook's
 code cannot promise that recognition is entirely on-device.
@@ -46,8 +51,10 @@ code cannot promise that recognition is entirely on-device.
   packs and to TTS for MP3 creation.
 - Structured AudioBook data may exist in local user-scoped storage,
   `study_results`, and the legacy `audiobooks` table.
-- Generated MP3 files currently live under backend application storage. They
-  are not public static files; owner-scoped authenticated routes serve them.
+- Production MP3 artifacts live in a private Supabase Storage bucket and are
+  served only through authenticated, owner-scoped access. Local filesystem
+  artifacts are a development adapter and are not the production source of
+  truth.
 
 ## Logging and Responses
 
@@ -59,8 +66,8 @@ paths. QA redaction is defense in depth, not a substitute for safe logging.
 ## Deletion and Retention Reality
 
 The authenticated account-deletion orchestrator inventories owner documents
-and removes known Supabase Storage objects, backend PDFs, Chroma collections,
-cloud rows, generated results and owner-prefixed MP3 files before deleting Auth.
-Partial completion is reported for retry. Deployment schema/storage evidence
-and legally approved retention exceptions remain required; no legal retention
-period is asserted by this document.
+and removes known private Storage objects, durable document chunks, registry
+rows, generated results, certificates, academic data and AudioBook artifacts
+before deleting Auth. Non-production adapters receive equivalent cleanup.
+Partial completion is reported for retry. Legally approved retention exceptions
+remain required; no legal retention period is asserted by this document.

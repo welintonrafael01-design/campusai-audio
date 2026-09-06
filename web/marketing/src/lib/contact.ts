@@ -17,34 +17,51 @@ export type ContactPayload = {
   startedAt: number;
 };
 
-export function validateContactPayload(payload: ContactPayload): string | null {
+export function validateContactPayload(
+  payload: ContactPayload,
+  now = Date.now(),
+): string | null {
   if (payload.company.trim()) return "No se pudo validar el formulario.";
-  if (Date.now() - payload.startedAt < 2500) {
+  const elapsed = now - payload.startedAt;
+  if (!Number.isFinite(payload.startedAt) || payload.startedAt <= 0) {
+    return "No se pudo validar el formulario.";
+  }
+  if (elapsed < 2500) {
     return "Espera un momento antes de enviar el formulario.";
   }
-  if (payload.name.trim().length < 2 || payload.name.length > 100) {
+  if (elapsed > 60 * 60 * 1000) {
+    return "La sesión del formulario expiró. Recarga la página e inténtalo de nuevo.";
+  }
+  const name = payload.name.trim();
+  const email = payload.email.trim();
+  const message = payload.message.trim();
+  if (name.length < 2 || name.length > 100) {
     return "Escribe un nombre válido.";
   }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email.trim())) {
+  if (
+    email.length > 254 ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  ) {
     return "Escribe un correo válido.";
   }
   if (!contactReasons.some((reason) => reason.value === payload.reason)) {
     return "Selecciona un motivo válido.";
   }
-  if (payload.message.trim().length < 10 || payload.message.length > 2000) {
+  if (message.length < 10 || message.length > 2000) {
     return "El mensaje debe tener entre 10 y 2000 caracteres.";
   }
   return null;
 }
 
-export async function submitContactForm(payload: ContactPayload) {
+type ContactApiResponse = {
+  ok?: boolean;
+  message?: string;
+  error?: { message?: string };
+};
+
+export async function submitContactForm(payload: ContactPayload): Promise<string> {
   const validationError = validateContactPayload(payload);
   if (validationError) throw new Error(validationError);
-  if (!siteConfig.contactEndpoint) {
-    throw new Error(
-      "El canal seguro de contacto aún no está habilitado. No se enviaron datos.",
-    );
-  }
 
   const response = await fetch(siteConfig.contactEndpoint, {
     method: "POST",
@@ -54,9 +71,16 @@ export async function submitContactForm(payload: ContactPayload) {
       email: payload.email.trim(),
       reason: payload.reason,
       message: payload.message.trim(),
+      company: payload.company,
+      startedAt: payload.startedAt,
     }),
   });
+  const result = (await response.json().catch(() => null)) as ContactApiResponse | null;
   if (!response.ok) {
-    throw new Error("No pudimos enviar el mensaje. Inténtalo más tarde.");
+    throw new Error(
+      result?.error?.message ||
+        "No pudimos enviar el mensaje. Inténtalo más tarde.",
+    );
   }
+  return result?.message || "Mensaje recibido.";
 }

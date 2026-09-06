@@ -41,6 +41,14 @@ export default function TermsPage() {
           <p>
             StudyBook AI es una herramienta de apoyo. Las personas usuarias y las instituciones siguen siendo responsables de revisar el contenido, tomar decisiones académicas y contar con autorización para utilizar los materiales aportados.
           </p>
+          <h2>Planes y proveedores externos</h2>
+          <p>
+            La aplicación distingue funciones gratuitas y de pago mediante suscripciones. Los términos finales deben definir renovación, cancelación, reembolsos, impuestos y el efecto de compras administradas por Stripe o Google Play. Eliminar la cuenta de StudyBook AI no garantiza por sí solo la cancelación de una suscripción externa.
+          </p>
+          <h2>Contenido generado por IA</h2>
+          <p>
+            Los resúmenes, respuestas, evaluaciones y recursos generados pueden contener errores. El alcance de las obligaciones de revisión, las restricciones de uso y las advertencias aplicables deben ser aprobado antes de convertir este borrador en términos vigentes.
+          </p>
         </div>
       </article>
     </>

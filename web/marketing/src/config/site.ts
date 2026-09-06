@@ -1,7 +1,14 @@
+import { isPublicIndexingApproved } from "./security-policy";
+
 const normalizeUrl = (value: string | undefined, fallback: string) =>
   (value?.trim() || fallback).replace(/\/$/, "");
 
 export const isPreviewDeployment = process.env.VERCEL_ENV === "preview";
+export const isPublicIndexingEnabled = isPublicIndexingApproved({
+  vercelEnvironment: process.env.VERCEL_ENV,
+  explicitApproval: process.env.ENABLE_PUBLIC_INDEXING,
+});
+export const shouldBlockIndexing = !isPublicIndexingEnabled;
 
 export const siteConfig = {
   name: "StudyBook AI",
@@ -21,7 +28,7 @@ export const siteConfig = {
       "https://api.studybookai.com",
     ),
   },
-  contactEndpoint: process.env.NEXT_PUBLIC_CONTACT_ENDPOINT?.trim() || null,
+  contactEndpoint: "/api/contact",
 } as const;
 
 export const primaryNavigation = [

@@ -42,7 +42,7 @@ export default function AccountDeletionPage() {
             <li>Documentos cargados y objetos privados asociados.</li>
             <li>Fragmentos de recuperación y recursos de aprendizaje generados.</li>
             <li>Conversaciones, AudioBooks y archivos de audio vinculados.</li>
-            <li>Registros docentes y eventos de uso asociados a la cuenta.</li>
+            <li>Certificados, registros docentes y eventos de uso asociados a la cuenta.</li>
           </ul>
           <h2>Retención y facturación externa</h2>
           <p>

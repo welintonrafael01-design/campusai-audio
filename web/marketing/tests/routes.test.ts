@@ -8,7 +8,7 @@ import { primaryNavigation, publicRoutes, siteConfig } from "@/config/site";
 const root = join(process.cwd(), "src", "app");
 
 describe("public routes and SEO", () => {
-  it("blocks indexing throughout Vercel Preview deployments", () => {
+  it("blocks indexing until an explicitly approved production release", () => {
     expect(buildRobots(true)).toEqual({
       rules: { userAgent: "*", disallow: "/" },
     });
@@ -34,9 +34,10 @@ describe("public routes and SEO", () => {
     expect(urls).toContain(siteConfig.urls.web);
     expect(urls).toContain(`${siteConfig.urls.web}/features`);
     expect(urls).not.toContain(`${siteConfig.urls.web}/privacy`);
-    expect(robots().rules).toMatchObject({
+    expect(buildRobots(false).rules).toMatchObject({
       disallow: ["/privacy", "/terms", "/account-deletion"],
     });
+    expect(robots().rules).toMatchObject({ disallow: "/" });
   });
 
   it("includes a custom not-found route", () => {

@@ -1,6 +1,6 @@
 # StudyBook AI Web Master Plan
 
-Status: `W2.2 BOOKY VISUAL CLOSURE IMPLEMENTED LOCALLY - NO DEPLOYMENT`
+Status: `W4 PRE-PRODUCTION CLOSURE IMPLEMENTED LOCALLY - NO DEPLOYMENT`
 
 ## URL Contract
 
@@ -55,10 +55,19 @@ does not imply access to AudioBook, Voice Tutor, Question Bank, Exam Generator,
 or unlimited AI. Student Pro and Teacher Pro retain their approved USD 6.99
 and USD 13.99 monthly positions.
 
+## W4 Public Web Closure
+
+W4 adds a tested Content Security Policy, fail-closed production indexing gate,
+same-origin server contact route, provider-neutral delivery adapter and an
+explicit legal-decision inventory. The contact route remains honestly
+unavailable until a monitored provider and distributed spam control are
+configured. Legal routes remain drafts and `noindex`.
+
 ## Remaining Phases
 
 1. Human review of the W2.2 local screenshots with the official Booky asset.
 2. Legal completion of entity, contacts, retention, jurisdiction and age scope.
-3. Reviewed contact endpoint with server-side validation and rate limiting.
-4. Vercel preview QA, Lighthouse measurements and cross-browser review.
+3. Human configuration of a monitored contact provider and distributed spam
+   control.
+4. Persistent Vercel project creation and W4 Preview verification.
 5. Production domain/DNS activation only after all release gates pass.

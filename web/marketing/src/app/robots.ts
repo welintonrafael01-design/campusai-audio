@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
-import { isPreviewDeployment, siteConfig } from "@/config/site";
+import { shouldBlockIndexing, siteConfig } from "@/config/site";
 
-export function buildRobots(isPreview: boolean): MetadataRoute.Robots {
-  if (isPreview) {
+export function buildRobots(blockIndexing: boolean): MetadataRoute.Robots {
+  if (blockIndexing) {
     return {
       rules: {
         userAgent: "*",
@@ -23,5 +23,5 @@ export function buildRobots(isPreview: boolean): MetadataRoute.Robots {
 }
 
 export default function robots(): MetadataRoute.Robots {
-  return buildRobots(isPreviewDeployment);
+  return buildRobots(shouldBlockIndexing);
 }

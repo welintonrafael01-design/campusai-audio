@@ -79,9 +79,9 @@ Required decision: `<RETENTION_SCHEDULE_AND_EXCEPTIONS_REQUIRED>`.
 An authenticated user can open Settings, choose "Eliminar mi cuenta",
 reauthenticate and confirm the request. The backend deletes known owner-scoped
 Storage objects, documents, RAG chunks, generated results, chats,
-AudioBooks, Teacher records, usage/subscription mappings and finally the Auth
-identity. A partial failure is reported for retry rather than presented as a
-completed deletion.
+AudioBooks, certificates, Teacher records, usage/subscription mappings and
+finally the Auth identity. A partial failure is reported for retry rather than
+presented as a completed deletion.
 
 A public alternative will be documented at
 `https://studybookai.com/account-deletion`. It is not available until the verified Web

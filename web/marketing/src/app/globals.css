@@ -98,6 +98,19 @@ textarea {
   transform: translateY(0);
 }
 
+.preview-notice {
+  border-bottom: 1px solid rgba(0, 212, 255, 0.22);
+  background: rgba(8, 21, 46, 0.96);
+  color: #cbd8ef;
+  padding: 0.7rem 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+.preview-notice strong {
+  color: var(--cyan);
+}
+
 .container {
   width: min(calc(100% - 48px), var(--container));
   margin-inline: auto;
