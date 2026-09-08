@@ -25,7 +25,7 @@ Reason: automated build/test baseline is healthy, but required manual gates are 
 | Android debug APK | PASS |
 | Android release APK | PASS |
 | Integration tests | PARTIAL, 3 passed and 6 blocked by missing QA credentials / fixture harness |
-| Secret review | PARTIAL, no `.env` tracked; tracked virtualenv requires cleanup |
+| Secret review | PASS for current tree; no `.env` or virtualenv dependencies tracked |
 
 ## Release Gates
 
@@ -55,7 +55,10 @@ Reason: automated build/test baseline is healthy, but required manual gates are 
 4. Capture accessibility evidence for text scaling, screen reader and keyboard navigation.
 5. Run performance smoke on startup, Home, Library with 20+ documents, AudioBook and Teacher Studio.
 6. Provide QA credentials via `dart-define` and run the full authenticated integration suite.
-7. Plan tracked `backend/.venv` cleanup in a dedicated repository hygiene commit.
+
+Repository hygiene note: W5.1 completed the previously required
+`backend/.venv` index cleanup without deleting the local environment or
+rewriting history.
 
 ## Tag Decision
 

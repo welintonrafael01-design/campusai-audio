@@ -43,10 +43,9 @@ Root: `backend`
 - `backend/.env.supabase`
 - `backend/.env.save`
 - `backend/.env.bak_*`
-- `backend/.venv/**`
+- `backend/.venv/**` (local ignored environment; no longer tracked after W5.1)
 - `backups/**/*.bak`
 - `backend/tests/__pycache__/**`
 - `backend/app/audio/**` y uploads generados si contienen datos reales.
 
 No se eliminaron por instrucción explícita.
-

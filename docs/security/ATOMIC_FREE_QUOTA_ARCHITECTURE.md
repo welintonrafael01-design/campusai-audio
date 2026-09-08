@@ -104,10 +104,8 @@ No remote Supabase operation was performed in W5.
 
 ## Historical Virtual Environment Audit
 
-`backend/.venv` remains tracked with 8,445 files, including approximately 6,860
-binary-like dependency artifacts. It is currently used by local QA commands.
-The 19 files matching secret-name patterns are third-party source, metadata or
-tests that reference environment-variable names; this audit did not identify a
-real credential value. Removal from the index and recreation from locked
-requirements belongs in a dedicated repository-hygiene change. W5 performs no
-history rewrite.
+W5.1 removed 8,445 `backend/.venv` files from the current Git index while
+preserving the 509 MB local environment used by QA. A high-confidence scan of
+the tracked dependency snapshot found no private key, provider secret, service
+JWT or live payment credential. The environment remains ignored and can be
+recreated from `backend/requirements.txt`. Repository history was not rewritten.

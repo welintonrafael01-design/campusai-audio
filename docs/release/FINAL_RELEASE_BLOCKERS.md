@@ -38,7 +38,6 @@ These are release-critical gates, but are not unresolved product-code defects.
 | Source | Risk | Disposition |
 | --- | --- | --- |
 | `SEC-7D-007` | Local user cache relies on OS/browser sandbox | Accepted for v1; document shared-device clearing |
-| `SEC-7D-008` | `backend/.venv` remains tracked | Dedicated repository-hygiene change after release gate |
 | `SEC-7D-009` | `flutter_markdown` is deprecated | Dependency-maintenance follow-up |
 
 ## Closed In 7F
@@ -51,6 +50,10 @@ localhost URL. Production verification URLs derive from the validated
 The disposable local gate verified restart restoration for documents, RAG,
 AudioBook audio and certificates, plus account-deletion cleanup. Remote
 Supabase migration remains tracked separately by `7F-P1-02`.
+
+`SEC-7D-008`: W5.1 removed all 8,445 `backend/.venv` dependency files from
+the current Git index while preserving the ignored developer environment. No
+history rewrite was performed.
 
 ## Stop Conditions
 

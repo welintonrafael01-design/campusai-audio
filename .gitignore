@@ -38,10 +38,6 @@ backend/data/certificates.json
 backend/.env
 mobile/campusai_mobile/.env
 
-# Local Python environment
-backend/.venv/
-.venv/
-
 # Local logs
 backend/logs/
 *.log

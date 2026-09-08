@@ -13,7 +13,7 @@ No secret values were printed or copied into this document.
 | `OPENAI_API_KEY` | Server-side `os.getenv` references found. Flutter contains security scanner detection string only. | NO for current client bundle. | Confirm production key storage in backend secret manager. |
 | `STRIPE_SECRET_KEY` | Server-side billing and diagnostic scripts reference env var name. Flutter contains security scanner detection string only. | NO for current client bundle. | Validate Stripe test/live keys are never committed. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-side `os.getenv` reference found. | NO for current client bundle. | Keep service role key backend-only. |
-| `backend/.venv` | Tracked virtualenv dependencies detected; no real env file tracked, but repository hygiene risk is high. | CONDITIONAL | Remove tracked virtualenv in dedicated cleanup and rotate only if manual scan finds real secrets inside historical files. |
+| `backend/.venv` | W5.1 removed 8,445 dependency files from the current index. A pre-removal scan found no high-confidence secret pattern. Historical commits were not rewritten. | NO based on current evidence | Keep ignored and recreate locally from `backend/requirements.txt`; retain normal historical secret scanning. |
 
 ## History Review
 
@@ -22,6 +22,6 @@ No secret values were printed or copied into this document.
 ## Required Before Public Release
 
 - Run a secret scanner that ignores dependency false positives but inspects all historical commits.
-- Remove `backend/.venv` from tracking in a dedicated cleanup commit.
+- Confirm `git ls-files backend/.venv` remains empty in release checks.
 - Rotate any Stripe, Supabase, OpenAI or admin credential if a real value is found in history.
 - Do not pass `ADMIN_API_KEY` to Flutter `dart-define`, web bundles or APKs.
