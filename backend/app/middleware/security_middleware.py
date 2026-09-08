@@ -34,6 +34,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         start_time = time.perf_counter()
         request_id = str(uuid.uuid4())
+        request.state.request_id = request_id
 
         client_host = (
             request.client.host

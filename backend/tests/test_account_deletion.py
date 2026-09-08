@@ -6,6 +6,7 @@ from app.security.user_auth import AuthenticatedUser, require_current_user
 from app.services.account_deletion_service import (
     AccountDeletionInventory,
     AccountDeletionResult,
+    USER_TABLES,
     delete_user_account,
 )
 from app.services import subscription_service
@@ -89,6 +90,13 @@ def test_account_deletion_is_retry_safe():
 
     assert failed.status == "retry_required"
     assert completed.status == "deleted"
+
+
+def test_account_deletion_includes_quota_reservations_before_usage_history():
+    assert "quota_reservations" in USER_TABLES
+    assert USER_TABLES.index("quota_reservations") < USER_TABLES.index(
+        "user_usage_events"
+    )
 
 
 def test_cross_user_fields_are_rejected_before_deletion():

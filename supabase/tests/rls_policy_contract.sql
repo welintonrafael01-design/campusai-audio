@@ -12,6 +12,7 @@ begin
   foreach rls_table in array array[
     'workspaces', 'documents', 'study_results', 'audiobooks', 'chats',
     'messages', 'user_subscriptions', 'user_usage_events',
+    'quota_reservations',
     'educator_courses', 'educator_students', 'educator_attendance',
     'educator_gradebook', 'educator_question_banks'
   ] loop
@@ -35,6 +36,30 @@ begin
       and policy.roles <> array['authenticated']::name[]
   ) then
     raise exception 'A StudyBook policy is available to a role other than authenticated.';
+  end if;
+
+  if exists (
+    select 1
+    from information_schema.role_table_grants grant_row
+    where grant_row.table_schema = 'public'
+      and grant_row.table_name = 'quota_reservations'
+      and grant_row.grantee in ('anon', 'authenticated', 'PUBLIC')
+  ) then
+    raise exception 'Quota reservations are exposed to clients.';
+  end if;
+
+  if exists (
+    select 1
+    from information_schema.role_routine_grants grant_row
+    where grant_row.specific_schema = 'public'
+      and grant_row.routine_name in (
+        'reserve_studybook_free_quota',
+        'commit_studybook_free_quotas',
+        'release_studybook_free_quota'
+      )
+      and grant_row.grantee in ('anon', 'authenticated', 'PUBLIC')
+  ) then
+    raise exception 'Quota mutation RPCs are exposed to clients.';
   end if;
 
   if (

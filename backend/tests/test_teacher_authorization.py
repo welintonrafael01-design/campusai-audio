@@ -360,6 +360,19 @@ def test_student_keeps_shared_question_bank_and_exam_access(monkeypatch):
         lambda *args, **kwargs: [{"question": "Q"}],
     )
     monkeypatch.setattr(documents, "register_usage_event", lambda **kwargs: {})
+
+    class FakeUsageOperation:
+        def commit(self, metadata=None):
+            del metadata
+
+        def release(self, *, reason):
+            del reason
+
+    monkeypatch.setattr(
+        documents,
+        "begin_usage_operation",
+        lambda **kwargs: FakeUsageOperation(),
+    )
     client = _authorized_client(
         monkeypatch,
         user=_user(role="student"),

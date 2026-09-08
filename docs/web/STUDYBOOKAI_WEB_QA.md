@@ -247,3 +247,12 @@ Preview notice and official Booky, had no console/page errors and had no
 horizontal overflow at 390 or 1440 pixels. The production-approved SEO build
 was separately verified: public Home was indexable, `X-Robots-Tag` was absent,
 `robots.txt` allowed public routes and legal drafts remained `noindex`.
+
+## W5 Free Quota Contract
+
+Marketing prices and Free limits are unchanged. The backend now acquires the
+five advertised monthly allowances through atomic PostgreSQL reservations, and
+Flutter sends an opaque operation key that can be reused for a logical retry.
+Local Supabase concurrency evidence confirms the 3 document, 10 chat, 3 summary,
+1 flashcard-generation and 1 quiz-generation boundaries. This is backend cost
+control evidence, not a new unlimited or guaranteed-availability claim.

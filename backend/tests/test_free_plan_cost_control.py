@@ -14,6 +14,39 @@ FREE_USER = AuthenticatedUser(
 )
 
 
+class _ExecuteResponse:
+    def __init__(self, data=None):
+        self.data = data
+
+    def execute(self):
+        return self
+
+
+class _RpcClient:
+    def __init__(self, responses):
+        self.responses = responses
+        self.calls = []
+
+    def rpc(self, name, payload):
+        self.calls.append((name, payload))
+        response = self.responses.get(name)
+        if isinstance(response, Exception):
+            raise response
+        return _ExecuteResponse(response)
+
+
+class _EndpointUsageOperation:
+    def __init__(self, on_commit):
+        self.on_commit = on_commit
+        self.released = False
+
+    def commit(self, metadata=None):
+        self.on_commit(metadata or {})
+
+    def release(self, *, reason):
+        self.released = True
+
+
 @pytest.mark.parametrize(
     ("event_type", "limit", "enforcer", "kwargs"),
     [
@@ -157,11 +190,15 @@ def test_free_quiz_api_allows_first_set_and_denies_next(monkeypatch):
         lambda *args, **kwargs: [{"question": "Q"}],
     )
 
-    def register_event(**kwargs):
-        used[kwargs["event_type"]] = used.get(kwargs["event_type"], 0) + 1
-        return kwargs
-
-    monkeypatch.setattr(documents, "register_usage_event", register_event)
+    monkeypatch.setattr(
+        documents,
+        "begin_usage_operation",
+        lambda **kwargs: _EndpointUsageOperation(
+            lambda metadata: used.update(
+                quiz_generated=used["quiz_generated"] + 1,
+            )
+        ),
+    )
     app = FastAPI()
     app.include_router(documents.router)
     app.dependency_overrides[require_current_user] = lambda: FREE_USER
@@ -178,6 +215,163 @@ def test_free_quiz_api_allows_first_set_and_denies_next(monkeypatch):
     assert first.json()["generation_type"] == "quiz"
     assert second.status_code == 403
     assert second.json()["detail"]["code"] == "monthly_quota_exceeded"
+
+
+def test_atomic_reservation_maps_denial_to_structured_contract(monkeypatch):
+    client = _RpcClient(
+        {
+            "reserve_studybook_free_quota": [
+                {
+                    "reservation_id": None,
+                    "reservation_status": "denied",
+                    "acquired": False,
+                    "idempotent": False,
+                    "used_count": 10,
+                    "quota_limit": 10,
+                }
+            ]
+        }
+    )
+    monkeypatch.setattr(
+        usage_limit_service,
+        "get_supabase_admin_client",
+        lambda: client,
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        usage_limit_service.begin_usage_operation(
+            user_id="free-user",
+            event_type="chat_message",
+            plan="free",
+            operation_id="atomic-operation-0001",
+        )
+
+    assert exc.value.status_code == 403
+    assert exc.value.detail["reason"] == "quota_exceeded"
+    assert exc.value.detail["capability"] == "chat"
+    assert exc.value.detail["required_plan"] == "student_pro"
+
+
+def test_atomic_reservation_fails_closed_when_database_rpc_is_unavailable(
+    monkeypatch,
+):
+    client = _RpcClient(
+        {"reserve_studybook_free_quota": RuntimeError("database unavailable")}
+    )
+    monkeypatch.setattr(
+        usage_limit_service,
+        "get_supabase_admin_client",
+        lambda: client,
+    )
+
+    with pytest.raises(HTTPException) as exc:
+        usage_limit_service.begin_usage_operation(
+            user_id="free-user",
+            event_type="summary_generated",
+            plan="free",
+            operation_id="atomic-operation-0004",
+        )
+
+    assert exc.value.status_code == 503
+    assert exc.value.detail["code"] == "quota_service_unavailable"
+    assert "database" not in exc.value.detail["message"].lower()
+
+
+def test_atomic_operation_releases_on_failure(monkeypatch):
+    client = _RpcClient(
+        {
+            "reserve_studybook_free_quota": [
+                {
+                    "reservation_id": "00000000-0000-4000-8000-000000000001",
+                    "reservation_status": "reserved",
+                    "acquired": True,
+                    "idempotent": False,
+                    "used_count": 1,
+                    "quota_limit": 1,
+                }
+            ],
+            "release_studybook_free_quota": True,
+        }
+    )
+    monkeypatch.setattr(
+        usage_limit_service,
+        "get_supabase_admin_client",
+        lambda: client,
+    )
+
+    with pytest.raises(RuntimeError):
+        with usage_limit_service.begin_usage_operation(
+            user_id="free-user",
+            event_type="quiz_generated",
+            plan="free",
+            operation_id="atomic-operation-0002",
+        ):
+            raise RuntimeError("provider failed")
+
+    assert [name for name, _ in client.calls] == [
+        "reserve_studybook_free_quota",
+        "release_studybook_free_quota",
+    ]
+
+
+def test_atomic_batch_commit_is_idempotency_aware(monkeypatch):
+    reservation_rows = [
+        {
+            "reservation_id": "00000000-0000-4000-8000-000000000002",
+            "reservation_status": "reserved",
+            "acquired": True,
+            "idempotent": False,
+            "used_count": 1,
+            "quota_limit": 3,
+        }
+    ]
+    client = _RpcClient(
+        {
+            "reserve_studybook_free_quota": reservation_rows,
+            "commit_studybook_free_quotas": 1,
+        }
+    )
+    monkeypatch.setattr(
+        usage_limit_service,
+        "get_supabase_admin_client",
+        lambda: client,
+    )
+    operation = usage_limit_service.begin_usage_operation(
+        user_id="free-user",
+        event_type="pdf_upload",
+        plan="free",
+        operation_id="atomic-operation-0003",
+    )
+
+    operation.commit({"document_id": "document-a"})
+    operation.commit({"document_id": "document-a"})
+
+    assert [name for name, _ in client.calls].count(
+        "commit_studybook_free_quotas"
+    ) == 1
+    assert operation.status == "consumed"
+
+
+def test_operation_id_is_scoped_and_rejects_unsafe_client_key():
+    first = usage_limit_service.operation_id_for_request(
+        idempotency_key="same-client-key",
+        request_id=None,
+        scope="/documents/chat/a",
+    )
+    second = usage_limit_service.operation_id_for_request(
+        idempotency_key="same-client-key",
+        request_id=None,
+        scope="/documents/chat/b",
+    )
+    assert first != second
+    assert "same-client-key" not in first
+
+    with pytest.raises(HTTPException) as exc:
+        usage_limit_service.operation_id_for_request(
+            idempotency_key="unsafe key with spaces",
+            request_id=None,
+        )
+    assert exc.value.status_code == 400
 
 
 def test_free_direct_audiobook_and_voice_api_bypass_is_denied(monkeypatch):

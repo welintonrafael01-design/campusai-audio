@@ -38,4 +38,16 @@ void main() {
       ),
     );
   });
+
+  test('quota operation identifiers are opaque, unique, and reusable', () {
+    final first = ApiService.createOperationId();
+    final second = ApiService.createOperationId();
+
+    expect(first, isNot(second));
+    expect(first, matches(RegExp(r'^[A-Za-z0-9._:-]{8,128}$')));
+    expect(
+      ApiService.resolveOperationId('retry-operation-0001'),
+      'retry-operation-0001',
+    );
+  });
 }

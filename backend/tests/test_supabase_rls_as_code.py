@@ -20,6 +20,12 @@ OWNERSHIP_BACKFILL = (
 PERSISTENCE_SQL_TEST = (
     ROOT / "supabase/tests/production_persistence_contract.sql"
 )
+ATOMIC_QUOTA_MIGRATION = (
+    ROOT / "supabase/migrations/20260907000100_atomic_free_quota.sql"
+)
+ATOMIC_QUOTA_SQL_TEST = (
+    ROOT / "supabase/tests/atomic_free_quota_contract.sql"
+)
 
 EXPECTED_TABLES = {
     "workspaces",
@@ -180,4 +186,40 @@ def test_local_persistence_contract_covers_real_rows_storage_and_vectors():
     assert "storage owner-path spoof was accepted" in sql
     assert "direct private-artifact write was accepted" in sql
     assert "owner-scoped vector retrieval failed" in sql
+    assert sql.strip().endswith("rollback;")
+
+
+def test_atomic_quota_migration_is_server_only_and_fail_closed():
+    sql = ATOMIC_QUOTA_MIGRATION.read_text(encoding="utf-8").lower()
+
+    assert "create table if not exists public.quota_reservations" in sql
+    assert "alter table public.quota_reservations enable row level security" in sql
+    assert "pg_advisory_xact_lock" in sql
+    assert "reservation_expired" in sql
+    assert "interval '30 minutes'" in sql
+    assert "date_trunc('month'" in sql
+    assert "at time zone 'utc'" in sql
+    assert "v_reservation.reserved_at" in sql
+    assert sql.count("security invoker") == 3
+    assert sql.count("set search_path = ''") == 3
+    assert "security definer" not in sql
+    for role in ("public", "anon", "authenticated"):
+        assert role in sql
+    for function_name in (
+        "reserve_studybook_free_quota",
+        "commit_studybook_free_quotas",
+        "release_studybook_free_quota",
+    ):
+        assert f"grant execute on function public.{function_name}" in sql
+    assert "to service_role" in sql
+
+
+def test_atomic_quota_sql_contract_covers_concurrency_security_and_lifecycle():
+    sql = ATOMIC_QUOTA_SQL_TEST.read_text(encoding="utf-8").lower()
+
+    assert "quota boundary exceeded" in sql
+    assert "idempotent commit duplicated usage" in sql
+    assert "released reservation continued blocking quota" in sql
+    assert "cross-user release was accepted" in sql
+    assert "authenticated role executed quota reservation rpc" in sql
     assert sql.strip().endswith("rollback;")

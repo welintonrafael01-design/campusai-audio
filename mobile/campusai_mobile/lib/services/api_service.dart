@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
@@ -30,6 +31,8 @@ class ApiEntitlementException implements Exception {
 }
 
 class ApiService {
+  static final Random _operationRandom = Random.secure();
+
   static String get baseUrl => AppEnvironment.apiBaseUrl;
 
   static const String cloudBaseUrl = '';
@@ -39,6 +42,28 @@ class ApiService {
   static const int maxPdfSizeMb = 25;
 
   static const String localePreferenceKey = 'studybook_locale';
+
+  static String createOperationId() {
+    final randomPart = List<int>.generate(
+      16,
+      (_) => _operationRandom.nextInt(256),
+    ).map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
+    return 'sb-${DateTime.now().toUtc().microsecondsSinceEpoch}-$randomPart';
+  }
+
+  static String resolveOperationId(String? operationId) {
+    final cleanOperationId = operationId?.trim();
+    return cleanOperationId == null || cleanOperationId.isEmpty
+        ? createOperationId()
+        : cleanOperationId;
+  }
+
+  static Map<String, String> operationHeaders([String? operationId]) {
+    return {
+      ...AuthService.authHeaders,
+      'Idempotency-Key': resolveOperationId(operationId),
+    };
+  }
 
   static Future<String> getCurrentLanguageCode() async {
     final prefs = await SharedPreferences.getInstance();
@@ -119,7 +144,10 @@ class ApiService {
     return uploadPdfFile(file);
   }
 
-  static Future<Map<String, dynamic>> uploadPdfFile(PlatformFile file) async {
+  static Future<Map<String, dynamic>> uploadPdfFile(
+    PlatformFile file, {
+    String? operationId,
+  }) async {
     AuthService.requireAccessToken;
 
     const usageLimitService = UsageLimitService();
@@ -138,7 +166,7 @@ class ApiService {
     );
 
     request.headers.addAll(
-      AuthService.authHeaders,
+      operationHeaders(operationId),
     );
 
     request.files.add(
@@ -163,6 +191,7 @@ class ApiService {
   static Future<Map<String, dynamic>> chatWithDocumentId({
     required String documentId,
     required String question,
+    String? operationId,
   }) async {
     final cleanDocumentId = requireValue(
       documentId,
@@ -188,7 +217,7 @@ class ApiService {
     final response = await http
         .post(
           uri,
-          headers: AuthService.authHeaders,
+          headers: operationHeaders(operationId),
         )
         .timeout(timeoutDuration);
 
@@ -203,6 +232,7 @@ class ApiService {
     required List<String> documentIds,
     required String question,
     List<Map<String, String>> history = const [],
+    String? operationId,
   }) async {
     final cleanDocumentIds = documentIds
         .map((item) => item.trim())
@@ -236,7 +266,7 @@ class ApiService {
           uri,
           headers: {
             'Content-Type': 'application/json',
-            ...AuthService.authHeaders,
+            ...operationHeaders(operationId),
           },
           body: jsonEncode({
             'document_ids': cleanDocumentIds,
@@ -320,6 +350,7 @@ class ApiService {
   static Stream<String> streamChatWithDocumentId({
     required String documentId,
     required String question,
+    String? operationId,
   }) async* {
     final cleanDocumentId = requireValue(
       documentId,
@@ -345,7 +376,7 @@ class ApiService {
     final request = http.Request('POST', uri);
 
     request.headers.addAll(
-      AuthService.authHeaders,
+      operationHeaders(operationId),
     );
 
     final streamedResponse = await request.send();
@@ -377,6 +408,7 @@ class ApiService {
     String examTopic = '',
     String examObjective = '',
     String generationType = 'exam',
+    String? operationId,
   }) async {
     final cleanDocumentId = requireValue(
       documentId,
@@ -403,7 +435,7 @@ class ApiService {
     final response = await http
         .post(
           uri,
-          headers: AuthService.authHeaders,
+          headers: operationHeaders(operationId),
         )
         .timeout(timeoutDuration);
 
@@ -417,6 +449,7 @@ class ApiService {
   static Future<Map<String, dynamic>> generateFlashcardsByDocumentId({
     required String documentId,
     int numberOfCards = 10,
+    String? operationId,
   }) async {
     final cleanDocumentId = requireValue(
       documentId,
@@ -437,7 +470,7 @@ class ApiService {
     final response = await http
         .post(
           uri,
-          headers: AuthService.authHeaders,
+          headers: operationHeaders(operationId),
         )
         .timeout(timeoutDuration);
 
@@ -447,6 +480,7 @@ class ApiService {
   static Future<Map<String, dynamic>> generateWorkspaceFlashcards({
     required List<String> documentIds,
     int numberOfCards = 20,
+    String? operationId,
   }) async {
     final cleanDocumentIds = documentIds
         .map((item) => item.trim())
@@ -473,7 +507,7 @@ class ApiService {
           uri,
           headers: {
             'Content-Type': 'application/json',
-            ...AuthService.authHeaders,
+            ...operationHeaders(operationId),
           },
           body: jsonEncode(cleanDocumentIds),
         )
@@ -1101,6 +1135,7 @@ class ApiService {
     required List<String> documentIds,
     required String question,
     List<Map<String, String>> history = const [],
+    String? operationId,
   }) async* {
     final cleanDocumentIds = documentIds
         .map((item) => item.trim())
@@ -1135,7 +1170,7 @@ class ApiService {
     );
 
     request.headers.addAll(
-      AuthService.authHeaders,
+      operationHeaders(operationId),
     );
     request.headers['Content-Type'] = 'application/json';
     request.body = jsonEncode({

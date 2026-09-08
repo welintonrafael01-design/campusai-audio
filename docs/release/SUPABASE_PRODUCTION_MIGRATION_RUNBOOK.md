@@ -33,6 +33,7 @@ Compare the remote catalogs with the expected chain, in order:
 20260829000100_studybook_rls_security.sql
 20260831000100_production_persistence.sql
 20260901000100_document_ownership_hardening.sql
+20260907000100_atomic_free_quota.sql
 ```
 
 Review every existing policy before migration. The RLS migration deliberately
@@ -83,6 +84,13 @@ In production, use dedicated QA identities to verify:
 6. Private audio restores after backend restart and has no public URL.
 7. Account deletion removes DB rows and Storage objects before Auth identity.
 8. Missing durable configuration makes production startup fail closed.
+9. Free quota RPCs allow exactly one final concurrent slot, release failed
+   operations and deny direct authenticated-client execution.
+
+Before deploying a backend that calls the quota RPCs, apply and verify
+`20260907000100_atomic_free_quota.sql`. Deploying the backend first intentionally
+fails Free quota-bearing operations closed with `quota_service_unavailable`.
+Do not temporarily restore count-then-insert behavior to bypass that gate.
 
 ## 6. Rollback
 

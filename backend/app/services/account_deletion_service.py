@@ -34,6 +34,7 @@ USER_TABLES = (
     "study_results",
     "audiobooks",
     *EDUCATOR_TABLES,
+    "quota_reservations",
     "user_usage_events",
     "user_subscriptions",
     "certificates",

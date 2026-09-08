@@ -15,6 +15,7 @@ from fastapi import (
     File,
     HTTPException,
     Query,
+    Request,
     UploadFile,
 )
 
@@ -50,6 +51,9 @@ from app.services.usage_limit_service import (
     enforce_question_count_limit,
     enforce_audiobook_permission,
     enforce_question_bank_permission,
+    begin_usage_operation,
+    commit_usage_operations,
+    operation_id_for_request,
     register_usage_event,
 )
 
@@ -112,6 +116,14 @@ router = APIRouter(
     prefix="/documents",
     tags=["Documents"],
 )
+
+
+def quota_operation_id(request: Request) -> str:
+    return operation_id_for_request(
+        idempotency_key=request.headers.get("Idempotency-Key"),
+        request_id=getattr(request.state, "request_id", None),
+        scope=request.url.path,
+    )
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -688,6 +700,7 @@ async def import_students_pdf(
 
 @router.post("/upload")
 async def upload_document(
+    request: Request,
     file: UploadFile = File(...),
     language: str = Query(default="es"),
     current_user: AuthenticatedUser = Depends(require_current_user),
@@ -697,12 +710,27 @@ async def upload_document(
     storage_result: dict = {"bucket": None, "storage_path": None}
     document_id = ""
     durable_document_committed = False
+    pdf_usage = None
+    summary_usage = None
 
     try:
         plan = enforce_pdf_upload_limit(
             user_id=current_user.user_id,
         )
         enforce_summary_limit(user_id=current_user.user_id)
+        operation_id = quota_operation_id(request)
+        pdf_usage = begin_usage_operation(
+            user_id=current_user.user_id,
+            event_type="pdf_upload",
+            plan=plan,
+            operation_id=operation_id,
+        )
+        summary_usage = begin_usage_operation(
+            user_id=current_user.user_id,
+            event_type="summary_generated",
+            plan=plan,
+            operation_id=operation_id,
+        )
 
         step = time.perf_counter()
         file_path = await save_upload_file(file)
@@ -754,33 +782,12 @@ async def upload_document(
         )
         print(f"[UPLOAD] register_document: {time.perf_counter() - step:.2f}s")
 
-        register_usage_event(
-            user_id=current_user.user_id,
-            event_type="pdf_upload",
-            plan=plan,
-            metadata={
-                "document_id": document_id,
-                "filename": file.filename or file_path.name,
-                "size_bytes": file_path.stat().st_size,
-            },
-        )
-
         step = time.perf_counter()
         ai_summary = generate_ai_summary(
             extracted_text,
             language=language,
         )
         print(f"[UPLOAD] ai_summary: {time.perf_counter() - step:.2f}s")
-
-        register_usage_event(
-            user_id=current_user.user_id,
-            event_type="summary_generated",
-            plan=plan,
-            metadata={
-                "document_id": document_id,
-                "mode": "upload_summary",
-            },
-        )
 
         step = time.perf_counter()
         try:
@@ -808,6 +815,26 @@ async def upload_document(
                     "No se pudo registrar el documento de forma durable."
                 ) from cloud_document_error
 
+        commit_usage_operations(
+            [
+                (
+                    pdf_usage,
+                    {
+                        "document_id": document_id,
+                        "filename": file.filename or file_path.name,
+                        "size_bytes": file_path.stat().st_size,
+                    },
+                ),
+                (
+                    summary_usage,
+                    {
+                        "document_id": document_id,
+                        "mode": "upload_summary",
+                    },
+                ),
+            ]
+        )
+
         print(f"[UPLOAD] total: {time.perf_counter() - start_time:.2f}s")
 
         return build_upload_response(
@@ -829,6 +856,10 @@ async def upload_document(
             detail="No se pudo procesar el documento.",
         )
     finally:
+        if summary_usage is not None:
+            summary_usage.release(reason="upload_not_completed")
+        if pdf_usage is not None:
+            pdf_usage.release(reason="upload_not_completed")
         if is_production_environment():
             if document_id and not durable_document_committed:
                 rollback_incomplete_document_upload(
@@ -880,18 +911,16 @@ def calculate_rag_confidence(
 @router.post("/chat/{document_id}")
 async def chat_document_by_id(
     document_id: str,
+    request: Request,
     question: str = Query(default=""),
     language: str = Query(default="es"),
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
+    usage_operation = None
     try:
         document_record = validate_document_owner(
             document_id=document_id,
             current_user=current_user,
-        )
-
-        plan = enforce_chat_limit(
-            user_id=current_user.user_id,
         )
 
         if not question.strip():
@@ -903,6 +932,16 @@ async def chat_document_by_id(
                 ),
             )
 
+        plan = enforce_chat_limit(
+            user_id=current_user.user_id,
+        )
+        usage_operation = begin_usage_operation(
+            user_id=current_user.user_id,
+            event_type="chat_message",
+            plan=plan,
+            operation_id=quota_operation_id(request),
+        )
+
         answer = (
             chat_with_document_id(
                 document_id=document_id,
@@ -910,16 +949,6 @@ async def chat_document_by_id(
                 language=language,
                 owner_scope=current_user.user_id,
             )
-        )
-
-        register_usage_event(
-            user_id=current_user.user_id,
-            event_type="chat_message",
-            plan=plan,
-            metadata={
-                "document_id": document_id,
-                "mode": "document_chat",
-            },
         )
 
         citations = get_retrieval_citations(
@@ -939,6 +968,13 @@ async def chat_document_by_id(
             citations
         )
 
+        usage_operation.commit(
+            metadata={
+                "document_id": document_id,
+                "mode": "document_chat",
+            },
+        )
+
         return {
             "document_id": document_id,
             "question": question,
@@ -955,6 +991,9 @@ async def chat_document_by_id(
             status_code=500,
             detail="No se pudo completar el chat con este documento.",
         )
+    finally:
+        if usage_operation is not None:
+            usage_operation.release(reason="chat_not_completed")
 
 
 
@@ -1375,6 +1414,7 @@ async def question_bank_document_by_id(
 @router.post("/exam/{document_id}")
 async def exam_document_by_id(
     document_id: str,
+    request: Request,
     number_of_questions: int = Query(
         default=5,
         ge=1,
@@ -1389,6 +1429,7 @@ async def exam_document_by_id(
     language: str = Query(default="es"),
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
+    usage_operation = None
     try:
         validate_document_owner(
             document_id=document_id,
@@ -1405,6 +1446,16 @@ async def exam_document_by_id(
                 user_id=current_user.user_id,
                 requested_amount=number_of_questions,
             )
+
+        event_type = (
+            "quiz_generated" if generation_type == "quiz" else "exam_generated"
+        )
+        usage_operation = begin_usage_operation(
+            user_id=current_user.user_id,
+            event_type=event_type,
+            plan=plan,
+            operation_id=quota_operation_id(request),
+        )
 
         context = build_document_context(
             document_id=document_id,
@@ -1432,13 +1483,7 @@ async def exam_document_by_id(
             "questions",
         )
 
-        event_type = (
-            "quiz_generated" if generation_type == "quiz" else "exam_generated"
-        )
-        register_usage_event(
-            user_id=current_user.user_id,
-            event_type=event_type,
-            plan=plan,
+        usage_operation.commit(
             metadata={
                 "document_id": document_id,
                 "number_of_questions": number_of_questions,
@@ -1462,11 +1507,15 @@ async def exam_document_by_id(
             status_code=500,
             detail="No se pudo generar el examen.",
         ) from error
+    finally:
+        if usage_operation is not None:
+            usage_operation.release(reason="exam_not_completed")
 
 
 @router.post("/flashcards/{document_id}")
 async def flashcards_document_by_id(
     document_id: str,
+    request: Request,
     number_of_cards: int = Query(
         default=10,
         ge=1,
@@ -1475,6 +1524,7 @@ async def flashcards_document_by_id(
     language: str = Query(default="es"),
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
+    usage_operation = None
     try:
         validate_document_owner(
             document_id=document_id,
@@ -1484,6 +1534,12 @@ async def flashcards_document_by_id(
         plan = enforce_flashcard_limit(
             user_id=current_user.user_id,
             requested_amount=number_of_cards,
+        )
+        usage_operation = begin_usage_operation(
+            user_id=current_user.user_id,
+            event_type="flashcards_generated",
+            plan=plan,
+            operation_id=quota_operation_id(request),
         )
 
         context = build_document_context(
@@ -1504,10 +1560,7 @@ async def flashcards_document_by_id(
             )
         )
 
-        register_usage_event(
-            user_id=current_user.user_id,
-            event_type="flashcards_generated",
-            plan=plan,
+        usage_operation.commit(
             metadata={
                 "document_id": document_id,
                 "number_of_cards": number_of_cards,
@@ -1529,10 +1582,14 @@ async def flashcards_document_by_id(
             status_code=500,
             detail="No se pudieron generar las flashcards.",
         ) from error
+    finally:
+        if usage_operation is not None:
+            usage_operation.release(reason="flashcards_not_completed")
 
 @router.post("/chat-stream/{document_id}")
 async def stream_chat_document(
     document_id: str,
+    request: Request,
     question: str = Query(default=""),
     language: str = Query(default="es"),
     current_user: AuthenticatedUser = Depends(require_current_user),
@@ -1543,28 +1600,39 @@ async def stream_chat_document(
             current_user=current_user,
         )
 
+        if not question.strip():
+            raise HTTPException(
+                status_code=400,
+                detail="La pregunta no puede estar vacía.",
+            )
+
         plan = enforce_chat_limit(
             user_id=current_user.user_id,
         )
-
-        register_usage_event(
+        usage_operation = begin_usage_operation(
             user_id=current_user.user_id,
             event_type="chat_message",
             plan=plan,
-            metadata={
-                "document_id": document_id,
-                "mode": "document_chat_stream",
-            },
+            operation_id=quota_operation_id(request),
         )
 
         async def event_generator():
-            async for chunk in stream_chat_with_document_id(
-                document_id=document_id,
-                question=question,
-                language=language,
-                owner_scope=current_user.user_id,
-            ):
-                yield chunk
+            try:
+                async for chunk in stream_chat_with_document_id(
+                    document_id=document_id,
+                    question=question,
+                    language=language,
+                    owner_scope=current_user.user_id,
+                ):
+                    yield chunk
+                usage_operation.commit(
+                    metadata={
+                        "document_id": document_id,
+                        "mode": "document_chat_stream",
+                    },
+                )
+            finally:
+                usage_operation.release(reason="chat_stream_not_completed")
 
         return StreamingResponse(
             event_generator(),
@@ -1945,20 +2013,34 @@ def parse_ai_json_list(raw_value, expected_key: str):
 
 @router.post("/chat-workspace")
 async def chat_workspace(
+    request: Request,
     document_ids: list[str] = Body(...),
     question: str = Query(default=""),
     language: str = Query(default="es"),
     history: list[dict] | None = Body(default=None),
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
+    usage_operation = None
     try:
         validate_documents_owner(
             document_ids=document_ids,
             current_user=current_user,
         )
 
+        if not question.strip():
+            raise HTTPException(
+                status_code=400,
+                detail="La pregunta no puede estar vacía.",
+            )
+
         plan = enforce_chat_limit(
             user_id=current_user.user_id,
+        )
+        usage_operation = begin_usage_operation(
+            user_id=current_user.user_id,
+            event_type="chat_message",
+            plan=plan,
+            operation_id=quota_operation_id(request),
         )
 
         answer = chat_with_workspace(
@@ -1969,10 +2051,7 @@ async def chat_workspace(
             owner_scope=current_user.user_id,
         )
 
-        register_usage_event(
-            user_id=current_user.user_id,
-            event_type="chat_message",
-            plan=plan,
+        usage_operation.commit(
             metadata={
                 "document_count": len(document_ids),
                 "mode": "workspace_chat",
@@ -1992,10 +2071,14 @@ async def chat_workspace(
             status_code=500,
             detail="No se pudo completar el chat del espacio de estudio.",
         ) from error
+    finally:
+        if usage_operation is not None:
+            usage_operation.release(reason="workspace_chat_not_completed")
 
 
 @router.post("/chat-workspace-stream")
 async def stream_chat_workspace(
+    request: Request,
     document_ids: list[str] = Body(...),
     question: str = Query(default=""),
     language: str = Query(default="es"),
@@ -2007,28 +2090,41 @@ async def stream_chat_workspace(
             current_user=current_user,
         )
 
+        if not question.strip():
+            raise HTTPException(
+                status_code=400,
+                detail="La pregunta no puede estar vacía.",
+            )
+
         plan = enforce_chat_limit(
             user_id=current_user.user_id,
         )
-
-        register_usage_event(
+        usage_operation = begin_usage_operation(
             user_id=current_user.user_id,
             event_type="chat_message",
             plan=plan,
-            metadata={
-                "document_count": len(document_ids),
-                "mode": "workspace_chat_stream",
-            },
+            operation_id=quota_operation_id(request),
         )
 
         async def event_generator():
-            async for chunk in stream_chat_with_workspace(
-                document_ids=document_ids,
-                question=question,
-                language=language,
-                owner_scope=current_user.user_id,
-            ):
-                yield chunk
+            try:
+                async for chunk in stream_chat_with_workspace(
+                    document_ids=document_ids,
+                    question=question,
+                    language=language,
+                    owner_scope=current_user.user_id,
+                ):
+                    yield chunk
+                usage_operation.commit(
+                    metadata={
+                        "document_count": len(document_ids),
+                        "mode": "workspace_chat_stream",
+                    },
+                )
+            finally:
+                usage_operation.release(
+                    reason="workspace_chat_stream_not_completed",
+                )
 
         return StreamingResponse(
             event_generator(),
@@ -2053,11 +2149,13 @@ async def stream_chat_workspace(
 
 @router.post("/workspace-flashcards")
 async def workspace_flashcards(
+    request: Request,
     document_ids: list[str] = Body(...),
     number: int = Query(default=20),
     language: str = Query(default="es"),
     current_user: AuthenticatedUser = Depends(require_current_user),
 ):
+    usage_operation = None
     try:
         validate_documents_owner(
             document_ids=document_ids,
@@ -2067,6 +2165,12 @@ async def workspace_flashcards(
         plan = enforce_flashcard_limit(
             user_id=current_user.user_id,
             requested_amount=number,
+        )
+        usage_operation = begin_usage_operation(
+            user_id=current_user.user_id,
+            event_type="flashcards_generated",
+            plan=plan,
+            operation_id=quota_operation_id(request),
         )
 
         context = search_similar_chunks_multi(
@@ -2091,10 +2195,7 @@ async def workspace_flashcards(
             language=language,
         )
 
-        register_usage_event(
-            user_id=current_user.user_id,
-            event_type="flashcards_generated",
-            plan=plan,
+        usage_operation.commit(
             metadata={
                 "document_count": len(document_ids),
                 "mode": "workspace_flashcards",
@@ -2115,6 +2216,9 @@ async def workspace_flashcards(
             status_code=500,
             detail="No se pudieron generar las flashcards del espacio.",
         ) from error
+    finally:
+        if usage_operation is not None:
+            usage_operation.release(reason="workspace_flashcards_not_completed")
 
 
 

@@ -27,6 +27,17 @@ class _FakeEmbeddingFunction:
         return self._vector(text)
 
 
+class _FakeUsageOperation:
+    def __init__(self, event_type: str):
+        self.event_type = event_type
+
+    def commit(self, metadata=None):
+        del metadata
+
+    def release(self, *, reason):
+        del reason
+
+
 class _FakePixmap:
     width = 4
     height = 2
@@ -172,6 +183,11 @@ def test_document_chat_returns_human_source_title(monkeypatch):
         lambda **kwargs: {"filename": "Biología molecular.pdf"},
     )
     monkeypatch.setattr(documents, "enforce_chat_limit", lambda **kwargs: "student")
+    monkeypatch.setattr(
+        documents,
+        "begin_usage_operation",
+        lambda **kwargs: _FakeUsageOperation(kwargs["event_type"]),
+    )
     monkeypatch.setattr(documents, "chat_with_document_id", lambda **kwargs: "Respuesta")
     monkeypatch.setattr(documents, "register_usage_event", lambda **kwargs: None)
     monkeypatch.setattr(
@@ -251,8 +267,15 @@ def test_upload_summarizes_selected_document_and_hides_internal_fields(
     usage_events: list[str] = []
     monkeypatch.setattr(
         documents,
-        "register_usage_event",
-        lambda **kwargs: usage_events.append(kwargs["event_type"]),
+        "begin_usage_operation",
+        lambda **kwargs: _FakeUsageOperation(kwargs["event_type"]),
+    )
+    monkeypatch.setattr(
+        documents,
+        "commit_usage_operations",
+        lambda operations: usage_events.extend(
+            operation.event_type for operation, _ in operations
+        ),
     )
     monkeypatch.setattr(documents, "generate_ai_summary", fake_summary)
     monkeypatch.setattr(documents, "create_cloud_document", lambda **kwargs: None)

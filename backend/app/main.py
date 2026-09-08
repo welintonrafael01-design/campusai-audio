@@ -129,6 +129,7 @@ app.add_middleware(
         "Origin",
         "X-Admin-Key",
         "X-Request-ID",
+        "Idempotency-Key",
     ],
     expose_headers=["Content-Disposition", "X-Request-ID", "X-Process-Time"],
 )
