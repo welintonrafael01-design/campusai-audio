@@ -1,6 +1,6 @@
 # Supabase Production Migration Evidence
 
-Status: `BLOCKED BEFORE MIGRATION`
+Status: `W6-R2 RECONCILIATION COMPLETE - REMOTE MIGRATION BLOCKED`
 
 Captured at: `2026-09-08T04:54:59Z`
 
@@ -8,7 +8,126 @@ Repository commit: `5d5704293808d05f7a320bb60081eb13290bfcf2`
 
 Target project ref: `olegevhncmblxngurclt`
 
-## Safety Decision
+## W6-R2 Reconciliation
+
+W6-R2 used authenticated read-only catalog access and fresh schema dumps. It
+performed no remote schema, data, Auth, Storage, migration-history or policy
+mutation.
+
+### Recovery Evidence
+
+Secure backup directory:
+
+`$HOME/StudyBookAI_Backups/supabase_2026-09-08`
+
+| File | Bytes | Permissions | SHA-256 |
+| --- | ---: | ---: | --- |
+| `schema.sql` | 17,163 | `600` | `604f03d383cb2dcb8a1e43c9d4b1c0dadabdbe143bbada4181792a0aea486c3f` |
+| `data.sql` | 783,017 | `600` | `16bc8ca49af3d5d3e2770790f32e6b725296501551ea3d5f0d19801a82586d99` |
+| `roles.sql` | 358 | `600` | `4350a72b5ec109888e740c17f3eb4da2fcd95ab73af26499538ed0bf615db543` |
+| `catalog_w6_r2.sql` | 77,003 | `600` | `ea2dc77a51f4d74398792439d22b90de47ec06454d1676a07fef59f1a7070baf` |
+
+The logical data dump contains 41 COPY targets. Its 14 public-table row counts,
+five Auth users and 37 Storage metadata rows are internally coherent with the
+fresh remote inventory. No row or private record content is included here.
+
+`supabase backups list` reported `walg_enabled=true`, `pitr_enabled=false` and
+no listed physical backups. The complete manual logical backup is therefore the
+database recovery artifact for this gate.
+
+The recursive Storage inventory corrected the earlier count of five. Five was
+the number of top-level owner prefixes; the actual bucket contains 37 objects.
+All 37 objects were downloaded from private bucket `studybook-documents`:
+
+- Remote objects: 37
+- Downloaded objects: 37
+- Downloaded bytes: 42,288,843
+- Backup directories: `700`
+- Backup files: `600`
+- Private manifest: `storage/studybook-documents-manifest.tsv`
+- Manifest SHA-256: `cc230b0f66d188e71d4271f352b48e00a32b4273ca60ee84c93f0f0800f8a21e`
+
+The private manifest records every relative object identifier, size, SHA-256
+and permission. It is outside Git and must remain private. Database plus Storage
+recovery point: `PASS`.
+
+### Remote Catalog
+
+- Project: `olegevhncmblxngurclt`
+- Name: `studybook-ai`
+- Region: `us-east-2`
+- Status: `ACTIVE_HEALTHY`
+- PostgreSQL: `17.6.1.127`
+- Migration history: empty
+- Remote public tables: 14
+- Remote rows across those tables: 968
+- Remote public policies: 1
+- Remote Storage policies: 0
+- Expected migrated public policies: 45
+- Expected migrated Storage policies: 4
+
+Remote-only schema drift includes `educator_rubrics` and its index. Material
+legacy drift includes different indexes, missing ownership foreign keys,
+missing update triggers, nullable owner columns and incompatible key shapes.
+
+### Migration Decision Table
+
+| Migration | Remote reality | Future action |
+| --- | --- | --- |
+| `20260828000100` core | **CONFLICTING**. All 13 table names exist, but `documents.user_id` and `workspaces.updated_at` are absent; owner FKs/triggers are absent; defaults/nullability/indexes differ; `user_usage_events.id` and `user_subscriptions` keys conflict. | RECONCILIATION REQUIRED |
+| `20260829000100` RLS | **CONFLICTING**. One legacy policy exists instead of 45; three core tables have RLS disabled; no Storage policies exist; the legacy policy trips the migration stop guard. | STOP / RECONCILIATION REQUIRED |
+| `20260831000100` persistence | **ABSENT**. `document_chunks`, `certificates`, RAG function/indexes and `studybook-private-artifacts` are absent. | APPLY AFTER BASELINE RECONCILIATION |
+| `20260901000100` ownership | **CONFLICTING**. The required `documents.user_id` column does not exist, so the migration cannot execute against the current schema. | RECONCILIATION REQUIRED |
+| `20260907000100` atomic quota | **ABSENT**. Reservation table, usage-event FK/indexes and all three quota RPCs are absent. | APPLY AFTER BASELINE RECONCILIATION |
+
+No migration is safe to repair as applied. A blind `supabase db push --linked`
+would fail or leave material drift and must not run.
+
+### P0 Security-Relevant Drift
+
+Catalog evidence shows RLS disabled on `workspaces`, `chats` and `messages`
+while `anon` and `authenticated` have broad table grants. Read-only anonymous
+`HEAD` probes confirmed:
+
+| Table | Anonymous visible rows |
+| --- | ---: |
+| `workspaces` | 36 |
+| `chats` | 46 |
+| `messages` | 118 |
+
+No row body was downloaded and no write probe was attempted. The grants imply a
+potential mutation risk, but only anonymous SELECT visibility was directly
+verified. Treat this as an open P0 confidentiality incident until a separately
+authorized fail-closed RLS remediation is applied and reverified.
+
+### Data Safety
+
+Pre/post aggregate checks remained identical:
+
+- Public tables: 14
+- Aggregate rows: 968
+- Storage objects: 37
+- Data loss: none detected
+- Remote mutations: none
+
+### W6-M Decision
+
+- Migrations safe to repair as applied: none
+- Migrations safe to push now: none
+- Pre-baseline reconciliation migration required: yes
+- Disposable restore rehearsal required: yes
+- Safe to repair migration history: no
+- Safe to apply remaining migrations: no
+- Ready for W6-M: no
+
+The exact future command sequence and bridge requirements are recorded in
+`SUPABASE_PRODUCTION_MIGRATION_RUNBOOK.md`. W6-R2 did not execute those
+commands.
+
+## Original W6 Safety Decision
+
+This section preserves the original W6 stop evidence. Its recovery, CLI-link
+and migration-history status is superseded by the W6-R2 evidence above.
 
 The W6 operation was explicitly authorized for the target project. Only
 read-only preflight requests were performed. No SQL migration, backfill,
@@ -74,7 +193,8 @@ database or Management connection.
 ## Storage
 
 - `studybook-documents`: present and private
-- `studybook-documents` aggregate object count: 5
+- `studybook-documents` top-level owner-prefix count: 5; this was not an object
+  count and is corrected by the recursive 37-object inventory above
 - `studybook-private-artifacts`: not returned by the bucket catalog
 - `studybook-private-artifacts` list response contained no objects
 
@@ -117,7 +237,7 @@ Local pending versions: `UNCONFIRMED`
 
 No migration was marked applied and no migration-history row was changed.
 
-## Required Human Recovery Action
+## Original Human Recovery Action
 
 Before resuming W6, an authorized Supabase project owner must:
 
@@ -131,7 +251,7 @@ Before resuming W6, an authorized Supabase project owner must:
 4. Re-run the read-only migration-history and policy inventory before any SQL.
 5. Stop again if schema reality and migration history disagree.
 
-## Gate Result
+## Original W6 Gate Result
 
 - Recovery point: FAIL
 - Remote migration: NOT RUN

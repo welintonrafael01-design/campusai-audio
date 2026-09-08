@@ -1,12 +1,20 @@
 # Supabase Production Migration Runbook
 
-Status: `W6 PREFLIGHT BLOCKED - NO REMOTE MIGRATION EXECUTED`
+Status: `W6-R2 RECONCILED - REMOTE MIGRATION BLOCKED`
 
 The authorized W6 preflight on 2026-09-08 identified the intended project as
 `olegevhncmblxngurclt` and completed read-only REST, Storage and QA identity
 checks. The migration stopped before any schema mutation because the operator
 environment had no Supabase Management session, database credential or
 provider-backup evidence. See `SUPABASE_PRODUCTION_MIGRATION_EVIDENCE.md`.
+
+W6-R2 subsequently verified a complete manual logical backup and a private
+physical copy of every Storage object, but proved that the empty remote
+migration history does not represent an empty database. The remote legacy
+schema conflicts with the repository baseline and has a P0 RLS exposure. Do
+not use `migration repair` or `db push` until a reviewed pre-baseline
+reconciliation migration has been created and tested against a disposable
+restore of the backup.
 
 This runbook is for a separately approved production window. The 7F-S3 sprint
 used only the disposable local project `studybook-ai-7f-s3-local`; it did not
@@ -34,6 +42,79 @@ The provider backup status must be verified through an authenticated Supabase
 Management session or another approved operator channel. A service-role API key
 is not a database backup credential and a PostgREST export is not an acceptable
 schema, Auth, policy and Storage recovery point.
+
+For W6-R2, `supabase backups list` reported WAL-G enabled but no listed physical
+backup. The approved fallback recovery point consists of the Supabase CLI
+logical schema/data/roles dumps plus a byte-for-byte private Storage download.
+The public-table and Storage metadata counts in the logical dump match the
+remote aggregate counts, and the physical object manifest records every object
+size and SHA-256 outside the repository.
+
+## W6-R2 Reconciliation Stop
+
+The remote database has all 13 core table names, but it is not materially
+equivalent to `20260828000100`:
+
+- `documents.user_id` and `workspaces.updated_at` are absent.
+- Owner foreign keys and the update trigger/function are absent.
+- `user_usage_events.id` is UUID remotely but bigint in the repository.
+- `user_subscriptions` has a different primary-key shape and an extra `id`.
+- Multiple nullability, default, constraint and index definitions differ.
+- `educator_rubrics` exists remotely but is absent from the migration chain.
+
+The RLS baseline is also conflicting. Only one legacy public policy exists,
+there are no Storage policies, and `workspaces`, `chats` and `messages` have RLS
+disabled while `anon` and `authenticated` retain broad table grants. Read-only
+anonymous count probes confirmed visibility of all 36 workspaces, 46 chats and
+118 messages. This is a P0 confidentiality defect; no row contents were read.
+
+The legacy policy `Users can read their own subscription` is not accepted by
+the RLS migration's unknown-policy guard. The current migration chain therefore
+must not be pushed blindly.
+
+## Required Pre-Baseline Work
+
+Before W6-M, create and review a migration ordered before
+`20260828000100_studybook_core_schema.sql`, for example
+`20260827000100_remote_legacy_reconciliation.sql`. It must be a no-op on a fresh
+database and must, on the legacy schema:
+
+1. Contain anonymous access immediately by enabling fail-closed RLS and
+   revoking unintended grants before broader reconciliation.
+2. Add and safely backfill missing ownership columns without guessing owners.
+3. Stop on unresolved or conflicting ownership.
+4. Reconcile keys, foreign keys, nullability, defaults and index compatibility
+   without deleting production data.
+5. Resolve the UUID/bigint usage-event key conflict through an explicitly
+   reviewed compatibility strategy.
+6. Version the existing `educator_rubrics` table and its security policy.
+7. Remove or replace the legacy subscription policy only after its behavior is
+   represented by the repository policy.
+
+Test the bridge first against a disposable restore of the W6-R2 logical and
+Storage backup. No existing migration is currently safe to mark as applied.
+
+The future remote sequence, only after that artifact and restore rehearsal are
+approved, is:
+
+```bash
+cd /Users/welintonmejia/Desktop/campusai-audio
+
+test -f supabase/migrations/20260827000100_remote_legacy_reconciliation.sql
+git diff --check
+
+# Local/disposable restore gate must pass before these remote checks.
+supabase migration list --linked
+supabase db push --linked --dry-run
+
+# Stop unless dry-run orders the reviewed bridge first and then all five
+# repository migrations. Re-capture aggregate counts and recovery evidence.
+supabase db push --linked
+```
+
+Do not run any `supabase migration repair` command for the current remote
+schema. The two remote commands above remain prohibited until W6-M is separately
+authorized and the bridge is reviewed.
 
 ## 2. Preflight And Comparison
 
