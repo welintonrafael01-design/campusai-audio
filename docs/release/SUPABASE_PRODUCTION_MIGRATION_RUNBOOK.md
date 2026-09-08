@@ -1,6 +1,12 @@
 # Supabase Production Migration Runbook
 
-Status: `FUTURE CONTROLLED OPERATION - NOT EXECUTED`
+Status: `W6 PREFLIGHT BLOCKED - NO REMOTE MIGRATION EXECUTED`
+
+The authorized W6 preflight on 2026-09-08 identified the intended project as
+`olegevhncmblxngurclt` and completed read-only REST, Storage and QA identity
+checks. The migration stopped before any schema mutation because the operator
+environment had no Supabase Management session, database credential or
+provider-backup evidence. See `SUPABASE_PRODUCTION_MIGRATION_EVIDENCE.md`.
 
 This runbook is for a separately approved production window. The 7F-S3 sprint
 used only the disposable local project `studybook-ai-7f-s3-local`; it did not
@@ -23,6 +29,11 @@ repository.
    policies, extensions and bucket privacy. Do not export user content into the
    repository.
 5. Record per-user row/object counts through an approved private audit channel.
+
+The provider backup status must be verified through an authenticated Supabase
+Management session or another approved operator channel. A service-role API key
+is not a database backup credential and a PostgREST export is not an acceptable
+schema, Auth, policy and Storage recovery point.
 
 ## 2. Preflight And Comparison
 
