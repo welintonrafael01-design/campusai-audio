@@ -168,6 +168,16 @@ create table if not exists public.educator_question_banks (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.educator_rubrics (
+  id text primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  course_id text not null default '',
+  title text not null default 'Rubrica',
+  payload jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create index if not exists workspaces_owner_created_idx
   on public.workspaces (user_id, created_at desc);
 create index if not exists documents_owner_uploaded_idx
@@ -194,6 +204,8 @@ create index if not exists educator_gradebook_owner_idx
   on public.educator_gradebook (user_id);
 create index if not exists educator_question_banks_owner_idx
   on public.educator_question_banks (user_id);
+create index if not exists educator_rubrics_owner_idx
+  on public.educator_rubrics (user_id);
 
 do $$
 declare
@@ -203,7 +215,7 @@ begin
     'workspaces', 'documents', 'study_results', 'audiobooks', 'chats',
     'user_subscriptions', 'educator_courses', 'educator_students',
     'educator_attendance', 'educator_gradebook',
-    'educator_question_banks'
+    'educator_question_banks', 'educator_rubrics'
   ] loop
     execute format(
       'drop trigger if exists studybook_set_updated_at on public.%I',

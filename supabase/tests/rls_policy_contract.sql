@@ -14,7 +14,7 @@ begin
     'messages', 'user_subscriptions', 'user_usage_events',
     'quota_reservations',
     'educator_courses', 'educator_students', 'educator_attendance',
-    'educator_gradebook', 'educator_question_banks'
+    'educator_gradebook', 'educator_question_banks', 'educator_rubrics'
   ] loop
     if not exists (
       select 1
@@ -67,7 +67,7 @@ begin
     from pg_policies policy
     where policy.schemaname = 'public'
       and policy.policyname like 'studybook_%'
-  ) <> 45 then
+  ) <> 49 then
     raise exception 'Unexpected public StudyBook policy count.';
   end if;
 

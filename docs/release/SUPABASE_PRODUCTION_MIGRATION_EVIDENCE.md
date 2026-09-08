@@ -1,12 +1,49 @@
 # Supabase Production Migration Evidence
 
-Status: `W6-R2 RECONCILIATION COMPLETE - REMOTE MIGRATION BLOCKED`
+Status: `W6-P0 LOCAL GATES PASS - REMOTE CONTAINMENT BLOCKED BY OPERATOR ACCESS`
 
 Captured at: `2026-09-08T04:54:59Z`
 
 Repository commit: `5d5704293808d05f7a320bb60081eb13290bfcf2`
 
 Target project ref: `olegevhncmblxngurclt`
+
+## W6-P0 Restore And Containment Gate
+
+W6-P0 restored the complete W6-R2 database backup into an isolated disposable
+Supabase stack. The restore reproduced 14 StudyBook tables, all 968 rows, five
+Auth users and 37 Storage metadata records. Every one of the 37 physical
+Storage objects revalidated against the private manifest, totaling 42,288,843
+bytes. Recovery integrity and restore drill: `PASS`.
+
+The reviewed emergency artifact
+`docs/release/sql/W6_P0_REMOTE_CONTAINMENT.sql` was applied twice locally. It
+enabled RLS on all 14 legacy product tables and removed anonymous product and
+Storage catalog privileges. Anonymous REST probes were denied for all product
+tables; private Storage returned 403; service-role access retained all 968
+rows. Row and Storage counts were unchanged. QA Student A/B subscriptions were
+owner-isolated, Teacher authorization remained server-controlled and a
+`user_metadata` privilege spoof was denied.
+
+The pre-baseline bridge now exists at
+`supabase/migrations/20260827000100_remote_legacy_reconciliation.sql`. Against
+another restored snapshot, the bridge followed by all five normal migrations
+completed in order without manual intervention. It preserved all 968 legacy
+records as 609 active owner-valid rows plus 359 private quarantined legacy
+records. Unexpected loss was zero. The final local schema has 17 RLS-enabled
+product tables, 49 public policies, four Storage policies, validated ownership
+FKs, `educator_rubrics`, pgvector persistence and atomic quota RPCs. The RLS,
+persistence and quota SQL contracts passed against both restored and clean
+migration stacks.
+
+Remote read-only pre-counts still match 968 rows and 37 Storage objects.
+Anonymous visibility remains 36 workspaces, 46 chats and 118 messages. The
+remote containment transaction was **not applied** because the current CLI
+Management identity returned HTTP 403 and the available dashboard browser was
+not authenticated. No bridge, normal migration, history repair or remote SQL
+write occurred. The P0 remains open pending an authorized project-owner
+session. Full evidence and the safe apply/rollback boundary are in
+`docs/security/W6_P0_REMOTE_CONTAINMENT.md`.
 
 ## W6-R2 Reconciliation
 
@@ -63,19 +100,21 @@ recovery point: `PASS`.
 - Remote rows across those tables: 968
 - Remote public policies: 1
 - Remote Storage policies: 0
-- Expected migrated public policies: 45
+- Expected migrated public policies: 49
 - Expected migrated Storage policies: 4
 
-Remote-only schema drift includes `educator_rubrics` and its index. Material
-legacy drift includes different indexes, missing ownership foreign keys,
-missing update triggers, nullable owner columns and incompatible key shapes.
+Remote-only schema drift includes `educator_rubrics` and its index. The table is
+now incorporated into the reviewed bridge, core schema and RLS source of truth,
+but remains unapplied remotely. Material legacy drift includes different
+indexes, missing ownership foreign keys, missing update triggers, nullable
+owner columns and incompatible key shapes.
 
 ### Migration Decision Table
 
 | Migration | Remote reality | Future action |
 | --- | --- | --- |
 | `20260828000100` core | **CONFLICTING**. All 13 table names exist, but `documents.user_id` and `workspaces.updated_at` are absent; owner FKs/triggers are absent; defaults/nullability/indexes differ; `user_usage_events.id` and `user_subscriptions` keys conflict. | RECONCILIATION REQUIRED |
-| `20260829000100` RLS | **CONFLICTING**. One legacy policy exists instead of 45; three core tables have RLS disabled; no Storage policies exist; the legacy policy trips the migration stop guard. | STOP / RECONCILIATION REQUIRED |
+| `20260829000100` RLS | **CONFLICTING**. One legacy policy exists instead of 49; three core tables have RLS disabled; no Storage policies exist; the legacy policy trips the migration stop guard. | STOP / RECONCILIATION REQUIRED |
 | `20260831000100` persistence | **ABSENT**. `document_chunks`, `certificates`, RAG function/indexes and `studybook-private-artifacts` are absent. | APPLY AFTER BASELINE RECONCILIATION |
 | `20260901000100` ownership | **CONFLICTING**. The required `documents.user_id` column does not exist, so the migration cannot execute against the current schema. | RECONCILIATION REQUIRED |
 | `20260907000100` atomic quota | **ABSENT**. Reservation table, usage-event FK/indexes and all three quota RPCs are absent. | APPLY AFTER BASELINE RECONCILIATION |
@@ -114,8 +153,8 @@ Pre/post aggregate checks remained identical:
 
 - Migrations safe to repair as applied: none
 - Migrations safe to push now: none
-- Pre-baseline reconciliation migration required: yes
-- Disposable restore rehearsal required: yes
+- Pre-baseline reconciliation migration: created and locally verified
+- Disposable restore rehearsal: completed and passed
 - Safe to repair migration history: no
 - Safe to apply remaining migrations: no
 - Ready for W6-M: no

@@ -3,6 +3,9 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
+LEGACY_BRIDGE_MIGRATION = (
+    ROOT / "supabase/migrations/20260827000100_remote_legacy_reconciliation.sql"
+)
 MIGRATION = ROOT / "supabase/migrations/20260829000100_studybook_rls_security.sql"
 CORE_SCHEMA_MIGRATION = (
     ROOT / "supabase/migrations/20260828000100_studybook_core_schema.sql"
@@ -26,6 +29,9 @@ ATOMIC_QUOTA_MIGRATION = (
 ATOMIC_QUOTA_SQL_TEST = (
     ROOT / "supabase/tests/atomic_free_quota_contract.sql"
 )
+P0_CONTAINMENT_SQL = (
+    ROOT / "docs/release/sql/W6_P0_REMOTE_CONTAINMENT.sql"
+)
 
 EXPECTED_TABLES = {
     "workspaces",
@@ -45,6 +51,8 @@ EXPECTED_TABLES = {
     "document_chunks",
 }
 
+MIGRATED_PRODUCT_TABLES = EXPECTED_TABLES | {"educator_rubrics"}
+
 
 def _migration_sql() -> str:
     return MIGRATION.read_text(encoding="utf-8").lower()
@@ -53,7 +61,7 @@ def _migration_sql() -> str:
 def test_core_schema_makes_clean_migration_chain_reproducible():
     sql = CORE_SCHEMA_MIGRATION.read_text(encoding="utf-8").lower()
 
-    for table in EXPECTED_TABLES - {"certificates", "document_chunks"}:
+    for table in MIGRATED_PRODUCT_TABLES - {"certificates", "document_chunks"}:
         assert f"create table if not exists public.{table}" in sql
 
     assert "drop table" not in sql
@@ -61,6 +69,38 @@ def test_core_schema_makes_clean_migration_chain_reproducible():
     assert "references auth.users(id) on delete cascade" in sql
     assert "unique (user_id, document_id, type)" in sql
     assert "unique (user_id, document_id)" in sql
+
+
+def test_legacy_bridge_preserves_unowned_data_without_guessing_owners():
+    sql = LEGACY_BRIDGE_MIGRATION.read_text(encoding="utf-8").lower()
+
+    assert "private.studybook_legacy_quarantine" in sql
+    assert "owner_not_deterministic" in sql
+    assert "duplicate_owner_document_key" in sql
+    assert "owner_not_in_auth" in sql
+    assert "to_jsonb" in sql
+    assert "user_usage_events rename column id to legacy_id" in sql
+    assert "user_subscriptions_pkey primary key (user_id)" in sql
+    assert "educator_rubrics" in sql
+    assert "drop table" not in sql
+    assert "truncate" not in sql
+
+
+def test_p0_containment_is_minimal_idempotent_and_data_preserving():
+    sql = P0_CONTAINMENT_SQL.read_text(encoding="utf-8").lower()
+
+    for table in MIGRATED_PRODUCT_TABLES - {"certificates", "document_chunks"}:
+        assert f"alter table public.{table} enable row level security" in sql
+
+    assert "from anon" in sql
+    assert "storage.buckets, storage.objects from anon" in sql
+    assert "service role lost required access" in sql
+    for privilege in ("select", "insert", "update", "delete"):
+        assert f"relation_name), '{privilege}'" in sql
+    assert "update storage.buckets" in sql
+    assert "drop table" not in sql
+    assert "delete from" not in sql
+    assert "truncate" not in sql
 
 
 def test_migration_covers_every_backend_supabase_table():
@@ -78,7 +118,7 @@ def test_migration_covers_every_backend_supabase_table():
     assert literal_tables | educator_tables | configured_tables == EXPECTED_TABLES
 
     sql = _migration_sql()
-    for table in EXPECTED_TABLES - {"certificates", "document_chunks"}:
+    for table in MIGRATED_PRODUCT_TABLES - {"certificates", "document_chunks"}:
         assert f"alter table public.{table} enable row level security" in sql
 
     persistence_sql = PERSISTENCE_MIGRATION.read_text(encoding="utf-8").lower()
@@ -156,8 +196,8 @@ def test_migration_does_not_replace_existing_policies_or_create_app_tables():
     assert "create table" not in sql
     assert "unknown public policy detected" in sql
     assert "unknown storage policy detected" in sql
-    assert sql.count("call private.ensure_policy(") == 49
-    assert sql.count("  'public',") == 45
+    assert sql.count("call private.ensure_policy(") == 53
+    assert sql.count("  'public',") == 49
     assert sql.count("  'storage',") == 4
 
 

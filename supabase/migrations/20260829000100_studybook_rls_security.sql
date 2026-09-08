@@ -24,7 +24,8 @@ begin
     'educator_students',
     'educator_attendance',
     'educator_gradebook',
-    'educator_question_banks'
+    'educator_question_banks',
+    'educator_rubrics'
   ] loop
     if to_regclass(format('public.%I', relation_name)) is null then
       raise exception 'Required StudyBook relation is missing: public.%', relation_name;
@@ -57,7 +58,8 @@ begin
       ('educator_students', 'user_id'),
       ('educator_attendance', 'user_id'),
       ('educator_gradebook', 'user_id'),
-      ('educator_question_banks', 'user_id')
+      ('educator_question_banks', 'user_id'),
+      ('educator_rubrics', 'user_id')
     ) as required_column(table_name, column_name)
     where not exists (
       select 1
@@ -229,14 +231,16 @@ begin
         'workspaces', 'documents', 'study_results', 'audiobooks', 'chats',
         'messages', 'user_subscriptions', 'user_usage_events',
         'educator_courses', 'educator_students', 'educator_attendance',
-        'educator_gradebook', 'educator_question_banks'
+        'educator_gradebook', 'educator_question_banks',
+        'educator_rubrics'
       ])
       and not (
         (
           policy.tablename = any(array[
             'workspaces', 'documents', 'study_results', 'audiobooks', 'chats',
             'educator_courses', 'educator_students', 'educator_attendance',
-            'educator_gradebook', 'educator_question_banks'
+            'educator_gradebook', 'educator_question_banks',
+            'educator_rubrics'
           ])
           and policy.policyname = any(array[
             'studybook_' || policy.tablename || '_select',
@@ -350,6 +354,7 @@ alter table public.educator_students enable row level security;
 alter table public.educator_attendance enable row level security;
 alter table public.educator_gradebook enable row level security;
 alter table public.educator_question_banks enable row level security;
+alter table public.educator_rubrics enable row level security;
 
 revoke all privileges on table
   public.workspaces,
@@ -364,7 +369,8 @@ revoke all privileges on table
   public.educator_students,
   public.educator_attendance,
   public.educator_gradebook,
-  public.educator_question_banks
+  public.educator_question_banks,
+  public.educator_rubrics
 from anon, authenticated;
 
 grant select, insert, update, delete on table
@@ -377,7 +383,8 @@ grant select, insert, update, delete on table
   public.educator_students,
   public.educator_attendance,
   public.educator_gradebook,
-  public.educator_question_banks
+  public.educator_question_banks,
+  public.educator_rubrics
 to authenticated;
 
 grant select, insert, delete on table public.messages to authenticated;
@@ -577,6 +584,24 @@ call private.ensure_policy(
 call private.ensure_policy(
   'public', 'educator_question_banks',
   'studybook_educator_question_banks_select', 'select',
+  'private.is_current_user(user_id::text) and private.has_teacher_access()', null
+);
+
+call private.ensure_policy(
+  'public', 'educator_rubrics', 'studybook_educator_rubrics_select', 'select',
+  'private.is_current_user(user_id::text) and private.has_teacher_access()', null
+);
+call private.ensure_policy(
+  'public', 'educator_rubrics', 'studybook_educator_rubrics_insert', 'insert',
+  null, 'private.is_current_user(user_id::text) and private.has_teacher_access()'
+);
+call private.ensure_policy(
+  'public', 'educator_rubrics', 'studybook_educator_rubrics_update', 'update',
+  'private.is_current_user(user_id::text) and private.has_teacher_access()',
+  'private.is_current_user(user_id::text) and private.has_teacher_access()'
+);
+call private.ensure_policy(
+  'public', 'educator_rubrics', 'studybook_educator_rubrics_delete', 'delete',
   'private.is_current_user(user_id::text) and private.has_teacher_access()', null
 );
 call private.ensure_policy(

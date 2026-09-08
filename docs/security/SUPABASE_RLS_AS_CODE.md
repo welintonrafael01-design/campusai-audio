@@ -4,10 +4,12 @@ Status: `LOCAL INTEGRATION VERIFIED - DEPLOYED PROJECT UNVERIFIED`
 
 The versioned contract is:
 
+- `supabase/migrations/20260827000100_remote_legacy_reconciliation.sql`
 - `supabase/migrations/20260828000100_studybook_core_schema.sql`
 - `supabase/migrations/20260829000100_studybook_rls_security.sql`
 - `supabase/migrations/20260831000100_production_persistence.sql`
 - `supabase/migrations/20260901000100_document_ownership_hardening.sql`
+- `supabase/migrations/20260907000100_atomic_free_quota.sql`
 - `supabase/tests/rls_policy_contract.sql`
 - `supabase/tests/production_persistence_contract.sql`
 - `supabase/tests/document_ownership_backfill_contract.sql`
@@ -53,6 +55,7 @@ The authority contract is:
 | `educator_attendance` | `user_id = auth.uid()` | Authorized Teacher owner | Authorized Teacher owner | Authorized Teacher owner | Authorized Teacher owner | Same dual Teacher gate |
 | `educator_gradebook` | `user_id = auth.uid()` | Authorized Teacher owner | Authorized Teacher owner | Authorized Teacher owner | Authorized Teacher owner | Same dual Teacher gate |
 | `educator_question_banks` | `user_id = auth.uid()` | Authorized Teacher owner | Authorized Teacher owner | Authorized Teacher owner | Authorized Teacher owner | Same dual Teacher gate |
+| `educator_rubrics` | `user_id = auth.uid()` | Authorized Teacher owner | Authorized Teacher owner | Authorized Teacher owner | Authorized Teacher owner | Same dual Teacher gate |
 | `document_chunks` | `user_id`, server RPC parameter | Denied | Denied | Denied | Denied | Service-role-only pgvector persistence and retrieval |
 | `certificates` | `user_id` | Denied | Denied | Denied | Denied | Backend-only persistence; public verification returns a reduced record by opaque ID |
 
@@ -132,8 +135,10 @@ deployed project as part of repository review.
 
 ## Local Gate Evidence
 
-- Clean migration reset: pass, including pgvector `0.8.2` and HNSW index.
-- RLS catalog contract: pass, 45 public and 4 document Storage policies.
+- Clean migration reset: pass, including pgvector and HNSW index.
+- Restored legacy bridge rehearsal: pass; 609 active plus 359 private
+  quarantined rows preserve the original 968 with no unexpected loss.
+- RLS catalog contract: pass, 49 public and 4 document Storage policies.
 - Row-level Student A/B, Teacher entitlement and metadata spoof tests: pass.
 - Both buckets private; direct private-artifact client access denied.
 - Postgres, REST, Storage and Auth restart retained document, StudyResult,

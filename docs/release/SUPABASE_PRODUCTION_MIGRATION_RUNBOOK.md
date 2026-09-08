@@ -1,6 +1,6 @@
 # Supabase Production Migration Runbook
 
-Status: `W6-R2 RECONCILED - REMOTE MIGRATION BLOCKED`
+Status: `W6-P0 LOCAL VERIFIED - REMOTE CONTAINMENT REQUIRES PROJECT OWNER SESSION`
 
 The authorized W6 preflight on 2026-09-08 identified the intended project as
 `olegevhncmblxngurclt` and completed read-only REST, Storage and QA identity
@@ -15,6 +15,33 @@ schema conflicts with the repository baseline and has a P0 RLS exposure. Do
 not use `migration repair` or `db push` until a reviewed pre-baseline
 reconciliation migration has been created and tested against a disposable
 restore of the backup.
+
+W6-P0 completed that disposable restore rehearsal. Recovery artifacts,
+emergency containment, the pre-baseline bridge, the five-migration chain and
+all SQL contracts pass locally. The remote P0 transaction is still unapplied
+because the current CLI Management identity receives HTTP 403 and the available
+dashboard session is not authenticated. Do not substitute a service-role key
+for database/Management authority.
+
+## Emergency P0 Containment Window
+
+Before the full migration window, an authorized project owner should apply only
+`docs/release/sql/W6_P0_REMOTE_CONTAINMENT.sql` after repeating the 968-row and
+37-object pre-counts. The transaction enables RLS on all observed product
+tables, revokes `anon` product/Storage catalog access and asserts service-role
+viability. It is minimal, idempotent and data-preserving.
+
+```bash
+cd /Users/welintonmejia/Desktop/campusai-audio
+
+supabase db query --linked \
+  --file docs/release/sql/W6_P0_REMOTE_CONTAINMENT.sql
+```
+
+Immediately verify all anonymous product tables and private Storage are denied,
+QA A/B remain isolated, Student cannot call Teacher endpoints, trusted Teacher
+can, backend service-role paths pass, rows remain 968 and Storage remains 37.
+Do not run the bridge, `db push` or `migration repair` in this emergency window.
 
 This runbook is for a separately approved production window. The 7F-S3 sprint
 used only the disposable local project `studybook-ai-7f-s3-local`; it did not
@@ -52,15 +79,16 @@ size and SHA-256 outside the repository.
 
 ## W6-R2 Reconciliation Stop
 
-The remote database has all 13 core table names, but it is not materially
-equivalent to `20260828000100`:
+The remote database has all 13 original core table names plus the legacy rubric
+table, but it is not materially equivalent to `20260828000100`:
 
 - `documents.user_id` and `workspaces.updated_at` are absent.
 - Owner foreign keys and the update trigger/function are absent.
 - `user_usage_events.id` is UUID remotely but bigint in the repository.
 - `user_subscriptions` has a different primary-key shape and an extra `id`.
 - Multiple nullability, default, constraint and index definitions differ.
-- `educator_rubrics` exists remotely but is absent from the migration chain.
+- `educator_rubrics` exists remotely. W6-P0 added it to the reviewed bridge,
+  core migration and RLS source of truth; those changes remain local only.
 
 The RLS baseline is also conflicting. Only one legacy public policy exists,
 there are no Storage policies, and `workspaces`, `chats` and `messages` have RLS
@@ -82,9 +110,10 @@ database and must, on the legacy schema:
 1. Contain anonymous access immediately by enabling fail-closed RLS and
    revoking unintended grants before broader reconciliation.
 2. Add and safely backfill missing ownership columns without guessing owners.
-3. Stop on unresolved or conflicting ownership.
+3. Move unresolved, duplicate or Auth-orphaned rows into the private versioned
+   quarantine without guessing ownership or discarding record JSON.
 4. Reconcile keys, foreign keys, nullability, defaults and index compatibility
-   without deleting production data.
+   while accounting for active plus quarantined legacy rows.
 5. Resolve the UUID/bigint usage-event key conflict through an explicitly
    reviewed compatibility strategy.
 6. Version the existing `educator_rubrics` table and its security policy.
@@ -94,8 +123,10 @@ database and must, on the legacy schema:
 Test the bridge first against a disposable restore of the W6-R2 logical and
 Storage backup. No existing migration is currently safe to mark as applied.
 
-The future remote sequence, only after that artifact and restore rehearsal are
-approved, is:
+The bridge now exists and passes both a restored legacy rehearsal and a clean
+migration stack. Its rehearsal preserved 609 active plus 359 private
+quarantined rows, exactly matching the original 968. The future **full remote**
+sequence remains separately gated and is not authorized by W6-P0:
 
 ```bash
 cd /Users/welintonmejia/Desktop/campusai-audio
