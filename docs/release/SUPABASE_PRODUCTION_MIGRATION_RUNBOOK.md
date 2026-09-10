@@ -1,6 +1,6 @@
 # Supabase Production Migration Runbook
 
-Status: `W6-P0R REMOTE CONFIDENTIALITY P0 CLOSED - FULL MIGRATION PENDING`
+Status: `W6-M0 REHEARSAL PASS - REMOTE EXECUTION REQUIRES SEPARATE APPROVAL`
 
 The authorized W6 preflight on 2026-09-08 identified the intended project as
 `olegevhncmblxngurclt` and completed read-only REST, Storage and QA identity
@@ -10,11 +10,11 @@ provider-backup evidence. See `SUPABASE_PRODUCTION_MIGRATION_EVIDENCE.md`.
 
 W6-R2 subsequently verified a complete manual logical backup and a private
 physical copy of every Storage object, but proved that the empty remote
-migration history does not represent an empty database. The remote legacy
-schema conflicts with the repository baseline and has a P0 RLS exposure. Do
-not use `migration repair` or `db push` until a reviewed pre-baseline
-reconciliation migration has been created and tested against a disposable
-restore of the backup.
+migration history does not represent an empty database. At that snapshot, the
+remote legacy schema conflicted with the repository baseline and had a P0 RLS
+exposure. W6-P0R later closed that exposure. The pre-baseline reconciliation
+migration is now created and locally proven, but `migration repair` and remote
+`db push` remain prohibited until the separately approved W6-M window.
 
 W6-P0 completed that disposable restore rehearsal. Recovery artifacts,
 emergency containment, the pre-baseline bridge, the five-migration chain and
@@ -25,6 +25,25 @@ applied the corrected containment artifact, and W6-P0R verified all 14 private
 tables, private Storage, QA isolation, Teacher authorization, service-role
 viability and unchanged 968-row/37-object counts. Do not substitute a
 service-role key for database/Management authority.
+
+## W6-M0 Rehearsal Result
+
+The exact post-containment legacy snapshot was recreated locally from the
+verified W6-R2 backup: 968 public rows, 37 Storage metadata objects, 14 of 14
+product tables under RLS and effective anonymous DB/Storage access denied. The
+normal local migration mechanism then applied the bridge and five migrations in
+timestamp order without intermediate SQL.
+
+The migration history contains exactly all six expected versions. Transformation
+preserved 609 active plus 359 quarantined rows, with no unexpected loss,
+duplicates or active orphans. The final schema, RLS, Storage, owner isolation,
+pgvector/RAG, atomic quota and clean-install gates pass. This evidence permits
+planning a separately authorized W6-M production window; it does not authorize
+the remote command itself.
+
+Use `SUPABASE_W6_M_EXECUTION_CHECKLIST.md` as the operator checklist. Never use
+`supabase db reset --linked`. Do not use migration repair before the six SQL
+files have actually executed and their recorded history has been verified.
 
 ## Emergency P0 Containment Window - Completed
 
@@ -98,9 +117,9 @@ The legacy policy `Users can read their own subscription` is not accepted by
 the RLS migration's unknown-policy guard. The current migration chain therefore
 must not be pushed blindly.
 
-## Required Pre-Baseline Work
+## Historical Pre-Baseline Requirements - Completed Locally
 
-Before W6-M, create and review a migration ordered before
+W6-M required a reviewed migration ordered before
 `20260828000100_studybook_core_schema.sql`, for example
 `20260827000100_remote_legacy_reconciliation.sql`. It must be a no-op on a fresh
 database and must, on the legacy schema:
@@ -118,13 +137,17 @@ database and must, on the legacy schema:
 7. Remove or replace the legacy subscription policy only after its behavior is
    represented by the repository policy.
 
-Test the bridge first against a disposable restore of the W6-R2 logical and
-Storage backup. No existing migration is currently safe to mark as applied.
+That bridge was tested first against a disposable restore of the W6-R2 logical
+and Storage backup. No migration may be marked as applied before its SQL has
+actually executed through the normal migration mechanism.
 
-The bridge now exists and passes both a restored legacy rehearsal and a clean
-migration stack. Its rehearsal preserved 609 active plus 359 private
+The bridge now exists and passes both a restored post-containment rehearsal and
+a clean migration stack. Its rehearsal preserved 609 active plus 359 private
 quarantined rows, exactly matching the original 968. The future **full remote**
-sequence remains separately gated and is not authorized by W6-P0:
+sequence remains separately gated and is not authorized by W6-M0. The concise
+operator sequence is in `SUPABASE_W6_M_EXECUTION_CHECKLIST.md`.
+
+For reference, the required migration operations are:
 
 ```bash
 cd /Users/welintonmejia/Desktop/campusai-audio
@@ -134,22 +157,25 @@ git diff --check
 
 # Local/disposable restore gate must pass before these remote checks.
 supabase migration list --linked
-supabase db push --linked --dry-run
+supabase db push --linked --dry-run --include-all
 
 # Stop unless dry-run orders the reviewed bridge first and then all five
 # repository migrations. Re-capture aggregate counts and recovery evidence.
-supabase db push --linked
+supabase db push --linked --include-all
 ```
 
-Do not run any `supabase migration repair` command for the current remote
-schema. The two remote commands above remain prohibited until W6-M is separately
-authorized and the bridge is reviewed.
+Installed CLI `2.116.0` supports database-password authentication for
+`migration list` and `db push`; `db query` does not expose a password flag. Do
+not place a password in this file, Git, shell history or command output. Do not
+run any `supabase migration repair` command for the current remote schema. The
+remote commands above remain prohibited until W6-M is separately authorized.
 
 ## 2. Preflight And Comparison
 
 Compare the remote catalogs with the expected chain, in order:
 
 ```text
+20260827000100_remote_legacy_reconciliation.sql
 20260828000100_studybook_core_schema.sql
 20260829000100_studybook_rls_security.sql
 20260831000100_production_persistence.sql

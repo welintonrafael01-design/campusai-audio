@@ -1,6 +1,6 @@
 # Supabase Production Migration Evidence
 
-Status: `W6-P0R REMOTE CONFIDENTIALITY P0 CLOSED`
+Status: `W6-M0 POST-CONTAINMENT MIGRATION REHEARSAL PASS`
 
 Captured at: `2026-09-08T04:54:59Z`
 
@@ -11,6 +11,123 @@ Repository commit: `5d5704293808d05f7a320bb60081eb13290bfcf2`
 W6-P0.1 base commit: `1ab27211ad58d574331069c82fd78f0dc3277a44`
 
 Target project ref: `olegevhncmblxngurclt`
+
+## W6-M0 Post-Containment Migration Rehearsal
+
+W6-M0 used only disposable local Supabase projects. It performed no remote SQL,
+`db push`, migration repair, reset, Auth change, Storage change, deployment or
+DNS operation. Rehearsal base commit:
+`0b24f37133fb837b83c1c8a2d553cc3ba948244c`.
+
+### Recovery Inputs
+
+The proven private backup at
+`$HOME/StudyBookAI_Backups/supabase_2026-09-08` was revalidated before use:
+
+| Artifact | SHA-256 |
+| --- | --- |
+| `schema.sql` | `604f03d383cb2dcb8a1e43c9d4b1c0dadabdbe143bbada4181792a0aea486c3f` |
+| `data.sql` | `16bc8ca49af3d5d3e2770790f32e6b725296501551ea3d5f0d19801a82586d99` |
+| `roles.sql` | `4350a72b5ec109888e740c17f3eb4da2fcd95ab73af26499538ed0bf615db543` |
+| Storage manifest | `cc230b0f66d188e71d4271f352b48e00a32b4273ca60ee84c93f0f0800f8a21e` |
+
+The Storage backup contains 37 files, 42,288,843 bytes and 37 manifest entries.
+No private object name or content was added to this evidence.
+
+### Migration Set
+
+Exactly six migration files were present, in timestamp order:
+
+| Version | Migration | SHA-256 |
+| --- | --- | --- |
+| `20260827000100` | `remote_legacy_reconciliation` | `b8e0b9da76aff256367643d13900a38eb8b8545b2cb83d41f3f1733f3b340158` |
+| `20260828000100` | `studybook_core_schema` | `e0b09288bea5524ae9395b6009e969bf3d39940f8b9f99320e3e93721ced5b8c` |
+| `20260829000100` | `studybook_rls_security` | `8cb4115415525e5bd923a03182ee8ad4dbbfd72b4814b5d54df815a3e14e4bd4` |
+| `20260831000100` | `production_persistence` | `4ade8f29920851b70654144d9331e2f9dd5c9412a1556fa5b8247bd03debea15` |
+| `20260901000100` | `document_ownership_hardening` | `1021c10b23c9cdea868acda3de8cb149a6d24f7d39378f434641b072c0ea6cad` |
+| `20260907000100` | `atomic_free_quota` | `5c6f26220a4d4da1af826775869cccec6f33b1b11388c8ff46a6b5d2f0679ccb` |
+
+### Restored Post-P0 Rehearsal
+
+The logical backup was restored into a dedicated local stack with migrations
+disabled. The current containment artifact was then applied once, reproducing
+the remote post-P0 state:
+
+- Public legacy rows: 968
+- `studybook-documents` Storage metadata objects: 37
+- Product tables with RLS: 14 of 14
+- Critical `workspaces`, `chats` and `messages` RLS: enabled
+- Anonymous product-table privileges: zero
+- Anonymous REST access to all 14 tables: denied (`401`)
+- Anonymous Storage listing: `200`, zero visible objects
+- Anonymous Storage read/insert/update/delete: denied (`400`)
+- Service-role database and disposable Storage CRUD: pass
+- Post-probe Storage objects: 37
+- Migration history before the chain: absent/empty
+
+The normal local migration mechanism then applied all six files in one command,
+without manual SQL between migrations. The resulting history contains exactly
+the six expected versions in order.
+
+Data transformation matched the prior rehearsal exactly:
+
+- Active legacy rows: 609
+- Private quarantine rows: 359
+- Total preserved: 968
+- Unexpected dropped rows: 0
+- Unexpected duplicate groups: 0
+- Unexpected active orphan rows: 0
+
+`educator_rubrics` remains present in the final schema, is owner-scoped, has an
+Auth owner FK and is protected by the versioned RLS policy set.
+
+### Final Schema And Security
+
+The final schema contains all 17 required product tables. Verification found:
+
+- RLS enabled: 17 of 17 tables
+- Public StudyBook policies: 49
+- StudyBook Storage policies: 4
+- Auth owner foreign keys: 16
+- Updated-at triggers: 12
+- `documents.user_id`: present and non-null
+- `workspaces.updated_at`: present and non-null
+- `vector` extension and HNSW chunk index: present
+- Server-only RAG RPC: present
+- Quota reservation table and three privileged quota RPCs: present
+- `studybook-documents` and `studybook-private-artifacts`: private
+- RLS, persistence/multiuser, quota and ownership-backfill SQL contracts: pass
+- Student A/B synthetic API isolation for workspaces, documents, chats, study
+  results and Storage: pass in both directions
+- `user_metadata` Teacher spoof: denied (`403`)
+- Service-role database authority: pass
+
+The atomic quota integration suite passed all 10 tests, including concurrent
+last-slot acquisition, idempotency, failed-batch atomicity, reservation release,
+stale recovery, cross-user isolation, UTC period accounting and denial of
+authenticated-client quota mutation.
+
+### Clean Installation
+
+A second disposable stack applied the same six files from zero through the
+normal Supabase startup migration mechanism. Its history contains exactly the
+same six versions; all 17 required tables have RLS; all four SQL contracts and
+`supabase db lint` passed. Both disposable stacks are removed after evidence
+capture.
+
+### Regression
+
+- Backend: 177 passed, 10 skipped
+- Security-focused backend suite: 125 passed
+- Atomic quota local integration: 10 passed
+- Flutter: 144 passed
+- Flutter analyze: no issues
+- Supabase DB lint: no schema errors on restored and clean stacks
+- Tracked privileged-value and high-confidence secret-pattern scans: pass
+
+W6-M0 proves the migration chain locally. It does not authorize W6-M remote
+execution. The exact separately approved command, stop and recovery sequence is
+maintained in `SUPABASE_W6_M_EXECUTION_CHECKLIST.md`.
 
 ## W6-P0R Remote Security Closure
 
