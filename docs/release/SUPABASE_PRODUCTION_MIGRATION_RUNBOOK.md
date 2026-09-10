@@ -1,6 +1,6 @@
 # Supabase Production Migration Runbook
 
-Status: `W6-P0.1 STORAGE RECONCILED - REMOTE CONTAINMENT RETRY PENDING`
+Status: `W6-P0R REMOTE CONFIDENTIALITY P0 CLOSED - FULL MIGRATION PENDING`
 
 The authorized W6 preflight on 2026-09-08 identified the intended project as
 `olegevhncmblxngurclt` and completed read-only REST, Storage and QA identity
@@ -20,32 +20,24 @@ W6-P0 completed that disposable restore rehearsal. Recovery artifacts,
 emergency containment, the pre-baseline bridge, the five-migration chain and
 all SQL contracts pass locally. The first remote SQL Editor transaction then
 failed closed on an obsolete Storage-grant assertion and rolled back. W6-P0.1
-corrected and revalidated that assertion locally. Do not substitute a
+corrected and revalidated that assertion locally. An authorized owner then
+applied the corrected containment artifact, and W6-P0R verified all 14 private
+tables, private Storage, QA isolation, Teacher authorization, service-role
+viability and unchanged 968-row/37-object counts. Do not substitute a
 service-role key for database/Management authority.
 
-## Emergency P0 Containment Window
+## Emergency P0 Containment Window - Completed
 
-Before the full migration window, an authorized project owner should apply only
-`docs/release/sql/W6_P0_REMOTE_CONTAINMENT.sql` after repeating the 968-row and
-37-object pre-counts. The transaction enables RLS on all observed product
-tables, revokes `anon` product-table access, preserves Supabase Storage baseline
-grants and asserts Storage RLS, policy, bucket and service-role safety. It is
-minimal, idempotent and data-preserving.
+The authorized owner applied only
+`docs/release/sql/W6_P0_REMOTE_CONTAINMENT.sql`. W6-P0R verified all anonymous
+product-table access and effective private Storage list/read/write/update/delete
+access are denied; QA A/B remain isolated; Student cannot call Teacher
+endpoints; trusted Teacher can; service-role operations pass; rows remain 968;
+and Storage remains 37. Baseline Storage grants alone are not an access failure
+when the effective API gate passes.
 
-```bash
-cd /Users/welintonmejia/Desktop/campusai-audio
-
-supabase db query --linked \
-  --file docs/release/sql/W6_P0_REMOTE_CONTAINMENT.sql
-```
-
-Immediately verify all anonymous product tables and effective private Storage
-enumerate/list/read/write/update/delete access are denied, QA A/B remain
-isolated, Student cannot call Teacher endpoints, trusted Teacher can, backend
-service-role paths pass, rows remain 968 and Storage remains 37. Baseline
-Storage grants alone are not an access failure when the effective API gate
-passes.
-Do not run the bridge, `db push` or `migration repair` in this emergency window.
+Do not reapply containment blindly. Do not run the bridge, `db push` or
+`migration repair` until the separately approved W6-M window.
 
 This runbook is for a separately approved production window. The 7F-S3 sprint
 used only the disposable local project `studybook-ai-7f-s3-local`; it did not
@@ -83,8 +75,9 @@ size and SHA-256 outside the repository.
 
 ## W6-R2 Reconciliation Stop
 
-The remote database has all 13 original core table names plus the legacy rubric
-table, but it is not materially equivalent to `20260828000100`:
+At the W6-R2 snapshot, the remote database had all 13 original core table names
+plus the legacy rubric table, but it was not materially equivalent to
+`20260828000100`:
 
 - `documents.user_id` and `workspaces.updated_at` are absent.
 - Owner foreign keys and the update trigger/function are absent.
@@ -94,11 +87,12 @@ table, but it is not materially equivalent to `20260828000100`:
 - `educator_rubrics` exists remotely. W6-P0 added it to the reviewed bridge,
   core migration and RLS source of truth; those changes remain local only.
 
-The RLS baseline is also conflicting. Only one legacy public policy exists,
-there are no Storage policies, and `workspaces`, `chats` and `messages` have RLS
-disabled while `anon` and `authenticated` retain broad table grants. Read-only
-anonymous count probes confirmed visibility of all 36 workspaces, 46 chats and
-118 messages. This is a P0 confidentiality defect; no row contents were read.
+The historical RLS baseline was also conflicting. Only one legacy public policy
+existed, there were no Storage policies, and `workspaces`, `chats` and
+`messages` had RLS disabled while `anon` and `authenticated` retained broad
+table grants. Read-only anonymous count probes confirmed visibility of all 36
+workspaces, 46 chats and 118 messages. The W6-P0R containment verification now
+supersedes that exposure; no row contents were read.
 
 The legacy policy `Users can read their own subscription` is not accepted by
 the RLS migration's unknown-policy guard. The current migration chain therefore

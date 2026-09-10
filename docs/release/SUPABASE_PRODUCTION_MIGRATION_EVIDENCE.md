@@ -1,6 +1,6 @@
 # Supabase Production Migration Evidence
 
-Status: `W6-P0.1 STORAGE RECONCILIATION PASS - REMOTE RETRY PENDING`
+Status: `W6-P0R REMOTE CONFIDENTIALITY P0 CLOSED`
 
 Captured at: `2026-09-08T04:54:59Z`
 
@@ -11,6 +11,51 @@ Repository commit: `5d5704293808d05f7a320bb60081eb13290bfcf2`
 W6-P0.1 base commit: `1ab27211ad58d574331069c82fd78f0dc3277a44`
 
 Target project ref: `olegevhncmblxngurclt`
+
+## W6-P0R Remote Security Closure
+
+The authorized project owner applied the corrected emergency containment SQL
+through Supabase SQL Editor. W6-P0R performed verification only; it did not run
+the bridge, normal migrations, `db push`, migration repair or any additional
+remote SQL.
+
+Effective remote evidence:
+
+- Anonymous REST access to all 14 private product tables: denied (`401`)
+- Anonymous Storage listing: `200` with zero visible objects
+- Anonymous Storage read/insert/update/delete: denied (`400`)
+- Service-role database access: pass, 968 aggregate rows
+- Service-role Storage upload/read/update/delete: pass
+- Storage before/after disposable probe: 37 / 37 objects
+- Remaining disposable security-probe objects: 0
+- Student A/B own subscriptions: one each
+- Student A -> Student B subscription: zero rows
+- Student B -> Student A subscription: zero rows
+- Student B -> Student A study result: absent
+- Student identities -> educator snapshot: `403`
+- Trusted Teacher -> educator snapshot: `200`
+- Data loss or count drift: none detected
+- Backend regression: 177 passed, 10 skipped
+- Security-focused backend regression: 125 passed
+- Flutter regression: 144 passed
+- Flutter analysis: no issues
+- Tracked privileged-value and high-confidence secret-pattern scans: pass
+
+The foreign-chat status defect is independently reproducible: an owner receives
+`200`, while another authenticated user receives `500` for the same chat
+messages URL. No private messages are returned. This remains a P2 response
+mapping issue, not an open confidentiality P0.
+
+All current migrations and the ownership backfill were also revalidated in a
+new disposable local Supabase stack. RLS, durable persistence/multiuser,
+atomic-quota and ownership-backfill contracts passed; `db lint` reported no
+schema errors. The stack was stopped and deleted afterward.
+
+Supabase CLI read-only catalog, Security Advisor and migration-history requests
+were denied by Management RBAC (`403`). The owner confirmed that only the
+containment artifact was applied. The previously empty remote migration history
+is therefore operationally unchanged, while Advisor status remains explicitly
+not independently verified.
 
 ## W6-P0.1 Storage Privilege Reconciliation
 
@@ -44,8 +89,9 @@ HTTP 401. Student A/B subscription ownership, backend library isolation,
 Student/Teacher authorization and metadata-spoof denial passed. Rows remained
 968 and Storage returned to 37 objects after the temporary probe.
 
-W6-P0.1 made no remote mutation. The corrected artifact is ready for a new
-authorized SQL Editor attempt with the full post-apply effective-access gate.
+W6-P0.1 itself made no remote mutation. This paragraph records the historical
+state before the later successful owner-operated application documented in
+W6-P0R above.
 
 ## W6-P0 Restore And Containment Gate
 
@@ -77,13 +123,13 @@ FKs, `educator_rubrics`, pgvector persistence and atomic quota RPCs. The RLS,
 persistence and quota SQL contracts passed against both restored and clean
 migration stacks.
 
-Remote read-only pre-counts still match 968 rows and 37 Storage objects.
-Anonymous visibility remains 36 workspaces, 46 chats and 118 messages. The
+Historical pre-containment counts matched 968 rows and 37 Storage objects.
+Anonymous visibility was 36 workspaces, 46 chats and 118 messages. The
 first remote containment transaction aborted and rolled back on its obsolete
 Storage-grant assertion; W6-P0.1 performed no remote mutation. No bridge,
-normal migration, history repair or remote SQL write completed. The P0 remains
-open pending an authorized retry of the corrected transaction. Full evidence
-and the safe apply/rollback boundary are in
+normal migration or history repair completed. This state is superseded by the
+successful containment and W6-P0R verification above. Full evidence and the
+safe apply/rollback boundary are in
 `docs/security/W6_P0_REMOTE_CONTAINMENT.md`.
 
 ## W6-R2 Reconciliation
@@ -163,11 +209,11 @@ owner columns and incompatible key shapes.
 No migration is safe to repair as applied. A blind `supabase db push --linked`
 would fail or leave material drift and must not run.
 
-### P0 Security-Relevant Drift
+### Historical P0 Security-Relevant Drift
 
-Catalog evidence shows RLS disabled on `workspaces`, `chats` and `messages`
-while `anon` and `authenticated` have broad table grants. Read-only anonymous
-`HEAD` probes confirmed:
+The W6-R2 catalog snapshot showed RLS disabled on `workspaces`, `chats` and
+`messages` while `anon` and `authenticated` had broad table grants. Read-only
+anonymous `HEAD` probes confirmed:
 
 | Table | Anonymous visible rows |
 | --- | ---: |
@@ -177,8 +223,8 @@ while `anon` and `authenticated` have broad table grants. Read-only anonymous
 
 No row body was downloaded and no write probe was attempted. The grants imply a
 potential mutation risk, but only anonymous SELECT visibility was directly
-verified. Treat this as an open P0 confidentiality incident until a separately
-authorized fail-closed RLS remediation is applied and reverified.
+verified. The later authorized containment and W6-P0R effective-access gate
+closed this confidentiality P0 without applying the full migration chain.
 
 ### Data Safety
 
@@ -198,7 +244,7 @@ Pre/post aggregate checks remained identical:
 - Disposable restore rehearsal: completed and passed
 - Safe to repair migration history: no
 - Safe to apply remaining migrations: no
-- Ready for W6-M: no
+- Ready for W6-M planning: yes; execution still requires separate approval
 
 The exact future command sequence and bridge requirements are recorded in
 `SUPABASE_PRODUCTION_MIGRATION_RUNBOOK.md`. W6-R2 did not execute those

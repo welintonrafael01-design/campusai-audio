@@ -1,6 +1,6 @@
 # W6-P0 Remote Security Containment
 
-Status: `W6-P0.1 LOCAL STORAGE RECONCILIATION PASS - REMOTE RETRY PENDING`
+Status: `W6-P0R REMOTE CONFIDENTIALITY P0 CLOSED`
 
 Date: `2026-09-10`
 
@@ -8,10 +8,15 @@ Target project: `olegevhncmblxngurclt`
 
 ## Incident
 
-The legacy remote schema exposes private StudyBook records anonymously because
-`workspaces`, `chats` and `messages` have RLS disabled while `anon` has broad
-table privileges. Read-only count probes confirmed anonymous visibility of 36
-workspaces, 46 chats and 118 messages. No private row body was retrieved.
+Before containment, the legacy remote schema exposed private StudyBook records
+anonymously because `workspaces`, `chats` and `messages` had RLS disabled while
+`anon` had broad table privileges. Read-only count probes confirmed anonymous
+visibility of 36 workspaces, 46 chats and 118 messages. No private row body was
+retrieved.
+
+The corrected containment artifact was subsequently applied by an authorized
+project owner through Supabase SQL Editor. W6-P0R verified the resulting state
+without applying any additional remote SQL, migration, repair or schema change.
 
 The emergency artifact is:
 
@@ -24,6 +29,49 @@ SQL grants, while effective object authorization is enforced by RLS, policies
 and bucket visibility. It neither changes authenticated privileges nor
 modifies service-role privileges. It contains no destructive DDL or
 application-row mutation.
+
+## W6-P0R Remote Verification
+
+Post-application effective-access verification on 2026-09-10 established:
+
+- All 14 private product tables deny `anon` REST access (`401`, zero visible
+  rows).
+- The private `studybook-documents` bucket exposes zero objects to anonymous
+  listing (`200`, empty result).
+- Anonymous private object read, insert, update and delete are denied (`400`).
+- A disposable service-role object passed upload, read, update and delete; it
+  was removed and the bucket returned to exactly 37 objects.
+- Service-role reads remain viable for all 14 tables and account for exactly
+  968 rows.
+- QA Student A and Student B each see only their own active subscription; both
+  cross-user subscription probes return zero rows.
+- Student B cannot retrieve Student A's study result. Student A owns three
+  chats and ten study results; Student B's lists remain empty.
+- Both Student identities receive `403` from `/educator/snapshot`; the trusted
+  Teacher identity receives `200`.
+- Local authorization contracts confirm that untrusted `user_metadata` cannot
+  grant Teacher/Admin privilege.
+- Backend regression: 177 passed, 10 skipped.
+- Security-focused backend regression: 125 passed.
+- Flutter regression: 144 passed; `flutter analyze` reports no issues.
+- Tracked privileged-value and high-confidence secret-pattern scans: pass.
+
+Neither QA Student had document metadata available during this closure, so a
+foreign-document ID probe was not fabricated. Document isolation remains
+covered by the backend/security regression suite and the fail-closed anonymous
+table gate.
+
+The known foreign-chat response defect remains separate: Student B receives
+`500` when requesting messages for a Student A chat. No foreign messages are
+returned, so confidentiality remains closed; the status mapping must be fixed
+locally to return `403` or `404` in a later P2 remediation.
+
+Direct read-only catalog, migration-history and Security Advisor access through
+the installed Supabase CLI was unavailable to the current operator profile
+(`403`). The project owner confirmed only the containment SQL was applied. No
+bridge, normal migration, `db push` or migration repair was run, so the
+previously empty remote migration history is operationally unchanged. Advisor
+state is recorded as not independently verified rather than inferred.
 
 ## Recovery Integrity
 
@@ -160,43 +208,28 @@ The bridge has **not** been applied remotely in W6-P0.
 
 ## Remote State
 
-Immediately before the intended containment window, service-role read-only
-counts still matched the backup:
+After the authorized containment transaction, effective verification shows:
 
 - Product rows: 968
 - Storage objects: 37
-- Storage bytes: 42,288,843
-- Anonymous workspaces/chats/messages: 36 / 46 / 118
+- Anonymous access across all 14 private tables: denied
+- Anonymous Storage list/read/insert/update/delete: denied
+- QA subscriptions and representative study results: owner-isolated
+- Backend Student/Teacher authorization: enforced
+- Unexpected data loss: none detected
 
-The first remote SQL Editor attempt failed closed on the obsolete Storage grant
-assertion. The unchanged disabled RLS state of `workspaces`, `chats` and
-`messages` confirms rollback. W6-P0.1 performed no remote mutation. The P0
-remains open until an authorized operator retries the corrected artifact and
-completes the effective post-apply probes.
+The first failed SQL Editor attempt and its rollback remain documented above as
+incident history. The later corrected transaction and W6-P0R effective probes
+supersede that pre-containment state. Confidentiality P0 is closed.
 
-## Apply Gate
+## Completed Apply Gate
 
-An authorized project owner must use a Supabase SQL session. From the corrected
-reviewed commit and only after repeating pre-counts, execute the complete SQL
-artifact as one transaction. A CLI example, only when owner database access is
-available, is:
-
-```bash
-cd /Users/welintonmejia/Desktop/campusai-audio
-
-supabase db query --linked \
-  --file docs/release/sql/W6_P0_REMOTE_CONTAINMENT.sql
-```
-
-Do not run `migration repair`, `db push`, the bridge or any of the five normal
-migrations during the emergency containment window.
-
-Immediately after the transaction, repeat anonymous probes for all 14 tables;
-anonymous Storage enumerate/list/read/insert/update/delete probes; QA A/B owner
-isolation; Teacher authorization; service-role Storage and backend smoke tests;
-aggregate row counts; and the 37-object Storage count. Baseline Storage grants
-may remain and are not a failure when RLS, policy, bucket and effective API
-checks all pass.
+The authorized owner applied only
+`docs/release/sql/W6_P0_REMOTE_CONTAINMENT.sql`; W6-P0R completed the required
+post-apply probes. Do not reapply the artifact blindly. Do not run `migration
+repair`, `db push`, the bridge or normal migrations until the separately
+approved W6-M window. Baseline Storage grants may remain and are not a failure
+when RLS, policy, bucket privacy and effective API checks all pass.
 
 ## Rollback
 
