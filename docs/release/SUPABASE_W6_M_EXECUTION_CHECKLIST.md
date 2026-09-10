@@ -1,11 +1,22 @@
 # Supabase W6-M Execution Checklist
 
-Status: `LOCAL REHEARSAL PASS - REMOTE EXECUTION NOT AUTHORIZED`
+Status: `W6-M1 CORE ROLLBACK VERIFIED - REMOTE RETRY NOT AUTHORIZED`
 
 Target project: `olegevhncmblxngurclt`
 
-This checklist is a plan for a separately approved production window. W6-M0 did
-not execute any remote migration, repair, reset or SQL command.
+The first authorized W6-M push applied and recorded the bridge, then failed on a
+connection error while reporting Core statement index 12. W6-M1 proved through
+read-only catalog evidence that Core rolled back physically and that no later
+migration ran. This checklist now governs a separately approved retry; W6-M1
+itself executed no remote mutation.
+
+Current required remote history:
+
+```text
+20260827000100 remote_legacy_reconciliation
+```
+
+Do not rerun or repair that bridge entry.
 
 ## 1. Approval And Freeze
 
@@ -16,8 +27,8 @@ not execute any remote migration, repair, reset or SQL command.
 - Create or verify a current provider recovery point immediately before the
   migration. The W6-R2 logical/Storage backup remains a proven fallback, but it
   must not silently replace a current recovery point.
-- Record pre-mutation counts: 968 public legacy rows and 37
-  `studybook-documents` objects. Stop on any drift until reconciled.
+- Record pre-mutation counts: 609 active rows, 359 private quarantine rows and
+  37 `studybook-documents` objects. Stop unless active plus quarantine is 968.
 
 ## 2. Artifact Integrity
 
@@ -59,13 +70,12 @@ Only after approval and recovery verification:
 
 ```bash
 supabase migration list --linked
-supabase db push --linked --dry-run --include-all
+supabase db push --linked --dry-run
 ```
 
-The dry run must show exactly these six pending versions in order:
+The dry run must show exactly these five pending versions in order:
 
 ```text
-20260827000100
 20260828000100
 20260829000100
 20260831000100
@@ -73,20 +83,21 @@ The dry run must show exactly these six pending versions in order:
 20260907000100
 ```
 
-Stop if history is not empty, a migration is missing, an extra migration appears,
-the bridge is not first, or the CLI still cannot authenticate through the
-approved database-password path.
+Stop unless history contains exactly the bridge, a pending migration is missing,
+an extra migration appears, the bridge is offered again, or the CLI cannot
+authenticate through the approved database-password path.
 
 ## 5. Remote Execution
 
-This command remains forbidden until the W6-M approval is explicitly granted:
+This command remains forbidden until a W6-M retry is explicitly approved:
 
 ```bash
-supabase db push --linked --include-all
+supabase db push --linked
 ```
 
-Do not run manual SQL between migrations. Do not mark any version as applied
-before its SQL executes. Do not use migration repair as a shortcut.
+The prior failed command must not be rerun automatically. After approval, do not
+use `--include-all`, run manual SQL between migrations, or mark any version as
+applied before its SQL executes. Do not use migration repair as a shortcut.
 
 ## 6. Immediate Verification
 

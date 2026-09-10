@@ -1,6 +1,36 @@
 # Supabase Production Migration Runbook
 
-Status: `W6-M0 REHEARSAL PASS - REMOTE EXECUTION REQUIRES SEPARATE APPROVAL`
+Status: `W6-M1 CORE ROLLBACK VERIFIED - REMOTE RETRY REQUIRES SEPARATE APPROVAL`
+
+## W6-M1 Incident And Safe Resume Boundary
+
+The first authorized W6-M `db push` applied and recorded only
+`20260827000100_remote_legacy_reconciliation`. The connection failed while the
+CLI reported Core statement index 12 (`educator_students`). Core was not added
+to migration history and no automatic retry, repair, reset or later migration
+was run.
+
+Read-only remote reconciliation proves Core physically rolled back: its update
+function, all 14 named indexes and all 12 update triggers are absent. Only the
+bridge is recorded; all later-only persistence, RAG and quota objects are
+absent. Data remains exactly 609 active plus 359 private quarantined rows, and
+Storage remains 37 private objects. P0 containment remains effective.
+
+The exact state was reconstructed from backup in a disposable stack. Applying
+the normal pending chain from Core through atomic quota passed without rerunning
+the bridge. This selects recovery branch A: normal retry is technically safe,
+but is **not authorized by W6-M1**.
+
+For a separately approved retry:
+
+1. Reverify remote history contains only `20260827000100`.
+2. Reverify 609 active + 359 quarantine = 968 and 37 private objects.
+3. Run a dry-run without `--include-all`; it must list exactly the five pending
+   versions `20260828000100` through `20260907000100`.
+4. Stop on any drift. Do not rerun the bridge and do not use migration repair.
+
+Use `docs/release/sql/W6_M1_REMOTE_READ_ONLY_AUDIT.sql` for catalog-only
+reconciliation and `SUPABASE_W6_M_EXECUTION_CHECKLIST.md` for the current gate.
 
 The authorized W6 preflight on 2026-09-08 identified the intended project as
 `olegevhncmblxngurclt` and completed read-only REST, Storage and QA identity
@@ -14,7 +44,7 @@ migration history does not represent an empty database. At that snapshot, the
 remote legacy schema conflicted with the repository baseline and had a P0 RLS
 exposure. W6-P0R later closed that exposure. The pre-baseline reconciliation
 migration is now created and locally proven, but `migration repair` and remote
-`db push` remain prohibited until the separately approved W6-M window.
+`db push` remain prohibited until the separately approved W6-M retry window.
 
 W6-P0 completed that disposable restore rehearsal. Recovery artifacts,
 emergency containment, the pre-baseline bridge, the five-migration chain and
@@ -55,8 +85,8 @@ endpoints; trusted Teacher can; service-role operations pass; rows remain 968;
 and Storage remains 37. Baseline Storage grants alone are not an access failure
 when the effective API gate passes.
 
-Do not reapply containment blindly. Do not run the bridge, `db push` or
-`migration repair` until the separately approved W6-M window.
+Do not reapply containment or the bridge. Do not run `db push` or
+`migration repair` until a separately approved W6-M retry window.
 
 This runbook is for a separately approved production window. The 7F-S3 sprint
 used only the disposable local project `studybook-ai-7f-s3-local`; it did not
@@ -141,34 +171,36 @@ That bridge was tested first against a disposable restore of the W6-R2 logical
 and Storage backup. No migration may be marked as applied before its SQL has
 actually executed through the normal migration mechanism.
 
-The bridge now exists and passes both a restored post-containment rehearsal and
-a clean migration stack. Its rehearsal preserved 609 active plus 359 private
-quarantined rows, exactly matching the original 968. The future **full remote**
-sequence remains separately gated and is not authorized by W6-M0. The concise
-operator sequence is in `SUPABASE_W6_M_EXECUTION_CHECKLIST.md`.
+The bridge now exists, passes both a restored post-containment rehearsal and a
+clean migration stack, and is the only version recorded remotely after the
+failed W6-M attempt. Its rehearsal preserved 609 active plus 359 private
+quarantined rows, exactly matching the original 968. The post-incident retry
+remains separately gated and is not authorized by W6-M1. The concise operator
+sequence is in `SUPABASE_W6_M_EXECUTION_CHECKLIST.md`.
 
 For reference, the required migration operations are:
 
 ```bash
 cd /Users/welintonmejia/Desktop/campusai-audio
 
-test -f supabase/migrations/20260827000100_remote_legacy_reconciliation.sql
+test -f supabase/migrations/20260828000100_studybook_core_schema.sql
 git diff --check
 
-# Local/disposable restore gate must pass before these remote checks.
+# History must contain only the already applied bridge.
 supabase migration list --linked
-supabase db push --linked --dry-run --include-all
+supabase db push --linked --dry-run
 
-# Stop unless dry-run orders the reviewed bridge first and then all five
-# repository migrations. Re-capture aggregate counts and recovery evidence.
-supabase db push --linked --include-all
+# Stop unless dry-run lists exactly the five pending migrations from Core
+# through atomic quota. This command still requires separate retry approval.
+supabase db push --linked
 ```
 
 Installed CLI `2.116.0` supports database-password authentication for
 `migration list` and `db push`; `db query` does not expose a password flag. Do
 not place a password in this file, Git, shell history or command output. Do not
 run any `supabase migration repair` command for the current remote schema. The
-remote commands above remain prohibited until W6-M is separately authorized.
+remote commands above remain prohibited until the W6-M retry is separately
+authorized.
 
 ## 2. Preflight And Comparison
 

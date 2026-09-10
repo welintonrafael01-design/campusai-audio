@@ -1,10 +1,32 @@
 # W6-P0 Remote Security Containment
 
-Status: `W6-P0R REMOTE CONFIDENTIALITY P0 CLOSED`
+Status: `W6-P0R CONFIDENTIALITY P0 CLOSED - W6-M1 REVALIDATED`
 
 Date: `2026-09-10`
 
 Target project: `olegevhncmblxngurclt`
+
+## W6-M1 Post-Bridge Revalidation
+
+The first authorized W6-M push applied and recorded the pre-baseline bridge,
+then lost its connection during the Core migration. W6-M1 used only Management
+read-only catalog/aggregate queries and anonymous read probes. It confirmed:
+
+- Remote history contains only bridge version `20260827000100`.
+- Core physically rolled back; its function, indexes and triggers are absent.
+- Active rows are 609 and private quarantine rows are 359, preserving all 968.
+- All 14 public product tables retain RLS and zero anonymous CRUD privileges.
+- Anonymous REST access returns `401` for all 14 product tables.
+- Anonymous Storage listing exposes zero objects and a known private object read
+  is denied.
+- `studybook-documents` remains private with all 37 objects.
+- No later persistence, ownership or atomic-quota migration object appeared.
+- Active owner/relation orphans and duplicate owner/resource groups remain zero.
+
+P0 remains closed. No remote mutation occurred during W6-M1. A disposable
+reconstruction proved a normal Core-through-quota retry, without rerunning the
+bridge, reaches the expected final security model. That retry requires a
+separate authorization.
 
 ## Incident
 
@@ -204,13 +226,16 @@ policies, four document Storage policies, pgvector, durable RAG, certificates,
 quota reservations and all required service-role RPCs. All three SQL contracts
 passed against both the migrated restore and a clean migration stack.
 
-The bridge has **not** been applied remotely in W6-P0.
+W6-P0 did not apply the bridge. The later W6-M attempt applied and recorded it;
+W6-M1 confirmed Core and all subsequent migrations remain unapplied.
 
 ## Remote State
 
-After the authorized containment transaction, effective verification shows:
+After the bridge and failed Core attempt, effective verification shows:
 
-- Product rows: 968
+- Active product rows: 609
+- Private quarantine rows: 359
+- Preserved total: 968
 - Storage objects: 37
 - Anonymous access across all 14 private tables: denied
 - Anonymous Storage list/read/insert/update/delete: denied
@@ -224,12 +249,13 @@ supersede that pre-containment state. Confidentiality P0 is closed.
 
 ## Completed Apply Gate
 
-The authorized owner applied only
+The authorized owner first applied only
 `docs/release/sql/W6_P0_REMOTE_CONTAINMENT.sql`; W6-P0R completed the required
-post-apply probes. Do not reapply the artifact blindly. Do not run `migration
-repair`, `db push`, the bridge or normal migrations until the separately
-approved W6-M window. Baseline Storage grants may remain and are not a failure
-when RLS, policy, bucket privacy and effective API checks all pass.
+post-apply probes. W6-M later applied and recorded the bridge before Core rolled
+back on connection loss. Do not reapply containment or the bridge. Do not run
+`migration repair` or retry `db push` until a separately approved window.
+Baseline Storage grants may remain and are not a failure when RLS, policy,
+bucket privacy and effective API checks all pass.
 
 ## Rollback
 

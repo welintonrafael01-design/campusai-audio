@@ -1,6 +1,6 @@
 # Supabase Production Migration Evidence
 
-Status: `W6-M0 POST-CONTAINMENT MIGRATION REHEARSAL PASS`
+Status: `W6-M1 CORE ROLLBACK VERIFIED - REMOTE RETRY NOT AUTHORIZED`
 
 Captured at: `2026-09-08T04:54:59Z`
 
@@ -10,7 +10,168 @@ Repository commit: `5d5704293808d05f7a320bb60081eb13290bfcf2`
 
 W6-P0.1 base commit: `1ab27211ad58d574331069c82fd78f0dc3277a44`
 
+W6-M1 base commit: `71e47bc8b04544a6de0a5be690427a0523aa0de8`
+
 Target project ref: `olegevhncmblxngurclt`
+
+## W6-M1 Failed Remote Migration Reconciliation
+
+The authorized W6-M `db push` applied and recorded the bridge
+`20260827000100_remote_legacy_reconciliation`, then lost its database
+connection while reporting Core CLI statement index 12
+(`CREATE TABLE IF NOT EXISTS public.educator_students`). No automatic retry,
+migration repair, reset, manual SQL or later migration followed.
+
+W6-M1 performed only catalog/aggregate queries through Supabase's Management
+read-only endpoint plus anonymous GET/list/read probes. It made no remote schema,
+data, Auth, Storage or migration-history mutation.
+
+The installed CLI's `db query --linked` path still received `403` while
+initializing its temporary login role. The dedicated Management
+`database/query/read-only` endpoint returned `201` and was used instead. No
+Security Advisor automatic fix was requested or applied.
+
+### Remote History And Physical State
+
+Remote migration history contains exactly:
+
+| Version | Name | State |
+| --- | --- | --- |
+| `20260827000100` | `remote_legacy_reconciliation` | Applied and recorded |
+
+Core and all four later versions are absent from history. The following
+Core-exclusive markers are also absent remotely:
+
+- `public.studybook_set_updated_at()`
+- all 14 Core-named indexes
+- all 12 `studybook_set_updated_at` triggers
+
+Later-only `document_chunks`, `certificates`, `quota_reservations`, pgvector,
+RAG RPC and quota RPCs are absent. Core is therefore physically **ROLLED BACK**,
+not partially applied or applied-but-unrecorded.
+
+### Core Statement Reconciliation
+
+Supabase CLI statement indices include `BEGIN` at index 0:
+
+| CLI index | Executable statement | Post-bridge | Remote observation | Classification / replay |
+| ---: | --- | --- | --- | --- |
+| 0 | `BEGIN` | No open Core transaction | No persisted Core effects | Rolled back / transaction control |
+| 1 | Create `pgcrypto` if absent | Extension already existed | Present in `extensions` | Pre-existing / safe idempotent |
+| 2 | Create/replace `studybook_set_updated_at()` | Absent | Absent | Not executed persistently / safe idempotent |
+| 3 | Create `workspaces` if absent | Present | Present | Pre-existing / safe with proven bridge shape |
+| 4 | Create `documents` if absent | Present | Present | Pre-existing / safe with proven bridge shape |
+| 5 | Create `study_results` if absent | Present | Present | Pre-existing / safe with proven bridge shape |
+| 6 | Create `audiobooks` if absent | Present | Present | Pre-existing / safe with proven bridge shape |
+| 7 | Create `chats` if absent | Present | Present | Pre-existing / safe with proven bridge shape |
+| 8 | Create `messages` if absent | Present | Present | Pre-existing / safe with proven bridge shape |
+| 9 | Create `user_subscriptions` if absent | Present/reconciled | Present/reconciled | Pre-existing / safe with proven bridge shape |
+| 10 | Create `user_usage_events` if absent | Present/reconciled | Present/reconciled | Pre-existing / safe with proven bridge shape |
+| 11 | Create `educator_courses` if absent | Present | Present | Pre-existing / safe with proven bridge shape |
+| 12 | Create `educator_students` if absent | Present | Present | Pre-existing; no observable effect / safe with precondition |
+| 13 | Create `educator_attendance` if absent | Present | Present | Pre-existing / safe with proven bridge shape |
+| 14 | Create `educator_gradebook` if absent | Present | Present | Pre-existing / safe with proven bridge shape |
+| 15 | Create `educator_question_banks` if absent | Present | Present | Pre-existing / safe with proven bridge shape |
+| 16 | Create `educator_rubrics` if absent | Present | Present | Pre-existing / safe with proven bridge shape |
+| 17 | Create `workspaces_owner_created_idx` | Absent | Absent | Not executed / safe idempotent |
+| 18 | Create `documents_owner_uploaded_idx` | Absent | Absent | Not executed / safe idempotent |
+| 19 | Create `documents_workspace_idx` | Absent | Absent | Not executed / safe idempotent |
+| 20 | Create `study_results_owner_updated_idx` | Absent | Absent | Not executed / safe idempotent |
+| 21 | Create `audiobooks_owner_updated_idx` | Absent | Absent | Not executed / safe idempotent |
+| 22 | Create `chats_owner_created_idx` | Absent | Absent | Not executed / safe idempotent |
+| 23 | Create `messages_chat_created_idx` | Absent | Absent | Not executed / safe idempotent |
+| 24 | Create `usage_events_owner_type_created_idx` | Absent | Absent | Not executed / safe idempotent |
+| 25 | Create `educator_courses_owner_idx` | Absent | Absent | Not executed / safe idempotent |
+| 26 | Create `educator_students_owner_idx` | Absent | Absent | Not executed / safe idempotent |
+| 27 | Create `educator_attendance_owner_idx` | Absent | Absent | Not executed / safe idempotent |
+| 28 | Create `educator_gradebook_owner_idx` | Absent | Absent | Not executed / safe idempotent |
+| 29 | Create `educator_question_banks_owner_idx` | Absent | Absent | Not executed / safe idempotent |
+| 30 | Create `educator_rubrics_owner_idx` | Absent | Absent | Not executed / safe idempotent |
+| 31 | Drop/recreate 12 update triggers | No Core triggers | Zero Core triggers | Not executed / safe with function/table preconditions |
+| 32 | `COMMIT` | Not applicable | No Core effect committed | Not reached persistently |
+
+`educator_students` retains its post-bridge legacy shape: text primary key,
+non-null UUID owner with Auth cascade FK, non-null course/name, nullable
+student ID/email/phone/payload/timestamps, legacy owner-course index and no Core
+trigger. Because the table pre-existed, statement 12 was a PostgreSQL no-op
+whether or not the server received it.
+
+Core itself contains explicit `BEGIN`/`COMMIT`. Supabase CLI `2.116.0` parses
+the file and pipelines all statements on one `pgx` connection; it appends the
+migration-history insert after the file statements. Consequently the Core DDL
+is transactional, while an explicit file `COMMIT` precedes the separate history
+insert. Missing history alone would not prove rollback, but the absent function,
+indexes and triggers prove that Core did not commit in this incident.
+
+### Data, Storage And P0
+
+- Active public rows: 609
+- Private quarantine rows: 359
+- Preserved total: 968
+- Duplicate owner/resource groups: 0
+- Quarantine duplicate groups: 0
+- Active Auth-owner or relation orphans: 0
+- `studybook-documents` objects: 37
+- `studybook-documents` public: false
+- Public tables with RLS: 14 of 14
+- Anonymous table CRUD privileges: zero
+- Anonymous REST access: denied (`401`) on all 14 tables
+- Anonymous Storage list: `200`, zero visible objects
+- Anonymous read of a known private object: denied (`400`)
+- Public and Storage policies at this post-bridge point: zero
+- Service role retains RLS bypass authority
+
+The bridge transformed the original 968 rows exactly as rehearsed. It did not
+regress containment. With zero authenticated policies, direct authenticated
+database/Storage access also remains fail-closed until the pending RLS migration
+is successfully applied; the backend service-role owner-filter path remains the
+current application boundary.
+
+### Recovery Simulation And Decision
+
+A disposable stack restored the exact W6-R2 backup, applied current P0
+containment, then applied and recorded only the bridge through the normal local
+migration mechanism. That reconstructed state matched production: bridge-only
+history, 609 active, 359 quarantined, absent Core function and zero Core indexes.
+
+The normal migration mechanism then applied only these pending versions:
+
+1. `20260828000100`
+2. `20260829000100`
+3. `20260831000100`
+4. `20260901000100`
+5. `20260907000100`
+
+Result: pass. Final history contained all six versions; active/quarantine counts
+remained 609/359; 17 of 17 product tables had RLS; all 14 Core indexes and 12
+triggers existed; both buckets were private; pgvector/RAG and all three quota
+RPCs existed. Four SQL contracts, DB lint and all 10 atomic-quota integration
+tests passed.
+
+Recovery branch: **A - Core fully rolled back**. A normal `db push` retry is a
+technically proven candidate and should list only the five pending migrations.
+W6-M1 does not authorize that retry. No migration repair or reconciliation
+migration is required before a separately approved retry.
+
+The known P2 foreign/nonexistent-chat response mapping remains outside this
+reconciliation: it returns `500` instead of a human `403/404`, with no foreign
+message disclosure demonstrated. W6-M1 did not modify or retest that endpoint.
+
+### W6-M1 Regression
+
+- Backend full suite: 177 passed, 10 skipped
+- Security-focused backend suite: 65 passed
+- Atomic-quota disposable integration: 10 passed
+- Flutter: 144 passed
+- Flutter analyze: no issues
+- Python compile check: pass
+- RLS, persistence, ownership-backfill and atomic-quota SQL contracts: pass
+- Supabase DB lint on the recovered disposable stack: no schema errors
+- W6-M1 read-only audit SQL syntax: pass
+- First-party secret scan and `git diff --check`: pass
+
+The repeatable read-only catalog checks are in
+`docs/release/sql/W6_M1_REMOTE_READ_ONLY_AUDIT.sql`.
 
 ## W6-M0 Post-Containment Migration Rehearsal
 
