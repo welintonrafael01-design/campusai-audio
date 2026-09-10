@@ -1,8 +1,8 @@
 # W6-P0 Remote Security Containment
 
-Status: `LOCAL GATES PASS - REMOTE PATCH NOT APPLIED`
+Status: `W6-P0.1 LOCAL STORAGE RECONCILIATION PASS - REMOTE RETRY PENDING`
 
-Date: `2026-09-08`
+Date: `2026-09-10`
 
 Target project: `olegevhncmblxngurclt`
 
@@ -18,10 +18,12 @@ The emergency artifact is:
 `docs/release/sql/W6_P0_REMOTE_CONTAINMENT.sql`
 
 It enables RLS on all 14 observed product tables, revokes all product-table
-privileges from `anon`, keeps `studybook-documents` private and revokes
-anonymous access to the Storage catalog. It neither changes authenticated
-privileges nor modifies service-role privileges. It contains no destructive
-DDL or application-row mutation.
+privileges from `anon` and keeps `studybook-documents` private. It deliberately
+preserves Supabase Storage's baseline grants: Storage API roles require those
+SQL grants, while effective object authorization is enforced by RLS, policies
+and bucket visibility. It neither changes authenticated privileges nor
+modifies service-role privileges. It contains no destructive DDL or
+application-row mutation.
 
 ## Recovery Integrity
 
@@ -59,9 +61,14 @@ idempotence. Results:
 
 - RLS-enabled product tables: 14 of 14
 - Anonymous CRUD grants on product tables: 0
-- Anonymous CRUD grants on `storage.buckets` / `storage.objects`: 0
 - Anonymous REST access to all 14 product tables: denied (`401`)
-- Anonymous private Storage list: denied (`403`)
+- Storage RLS: enabled on `storage.buckets` and `storage.objects`
+- Storage policies applicable to `anon` or `public`: 0
+- `studybook-documents`: private
+- Anonymous bucket enumeration: no visible buckets (`200`, empty result)
+- Anonymous object listing: no visible objects (`200`, empty result)
+- Anonymous private object read/insert/update/delete: denied (`400`)
+- Service-role Storage upload/read/update/delete: pass (`200`)
 - Service-role aggregate access: 968 rows
 - Rows before/after: 968 / 968
 - Storage metadata before/after: 37 / 37
@@ -78,6 +85,39 @@ policy intentionally fails closed until the final RLS migration is deployed.
 The Flutter application remains viable because product operations go through
 FastAPI, which verifies the bearer identity and uses the backend-only
 service-role client with explicit owner filters.
+
+### W6-P0.1 Storage Privilege Reconciliation
+
+The first remote SQL Editor execution aborted with
+`W6-P0 anonymous Storage privilege remains`. Post-failure inspection showed
+`workspaces`, `chats` and `messages` still had RLS disabled, confirming that the
+transaction rolled back. No remote containment change was retained.
+
+The exact failure was reproduced against a fresh restore. Supabase owns
+`storage.buckets` and `storage.objects` through `supabase_storage_admin`, which
+is also the grantor of the baseline `anon`, `authenticated` and `service_role`
+table privileges. A `REVOKE` issued by the SQL Editor's `postgres` role did not
+remove grants made by that owner; the old assertion then raised and rolled back
+the transaction.
+
+More importantly, `has_table_privilege()` was not an effective Storage access
+test. On the uncontained legacy restore, both Storage tables already had RLS
+enabled, the document bucket was private and there were zero Storage policies.
+Although the baseline grants were present, an anonymous Storage API client
+could enumerate no buckets or objects and could not download, upload, update or
+delete a service-created private probe.
+
+The corrected transaction preserves the platform grants and fails closed when:
+
+- either Storage table lacks RLS;
+- `anon` can bypass RLS;
+- a Storage policy applies to `anon` or `public`;
+- the document bucket is public; or
+- `service_role` lacks required Storage access.
+
+The corrected artifact was applied twice locally. All effective API denials,
+service-role operations, A/B isolation, backend owner filtering and data counts
+passed. Rows remained 968 and Storage metadata returned to 37 after the probe.
 
 ## Pre-Baseline Bridge
 
@@ -128,15 +168,18 @@ counts still matched the backup:
 - Storage bytes: 42,288,843
 - Anonymous workspaces/chats/messages: 36 / 46 / 118
 
-The local Supabase CLI profile received HTTP 403 from the Management database
-query endpoint, and the available browser session was not authenticated to the
-Supabase dashboard. No alternative credential was requested or exposed.
-Therefore the remote patch was not applied and the P0 remains open.
+The first remote SQL Editor attempt failed closed on the obsolete Storage grant
+assertion. The unchanged disabled RLS state of `workspaces`, `chats` and
+`messages` confirms rollback. W6-P0.1 performed no remote mutation. The P0
+remains open until an authorized operator retries the corrected artifact and
+completes the effective post-apply probes.
 
 ## Apply Gate
 
-An authorized project owner must establish a Supabase Management/SQL session.
-Then, from this exact reviewed commit and only after repeating pre-counts:
+An authorized project owner must use a Supabase SQL session. From the corrected
+reviewed commit and only after repeating pre-counts, execute the complete SQL
+artifact as one transaction. A CLI example, only when owner database access is
+available, is:
 
 ```bash
 cd /Users/welintonmejia/Desktop/campusai-audio
@@ -148,16 +191,19 @@ supabase db query --linked \
 Do not run `migration repair`, `db push`, the bridge or any of the five normal
 migrations during the emergency containment window.
 
-Immediately after the transaction, repeat anonymous probes for all 14 tables,
-private Storage denial, QA A/B owner isolation, Teacher authorization,
-service-role backend smoke tests, aggregate row counts and the 37-object
-Storage count.
+Immediately after the transaction, repeat anonymous probes for all 14 tables;
+anonymous Storage enumerate/list/read/insert/update/delete probes; QA A/B owner
+isolation; Teacher authorization; service-role Storage and backend smoke tests;
+aggregate row counts; and the 37-object Storage count. Baseline Storage grants
+may remain and are not a failure when RLS, policy, bucket and effective API
+checks all pass.
 
 ## Rollback
 
 The SQL artifact is transactional and its assertions abort the transaction if
-an expected table is missing, an anonymous privilege remains or service-role
-access is lost. This is the primary rollback boundary.
+an expected table is missing, public-table anonymous access remains, Storage
+RLS or policy safety fails, the bucket is public, or service-role access is
+lost. This is the primary rollback boundary.
 
 After commit, do not restore anonymous grants, disable RLS or make a bucket
 public. If an unexpected severe regression appears, freeze writes, retain the

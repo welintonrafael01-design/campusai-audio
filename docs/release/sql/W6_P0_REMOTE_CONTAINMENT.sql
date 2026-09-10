@@ -77,14 +77,12 @@ revoke all privileges on table
   public.workspaces
 from anon;
 
--- The application does not expose anonymous document Storage. Keep the
--- existing authenticated/service-role privileges untouched.
+-- Supabase Storage relies on baseline table grants for its API roles and
+-- enforces object authorization with RLS. Keep those platform grants intact.
 update storage.buckets
 set public = false
 where id = 'studybook-documents'
   and public is distinct from false;
-
-revoke all privileges on table storage.buckets, storage.objects from anon;
 
 do $$
 declare
@@ -129,12 +127,53 @@ begin
     end if;
   end loop;
 
-  if has_table_privilege('anon', 'storage.buckets', 'SELECT')
-    or has_table_privilege('anon', 'storage.objects', 'SELECT')
-    or has_table_privilege('anon', 'storage.objects', 'INSERT')
-    or has_table_privilege('anon', 'storage.objects', 'UPDATE')
-    or has_table_privilege('anon', 'storage.objects', 'DELETE') then
-    raise exception 'W6-P0 anonymous Storage privilege remains.';
+  if not coalesce((
+    select relation.relrowsecurity
+    from pg_class relation
+    join pg_namespace namespace on namespace.oid = relation.relnamespace
+    where namespace.nspname = 'storage'
+      and relation.relname = 'objects'
+  ), false) then
+    raise exception 'W6-P0 Storage object RLS is not enabled.';
+  end if;
+
+  if not coalesce((
+    select relation.relrowsecurity
+    from pg_class relation
+    join pg_namespace namespace on namespace.oid = relation.relnamespace
+    where namespace.nspname = 'storage'
+      and relation.relname = 'buckets'
+  ), false) then
+    raise exception 'W6-P0 Storage bucket RLS is not enabled.';
+  end if;
+
+  if coalesce((
+    select role.rolbypassrls
+    from pg_roles role
+    where role.rolname = 'anon'
+  ), true) then
+    raise exception 'W6-P0 anonymous role can bypass RLS.';
+  end if;
+
+  if exists (
+    select 1
+    from pg_policies policy
+    where policy.schemaname = 'storage'
+      and policy.tablename in ('buckets', 'objects')
+      and (
+        'public' = any(policy.roles::text[])
+        or 'anon' = any(policy.roles::text[])
+      )
+  ) then
+    raise exception 'W6-P0 anonymous Storage policy remains.';
+  end if;
+
+  if not has_table_privilege('service_role', 'storage.buckets', 'SELECT')
+    or not has_table_privilege('service_role', 'storage.objects', 'SELECT')
+    or not has_table_privilege('service_role', 'storage.objects', 'INSERT')
+    or not has_table_privilege('service_role', 'storage.objects', 'UPDATE')
+    or not has_table_privilege('service_role', 'storage.objects', 'DELETE') then
+    raise exception 'W6-P0 service role lost required Storage access.';
   end if;
 
   if exists (

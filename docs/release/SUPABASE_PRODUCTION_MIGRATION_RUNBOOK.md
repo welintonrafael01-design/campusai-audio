@@ -1,6 +1,6 @@
 # Supabase Production Migration Runbook
 
-Status: `W6-P0 LOCAL VERIFIED - REMOTE CONTAINMENT REQUIRES PROJECT OWNER SESSION`
+Status: `W6-P0.1 STORAGE RECONCILED - REMOTE CONTAINMENT RETRY PENDING`
 
 The authorized W6 preflight on 2026-09-08 identified the intended project as
 `olegevhncmblxngurclt` and completed read-only REST, Storage and QA identity
@@ -18,18 +18,19 @@ restore of the backup.
 
 W6-P0 completed that disposable restore rehearsal. Recovery artifacts,
 emergency containment, the pre-baseline bridge, the five-migration chain and
-all SQL contracts pass locally. The remote P0 transaction is still unapplied
-because the current CLI Management identity receives HTTP 403 and the available
-dashboard session is not authenticated. Do not substitute a service-role key
-for database/Management authority.
+all SQL contracts pass locally. The first remote SQL Editor transaction then
+failed closed on an obsolete Storage-grant assertion and rolled back. W6-P0.1
+corrected and revalidated that assertion locally. Do not substitute a
+service-role key for database/Management authority.
 
 ## Emergency P0 Containment Window
 
 Before the full migration window, an authorized project owner should apply only
 `docs/release/sql/W6_P0_REMOTE_CONTAINMENT.sql` after repeating the 968-row and
 37-object pre-counts. The transaction enables RLS on all observed product
-tables, revokes `anon` product/Storage catalog access and asserts service-role
-viability. It is minimal, idempotent and data-preserving.
+tables, revokes `anon` product-table access, preserves Supabase Storage baseline
+grants and asserts Storage RLS, policy, bucket and service-role safety. It is
+minimal, idempotent and data-preserving.
 
 ```bash
 cd /Users/welintonmejia/Desktop/campusai-audio
@@ -38,9 +39,12 @@ supabase db query --linked \
   --file docs/release/sql/W6_P0_REMOTE_CONTAINMENT.sql
 ```
 
-Immediately verify all anonymous product tables and private Storage are denied,
-QA A/B remain isolated, Student cannot call Teacher endpoints, trusted Teacher
-can, backend service-role paths pass, rows remain 968 and Storage remains 37.
+Immediately verify all anonymous product tables and effective private Storage
+enumerate/list/read/write/update/delete access are denied, QA A/B remain
+isolated, Student cannot call Teacher endpoints, trusted Teacher can, backend
+service-role paths pass, rows remain 968 and Storage remains 37. Baseline
+Storage grants alone are not an access failure when the effective API gate
+passes.
 Do not run the bridge, `db push` or `migration repair` in this emergency window.
 
 This runbook is for a separately approved production window. The 7F-S3 sprint

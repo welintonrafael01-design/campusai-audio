@@ -93,11 +93,16 @@ def test_p0_containment_is_minimal_idempotent_and_data_preserving():
         assert f"alter table public.{table} enable row level security" in sql
 
     assert "from anon" in sql
-    assert "storage.buckets, storage.objects from anon" in sql
     assert "service role lost required access" in sql
     for privilege in ("select", "insert", "update", "delete"):
         assert f"relation_name), '{privilege}'" in sql
     assert "update storage.buckets" in sql
+    assert "storage object rls is not enabled" in sql
+    assert "storage bucket rls is not enabled" in sql
+    assert "anonymous role can bypass rls" in sql
+    assert "anonymous storage policy remains" in sql
+    assert "service role lost required storage access" in sql
+    assert "storage.buckets, storage.objects from anon" not in sql
     assert "drop table" not in sql
     assert "delete from" not in sql
     assert "truncate" not in sql

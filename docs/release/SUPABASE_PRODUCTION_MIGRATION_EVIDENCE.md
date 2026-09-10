@@ -1,12 +1,51 @@
 # Supabase Production Migration Evidence
 
-Status: `W6-P0 LOCAL GATES PASS - REMOTE CONTAINMENT BLOCKED BY OPERATOR ACCESS`
+Status: `W6-P0.1 STORAGE RECONCILIATION PASS - REMOTE RETRY PENDING`
 
 Captured at: `2026-09-08T04:54:59Z`
 
+W6-P0.1 updated at: `2026-09-10`
+
 Repository commit: `5d5704293808d05f7a320bb60081eb13290bfcf2`
 
+W6-P0.1 base commit: `1ab27211ad58d574331069c82fd78f0dc3277a44`
+
 Target project ref: `olegevhncmblxngurclt`
+
+## W6-P0.1 Storage Privilege Reconciliation
+
+The first authorized remote SQL Editor attempt aborted safely with
+`W6-P0 anonymous Storage privilege remains`. Inspection after the error found
+RLS still disabled on `workspaces`, `chats` and `messages`, zero Storage
+policies and the private document bucket unchanged. This confirms transaction
+rollback; no containment mutation persisted remotely.
+
+A new disposable restore reproduced the exact state: 968 product rows, 37
+Storage metadata objects, RLS enabled on `storage.buckets` and
+`storage.objects`, zero Storage policies, a private `studybook-documents`
+bucket and Supabase baseline grants for API roles. The Storage owner/grantor is
+`supabase_storage_admin`; the SQL Editor's `postgres` role cannot reliably
+revoke grants issued by that owner. The former `has_table_privilege()` assertion
+therefore measured a platform prerequisite, not effective anonymous object
+access.
+
+Effective local Storage API probes showed:
+
+- Bucket enumeration: HTTP 200 with zero visible buckets
+- Object listing: HTTP 200 with zero visible objects
+- Private object read/insert/update/delete: denied with HTTP 400
+- Service-role upload/read/update/delete: HTTP 200
+
+The corrected emergency artifact retains baseline Storage grants and asserts
+RLS on both Storage tables, no `anon` RLS bypass, no policy applicable to
+`anon`/`public`, private bucket state and service-role viability. It passed
+twice locally. All 14 private product tables denied anonymous REST access with
+HTTP 401. Student A/B subscription ownership, backend library isolation,
+Student/Teacher authorization and metadata-spoof denial passed. Rows remained
+968 and Storage returned to 37 objects after the temporary probe.
+
+W6-P0.1 made no remote mutation. The corrected artifact is ready for a new
+authorized SQL Editor attempt with the full post-apply effective-access gate.
 
 ## W6-P0 Restore And Containment Gate
 
@@ -18,12 +57,14 @@ bytes. Recovery integrity and restore drill: `PASS`.
 
 The reviewed emergency artifact
 `docs/release/sql/W6_P0_REMOTE_CONTAINMENT.sql` was applied twice locally. It
-enabled RLS on all 14 legacy product tables and removed anonymous product and
-Storage catalog privileges. Anonymous REST probes were denied for all product
-tables; private Storage returned 403; service-role access retained all 968
-rows. Row and Storage counts were unchanged. QA Student A/B subscriptions were
-owner-isolated, Teacher authorization remained server-controlled and a
-`user_metadata` privilege spoof was denied.
+enabled RLS on all 14 legacy product tables and removed anonymous product-table
+privileges. Storage baseline grants remain intentionally protected by existing
+Storage RLS, zero anonymous policies and a private bucket. Anonymous REST
+probes were denied for all product tables; effective private Storage access was
+denied; service-role access retained all 968 rows. Row and Storage counts were
+unchanged. QA Student A/B subscriptions were owner-isolated, Teacher
+authorization remained server-controlled and a `user_metadata` privilege
+spoof was denied.
 
 The pre-baseline bridge now exists at
 `supabase/migrations/20260827000100_remote_legacy_reconciliation.sql`. Against
@@ -38,11 +79,11 @@ migration stacks.
 
 Remote read-only pre-counts still match 968 rows and 37 Storage objects.
 Anonymous visibility remains 36 workspaces, 46 chats and 118 messages. The
-remote containment transaction was **not applied** because the current CLI
-Management identity returned HTTP 403 and the available dashboard browser was
-not authenticated. No bridge, normal migration, history repair or remote SQL
-write occurred. The P0 remains open pending an authorized project-owner
-session. Full evidence and the safe apply/rollback boundary are in
+first remote containment transaction aborted and rolled back on its obsolete
+Storage-grant assertion; W6-P0.1 performed no remote mutation. No bridge,
+normal migration, history repair or remote SQL write completed. The P0 remains
+open pending an authorized retry of the corrected transaction. Full evidence
+and the safe apply/rollback boundary are in
 `docs/security/W6_P0_REMOTE_CONTAINMENT.md`.
 
 ## W6-R2 Reconciliation
