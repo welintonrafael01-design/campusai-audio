@@ -224,6 +224,41 @@ verification records were not generated and no target is guessed here.
 | `app.studybookai.com` | Vercel Flutter | Pending provider assignment in W7-B |
 | `api.studybookai.com` | Render API | Pending provider assignment in W7-B |
 
+## W7-B0.1 Document Chat 404 Hotfix
+
+The provider-native W7-B0 smoke found that an authenticated request for an
+unavailable document reached the chat route's generic exception handler and
+returned HTTP 500. `get_document_info` used a broad `ValueError` for a missing
+document, while the route translated only ownership `PermissionError` values.
+
+QA commit `ca8d49b2bad7268844fc695776d6d068a5df2d4f` introduces the typed
+`DocumentNotFoundError`. Only this missing-resource exception and ownership
+denial map to the same generic HTTP 404 response. Unrelated `ValueError` and
+other unexpected failures retain the redacted HTTP 500 contract.
+
+Local validation:
+
+- Focused document/security tests: `21 passed`.
+- Full backend suite: `184 passed, 10 skipped`.
+- Security and isolation selection: `162 passed`.
+- Flutter API error-redaction tests: `4 passed`.
+- Flutter analyze: no issues.
+- Python compile, tracked secret scan and `git diff --check`: pass.
+
+Render redeployed the exact QA commit above. Authenticated live smoke verified:
+
+- Owner-scoped document lookup reaches the normal downstream validation path.
+- A valid unavailable document returns HTTP 404.
+- A document owned by another QA user returns the same HTTP 404 body.
+- The response is `Documento no encontrado.` and includes no owner, document
+  identifier or private metadata.
+- Health, build SHA, subscription, cloud library, Student-to-Teacher denial,
+  Supabase login/logout and exact-origin CORS remain passing.
+- Marketing and Flutter provider-native HTTPS routes remain HTTP 200.
+
+No DNS, provider custom-domain, Auth callback or indexing setting changed in
+this hotfix. W7-B0 may resume from provider custom-domain preparation.
+
 ## Supabase Security State
 
 W6 production evidence remains authoritative: six migrations aligned, 17
