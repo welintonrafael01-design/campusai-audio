@@ -1,6 +1,6 @@
 # Supabase Production Migration Evidence
 
-Status: `W6-M1 CORE ROLLBACK VERIFIED - REMOTE RETRY NOT AUTHORIZED`
+Status: `W6-M3 POST-MIGRATION REMOTE VALIDATION PASS`
 
 Captured at: `2026-09-08T04:54:59Z`
 
@@ -13,6 +13,102 @@ W6-P0.1 base commit: `1ab27211ad58d574331069c82fd78f0dc3277a44`
 W6-M1 base commit: `71e47bc8b04544a6de0a5be690427a0523aa0de8`
 
 Target project ref: `olegevhncmblxngurclt`
+
+W6-M3 validation base commit: `703d8dacb2a40b12b22a0c312185d37a41ae3efd`
+
+## W6-M3 Post-Migration Remote Validation
+
+The separately authorized W6-M2 resume completed the normal pending migration
+chain. W6-M3 performed read-only verification plus isolated disposable Auth,
+database, quota and private Storage probes. Every disposable artifact was
+deleted immediately. W6-M3 did not run `db push`, migration repair, database
+reset, manual schema SQL or migration-history mutation.
+
+### Canonical Remote State
+
+Remote migration history contains exactly these six versions, with no gaps,
+duplicates or unexpected entries:
+
+| Version | Name |
+| --- | --- |
+| `20260827000100` | `remote_legacy_reconciliation` |
+| `20260828000100` | `studybook_core_schema` |
+| `20260829000100` | `studybook_rls_security` |
+| `20260831000100` | `production_persistence` |
+| `20260901000100` | `document_ownership_hardening` |
+| `20260907000100` | `atomic_free_quota` |
+
+Final data integrity is 609 active rows plus 359 private quarantine rows,
+preserving all 968 legacy rows. Unexpected duplicate groups, active owner
+orphans and relationship orphans are zero. Ordinary anonymous and authenticated
+clients cannot read quarantine records.
+
+All 17 required product tables exist and have RLS enabled. The final catalog
+contains 49 StudyBook public policies and four Storage policies. Owner foreign
+keys are complete, `documents.user_id` is a non-null UUID,
+`workspaces.updated_at` exists, and all 12 expected update triggers exist.
+`educator_rubrics` is preserved, versioned, protected by four policies and has
+its update trigger.
+
+### Storage, RAG And Quota
+
+- `studybook-documents` is private and retains exactly 37 original objects.
+- A path-and-size manifest comparison matched the pre-migration backup.
+- All 37 remote object streams matched their recorded SHA-256 hashes, totaling
+  42,288,843 bytes; no object was replaced or lost.
+- `studybook-private-artifacts` is private and contains zero persistent objects.
+- Final W6-M3 temporary Auth, row, quota and Storage artifacts: zero.
+- pgvector is installed in `extensions`; the embedding is
+  `extensions.vector(1536)` and the expected HNSW index exists.
+- The RAG RPC exists as a server-authorized security-definer function.
+  Anonymous and authenticated direct execution is denied; service role passes.
+- All three atomic-quota RPCs exist. Reservation, idempotent reservation,
+  release, consume, commit replay, UTC period handling and concurrent boundary
+  enforcement passed. Client privileged execution is denied.
+
+### Effective Authorization
+
+Anonymous database access is denied across all 17 product tables. Anonymous
+Storage list/read/insert/update/delete is effectively denied; an empty `200`
+list response is accepted as the RLS-enforced denial. Student A and Student B
+cross-owner access is denied in both directions across workspaces, documents,
+study results, AudioBooks, chats, subscriptions, usage and educator records.
+Both students are denied Teacher endpoints; the QA Teacher is authorized for
+its own educator data. Client-controlled metadata cannot grant Teacher or Admin
+privilege. Representative service-role database and private Storage
+create/read/update/delete operations passed and were cleaned.
+
+### Regression And Advisor
+
+- Backend full suite: 177 passed, 10 skipped.
+- Security-focused backend suite: 75 passed.
+- Flutter full suite: 144 passed.
+- Flutter analyze: no issues.
+- RLS, persistence and atomic-quota SQL contracts: pass.
+- Supabase DB lint against a disposable six-migration database: no schema
+  errors.
+- Python compile, first-party secret scan and `git diff --check`: pass.
+
+Security Advisor no longer reports the former critical RLS warnings for
+`workspaces`, `chats` or `messages`. It reports three informational
+`rls_enabled_no_policy` findings for intentionally server-only
+`certificates`, `document_chunks` and `quota_reservations`, plus one warning
+that Auth leaked-password protection is disabled. The latter is a release
+hardening P2 and was not changed during this verification.
+
+The existing foreign/nonexistent chat response mapping also remains P2: the
+backend can return `500` instead of a human `403/404`, while remote verification
+confirmed zero foreign-message exposure. P0 remains closed and no P1 was
+identified.
+
+### Recovery Point
+
+The verified recovery artifacts at
+`$HOME/StudyBookAI_Backups/supabase_2026-09-08` remain unchanged and represent
+the **pre-migration legacy state**. Their four recorded hashes were revalidated
+during W6-M3. A new, separately authorized, dated post-migration logical and
+private Storage backup is recommended so the six-migration schema becomes the
+canonical recovery point. It must not overwrite the existing directory.
 
 ## W6-M1 Failed Remote Migration Reconciliation
 

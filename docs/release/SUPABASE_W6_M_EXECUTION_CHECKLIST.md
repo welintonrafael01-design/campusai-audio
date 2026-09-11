@@ -1,8 +1,34 @@
 # Supabase W6-M Execution Checklist
 
-Status: `W6-M1 CORE ROLLBACK VERIFIED - REMOTE RETRY NOT AUTHORIZED`
+Status: `W6-M COMPLETE - W6-M3 POST-MIGRATION VALIDATION PASS`
 
 Target project: `olegevhncmblxngurclt`
+
+> **Closed checklist:** the authorized migration resume completed and W6-M3
+> validated all six versions remotely. Sections below are retained as the
+> historical execution record. Do not execute their migration commands again.
+
+## Completion Record
+
+- Remote history: exactly six versions, `20260827000100` through
+  `20260907000100`.
+- Data: 609 active + 359 quarantine = 968 preserved; zero unexpected duplicate
+  groups or active ownership/relation orphans.
+- Storage: 37 original private document objects; stream hashes match the
+  pre-migration manifest; zero W6-M3 temporary objects.
+- Schema: all 17 required product tables, `educator_rubrics`, owner foreign
+  keys, 12 update triggers, pgvector/HNSW, server-authorized RAG and atomic
+  quota are present.
+- Security: RLS 17/17, anonymous DB/Storage denied, Student A/B isolated in both
+  directions, metadata spoof denied, Teacher authorization and service role
+  pass.
+- Regression: backend 177 passed/10 skipped; focused security 75 passed;
+  Flutter 144 passed; analyze, SQL contracts, DB lint, Python compile, secret
+  scan and diff check pass.
+- Open P2: foreign/nonexistent chat status mapping; Auth leaked-password
+  protection. P0 closed; no P1.
+- Recovery: keep the 2026-09-08 pre-migration backup unchanged and schedule a
+  separately authorized dated post-migration backup.
 
 The first authorized W6-M push applied and recorded the bridge, then failed on a
 connection error while reporting Core statement index 12. W6-M1 proved through

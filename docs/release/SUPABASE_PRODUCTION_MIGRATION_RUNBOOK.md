@@ -1,6 +1,43 @@
 # Supabase Production Migration Runbook
 
-Status: `W6-M1 CORE ROLLBACK VERIFIED - REMOTE RETRY REQUIRES SEPARATE APPROVAL`
+Status: `W6-M3 POST-MIGRATION VALIDATED - PRODUCTION CHAIN COMPLETE`
+
+## W6-M3 Canonical Production State
+
+The remote project `olegevhncmblxngurclt` now contains all six reviewed
+migrations from `20260827000100` through `20260907000100`. W6-M3 verified the
+final schema, 609 active plus 359 quarantined rows, 37 unchanged private
+document objects, 17 of 17 product tables under RLS, private artifact Storage,
+pgvector/RAG, atomic quota, QA multiuser isolation and service-role viability.
+P0 remains closed and no P1 is open.
+
+The migration window is closed. Do not rerun the bridge or any later migration,
+do not use migration repair, and never run `db reset --linked`. The W6-M1 retry
+instructions below are retained only as incident history and are no longer an
+operator sequence for the current remote state.
+
+Two non-blocking P2 items remain tracked: foreign/nonexistent chat requests can
+map to `500` without exposing messages, and Supabase Auth leaked-password
+protection is disabled. Address them in separate, reviewed remediations.
+
+### Post-Migration Backup Plan
+
+The existing `$HOME/StudyBookAI_Backups/supabase_2026-09-08` artifacts are a
+verified **pre-migration** recovery point and must remain untouched. In a
+separately authorized backup window:
+
+1. Create a new dated directory, such as
+   `$HOME/StudyBookAI_Backups/supabase_YYYY-MM-DD_post_migration`.
+2. Capture logical schema, data and roles from the migrated project using an
+   operator-supplied database password that is never logged or committed.
+3. Copy every private Storage object through authenticated service-side access,
+   recording only private path/size/hash evidence outside Git.
+4. Compare database aggregates to 609 active plus 359 quarantine rows and the
+   document bucket to 37 original objects.
+5. Verify restore into a disposable local project before promoting the new
+   backup as canonical.
+
+W6-M3 prepared this plan but did not create or overwrite a backup.
 
 ## W6-M1 Incident And Safe Resume Boundary
 

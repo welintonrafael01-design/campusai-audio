@@ -1,10 +1,39 @@
 # W6-P0 Remote Security Containment
 
-Status: `W6-P0R CONFIDENTIALITY P0 CLOSED - W6-M1 REVALIDATED`
+Status: `W6-P0R CONFIDENTIALITY P0 CLOSED - W6-M3 REVALIDATED`
 
 Date: `2026-09-10`
 
 Target project: `olegevhncmblxngurclt`
+
+## W6-M3 Final Security Revalidation
+
+After the separately authorized production migration completed, W6-M3 verified
+the final remote state without applying migrations, repair, reset or schema
+changes:
+
+- Remote history contains exactly all six reviewed migration versions.
+- All 17 StudyBook product tables have RLS enabled, with 49 public policies.
+- Anonymous database access is denied across every product table.
+- Both Storage buckets are private and protected by four policies.
+- The 37 original document objects remain byte-for-byte consistent with the
+  private backup manifest; private artifacts and final disposable objects are
+  zero.
+- Student A and Student B are isolated in both directions across all tested
+  product domains and private object paths.
+- Direct authenticated RAG and quota authority is denied; server-authorized RAG,
+  atomic quota and representative service-role operations pass.
+- Client-controlled metadata cannot grant Teacher or Admin access. Student
+  Teacher-endpoint access is denied and the trusted QA Teacher passes.
+- Active/quarantine counts remain 609/359, preserving all 968 legacy rows with
+  zero unexpected duplicates or active ownership/relation orphans.
+
+Security Advisor confirms the former critical `workspaces`, `chats` and
+`messages` RLS warnings are cleared. Its three server-only
+`rls_enabled_no_policy` notices are informational. Disabled Auth
+leaked-password protection remains P2, as does the known foreign/nonexistent
+chat `500` status mapping; neither finding exposed private data during W6-M3.
+P0 remains closed and no P1 was found.
 
 ## W6-M1 Post-Bridge Revalidation
 
