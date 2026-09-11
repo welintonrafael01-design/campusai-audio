@@ -1,14 +1,15 @@
 # StudyBook AI Production Infrastructure
 
-Status: `W7-A2 PROVIDER-NATIVE DEPLOYMENT PASS - DNS UNCHANGED`
+Status: `W7-B0.2 DOMAIN ASSIGNMENT PASS - DNS CUTOVER NOT AUTHORIZED`
 
 Date: `2026-09-11`
 
-QA branch deployed commit: `848865c8d72ad0d7dd0aee6038e6f17b94f3260e`
+QA branch deployed commit: `ca8d49b2bad7268844fc695776d6d068a5df2d4f`
 
 The authorized QA branch was pushed and deployed to persistent provider-native
-Render and Vercel projects. No DNS, tag, custom-domain assignment, remote
-Supabase schema mutation or public indexing change was performed.
+Render and Vercel projects. Production custom domains are assigned inside the
+correct provider projects and are waiting for DNS. No authoritative DNS, tag,
+remote Supabase configuration or public indexing change was performed.
 
 ## Deployment Topology
 
@@ -43,11 +44,13 @@ Auto deploy: off
 ```
 
 `APP_WEB_URL` and `BACKEND_CORS_ORIGINS` are intentionally `sync: false`.
-Before the first deployment, enter the actual provider origins. During the
-pre-DNS phase, `APP_WEB_URL` is the persistent marketing Vercel origin and CORS
-contains only the persistent Flutter Vercel origin plus any marketing origin
-that actually calls the API. Production rejects HTTP, local and `.invalid`
-origins and rejects `BACKEND_CORS_ORIGIN_REGEX`.
+Before the first deployment, enter the actual provider origins. In Render,
+`APP_WEB_URL` is the Flutter application origin because backend billing returns
+and public verification links use hash routes inside that application. During
+the transition it remains the persistent Flutter Vercel origin. CORS contains
+the persistent Flutter origin and later both Flutter origins; Marketing is not
+included because it does not call FastAPI directly. Production rejects HTTP,
+local and `.invalid` origins and rejects `BACKEND_CORS_ORIGIN_REGEX`.
 
 ### Backend Environment Classification
 
@@ -168,7 +171,8 @@ admin or Google service-account credentials in Flutter.
   Teacher resolves to `teacher_pro` with active status.
 - Student access to `/educator/snapshot`: HTTP 403; Teacher access: HTTP 200.
 - Cloud library reads: HTTP 200 for Student A, Student B and Teacher.
-- Missing chat lookup: privacy-safe HTTP 404.
+- The initial missing-chat HTTP 500 found during W7-B0 was corrected and
+  verified live in W7-B0.1 below.
 - CORS allows exactly `https://studybook-ai-app.vercel.app`; an unknown origin
   is rejected and no wildcard credential origin is configured.
 - Security headers are present and no secret value was emitted in evidence.

@@ -1,0 +1,212 @@
+# StudyBook AI W7-B Domain Cutover
+
+Status: `W7-B0.2 PREPARATION COMPLETE - STOP BEFORE DNS MUTATION`
+
+Date: `2026-09-11`
+
+This document records provider-issued requirements for `studybookai.com`.
+Values were collected from the authenticated Vercel and Render projects after
+custom-domain assignment. They are not generic documentation defaults.
+
+## Safety Boundary
+
+- Authoritative DNS remains at GoDaddy.
+- No DNS record, nameserver, Supabase Auth setting, CORS variable, public URL,
+  runtime build or indexing setting changed in W7-B0.2.
+- Do not modify `NS`, `SOA`, `_domainconnect`, `_dmarc`, `MX`, SPF, DKIM or any
+  unrelated validation record.
+- Public indexing stays disabled until DNS, TLS, legal, contact, Auth and final
+  functional gates pass.
+
+## Runtime And Deployment State
+
+| Surface | Project / service | Native URL | Deployed commit |
+| --- | --- | --- | --- |
+| API | Render `studybook-ai-api` | `https://studybook-ai-api.onrender.com` | `ca8d49b2bad7268844fc695776d6d068a5df2d4f` |
+| Marketing | Vercel `studybook-ai-marketing` | `https://studybook-ai-marketing.vercel.app` | `ca8d49b2bad7268844fc695776d6d068a5df2d4f` |
+| Flutter | Vercel `studybook-ai-app` | `https://studybook-ai-app.vercel.app` | `ca8d49b2bad7268844fc695776d6d068a5df2d4f` |
+
+Provider-native health, HTTPS, SPA routing, login, subscription, Library Cloud,
+Student-to-Teacher denial, privacy-safe document 404 and exact-origin CORS pass.
+
+## Provider Domain Assignments
+
+| Domain | Provider target | Assignment | Provider status before DNS |
+| --- | --- | --- | --- |
+| `studybookai.com` | Vercel `studybook-ai-marketing` Production | Correct | Invalid Configuration |
+| `www.studybookai.com` | Vercel `studybook-ai-marketing` Production | Correct | Invalid Configuration |
+| `app.studybookai.com` | Vercel `studybook-ai-app` Production | Correct | Invalid Configuration |
+| `api.studybookai.com` | Render `studybook-ai-api` | Correct | Waiting for DNS / certificate verification |
+
+No domain is attached to a temporary deployment or the wrong project. Render's
+native `onrender.com` hostname remains enabled for rollback and transition.
+
+## Authoritative DNS Snapshot
+
+The snapshot was queried directly from `ns53.domaincontrol.com` with TTL 3600.
+
+| Host | Type | Current value |
+| --- | --- | --- |
+| `@` | A | `76.223.105.230` |
+| `@` | A | `13.248.243.5` |
+| `www` | CNAME | `studybookai.com.` |
+| `app` | none | No record |
+| `api` | none | No record |
+| `@` | NS | `ns53.domaincontrol.com.` |
+| `@` | NS | `ns54.domaincontrol.com.` |
+| `_domainconnect` | CNAME | `_domainconnect.gd.domaincontrol.com.` |
+| `_dmarc` | TXT | Existing quarantine policy; preserve unchanged |
+
+The current root responds with GoDaddy `Server: DPS`, confirming that its two A
+records serve the existing Website Builder. `www` currently redirects through
+that root to `https://studybookai.com/`.
+
+## Exact DNS Cutover Table
+
+Provider UIs did not prescribe a TTL. The current authoritative TTL is 3600;
+retaining it is the documented default unless the human operator approves a
+temporary lower TTL before cutover.
+
+| Provider | Purpose | Domain | DNS type | Host | Current value | Required value | Action | TTL | Verification needed | Provider status | Safe to apply |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Vercel | Marketing root | `studybookai.com` | A | `@` | `76.223.105.230` and `13.248.243.5` | `216.198.79.1` | Replace both current A records with this single A record | Not specified; current 3600 | Vercel DNS configuration check; no extra TXT shown | Invalid Configuration | Only after explicit W7-B authorization |
+| Vercel | Marketing www | `www.studybookai.com` | CNAME | `www` | `studybookai.com.` | `0bcd2772ba0ac548.vercel-dns-017.com.` | Replace current CNAME | Not specified; current 3600 | Vercel DNS configuration check; no extra TXT shown | Invalid Configuration | Only after explicit W7-B authorization |
+| Vercel | Flutter app | `app.studybookai.com` | CNAME | `app` | No record | `2573f2cae2890ca0.vercel-dns-017.com.` | Create CNAME | Not specified; default 3600 | Vercel DNS configuration check; no extra TXT shown | Invalid Configuration | Only after explicit W7-B authorization |
+| Render | FastAPI | `api.studybookai.com` | CNAME | `api` | No record | `studybook-ai-api.onrender.com` | Create CNAME | Not specified; default 3600 | Click Render Verify after propagation; no extra record shown | Waiting for DNS | Only after explicit W7-B authorization |
+
+## Rollback Table
+
+| Host | Original type | Original value | New type | New value | Rollback action |
+| --- | --- | --- | --- | --- | --- |
+| `@` | A | `76.223.105.230` | A | `216.198.79.1` | Remove the Vercel A and restore this GoDaddy A |
+| `@` | A | `13.248.243.5` | A | `216.198.79.1` | Restore this second GoDaddy A alongside the first |
+| `www` | CNAME | `studybookai.com.` | CNAME | `0bcd2772ba0ac548.vercel-dns-017.com.` | Restore CNAME `www -> studybookai.com.` |
+| `app` | none | No record | CNAME | `2573f2cae2890ca0.vercel-dns-017.com.` | Delete only the newly created `app` CNAME |
+| `api` | none | No record | CNAME | `studybook-ai-api.onrender.com` | Delete only the newly created `api` CNAME |
+
+Rollback changes only these rows. Provider-native Vercel and Render URLs remain
+available throughout propagation. DNS caches can continue serving either state
+for up to the authoritative TTL and resolver-specific cache duration.
+
+## Canonical Marketing Behavior
+
+- Canonical host: `https://studybookai.com`.
+- After DNS and both certificates are valid, configure Vercel
+  `www.studybookai.com` as a permanent redirect to `https://studybookai.com`.
+- Do not configure the current Vercel dialog's opposite apex-to-www redirect.
+- Keep indexing disabled after domain connection; canonical availability is not
+  launch approval.
+
+## Supabase Auth Transition
+
+The Flutter client builds signup and recovery callbacks from `Uri.base.origin`.
+Keep the provider-native callbacks while adding final callbacks:
+
+```text
+https://studybook-ai-app.vercel.app/#/auth
+https://studybook-ai-app.vercel.app/#/reset-password
+https://app.studybookai.com/#/auth
+https://app.studybookai.com/#/reset-password
+```
+
+After the final app domain and TLS pass, set the recommended Supabase Site URL
+to `https://app.studybookai.com`. Do not remove native callbacks until signup,
+confirmation, reset, logout and fresh login pass on the custom domain. Test one
+controlled password-reset round trip and verify there is no open redirect or
+token in logs, screenshots or analytics.
+
+## Render URL And CORS Transition
+
+Render `APP_WEB_URL` means the Flutter application origin. Its final value is:
+
+```text
+APP_WEB_URL=https://app.studybookai.com
+```
+
+During transition, configure this exact CORS allowlist before the Flutter
+custom-domain functional test:
+
+```text
+BACKEND_CORS_ORIGINS=https://studybook-ai-app.vercel.app,https://app.studybookai.com
+```
+
+Marketing does not call FastAPI directly and is not included. Never use `*`
+with credentials. Keep the native Flutter origin until custom-domain Auth and
+API calls pass.
+
+The Flutter build uses a separate build-time meaning for `APP_WEB_URL`: its
+public Marketing/legal origin remains `https://studybookai.com`. After API DNS,
+Render TLS and `/health` pass, rebuild Flutter with:
+
+```text
+API_BASE_URL=https://api.studybookai.com
+APP_WEB_URL=https://studybookai.com
+PRIVACY_URL=https://studybookai.com/privacy
+ACCOUNT_DELETION_URL=https://studybookai.com/account-deletion
+REQUIRE_CANONICAL_PRODUCTION_URLS=true
+```
+
+Supabase public URL and anon key remain unchanged and must never be recorded in
+this document. The Render native URL remains the rollback API reference.
+
+## Marketing Environment Transition
+
+The native Marketing deployment currently sends login and signup CTAs to
+`https://studybook-ai-app.vercel.app`. After `app.studybookai.com` resolves with
+valid TLS, set:
+
+```text
+NEXT_PUBLIC_WEB_URL=https://studybookai.com
+NEXT_PUBLIC_APP_URL=https://app.studybookai.com
+NEXT_PUBLIC_API_URL=https://api.studybookai.com
+ENABLE_PUBLIC_INDEXING=false
+```
+
+Redeploy Marketing and verify all account CTAs before considering indexing.
+
+## TLS Validation Plan
+
+Vercel and Render issue managed certificates only after DNS verification. For
+each host verify the certificate hostname, chain, expiry, HTTPS response and
+HTTP-to-HTTPS behavior. Verify root/www redirects have no loop and API `/health`
+returns the expected deployed build SHA. Do not disable provider-managed TLS.
+
+## Authorized W7-B Execution Order
+
+1. Reconfirm this table against provider dashboards and save a fresh GoDaddy
+   snapshot.
+2. With separate authorization, replace only the two root A records and the
+   `www` CNAME, then create only the `app` and `api` CNAME records above.
+3. Wait for Vercel and Render ownership verification; do not alter nameservers.
+4. Verify Marketing root/www TLS, then configure `www` to redirect permanently
+   to the canonical root.
+5. Verify Render API TLS and `/health` through `api.studybookai.com`.
+6. Add the final app origin to Render CORS while retaining the native origin;
+   set Render `APP_WEB_URL` to the final Flutter origin at the approved point.
+7. Rebuild Flutter with the canonical API and public legal URLs, then verify
+   direct SPA routes on `app.studybookai.com`.
+8. Add final Supabase redirects and set Site URL; test login, logout and one
+   password-reset flow.
+9. Switch Marketing CTA environment values and verify every account link.
+10. Complete upload, responsive, keyboard, focus and basic accessibility checks.
+11. Keep indexing disabled until contact and legal approval are complete.
+
+## Remaining Human And P2 Gates
+
+- Visible logout, document upload, desktop/mobile responsive, keyboard, focus
+  and basic screen-reader checks remain human actions.
+- Password reset remains a human action after final callback configuration.
+- A full OpenAI secret appeared in prior operator evidence. Treat that value as
+  compromised and confirm it was rotated before public launch; do not expose or
+  compare secret values in evidence.
+- Contact delivery remains disabled pending a provider decision; do not modify
+  mail DNS.
+- Privacy, Terms and Account Deletion remain non-indexed legal drafts.
+- Supabase leaked-password protection remains a plan-dependent human action.
+- Per-instance rate limiting remains P2; distributed enforcement is required
+  before horizontal scale or material public abuse exposure.
+
+## Stop Condition
+
+W7-B0.2 stops here. The exact DNS table requires human review and a separate
+authorization before any GoDaddy mutation.
