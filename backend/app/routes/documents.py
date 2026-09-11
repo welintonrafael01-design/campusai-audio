@@ -75,6 +75,7 @@ from app.services.storage_service import (
 )
 from app.services.documents_cloud_service import create_document as create_cloud_document
 from app.services.document_registry_service import (
+    DocumentNotFoundError,
     register_document_file,
     get_document_info,
     require_document_owner,
@@ -304,10 +305,10 @@ def validate_document_owner(
             document_id=document_id,
             user_id=current_user.user_id,
         )
-    except PermissionError as error:
+    except (DocumentNotFoundError, PermissionError) as error:
         raise HTTPException(
-            status_code=403,
-            detail="No tienes permiso para acceder a este documento.",
+            status_code=404,
+            detail="Documento no encontrado.",
         ) from error
 
 

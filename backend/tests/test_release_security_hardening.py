@@ -6,9 +6,15 @@ from fastapi.testclient import TestClient
 from starlette.datastructures import Headers
 
 from app.main import api_docs_enabled, app as main_app
-from app.routes import audio, audiobook, cloud
+from app.routes import audio, audiobook, cloud, documents
 from app.security.user_auth import AuthenticatedUser, require_current_user
-from app.services import ai_service, audio_service, cloud_service
+from app.services import (
+    ai_service,
+    audio_service,
+    cloud_service,
+    document_registry_service,
+)
+from app.services.document_registry_service import DocumentNotFoundError
 
 
 def _user(user_id: str = "user-a") -> AuthenticatedUser:
@@ -161,8 +167,6 @@ def test_api_docs_fail_closed_in_production_unless_explicitly_enabled(monkeypatc
 
 
 def test_document_info_does_not_expose_server_paths(monkeypatch):
-    from app.routes import documents
-
     app = FastAPI()
     app.include_router(documents.router)
     app.dependency_overrides[require_current_user] = lambda: _user("user-a")
@@ -186,6 +190,98 @@ def test_document_info_does_not_expose_server_paths(monkeypatch):
     assert "file_path" not in response.json()
     assert "storage_path" not in response.json()
     assert "user_id" not in response.json()
+
+
+def _document_chat_client() -> TestClient:
+    app = FastAPI()
+    app.include_router(documents.router)
+    app.dependency_overrides[require_current_user] = lambda: _user("user-a")
+    return TestClient(app)
+
+
+def test_document_registry_uses_typed_not_found_error(monkeypatch, tmp_path):
+    monkeypatch.setenv("APP_ENV", "development")
+    monkeypatch.setattr(document_registry_service, "DATABASE_DIR", tmp_path)
+    monkeypatch.setattr(
+        document_registry_service,
+        "REGISTRY_FILE",
+        tmp_path / "document_registry.json",
+    )
+
+    with pytest.raises(DocumentNotFoundError):
+        document_registry_service.get_document_info("missing-document")
+
+
+def test_document_chat_returns_same_privacy_safe_404_for_missing_and_foreign(
+    monkeypatch,
+):
+    client = _document_chat_client()
+    responses = []
+
+    for error in (
+        DocumentNotFoundError("missing-document-internal-detail"),
+        PermissionError("owner=user-b private-document-title.pdf"),
+    ):
+        monkeypatch.setattr(
+            documents,
+            "require_document_owner",
+            lambda **kwargs: (_ for _ in ()).throw(error),
+        )
+        responses.append(
+            client.post(
+                "/documents/chat/00000000-0000-4000-8000-000000000099",
+                params={"question": "QA"},
+            )
+        )
+
+    assert [response.status_code for response in responses] == [404, 404]
+    assert [response.json() for response in responses] == [
+        {"detail": "Documento no encontrado."},
+        {"detail": "Documento no encontrado."},
+    ]
+    assert "owner=user-b" not in responses[1].text
+    assert "private-document-title" not in responses[1].text
+
+
+def test_document_chat_preserves_opaque_legacy_identifier_contract(monkeypatch):
+    client = _document_chat_client()
+    monkeypatch.setattr(
+        documents,
+        "require_document_owner",
+        lambda **kwargs: (_ for _ in ()).throw(
+            DocumentNotFoundError("missing")
+        ),
+    )
+
+    response = client.post(
+        "/documents/chat/legacy-document-id",
+        params={"question": "QA"},
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Documento no encontrado."}
+
+
+def test_document_chat_does_not_misclassify_internal_value_error(monkeypatch):
+    client = _document_chat_client()
+    monkeypatch.setattr(
+        documents,
+        "require_document_owner",
+        lambda **kwargs: (_ for _ in ()).throw(
+            ValueError("unexpected-registry-corruption")
+        ),
+    )
+
+    response = client.post(
+        "/documents/chat/00000000-0000-4000-8000-000000000099",
+        params={"question": "QA"},
+    )
+
+    assert response.status_code == 500
+    assert response.json() == {
+        "detail": "No se pudo completar el chat con este documento."
+    }
+    assert "unexpected-registry-corruption" not in response.text
 
 
 class _Response:

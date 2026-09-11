@@ -13,6 +13,10 @@ DATABASE_DIR = BASE_DIR / "database"
 REGISTRY_FILE = DATABASE_DIR / "document_registry.json"
 
 
+class DocumentNotFoundError(LookupError):
+    """Raised when a document is unavailable in the caller's owner scope."""
+
+
 def _ensure_registry() -> None:
     DATABASE_DIR.mkdir(
         parents=True,
@@ -117,7 +121,9 @@ def get_document_info(
             .execute()
         )
         if not response.data:
-            raise ValueError("No se encontro informacion del documento.")
+            raise DocumentNotFoundError(
+                "No se encontro informacion del documento."
+            )
         record = dict(response.data[0])
         record.setdefault("filename", record.get("document_name"))
         record["user_id"] = clean_user_id
@@ -128,7 +134,7 @@ def get_document_info(
     record = registry.get(document_id)
 
     if not record:
-        raise ValueError(
+        raise DocumentNotFoundError(
             "No se encontró información del documento.",
         )
 
