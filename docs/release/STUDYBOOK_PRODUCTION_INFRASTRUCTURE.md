@@ -1,21 +1,22 @@
 # StudyBook AI Production Infrastructure
 
-Status: `W7-A LOCAL GATE PASS - PROVIDER DEPLOYMENT REQUIRES HUMAN AUTHENTICATION`
+Status: `W7-A2 PROVIDER-NATIVE DEPLOYMENT PASS - DNS UNCHANGED`
 
 Date: `2026-09-11`
 
-Base commit: `6133c4593d54e469c015219d6249b59ac6f54d2d`
+QA branch deployed commit: `848865c8d72ad0d7dd0aee6038e6f17b94f3260e`
 
-No DNS, push, tag, deployment, remote Supabase mutation or public indexing was
-performed during this local closure.
+The authorized QA branch was pushed and deployed to persistent provider-native
+Render and Vercel projects. No DNS, tag, custom-domain assignment, remote
+Supabase schema mutation or public indexing change was performed.
 
 ## Deployment Topology
 
 | Surface | Repository root | Provider | Provider project / URL |
 | --- | --- | --- | --- |
-| API | `backend` | Render | Pending authenticated project creation |
-| Marketing | `web/marketing` | Vercel | Pending authenticated persistent project creation |
-| Flutter Web | `mobile/campusai_mobile` | Vercel | Pending separate authenticated project creation |
+| API | `backend` | Render | `studybook-ai-api` / `https://studybook-ai-api.onrender.com` |
+| Marketing | `web/marketing` | Vercel | `studybook-ai-marketing` / `https://studybook-ai-marketing.vercel.app` |
+| Flutter Web | `mobile/campusai_mobile` | Vercel | `studybook-ai-app` / `https://studybook-ai-app.vercel.app` |
 
 Future custom domains remain:
 
@@ -23,8 +24,9 @@ Future custom domains remain:
 - Flutter application: `https://app.studybookai.com`
 - FastAPI: `https://api.studybookai.com`
 
-Provider-native URLs and DNS targets must be copied from authenticated provider
-dashboards. They must not be inferred from a project name.
+Provider-native URLs above are verified. Exact custom-domain DNS records remain
+pending W7-B provider assignment and must be copied from the authenticated
+provider dashboards; they must not be inferred from project names.
 
 ## Render Contract
 
@@ -143,6 +145,85 @@ admin or Google service-account credentials in Flutter.
 - Tracked first-party secret scan: pass across 939 files.
 - `git diff --check`: pass before documentation closure.
 
+## W7-A2 Provider Evidence
+
+### Git
+
+- Remote QA branch: `origin/qa/studybook-ai-rc1` at
+  `848865c8d72ad0d7dd0aee6038e6f17b94f3260e`.
+- `origin/development` remains
+  `838084d43647d739a9e7de9dc034e56687a76278`.
+- `origin/main` remains
+  `8f3e5dc2bdf505090451bf0f9a89b8d9879e2a19`.
+- No force push or tag was used.
+
+### Render API
+
+- Native HTTPS URL: `https://studybook-ai-api.onrender.com`.
+- `/health`: HTTP 200; service `StudyBook AI API`; build SHA matches the QA
+  commit.
+- `/docs` and `/openapi.json`: HTTP 404 in production.
+- Unauthenticated billing: HTTP 401.
+- Authenticated QA subscriptions: Student A/B resolve to `student_pro` and
+  Teacher resolves to `teacher_pro` with active status.
+- Student access to `/educator/snapshot`: HTTP 403; Teacher access: HTTP 200.
+- Cloud library reads: HTTP 200 for Student A, Student B and Teacher.
+- Missing chat lookup: privacy-safe HTTP 404.
+- CORS allows exactly `https://studybook-ai-app.vercel.app`; an unknown origin
+  is rejected and no wildcard credential origin is configured.
+- Security headers are present and no secret value was emitted in evidence.
+
+### Vercel Marketing
+
+- Native HTTPS URL: `https://studybook-ai-marketing.vercel.app`.
+- Required public routes return HTTP 200.
+- Official Booky asset returns HTTP 200.
+- CSP and security headers are present.
+- Public indexing remains disabled through `robots.txt`, route metadata and
+  `X-Robots-Tag`.
+- Contact delivery remains explicitly disabled pending a human provider choice.
+
+### Vercel Flutter
+
+- Native HTTPS URL: `https://studybook-ai-app.vercel.app`.
+- Vercel project root: `mobile/campusai_mobile`.
+- Build command: `bash tool/build_vercel_web.sh`; output: `build/web`.
+- Production build completed from QA commit in 2m39s after validating public
+  HTTPS URLs and Supabase configuration.
+- Root plus direct `/login`, `/dashboard`, `/privacy` and
+  `/account-deletion` requests return HTTP 200; hash-route refresh preserves
+  the authenticated route.
+- Real Student A login passed. Plan sync showed Student Pro/active, Home,
+  Library, Learning and Account loaded, and the session survived a direct
+  Library refresh.
+- The same QA identities passed API logout; final interactive logout remains a
+  small human UI confirmation.
+
+### Supabase Auth Redirects
+
+Password login does not require a redirect and passed. Before signup and
+password-reset email flows are tested on the native Vercel origin, add these
+exact allowed redirect URLs without removing existing entries:
+
+```text
+https://studybook-ai-app.vercel.app/#/auth
+https://studybook-ai-app.vercel.app/#/reset-password
+```
+
+The final custom-domain callbacks will be added separately during W7-B.
+
+### DNS Target Collection
+
+Custom domains were intentionally not assigned in W7-A2, so provider-specific
+verification records were not generated and no target is guessed here.
+
+| Future host | Provider | Exact record |
+| --- | --- | --- |
+| `studybookai.com` | Vercel marketing | Pending provider assignment in W7-B |
+| `www.studybookai.com` | Vercel marketing | Pending provider assignment in W7-B |
+| `app.studybookai.com` | Vercel Flutter | Pending provider assignment in W7-B |
+| `api.studybookai.com` | Render API | Pending provider assignment in W7-B |
+
 ## Supabase Security State
 
 W6 production evidence remains authoritative: six migrations aligned, 17
@@ -172,25 +253,21 @@ foreign denial, missing-resource denial and owner access.
 
 ## Human Gates
 
-1. Sign in to Render and Vercel in an operator-controlled browser.
-2. Create the three persistent projects without attaching custom domains.
-3. Enter secret values directly in provider dashboards; never relay them in
-   chat or commit them.
-4. Record exact provider-native URLs, then configure the cross-project public
-   URLs and exact CORS origins before deploying.
-5. Validate HTTPS, health/build SHA, Supabase access, auth, 404, CORS and
-   security headers against Render.
-6. Validate marketing routes, Booky asset, links, responsive behavior, console,
-   CSP and indexing protection against Vercel.
-7. Validate Flutter login/logout/session, library, upload, authorization,
-   responsive behavior and accessibility against its separate Vercel URL.
-8. Select a contact delivery provider and distributed spam control, or retain
+1. Add the two provider-native Supabase Auth callback URLs listed above, then
+   manually confirm signup email and password-reset email round trips.
+2. Manually confirm the visible Flutter logout control and a fresh login after
+   logout.
+3. Validate upload, responsive behavior and accessibility against the Vercel
+   Flutter URL without unnecessary paid AI calls.
+4. During W7-B, assign future custom domains in provider dashboards and copy
+   the exact provider-generated DNS and verification records before changing
+   DNS.
+5. Select a contact delivery provider and distributed spam control, or retain
    the explicit unavailable state.
-9. Approve legal entity/contact/address/jurisdiction/effective-date/retention/
+6. Approve legal entity/contact/address/jurisdiction/effective-date/retention/
    minors/subscription/refund decisions. Legal pages remain drafts.
-10. Collect provider-issued DNS targets for W7-B. Do not modify GoDaddy `NS`,
-    `SOA`, `_domainconnect` or `_dmarc` records.
+7. Do not modify GoDaddy `NS`, `SOA`, `_domainconnect` or `_dmarc` records.
 
-W7-B remains blocked until all three provider deployments and their exact
-native URLs pass validation. Public indexing must remain disabled throughout
-this phase.
+All three provider-native deployments and URLs now pass their technical smoke
+tests. W7-B may begin only as a separate, explicitly authorized DNS/custom-domain
+phase. Public indexing must remain disabled until legal and launch approval.
