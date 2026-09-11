@@ -1,6 +1,6 @@
 # Production Deployment Runbook
 
-Status: `DOMAIN READY - DO NOT DEPLOY WITHOUT REMAINING APPROVALS`
+Status: `W7-A LOCAL READY - PROVIDER AUTHENTICATION REQUIRED`
 
 Registered domain: `studybookai.com`.
 
@@ -11,11 +11,12 @@ changes, Play upload, push or tagging.
 
 - Approved legal entity, privacy/support contacts, effective date, retention
   criteria, age scope and account-deletion response process.
-- Authorized production Supabase project and reviewed deployed RLS/Storage.
+- Authenticated Render and Vercel operator sessions.
 - Backend secret-manager values for the implemented variable names.
 - Actual Student Pro and Teacher Pro product IDs from Play Console.
 - Backend-only Google Play Developer API verifier and service identity.
-- A decision for backend local writable state on Render.
+- Actual provider-native Render and persistent Vercel origins for pre-DNS
+  cross-configuration.
 
 Stop if any required value is represented by `REQUIRED_*`, a bracketed
 placeholder, localhost, HTTP, `.invalid`, a guessed value or a client-side
@@ -23,7 +24,7 @@ secret.
 
 ## 2. Create The Vercel Project
 
-Use the repository and select:
+Create two separate persistent Vercel projects. For Flutter Web select:
 
 ```text
 Root Directory: mobile/campusai_mobile
@@ -38,6 +39,20 @@ Google service-account, password or signing values.
 
 Keep the initial deployment as preview evidence. The legal pages intentionally
 carry `noindex` and draft notices until human review is complete.
+
+For marketing select:
+
+```text
+Root Directory: web/marketing
+Framework Preset: Next.js
+Install Command: pnpm install --frozen-lockfile
+Build Command: pnpm build
+Output Directory: Vercel-managed
+```
+
+Keep `ENABLE_PUBLIC_INDEXING=false`. Use the actual provider-native marketing,
+Flutter and Render origins for `NEXT_PUBLIC_WEB_URL`, `NEXT_PUBLIC_APP_URL` and
+`NEXT_PUBLIC_API_URL` during the pre-DNS deployment.
 
 ## 3. Create The Render Service
 
@@ -55,22 +70,14 @@ Render prompts for each `sync: false` value. Supply only authorized values in
 the dashboard; never place them in Git. Confirm `/health` reports `status=ok`,
 service `StudyBook AI API` and the Render commit SHA before attaching DNS.
 
-### Render Persistent-State Blocker
+### Render Persistence State
 
-The backend currently writes mutable data to several local locations,
-including `backend/chroma_db`, `backend/app/database/document_registry.json`,
-`backend/app/audio`, `backend/storage` and certificate/usage files. Render's
-filesystem is ephemeral unless a paid persistent disk is attached, and one
-disk preserves only its mount subtree.
-
-Do not send production traffic until one of these is reviewed and tested:
-
-1. Consolidate all required mutable paths under one configurable persistent
-   data root and attach a single-instance Render disk; or
-2. Move the remaining state to Supabase/object storage and a shared vector
-   store so the API is stateless and horizontally scalable.
-
-This runbook does not choose a paid plan, disk size or architecture by guess.
+The former local-filesystem blocker is closed. Production now requires private
+Supabase Storage, owner-scoped Postgres rows and pgvector, and fails startup
+when durable configuration is missing. Local Chroma, JSON and audio adapters
+remain available only outside production. W6 validated the six migrations,
+RLS/Storage isolation, restart restoration and a post-migration recovery point.
+No Render disk is required as a substitute for application persistence.
 
 ## 4. Configure Domains And DNS
 
@@ -119,7 +126,7 @@ Before traffic:
 4. Verify Student A/B isolation, Teacher authorization and denied Admin.
 5. Verify uploads, RAG, Voice Tutor and AudioBook across a restart.
 6. Verify privacy-safe logs, health/build SHA and rollback procedure.
-7. Verify the deployed filesystem strategy survives redeploy/restart.
+7. Verify document, RAG and AudioBook restoration across a Render restart.
 
 ## 8. Final Android Artifact
 

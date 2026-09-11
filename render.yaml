@@ -11,9 +11,9 @@ services:
       - key: APP_ENV
         value: production
       - key: APP_WEB_URL
-        value: https://studybookai.com
+        sync: false
       - key: BACKEND_CORS_ORIGINS
-        value: https://studybookai.com,https://www.studybookai.com
+        sync: false
       - key: ENABLE_API_DOCS
         value: "false"
       - key: FILE_ACCESS_SECRET

@@ -21,6 +21,10 @@ ALLOWED_STUDY_RESULT_TYPES = {
 }
 
 
+class CloudResourceNotFoundError(LookupError):
+    """Raised when an owner-scoped cloud resource is not visible."""
+
+
 def canonical_study_result_type(value: str) -> str:
     clean_type = value.strip().lower()
 
@@ -622,16 +626,15 @@ def get_chat(
         .select("*")
         .eq("id", chat_id)
         .eq("user_id", user_id)
-        .maybe_single()
+        .limit(1)
         .execute()
     )
 
-    if not response.data:
-        raise PermissionError(
-            "No tienes permiso para acceder a esta conversación."
-        )
+    rows = response.data if response is not None else []
+    if not rows:
+        raise CloudResourceNotFoundError("Conversación no encontrada.")
 
-    return response.data
+    return rows[0]
 
 
 def save_message(

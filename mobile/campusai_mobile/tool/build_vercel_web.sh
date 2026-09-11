@@ -8,18 +8,55 @@ import os
 import re
 from urllib.parse import urlparse
 
-required_exact_urls = {
-    "API_BASE_URL": "https://api.studybookai.com",
-    "APP_WEB_URL": "https://studybookai.com",
-    "PRIVACY_URL": "https://studybookai.com/privacy",
-    "ACCOUNT_DELETION_URL": "https://studybookai.com/account-deletion",
-}
+def public_https_url(name, *, origin_only=False):
+    value = os.getenv(name, "").strip().rstrip("/")
+    parsed = urlparse(value)
+    host = (parsed.hostname or "").lower()
+    if (
+        parsed.scheme != "https"
+        or not host
+        or parsed.username
+        or parsed.password
+        or host in {"localhost", "127.0.0.1", "10.0.2.2", "::1"}
+        or host.endswith(".invalid")
+        or parsed.query
+        or parsed.fragment
+        or (origin_only and parsed.path not in {"", "/"})
+    ):
+        raise SystemExit(f"{name} debe ser una URL HTTPS publica no local.")
+    return value
 
-for name, expected in required_exact_urls.items():
-    if os.getenv(name, "").strip() != expected:
-        raise SystemExit(
-            f"{name} debe configurarse con el URL productivo aprobado."
-        )
+
+api_base_url = public_https_url("API_BASE_URL", origin_only=True)
+app_web_url = public_https_url("APP_WEB_URL", origin_only=True)
+privacy_url = public_https_url("PRIVACY_URL")
+account_deletion_url = public_https_url("ACCOUNT_DELETION_URL")
+
+if privacy_url != f"{app_web_url}/privacy":
+    raise SystemExit("PRIVACY_URL debe pertenecer al sitio Web configurado.")
+if account_deletion_url != f"{app_web_url}/account-deletion":
+    raise SystemExit(
+        "ACCOUNT_DELETION_URL debe pertenecer al sitio Web configurado."
+    )
+
+canonical_required = os.getenv(
+    "REQUIRE_CANONICAL_PRODUCTION_URLS", "false"
+).strip().lower() in {"1", "true", "yes", "on"}
+if canonical_required:
+    expected = {
+        "API_BASE_URL": "https://api.studybookai.com",
+        "APP_WEB_URL": "https://studybookai.com",
+        "PRIVACY_URL": "https://studybookai.com/privacy",
+        "ACCOUNT_DELETION_URL": "https://studybookai.com/account-deletion",
+    }
+    actual = {
+        "API_BASE_URL": api_base_url,
+        "APP_WEB_URL": app_web_url,
+        "PRIVACY_URL": privacy_url,
+        "ACCOUNT_DELETION_URL": account_deletion_url,
+    }
+    if actual != expected:
+        raise SystemExit("Las URLs canonicas de produccion no coinciden.")
 
 supabase_url = os.getenv("SUPABASE_URL", "").strip()
 supabase_anon_key = os.getenv("SUPABASE_ANON_KEY", "").strip()

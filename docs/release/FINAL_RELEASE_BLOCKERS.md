@@ -15,7 +15,7 @@ These are release-critical gates, but are not unresolved product-code defects.
 | ID | Type | Gate | Owner action | Exit evidence |
 | --- | --- | --- | --- | --- |
 | 7F-P1-01 | External config | `studybookai.com` is registered, but Vercel/Render DNS and TLS are not configured | Create the approved services, copy provider-issued DNS targets and verify Web/API TLS | Public HTTPS Web and API smoke tests |
-| 7F-P1-02 | External config | Schema, RLS and durable persistence pass locally, but production Supabase is not migrated or verified | Follow the controlled migration runbook in an approved window; validate private Storage, pgvector, backfill and owner isolation | Backup plus sanitized catalog and two-user authorization evidence |
+| 7F-P1-02 | External config | Production Supabase migration and isolation gate | Closed by W6-M3 and the post-migration recovery point: six migrations, 17/17 RLS, private Storage, pgvector/RAG, atomic quota and two-user isolation passed | Closed |
 | 7F-P1-03 | Human action / external config | Play products and live purchase verification are absent | Create actual products, configure Play Developer API server credentials and license testers | Backend-verified test purchase and restore/cancel evidence |
 | 7F-P1-04 | Human/legal action | Privacy and account-deletion pages remain drafts | Approve legal fields, monitored contacts, retention/age decisions and deploy both public pages | Accessible public URLs accepted by Play Console |
 | 7F-P1-05 | Human action | Play Console application, declarations and internal track are not complete | Complete App Signing, App Content, Data Safety, reviewer access and listing inputs | Play Console checklist plus internal-track processing result |
@@ -25,13 +25,15 @@ These are release-critical gates, but are not unresolved product-code defects.
 
 | Source | Risk | Disposition |
 | --- | --- | --- |
-| `SEC-7D-001` | Repository RLS/Storage evidence is closed; deployed policy state remains unknown | Conditional deployment verification gate |
-| `SEC-7D-002` | Account erasure requires deployed schema/Storage and retention evidence | Verify before production |
+| `SEC-7D-001` | Production RLS/Storage state passed W6; application-provider connectivity remains unverified | Verify from the deployed Render service |
+| `SEC-7D-002` | Account erasure passed against deployed schema/Storage; legal retention wording remains unapproved | Human legal approval before production |
 | `SEC-7D-003` | Legacy unowned certificate records require synthetic/real-data confirmation | Verify before external release if records were real |
 | `SEC-7D-004` | Rate limiting is in-memory and per-IP | Accepted only for controlled RC; monitor and plan distributed limits |
 | `SEC-7D-005` | CSP/HSTS depend on final CDN/reverse proxy | Required at Web deployment |
 | `SEC-7D-006` | CIAG legacy QA deduplication remains incomplete | Keep separate and owner-safe |
 | `REL-7E-006` | Data Safety, store content and brand assets are not approved | Human review before track promotion |
+| `W7-A-001` | Render and Vercel operator sessions are not authenticated, so provider projects/URLs cannot be created or validated | Human sign-in, then repeat provider-native deployment gate |
+| `W7-A-002` | Supabase leaked-password protection is disabled | Enable in Auth password security before public launch and test signup/password change |
 
 ## P3 Open Risks
 

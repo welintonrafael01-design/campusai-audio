@@ -155,6 +155,11 @@ backend can return `500` instead of a human `403/404`, while remote verification
 confirmed zero foreign-message exposure. P0 remains closed and no P1 was
 identified.
 
+W7-A follow-up: the chat mapping P2 is fixed locally without a schema change.
+An owner-filtered missing or foreign lookup now returns the same generic 404,
+and regression tests cover owner access plus both privacy-safe denial cases.
+Provider deployment of that follow-up remains pending.
+
 ### Recovery Point
 
 The verified recovery artifacts at

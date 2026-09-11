@@ -23,10 +23,8 @@ def test_render_blueprint_is_manual_and_uses_production_contract():
     assert service["healthCheckPath"] == "/health"
     assert "$PORT" in service["startCommand"]
     assert environment["APP_ENV"]["value"] == "production"
-    assert environment["APP_WEB_URL"]["value"] == "https://studybookai.com"
-    assert environment["BACKEND_CORS_ORIGINS"]["value"] == (
-        "https://studybookai.com,https://www.studybookai.com"
-    )
+    assert environment["APP_WEB_URL"]["sync"] is False
+    assert environment["BACKEND_CORS_ORIGINS"]["sync"] is False
     assert environment["SUPABASE_SERVICE_ROLE_KEY"]["sync"] is False
     assert environment["OPENAI_API_KEY"]["sync"] is False
 

@@ -17,6 +17,7 @@ from app.services.ai_service import index_document_pages_for_rag
 from app.services.document_registry_service import register_document_file
 from app.public_urls import is_production_environment
 from app.services.cloud_service import (
+    CloudResourceNotFoundError,
     create_workspace,
     list_workspaces,
     update_workspace,
@@ -98,6 +99,12 @@ class AudiobookCreate(StrictRequestModel):
 
 
 def handle_cloud_error(error: Exception) -> HTTPException:
+    if isinstance(error, CloudResourceNotFoundError):
+        return HTTPException(
+            status_code=404,
+            detail="Recurso no encontrado.",
+        )
+
     if isinstance(error, PermissionError):
         return HTTPException(
             status_code=403,

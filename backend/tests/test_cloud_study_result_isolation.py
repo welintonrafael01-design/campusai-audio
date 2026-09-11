@@ -45,6 +45,9 @@ class _Query:
         self.single = True
         return self
 
+    def limit(self, _count):
+        return self
+
     def order(self, _key, desc=False):
         return self
 
@@ -198,3 +201,49 @@ def test_invalid_study_result_type_is_reported_as_client_error():
 
     assert response.status_code == 400
     assert response.detail == "Tipo de resultado inválido."
+
+
+def test_chat_lookup_returns_privacy_safe_not_found_for_foreign_owner(
+    monkeypatch,
+):
+    fake = _FakeSupabase(
+        {
+            "chats": [
+                {"id": "chat_a", "user_id": "user_a", "title": "Private"},
+            ],
+        }
+    )
+    monkeypatch.setattr(cloud_service, "get_supabase_admin_client", lambda: fake)
+
+    with pytest.raises(cloud_service.CloudResourceNotFoundError):
+        cloud_service.get_chat(chat_id="chat_a", user_id="user_b")
+
+    response = handle_cloud_error(
+        cloud_service.CloudResourceNotFoundError("Internal detail")
+    )
+    assert response.status_code == 404
+    assert response.detail == "Recurso no encontrado."
+
+
+def test_chat_lookup_returns_privacy_safe_not_found_when_missing(monkeypatch):
+    fake = _FakeSupabase({"chats": []})
+    monkeypatch.setattr(cloud_service, "get_supabase_admin_client", lambda: fake)
+
+    with pytest.raises(cloud_service.CloudResourceNotFoundError):
+        cloud_service.get_chat(chat_id="missing", user_id="user_a")
+
+
+def test_chat_lookup_returns_owned_chat(monkeypatch):
+    fake = _FakeSupabase(
+        {
+            "chats": [
+                {"id": "chat_a", "user_id": "user_a", "title": "Owned"},
+                {"id": "chat_a", "user_id": "user_b", "title": "Foreign"},
+            ],
+        }
+    )
+    monkeypatch.setattr(cloud_service, "get_supabase_admin_client", lambda: fake)
+
+    result = cloud_service.get_chat(chat_id="chat_a", user_id="user_a")
+
+    assert result["title"] == "Owned"
