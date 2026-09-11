@@ -1,6 +1,6 @@
 # Supabase Production Migration Evidence
 
-Status: `W6-M3 POST-MIGRATION REMOTE VALIDATION PASS`
+Status: `W6-B POST-MIGRATION RECOVERY POINT VERIFIED`
 
 Captured at: `2026-09-08T04:54:59Z`
 
@@ -15,6 +15,60 @@ W6-M1 base commit: `71e47bc8b04544a6de0a5be690427a0523aa0de8`
 Target project ref: `olegevhncmblxngurclt`
 
 W6-M3 validation base commit: `703d8dacb2a40b12b22a0c312185d37a41ae3efd`
+
+W6-B base commit: `b28b2df89fad778887cf5019e757de229ed933d3`
+
+## W6-B Post-Migration Recovery Point
+
+W6-B captured the canonical six-migration production state on
+`2026-09-11` into this private directory outside Git:
+
+`$HOME/StudyBookAI_Backups/supabase_2026-09-11_post_migration_20260911T040141Z`
+
+The directory mode is `700`; every backup file is `600`. Database credentials
+were accepted only through a hidden local prompt and retained only in process
+memory for the supported Supabase CLI dumps. No credential, private manifest or
+backup content was added to Git.
+
+### Database Artifacts
+
+| Artifact | SHA-256 |
+| --- | --- |
+| `schema.sql` | `bfbb6e3c91197bf776ac7790ddf45878fa86c9fb040694a18687b1e7df647566` |
+| `data.sql` | `427cebceaf91ec4f6d32b94e3d4f190a4d32e3e8650ef0d807faef8239484d02` |
+| `roles.sql` | `4350a72b5ec109888e740c17f3eb4da2fcd95ab73af26499538ed0bf615db543` |
+| Private Storage manifest | `bf8a1e559ca66c33a18a69907b1e6acb8c96b933f4497df58209d3b0a886c6f8` |
+| Migration-history capture | `b1d6919bfa4bcc48d83257df7a1a35e1430c41e925c160fdeab3d5b05fcf3d33` |
+
+Supabase CLI intentionally excludes its internal migration-history table from
+the normal data dump. W6-B therefore captured the history separately through
+the Management read-only endpoint. It contains exactly the six reviewed
+versions from `20260827000100` through `20260907000100`.
+
+The dump contains all 17 current StudyBook tables, 609 active rows and 359
+private quarantine rows, preserving 968 total. It also contains
+`educator_rubrics`, `document_chunks`, `certificates`, `quota_reservations`,
+pgvector with the 1536-dimensional embedding and HNSW index, server-authorized
+RAG, ownership hardening and all three atomic-quota functions.
+
+### Storage And Restore Readiness
+
+The physical Storage backup contains all 37 `studybook-documents` objects,
+totaling 42,288,843 bytes. Path, size and SHA-256 comparisons against the
+pre-migration manifest found zero missing, altered or additional original
+objects. `studybook-private-artifacts` exists and is private; it contained zero
+objects at capture time.
+
+A lightweight restore loaded `schema.sql` and `data.sql` into a disposable
+local Supabase-compatible database. The restored state contained 17 product
+tables, 609 active rows, 359 quarantine rows, 37 document-object metadata rows
+and zero private-artifact metadata rows. The disposable database was removed.
+Restore readiness: **PASS**.
+
+The original `$HOME/StudyBookAI_Backups/supabase_2026-09-08` directory remains
+unchanged as the pre-migration legacy recovery point; its four recorded hashes
+were revalidated. W6-B performed no remote database, Auth, Storage or migration
+mutation.
 
 ## W6-M3 Post-Migration Remote Validation
 
