@@ -119,6 +119,15 @@ continues to disallow all crawling.
 Rollback was not required. Provider-native URLs and callbacks remain in place
 for controlled transition safety.
 
+## W7-C Follow-Up
+
+The unchanged W7-B runtime passed the W7-C technical recheck. Public launch is
+still `NO-GO`: key rotation, visible logout, document upload, password reset,
+human responsive/accessibility checks, monitored contact and legal approval
+remain open. Public indexing remains disabled. See
+`docs/release/STUDYBOOK_W7_C_LAUNCH_READINESS.md` for the evidence and explicit
+release blocker table.
+
 ## W7-B0.2 Safety Boundary (Historical)
 
 - Authoritative DNS remains at GoDaddy.

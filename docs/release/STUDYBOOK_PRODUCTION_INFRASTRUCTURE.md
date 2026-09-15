@@ -1,6 +1,6 @@
 # StudyBook AI Production Infrastructure
 
-Status: `W7-B DOMAIN AND TLS CUTOVER COMPLETE - PUBLIC LAUNCH BLOCKED`
+Status: `W7-C READINESS AUDITED - PUBLIC LAUNCH NO-GO`
 
 Date: `2026-09-15`
 
@@ -326,3 +326,22 @@ All custom and provider-native deployment surfaces pass their current technical
 smoke tests. W7-B is complete without rollback, but public launch remains
 prohibited until the launch blockers and human gates above are closed. Public
 indexing stays disabled until legal and explicit launch approval.
+
+## W7-C Public Launch Readiness
+
+W7-C revalidated the unchanged runtime on all custom domains. TLS, canonical
+redirect, health/build identity, exact-origin CORS, Auth roles, Student-to-
+Teacher denial, privacy-safe document access, anonymous database/Storage
+denial, public routes, internal links and current automated suites pass.
+
+The strict launch decision remains `NO-GO`. OpenAI key rotation, visible UI
+logout, production document upload, one password-reset round trip, human
+responsive/accessibility review, a monitored contact channel and legal approval
+remain open. Supabase leaked-password protection is unavailable on the current
+Free plan and is documented as a P2 requiring upgrade or explicit acceptance.
+Per-instance rate limiting is accepted only for controlled single-instance use
+and must become shared before horizontal scale.
+
+Detailed evidence and the blocker register are in
+`docs/release/STUDYBOOK_W7_C_LAUNCH_READINESS.md`. No DNS, Supabase schema,
+runtime deployment, provider secret or indexing setting changed during W7-C.
