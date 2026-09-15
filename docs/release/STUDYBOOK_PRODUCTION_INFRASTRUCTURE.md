@@ -1,15 +1,15 @@
 # StudyBook AI Production Infrastructure
 
-Status: `W7-B0.2 DOMAIN ASSIGNMENT PASS - DNS CUTOVER NOT AUTHORIZED`
+Status: `W7-B DOMAIN AND TLS CUTOVER COMPLETE - PUBLIC LAUNCH BLOCKED`
 
-Date: `2026-09-11`
+Date: `2026-09-15`
 
 QA branch deployed commit: `ca8d49b2bad7268844fc695776d6d068a5df2d4f`
 
-The authorized QA branch was pushed and deployed to persistent provider-native
-Render and Vercel projects. Production custom domains are assigned inside the
-correct provider projects and are waiting for DNS. No authoritative DNS, tag,
-remote Supabase configuration or public indexing change was performed.
+The authorized QA branch is deployed to persistent Render and Vercel projects.
+The controlled production-domain cutover is complete for Marketing, Flutter
+and API. Public indexing remains disabled and launch is still blocked by key
+rotation, legal approval and remaining human functional gates.
 
 ## Deployment Topology
 
@@ -19,15 +19,16 @@ remote Supabase configuration or public indexing change was performed.
 | Marketing | `web/marketing` | Vercel | `studybook-ai-marketing` / `https://studybook-ai-marketing.vercel.app` |
 | Flutter Web | `mobile/campusai_mobile` | Vercel | `studybook-ai-app` / `https://studybook-ai-app.vercel.app` |
 
-Future custom domains remain:
+Active custom domains are:
 
 - Marketing: `https://studybookai.com` and `https://www.studybookai.com`
 - Flutter application: `https://app.studybookai.com`
 - FastAPI: `https://api.studybookai.com`
 
-Provider-native URLs above are verified. Exact custom-domain DNS records remain
-pending W7-B provider assignment and must be copied from the authenticated
-provider dashboards; they must not be inferred from project names.
+Provider-native URLs remain verified as transition/rollback surfaces. The
+custom-domain DNS records use the exact targets collected from the authenticated
+provider dashboards and are recorded in
+`docs/release/STUDYBOOK_W7_B_DOMAIN_CUTOVER.md`.
 
 ## Render Contract
 
@@ -205,28 +206,43 @@ admin or Google service-account credentials in Flutter.
 
 ### Supabase Auth Redirects
 
-Password login does not require a redirect and passed. Before signup and
-password-reset email flows are tested on the native Vercel origin, add these
-exact allowed redirect URLs without removing existing entries:
+Supabase Auth now uses the custom Flutter origin as Site URL:
 
 ```text
+https://app.studybookai.com
+```
+
+The allowed redirect list contains the custom and provider-native callbacks:
+
+```text
+https://app.studybookai.com/#/auth
+https://app.studybookai.com/#/reset-password
 https://studybook-ai-app.vercel.app/#/auth
 https://studybook-ai-app.vercel.app/#/reset-password
 ```
 
-The final custom-domain callbacks will be added separately during W7-B.
+All seven previous localhost QA callbacks were retained. Password login and
+authenticated custom-domain lifecycle probes pass; one real password-reset
+email round trip remains a human gate.
 
-### DNS Target Collection
+### W7-B Custom Domain State
 
-Custom domains were intentionally not assigned in W7-A2, so provider-specific
-verification records were not generated and no target is guessed here.
+The exact provider-issued records were applied at authoritative GoDaddy DNS
+with TTL 3600. Provider verification and managed TLS pass:
 
-| Future host | Provider | Exact record |
+| Host | Provider | Exact record |
 | --- | --- | --- |
-| `studybookai.com` | Vercel marketing | Pending provider assignment in W7-B |
-| `www.studybookai.com` | Vercel marketing | Pending provider assignment in W7-B |
-| `app.studybookai.com` | Vercel Flutter | Pending provider assignment in W7-B |
-| `api.studybookai.com` | Render API | Pending provider assignment in W7-B |
+| `studybookai.com` | Vercel marketing | `A 216.198.79.1` |
+| `www.studybookai.com` | Vercel marketing | `CNAME 0bcd2772ba0ac548.vercel-dns-017.com.` |
+| `app.studybookai.com` | Vercel Flutter | `CNAME 2573f2cae2890ca0.vercel-dns-017.com.` |
+| `api.studybookai.com` | Render API | `CNAME studybook-ai-api.onrender.com.` |
+
+The `www` host returns a permanent 308 redirect to the canonical root. Render
+uses the custom Flutter origin for `APP_WEB_URL`, CORS retains both custom and
+provider-native Flutter origins, and the Flutter production artifact uses
+`https://api.studybookai.com`. Marketing CTAs use the custom app domain while
+public indexing remains disabled. Full evidence and rollback instructions are
+in `docs/release/STUDYBOOK_W7_B_DOMAIN_CUTOVER.md`.
 
 ## W7-B0.1 Document Chat 404 Hotfix
 
@@ -292,21 +308,21 @@ foreign denial, missing-resource denial and owner access.
 
 ## Human Gates
 
-1. Add the two provider-native Supabase Auth callback URLs listed above, then
-   manually confirm signup email and password-reset email round trips.
-2. Manually confirm the visible Flutter logout control and a fresh login after
-   logout.
-3. Validate upload, responsive behavior and accessibility against the Vercel
-   Flutter URL without unnecessary paid AI calls.
-4. During W7-B, assign future custom domains in provider dashboards and copy
-   the exact provider-generated DNS and verification records before changing
-   DNS.
+1. Rotate the previously exposed OpenAI production key in Render, redeploy and
+   revoke the old key without disclosing either value. This is a launch
+   blocker.
+2. Complete one real password-reset email round trip on the custom app domain.
+3. Manually confirm the visible Flutter logout control and document upload.
+4. Complete broader desktop/mobile responsive, keyboard, focus and basic
+   screen-reader checks on the custom domain.
 5. Select a contact delivery provider and distributed spam control, or retain
    the explicit unavailable state.
 6. Approve legal entity/contact/address/jurisdiction/effective-date/retention/
    minors/subscription/refund decisions. Legal pages remain drafts.
-7. Do not modify GoDaddy `NS`, `SOA`, `_domainconnect` or `_dmarc` records.
+7. Review plan-dependent leaked-password protection and replace per-instance
+   rate limiting before horizontal scale.
 
-All three provider-native deployments and URLs now pass their technical smoke
-tests. W7-B may begin only as a separate, explicitly authorized DNS/custom-domain
-phase. Public indexing must remain disabled until legal and launch approval.
+All custom and provider-native deployment surfaces pass their current technical
+smoke tests. W7-B is complete without rollback, but public launch remains
+prohibited until the launch blockers and human gates above are closed. Public
+indexing stays disabled until legal and explicit launch approval.

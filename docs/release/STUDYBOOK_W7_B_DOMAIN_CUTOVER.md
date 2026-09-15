@@ -1,14 +1,125 @@
 # StudyBook AI W7-B Domain Cutover
 
-Status: `W7-B0.2 PREPARATION COMPLETE - STOP BEFORE DNS MUTATION`
+Status: `W7-B CONTROLLED CUTOVER COMPLETE - PUBLIC LAUNCH STILL BLOCKED`
 
-Date: `2026-09-11`
+Date: `2026-09-15`
 
-This document records provider-issued requirements for `studybookai.com`.
-Values were collected from the authenticated Vercel and Render projects after
-custom-domain assignment. They are not generic documentation defaults.
+This document preserves the W7-B0.2 provider-issued requirements and records
+the controlled W7-B execution for `studybookai.com`. DNS changes were limited
+to the four explicitly authorized records. Public indexing remains disabled;
+domain availability is not public-launch approval.
 
-## Safety Boundary
+## W7-B Execution Result
+
+The cutover completed without rollback. Authoritative GoDaddy DNS and public
+Cloudflare/Google resolvers returned the same final values with TTL 3600:
+
+| Host | Type | Final value |
+| --- | --- | --- |
+| `@` | A | `216.198.79.1` |
+| `www` | CNAME | `0bcd2772ba0ac548.vercel-dns-017.com.` |
+| `app` | CNAME | `2573f2cae2890ca0.vercel-dns-017.com.` |
+| `api` | CNAME | `studybook-ai-api.onrender.com.` |
+
+Nameservers remain `ns53.domaincontrol.com` and
+`ns54.domaincontrol.com`. `_domainconnect` and the existing DMARC quarantine
+policy remain present. No MX record existed in the authoritative snapshot, and
+no mail, verification or unrelated TXT record was changed. The SOA serial
+advanced normally after the authorized DNS updates.
+
+### Provider And TLS Evidence
+
+- Vercel reports `studybookai.com`, `www.studybookai.com` and
+  `app.studybookai.com` as valid Production domains.
+- Render reports `api.studybookai.com` as the live custom domain for service
+  `studybook-ai-api`.
+- All four HTTPS hosts have valid provider-managed certificates with hostname
+  matches. HTTP redirects to HTTPS for root, `www`, app and API.
+- `www.studybookai.com` is configured in Vercel as a permanent `308` redirect
+  to `https://studybookai.com`; following it reaches one root `200` with no
+  loop.
+
+### API And Render Transition
+
+Render now uses:
+
+```text
+APP_WEB_URL=https://app.studybookai.com
+BACKEND_CORS_ORIGINS=https://studybook-ai-app.vercel.app,https://app.studybookai.com
+```
+
+`GET https://api.studybookai.com/health` returns HTTP 200 for service
+`StudyBook AI API`, version `1.0.0`, build
+`ca8d49b2bad7268844fc695776d6d068a5df2d4f`. The native Render hostname
+returns the same build identity. API docs remain unavailable in production,
+unauthenticated billing returns 401, and an unknown route returns 404.
+
+CORS preflight returns 200 with the exact requesting origin for both the
+provider-native Flutter host and `https://app.studybookai.com`; an unknown
+origin returns 400. Credentials remain enabled without a wildcard origin.
+
+### Supabase Auth Transition
+
+Supabase Auth Site URL is `https://app.studybookai.com`. The custom callbacks
+for `/#/auth` and `/#/reset-password` are present, and the equivalent two
+provider-native callbacks remain present. All seven previous localhost QA
+callbacks were retained, for 11 allowed redirect URLs total. No other Auth
+setting changed. A real password-reset email round trip remains a human gate.
+
+### Flutter Production Transition
+
+Vercel Production deployment `3APwHVb4x31ZqzcCzsbEB7kFjQyp` completed in
+2m40s from source commit `ca8d49b2bad7268844fc695776d6d068a5df2d4f`.
+The served `main.dart.js` contains the canonical API origin and contains no
+reference to the old Render native API or local port 8000. Root and hash routes
+return 200; an unauthenticated browser reaches `/#/auth` without console
+errors. The provider-native app hostname remains available during transition.
+
+The authenticated lifecycle probe against `https://app.studybookai.com`
+passed hard reload, tab reopen, back/forward, Dashboard, Library, Learning,
+Account, responsive 390 px and Student A to Student B browser-session switch,
+with zero unexpected browser errors. Student A/B subscriptions are active
+Student plans, their Cloud libraries return 200, and both are denied Educator
+access with 403. Teacher is active on the Teacher plan and receives Educator
+200. Student B access to a Student A document returns the privacy-safe 404.
+Supabase logout returned 204 for all three disposable QA sessions.
+
+### Marketing Production Transition
+
+Vercel Production deployment `Fe9B4VZdA5ZkbNPiE8MU7D1ygmy6` completed in
+41s from source commit `ca8d49b2bad7268844fc695776d6d068a5df2d4f`
+with:
+
+```text
+NEXT_PUBLIC_WEB_URL=https://studybookai.com
+NEXT_PUBLIC_APP_URL=https://app.studybookai.com
+NEXT_PUBLIC_API_URL=https://api.studybookai.com
+ENABLE_PUBLIC_INDEXING=false
+```
+
+Home, Features, Students, Teachers, Pricing, FAQ, Contact, Security, Privacy,
+Terms and Account Deletion return 200. The official Booky asset loads. Account
+CTAs point only to `app.studybookai.com`; route HTML contains no stale native
+app URL. The root metadata remains `noindex, nofollow`, and `robots.txt`
+continues to disallow all crawling.
+
+### Remaining Gates
+
+- **Launch blocker:** rotate the previously exposed OpenAI production key in
+  Render and revoke the old key without disclosing either value.
+- **Launch blocker:** approve final legal content and effective product policy.
+- **Human action:** select and validate a real contact delivery provider if a
+  working public contact channel is required.
+- **Human action:** complete one password-reset email flow, visible UI logout,
+  document upload, broader desktop/mobile responsive, keyboard, focus and
+  screen-reader checks on the custom domain.
+- **P2:** leaked-password protection remains plan-dependent and distributed
+  rate limiting remains pending before horizontal scale.
+
+Rollback was not required. Provider-native URLs and callbacks remain in place
+for controlled transition safety.
+
+## W7-B0.2 Safety Boundary (Historical)
 
 - Authoritative DNS remains at GoDaddy.
 - No DNS record, nameserver, Supabase Auth setting, CORS variable, public URL,
