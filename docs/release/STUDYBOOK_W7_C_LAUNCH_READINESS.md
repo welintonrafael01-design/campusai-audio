@@ -99,12 +99,12 @@ review on the custom domains.
 | Production document upload | P1 gate | CLOSED | NO | A harmless one-page QA PDF uploaded successfully, produced a truthful summary, persisted in Library/Cloud after reload and remained inaccessible to Student B | The private fixture is intentionally retained under Student A as QA evidence; remove it later only through an explicitly authorized delete action |
 | Responsive human QA | P1 gate | PARTIAL / HUMAN ACTION | YES | Marketing routes and representative authenticated Flutter views were inspected at mobile and desktop widths without document overflow; the complete tablet visual pass is not evidenced | Finish the human tablet and mobile-keyboard matrix |
 | Accessibility human QA | P1 gate | PARTIAL / HUMAN ACTION | YES | Named controls and representative Enter activation passed; full keyboard order, modal focus and screen-reader evidence are incomplete | Complete human keyboard, focus, labels, contrast and screen-reader review |
-| Password reset E2E | P1 gate | FIX READY / RETEST REQUIRED | YES | Production reached the correct route with a PKCE callback, but the deployed app did not establish the recovery session before `updateUser`; no password or token was retained | Authorize push/redeploy of local commit `27f69d2`, request one fresh QA reset and verify old/new password behavior |
+| Password reset E2E | P1 gate | FIX DEPLOYED / EMAIL COOLDOWN BLOCKED | YES | QA commit `39a43aa` is deployed and invalid-link UX passes, but Supabase rejected the new reset request under its email security cooldown; no recovery link or credential was reused | After the cooldown expires, request exactly one fresh QA reset in the same browser and verify PKCE exchange, password update, logout, and old/new password behavior |
 | Contact channel | P1 gate | HUMAN ACTION | YES | Contact provider remains `disabled`; the form fails honestly | Approve a monitored provider or monitored support/privacy contact and validate delivery |
 | Legal finalization | P1 | DRAFT | YES | Privacy and account-deletion content still contains unresolved placeholders | Legal/product owner approves entity, contacts, address, jurisdiction, date, retention, age, subscription, cancellation and refund terms |
 | Leaked-password protection | P2 | HUMAN ACTION / PLAN LIMITED | NO with explicit acceptance | Project dashboard reports Free; Supabase limits this feature to Pro and above | Upgrade deliberately and enable it, or record explicit pre-launch P2 risk acceptance |
 | Distributed rate limiting | P2 | ACCEPTED FOR CONTROLLED SINGLE INSTANCE | NO with explicit acceptance | Backend uses per-instance 120 requests/60 seconds per client; disabled contact route uses per-instance 5 attempts/10 minutes | Add shared/distributed enforcement before horizontal scale or meaningful abuse exposure |
-| Initial plan presentation refresh | P2 | FIX READY / RETEST REQUIRED | NO | Local commit `be47aa5c8afeb250296ad67d8cd6486e393f147c` serializes cache writes and rebuilds Account after sync; 149 Flutter tests pass with the regression | Authorize push/redeploy and repeat fresh-login Account verification |
+| Initial plan presentation refresh | P2 | CLOSED | NO | Fresh production login immediately displayed Student Pro with active, synchronized state; reload preserved Student Pro and manual sync confirmed the same Supabase-backed plan | Preserve fresh-login and reload coverage in future production smoke tests |
 
 ## Human Gate Details
 
@@ -154,9 +154,37 @@ parameters from browser history, exposes the form only for a valid recovery
 session, signs out after a successful update and gives an honest expired or
 wrong-browser state. Four callback regression tests pass, the full Flutter
 suite reports 149 passes, analyze reports no issues and the Web build passes.
-Production remains `FAIL / RETEST REQUIRED` until this commit is explicitly
-pushed, redeployed and verified with a fresh one-time link. Password entry and
-final submission remain human actions.
+Commit `27f69d2` is now included in deployed QA commit `39a43aa`. Vercel
+deployment `dpl_7DZzmwNHT6oVMoMnPSge97JwfpDh` is READY on the custom app
+domain. A post-deploy reset request was attempted only from the production Auth
+screen, but Supabase returned its email security cooldown response. One
+controlled retry after waiting was also rejected, so no fresh recovery email
+or link was created and no earlier link was reused. Direct access to the reset
+route without a code keeps the form disabled and presents the expected human
+invalid/expired-link guidance without exposing auth parameters. The successful
+PKCE exchange and password change remain a human retest after the provider
+cooldown expires.
+
+## W7-C2.1 QA Deployment Evidence
+
+- Local and remote QA HEAD: `39a43aadeecd37fb6d6797bd0bce6b609905098d`.
+- Normal QA branch push passed without force or tag operations.
+- Vercel deployment `dpl_7DZzmwNHT6oVMoMnPSge97JwfpDh` is READY and reports
+  the same Git commit.
+- `https://app.studybookai.com` and direct SPA routes return HTTP 200; the
+  deployed bundle uses `https://api.studybookai.com` and contains no localhost
+  API fallback.
+- Student A login, dashboard, session restore after reload, private Cloud
+  Library and Student-to-Teacher route denial pass.
+- Account displayed Student Pro, active and synchronized on its first
+  observation. Reload preserved the plan; manual sync was not required to
+  correct presentation and independently confirmed Student Pro from Supabase.
+- The reset request remains blocked by Supabase email cooldown. Password update,
+  post-reset logout and old/new password checks were not performed.
+- Flutter analyze reports no issues and all 149 Flutter tests pass, including
+  the recovery callback contract.
+- Public indexing remains disabled and the overall launch decision remains
+  NO-GO.
 
 ### Contact
 
@@ -211,7 +239,7 @@ limiter does not create a false delivery guarantee.
 
 ```text
 P0: NONE
-P1 TECHNICAL DEFECTS: PASSWORD RESET FIX NOT YET DEPLOYED
+P1 TECHNICAL DEFECTS: NONE OBSERVED; PASSWORD RESET E2E BLOCKED BY EMAIL COOLDOWN
 PUBLIC INDEXING: DISABLED
 FINAL DECISION: NO-GO
 READY FOR W7-D PUBLIC LAUNCH: NO

@@ -346,8 +346,8 @@ Teacher denial, privacy-safe document access, anonymous database/Storage
 denial, public routes, internal links and current automated suites pass.
 
 The strict launch decision remains `NO-GO`. Visible UI logout and production
-document upload are closed. OpenAI key rotation, deployment and retest of the
-password-reset fix, completion of human responsive/accessibility review, a
+document upload are closed. OpenAI key rotation, completion of the password-
+reset E2E after the Supabase email cooldown, human responsive/accessibility review, a
 monitored contact channel and legal approval remain open. Supabase
 leaked-password protection is unavailable on the current Free plan and is
 documented as a P2 requiring upgrade or explicit acceptance.
@@ -357,3 +357,28 @@ and must become shared before horizontal scale.
 Detailed evidence and the blocker register are in
 `docs/release/STUDYBOOK_W7_C_LAUNCH_READINESS.md`. No DNS, Supabase schema,
 runtime deployment, provider secret or indexing setting changed during W7-C.
+
+## W7-C2.1 Flutter QA Deployment
+
+The QA branch was pushed normally at
+`39a43aadeecd37fb6d6797bd0bce6b609905098d`. Vercel production deployment
+`dpl_7DZzmwNHT6oVMoMnPSge97JwfpDh` is READY and reports the same source commit.
+No DNS, backend, marketing, Supabase schema, provider secret or indexing change
+was made.
+
+Production verification passed for HTTPS and direct SPA routing, Student A
+login, session restore, private Cloud Library, Student-to-Teacher route denial,
+and first-render Account subscription state. Account displayed Student Pro as
+active and synchronized before any manual sync; reload preserved it. A later
+manual sync independently confirmed the same Supabase plan.
+
+The deployed reset callback fix is present, but the fresh E2E could not advance
+past email issuance because Supabase enforced its password-reset email cooldown.
+No old recovery link was reused. The no-code reset route keeps the password form
+disabled and displays human invalid/expired-link guidance. PKCE exchange,
+password update, automatic logout and old/new password validation remain pending
+one fresh same-browser link after the cooldown expires.
+
+Local regression validation remains clean: Flutter analyze reports no issues,
+all 149 Flutter tests pass, and `git diff --check` passes. Public indexing and
+public launch remain disabled.
