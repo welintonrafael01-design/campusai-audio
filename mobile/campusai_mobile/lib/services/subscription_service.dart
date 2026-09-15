@@ -6,13 +6,15 @@ import 'plan_guard_service.dart';
 class SubscriptionService {
   const SubscriptionService();
 
-  CampusPlan cacheSubscriptionResponse(Map<String, dynamic> response) {
+  Future<CampusPlan> cacheSubscriptionResponse(
+    Map<String, dynamic> response,
+  ) async {
     final plan = planFromCode(response['plan']?.toString());
     final status = response['subscription_status']?.toString() ?? 'unknown';
     final source = response['source']?.toString() ?? 'backend';
     final role = response['role']?.toString();
 
-    const PlanGuardService().saveCurrentPlan(
+    await const PlanGuardService().saveCurrentPlan(
       plan,
       source: source,
       subscriptionStatus: status,
@@ -26,7 +28,7 @@ class SubscriptionService {
     final user = AuthService.currentUser;
 
     if (user == null) {
-      const PlanGuardService().resetToFree();
+      await const PlanGuardService().resetToFree();
       return CampusPlan.free;
     }
 

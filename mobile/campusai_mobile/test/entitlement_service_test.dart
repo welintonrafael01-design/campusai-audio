@@ -136,11 +136,10 @@ void main() {
 
     test('a cached plan is visible only to its owner scope', () async {
       const guard = PlanGuardService();
-      guard.saveCurrentPlan(
+      await guard.saveCurrentPlan(
         CampusPlan.teacher,
         source: 'supabase',
       );
-      await Future<void>.delayed(Duration.zero);
 
       expect(guard.currentPlan, CampusPlan.teacher);
 
@@ -156,13 +155,12 @@ void main() {
       const service = SubscriptionService();
       const guard = PlanGuardService();
 
-      service.cacheSubscriptionResponse({
+      await service.cacheSubscriptionResponse({
         'plan': 'teacher',
         'subscription_status': 'active',
         'source': 'supabase',
         'role': 'teacher',
       });
-      await Future<void>.delayed(Duration.zero);
 
       expect(guard.currentPlan, CampusPlan.teacher);
       expect(guard.currentServerRole, 'teacher');
@@ -172,17 +170,37 @@ void main() {
       expect(guard.currentPlan, CampusPlan.free);
       expect(guard.currentServerRole, '');
 
-      service.cacheSubscriptionResponse({
+      await service.cacheSubscriptionResponse({
         'plan': 'student',
         'subscription_status': 'active',
         'source': 'supabase',
         'role': 'student',
       });
-      await Future<void>.delayed(Duration.zero);
+
+      expect(guard.currentPlanSource, 'supabase');
+      expect(guard.currentSubscriptionStatus, 'active');
 
       expect(guard.currentPlan, CampusPlan.student);
       expect(guard.currentServerRole, 'student');
       expect(guard.canUseEducatorTools, isFalse);
+    });
+
+    test('login reset completes before the server plan is cached', () async {
+      const service = SubscriptionService();
+      const guard = PlanGuardService();
+
+      await guard.resetToFree();
+      await service.cacheSubscriptionResponse({
+        'plan': 'student',
+        'subscription_status': 'active',
+        'source': 'supabase',
+        'role': 'student',
+      });
+
+      expect(guard.currentPlan, CampusPlan.student);
+      expect(guard.currentPlanSource, 'supabase');
+      expect(guard.currentSubscriptionStatus, 'active');
+      expect(guard.currentServerRole, 'student');
     });
   });
 }

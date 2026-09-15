@@ -24,7 +24,7 @@ void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     await LocalStorageService.initialize();
-    const PlanGuardService().resetToFree();
+    await const PlanGuardService().resetToFree();
   });
 
   for (final width in const [320.0, 360.0, 430.0]) {

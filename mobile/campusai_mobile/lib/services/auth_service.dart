@@ -138,7 +138,7 @@ class AuthService {
   static Future<void> signOut() async {
     await _client.auth.signOut();
 
-    const PlanGuardService().resetToFree();
+    await const PlanGuardService().resetToFree();
     const UsageLimitService().resetPdfUploadsToday();
   }
 

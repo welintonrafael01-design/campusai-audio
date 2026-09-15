@@ -90,7 +90,7 @@ class _PlansScreenState extends State<PlansScreen> {
       await const BillingService().refreshSubscriptionFromServer();
     } catch (_) {
       if (fallbackPlan != CampusPlan.free) {
-        const PlanGuardService().saveCurrentPlan(
+        await const PlanGuardService().saveCurrentPlan(
           fallbackPlan,
           source: 'checkout_pending',
           subscriptionStatus: 'pending',

@@ -21,9 +21,14 @@ import '../theme/app_theme.dart';
 import '../widgets/section_card.dart';
 import '../widgets/studybook_app_shell.dart';
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
+  @override
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   static const bool enablePlanTester = bool.fromEnvironment(
     'ENABLE_PLAN_TESTER',
     defaultValue: false,
@@ -36,6 +41,8 @@ class SettingsScreen extends ConsumerWidget {
       final plan = await const SubscriptionService().syncCurrentUserPlan();
 
       if (!context.mounted) return;
+
+      setState(() {});
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -59,11 +66,15 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
-  void changeTestPlan(
+  Future<void> changeTestPlan(
     BuildContext context,
     CampusPlan plan,
-  ) {
-    const PlanGuardService().saveCurrentPlan(plan);
+  ) async {
+    await const PlanGuardService().saveCurrentPlan(plan);
+
+    if (!context.mounted) return;
+
+    setState(() {});
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -509,10 +520,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(
-    BuildContext context,
-    WidgetRef ref,
-  ) {
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
     final themeMode = ref.watch(themeProvider);

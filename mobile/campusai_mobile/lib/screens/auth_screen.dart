@@ -54,7 +54,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
         // Start every authenticated session from a fail-closed local context.
         // The backend subscription response repopulates role and plan below.
-        const PlanGuardService().resetToFree();
+        await const PlanGuardService().resetToFree();
 
         try {
           await const SubscriptionService().syncCurrentUserPlan();

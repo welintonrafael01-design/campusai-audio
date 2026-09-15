@@ -71,7 +71,7 @@ class BillingService {
       );
     }
 
-    const SubscriptionService().cacheSubscriptionResponse(decoded);
+    await const SubscriptionService().cacheSubscriptionResponse(decoded);
     return decoded;
   }
 

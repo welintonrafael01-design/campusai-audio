@@ -72,46 +72,50 @@ class PlanGuardService {
 
   String get currentPlanName => AppPlans.planNames[currentPlan]!;
 
-  void saveCurrentPlan(
+  Future<void> saveCurrentPlan(
     CampusPlan plan, {
     String source = 'local_test',
     String subscriptionStatus = 'active',
     String? serverRole,
-  }) {
-    LocalStorageService.setString(
+  }) async {
+    final preferences = LocalStorageService.preferences;
+
+    await preferences.setString(
       _planOwnerStorageKey,
       UserScopedStorage.currentUserScope,
     );
-    LocalStorageService.setString(
+    await preferences.setString(
       _planStorageKey,
       planCodeFromCampusPlan(plan),
     );
-    LocalStorageService.setString(_planSourceStorageKey, source);
-    LocalStorageService.setString(
+    await preferences.setString(_planSourceStorageKey, source);
+    await preferences.setString(
       _subscriptionStatusStorageKey,
       subscriptionStatus,
     );
     final normalizedRole = serverRole?.trim().toLowerCase();
     if (normalizedRole != null && normalizedRole.isNotEmpty) {
-      LocalStorageService.setString(_serverRoleStorageKey, normalizedRole);
+      await preferences.setString(_serverRoleStorageKey, normalizedRole);
     }
   }
 
-  void resetToFree() {
-    LocalStorageService.setString(
+  Future<void> resetToFree() async {
+    final preferences = LocalStorageService.preferences;
+
+    await preferences.setString(
       _planOwnerStorageKey,
       UserScopedStorage.currentUserScope,
     );
-    LocalStorageService.setString(
+    await preferences.setString(
       _planStorageKey,
       planCodeFromCampusPlan(CampusPlan.free),
     );
-    LocalStorageService.setString(_planSourceStorageKey, 'local');
-    LocalStorageService.setString(
+    await preferences.setString(_planSourceStorageKey, 'local');
+    await preferences.setString(
       _subscriptionStatusStorageKey,
       'free',
     );
-    LocalStorageService.setString(_serverRoleStorageKey, 'student');
+    await preferences.setString(_serverRoleStorageKey, 'student');
   }
 
   Future<void> clearCachedAccountState() async {
