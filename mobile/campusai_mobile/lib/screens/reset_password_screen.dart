@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
@@ -19,7 +19,19 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   String errorMessage = '';
   String successMessage = '';
 
+  bool get hasRecoverySession =>
+      AuthService.passwordRecoveryStatus == PasswordRecoveryStatus.ready;
+
   Future<void> updatePassword() async {
+    if (!hasRecoverySession) {
+      setState(() {
+        errorMessage =
+            'Este enlace no pudo validarse. Solicita uno nuevo y ábrelo en el mismo navegador y dispositivo.';
+        successMessage = '';
+      });
+      return;
+    }
+
     final password = passwordController.text.trim();
     final confirm = confirmController.text.trim();
 
@@ -54,14 +66,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     });
 
     try {
-      await Supabase.instance.client.auth.updateUser(
-        UserAttributes(password: password),
-      );
+      await AuthService.completePasswordRecovery(password);
 
       if (!mounted) return;
 
       setState(() {
-        successMessage = 'Contraseña actualizada correctamente.';
+        successMessage =
+            'Contraseña actualizada correctamente. Ya puedes iniciar sesión.';
         errorMessage = '';
       });
 
@@ -95,6 +106,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final recoveryReady = hasRecoverySession;
+
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: Center(
@@ -127,21 +140,38 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     style: TextStyle(color: AppTheme.textMuted),
                   ),
                   const SizedBox(height: 20),
-                  TextField(
-                    controller: passwordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Nueva contraseña',
+                  if (!recoveryReady) ...[
+                    const Icon(
+                      Icons.link_off_rounded,
+                      color: Colors.orangeAccent,
+                      size: 36,
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: confirmController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Confirmar contraseña',
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Este enlace expiró, ya fue utilizado o se abrió en otro navegador. Solicita uno nuevo y ábrelo en el mismo navegador y dispositivo.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppTheme.textMuted,
+                        height: 1.4,
+                      ),
                     ),
-                  ),
+                  ] else ...[
+                    TextField(
+                      controller: passwordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Nueva contraseña',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: confirmController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Confirmar contraseña',
+                      ),
+                    ),
+                  ],
                   if (successMessage.isNotEmpty) ...[
                     const SizedBox(height: 14),
                     Text(
@@ -157,16 +187,21 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     ),
                   ],
                   const SizedBox(height: 20),
-                  FilledButton(
-                    onPressed: isLoading ? null : updatePassword,
-                    child: Text(
-                      isLoading ? 'Actualizando...' : 'Actualizar contraseña',
+                  if (recoveryReady)
+                    FilledButton(
+                      onPressed: isLoading ? null : updatePassword,
+                      child: Text(
+                        isLoading ? 'Actualizando...' : 'Actualizar contraseña',
+                      ),
                     ),
-                  ),
                   const SizedBox(height: 12),
                   TextButton(
                     onPressed: () => context.go('/auth'),
-                    child: const Text('Volver al inicio de sesión'),
+                    child: Text(
+                      recoveryReady
+                          ? 'Volver al inicio de sesión'
+                          : 'Solicitar un nuevo enlace',
+                    ),
                   ),
                 ],
               ),

@@ -4,7 +4,45 @@ import 'plan_guard_service.dart';
 import 'security/user_scoped_storage.dart';
 import 'usage_limit_service.dart';
 
+enum PasswordRecoveryStatus {
+  idle,
+  ready,
+  invalid,
+}
+
+/// Resolves the PKCE callback without retaining or exposing the auth code.
+class PasswordRecoveryCallback {
+  const PasswordRecoveryCallback._();
+
+  static bool isRecoveryRoute(Uri uri) {
+    final fragmentPath = uri.fragment.split('?').first;
+    return uri.path == '/reset-password' || fragmentPath == '/reset-password';
+  }
+
+  static Future<PasswordRecoveryStatus> resolve({
+    required Uri uri,
+    required Future<bool> Function(String code) exchangeCode,
+  }) async {
+    final code = uri.queryParameters['code']?.trim() ?? '';
+    if (!isRecoveryRoute(uri) || code.isEmpty) {
+      return PasswordRecoveryStatus.invalid;
+    }
+
+    try {
+      final hasSession = await exchangeCode(code);
+      return hasSession
+          ? PasswordRecoveryStatus.ready
+          : PasswordRecoveryStatus.invalid;
+    } catch (_) {
+      return PasswordRecoveryStatus.invalid;
+    }
+  }
+}
+
 class AuthService {
+  static PasswordRecoveryStatus _passwordRecoveryStatus =
+      PasswordRecoveryStatus.idle;
+
   static bool get isConfigured {
     try {
       Supabase.instance.client;
@@ -28,6 +66,9 @@ class AuthService {
       isConfigured ? _client.auth.currentUser : null;
 
   static bool get isLoggedIn => currentUser != null;
+
+  static PasswordRecoveryStatus get passwordRecoveryStatus =>
+      _passwordRecoveryStatus;
 
   static String? get accessToken =>
       isConfigured ? _client.auth.currentSession?.accessToken : null;
@@ -80,6 +121,48 @@ class AuthService {
       email.trim(),
       redirectTo: '${Uri.base.origin}/#/reset-password',
     );
+  }
+
+  /// Processes the initial Web auth callback before the router starts.
+  ///
+  /// Supabase PKCE codes are intentionally never logged or persisted here.
+  static Future<void> processInitialWebAuthCallback(Uri uri) async {
+    final code = uri.queryParameters['code']?.trim() ?? '';
+    if (PasswordRecoveryCallback.isRecoveryRoute(uri)) {
+      _passwordRecoveryStatus = await PasswordRecoveryCallback.resolve(
+        uri: uri,
+        exchangeCode: (authCode) async {
+          await _client.auth.exchangeCodeForSession(authCode);
+          return _client.auth.currentSession != null;
+        },
+      );
+      return;
+    }
+
+    if (code.isEmpty) return;
+
+    try {
+      await _client.auth.exchangeCodeForSession(code);
+    } catch (_) {
+      // Authentication failures are handled by the destination screen.
+    }
+  }
+
+  static Future<void> completePasswordRecovery(String password) async {
+    if (_passwordRecoveryStatus != PasswordRecoveryStatus.ready) {
+      throw StateError('Password recovery session is not available.');
+    }
+
+    await _client.auth.updateUser(UserAttributes(password: password));
+    _passwordRecoveryStatus = PasswordRecoveryStatus.idle;
+    try {
+      await signOut();
+    } catch (_) {
+      // The SDK removes the local session before attempting remote sign-out.
+      // Keep the successful password update visible even if that request fails.
+      await const PlanGuardService().resetToFree();
+      const UsageLimitService().resetPdfUploadsToday();
+    }
   }
 
   static Future<void> resendSignupConfirmation({

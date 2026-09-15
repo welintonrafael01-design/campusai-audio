@@ -125,7 +125,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
       setState(() {
         successMessage =
-            'Te enviamos un enlace para restablecer tu contraseña. Revisa tu correo electrónico.';
+            'Te enviamos un enlace para restablecer tu contraseña. Ábrelo en este mismo navegador y dispositivo.';
         errorMessage = '';
       });
     } catch (error) {

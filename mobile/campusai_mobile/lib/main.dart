@@ -13,6 +13,8 @@ import 'theme/app_theme.dart';
 import 'l10n/app_localizations.dart';
 import 'services/local_storage_service.dart';
 import 'services/billing_service.dart';
+import 'services/auth_service.dart';
+import 'platform/auth_callback_url.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +33,15 @@ Future<void> main() async {
     await Supabase.initialize(
       url: supabaseUrl,
       anonKey: supabaseAnonKey,
+      authOptions: FlutterAuthClientOptions(
+        detectSessionInUri: !kIsWeb,
+      ),
     );
+    if (kIsWeb) {
+      final initialUri = Uri.base;
+      await AuthService.processInitialWebAuthCallback(initialUri);
+      clearAuthCallbackParameters(initialUri);
+    }
     await authRouteRefreshNotifier.bind(
       Supabase.instance.client.auth.onAuthStateChange,
     );
