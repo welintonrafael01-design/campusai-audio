@@ -1,6 +1,6 @@
 # StudyBook AI Production Infrastructure
 
-Status: `W7-C READINESS AUDITED - PUBLIC LAUNCH NO-GO`
+Status: `W7-C2 LOCAL FIXES READY - PUBLIC LAUNCH NO-GO`
 
 Date: `2026-09-15`
 
@@ -10,6 +10,11 @@ The authorized QA branch is deployed to persistent Render and Vercel projects.
 The controlled production-domain cutover is complete for Marketing, Flutter
 and API. Public indexing remains disabled and launch is still blocked by key
 rotation, legal approval and remaining human functional gates.
+
+Two W7-C2 Flutter fixes exist only in the local QA branch: `be47aa5c...`
+serializes subscription cache persistence before Account rendering, and
+`27f69d2` explicitly exchanges the Web password-recovery PKCE code before
+enabling password update. Neither commit has been pushed or deployed.
 
 ## Deployment Topology
 
@@ -225,8 +230,10 @@ https://studybook-ai-app.vercel.app/#/reset-password
 ```
 
 All seven previous localhost QA callbacks were retained. Password login and
-authenticated custom-domain lifecycle probes pass; one real password-reset
-email round trip remains a human gate.
+authenticated custom-domain lifecycle probes pass. A real password-reset
+callback exposed that the deployed Flutter app does not reliably exchange the
+Web PKCE code before `updateUser`; local commit `27f69d2` fixes that ordering
+and requires authorized deployment plus a fresh human retest.
 
 ### W7-B Custom Domain State
 
@@ -314,7 +321,8 @@ foreign denial, missing-resource denial and owner access.
 1. Rotate the previously exposed OpenAI production key in Render, redeploy and
    revoke the old key without disclosing either value. This is a launch
    blocker.
-2. Complete one real password-reset email round trip on the custom app domain.
+2. Push and deploy local password-reset fix `27f69d2`, then complete a fresh
+   email round trip on the custom app domain without recording its code.
 3. Manually confirm the visible Flutter logout control and document upload.
 4. Complete broader desktop/mobile responsive, keyboard, focus and basic
    screen-reader checks on the custom domain.
@@ -337,11 +345,12 @@ redirect, health/build identity, exact-origin CORS, Auth roles, Student-to-
 Teacher denial, privacy-safe document access, anonymous database/Storage
 denial, public routes, internal links and current automated suites pass.
 
-The strict launch decision remains `NO-GO`. OpenAI key rotation, visible UI
-logout, production document upload, one password-reset round trip, human
-responsive/accessibility review, a monitored contact channel and legal approval
-remain open. Supabase leaked-password protection is unavailable on the current
-Free plan and is documented as a P2 requiring upgrade or explicit acceptance.
+The strict launch decision remains `NO-GO`. Visible UI logout and production
+document upload are closed. OpenAI key rotation, deployment and retest of the
+password-reset fix, completion of human responsive/accessibility review, a
+monitored contact channel and legal approval remain open. Supabase
+leaked-password protection is unavailable on the current Free plan and is
+documented as a P2 requiring upgrade or explicit acceptance.
 Per-instance rate limiting is accepted only for controlled single-instance use
 and must become shared before horizontal scale.
 
