@@ -198,11 +198,14 @@ admin or Google service-account credentials in Flutter.
 - Root plus direct `/login`, `/dashboard`, `/privacy` and
   `/account-deletion` requests return HTTP 200; hash-route refresh preserves
   the authenticated route.
-- Real Student A login passed. Plan sync showed Student Pro/active, Home,
-  Library, Learning and Account loaded, and the session survived a direct
-  Library refresh.
-- The same QA identities passed API logout; final interactive logout remains a
-  small human UI confirmation.
+- Real Student A login passed. Home, Library, Learning and Account loaded, and
+  the session survived a direct Library refresh. A harmless QA PDF uploaded,
+  persisted in private Cloud state after reload and returned a privacy-safe 404
+  to Student B. The visible logout action returned to Auth and protected Library
+  navigation redirected back to Auth.
+- Account initially presented Free despite an active Student backend
+  subscription; manual plan sync plus a route rebuild corrected Student Pro.
+  This remains a P2 state-refresh issue, not an observed authorization bypass.
 
 ### Supabase Auth Redirects
 

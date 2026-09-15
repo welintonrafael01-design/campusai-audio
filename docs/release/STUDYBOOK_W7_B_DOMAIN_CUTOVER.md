@@ -110,9 +110,10 @@ continues to disallow all crawling.
 - **Launch blocker:** approve final legal content and effective product policy.
 - **Human action:** select and validate a real contact delivery provider if a
   working public contact channel is required.
-- **Human action:** complete one password-reset email flow, visible UI logout,
-  document upload, broader desktop/mobile responsive, keyboard, focus and
-  screen-reader checks on the custom domain.
+- **Human action:** complete one password-reset email flow and broader
+  desktop/mobile responsive, keyboard, focus and screen-reader checks on the
+  custom domain. Visible UI logout and a private production QA document upload
+  now pass in W7-C.
 - **P2:** leaked-password protection remains plan-dependent and distributed
   rate limiting remains pending before horizontal scale.
 
@@ -121,8 +122,9 @@ for controlled transition safety.
 
 ## W7-C Follow-Up
 
-The unchanged W7-B runtime passed the W7-C technical recheck. Public launch is
-still `NO-GO`: key rotation, visible logout, document upload, password reset,
+The unchanged W7-B runtime passed the W7-C technical recheck. Visible logout,
+private QA upload persistence and direct Student A to Student B ownership
+denial now pass. Public launch is still `NO-GO`: key rotation, password reset,
 human responsive/accessibility checks, monitored contact and legal approval
 remain open. Public indexing remains disabled. See
 `docs/release/STUDYBOOK_W7_C_LAUNCH_READINESS.md` for the evidence and explicit

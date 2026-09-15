@@ -23,6 +23,8 @@ technical baseline is healthy, but the strict public-launch gate remains
 | API | PASS | `/health` returns 200 and build SHA `ca8d49b...` |
 | TLS | PASS | Current certificates validate for root, `www`, `app` and `api` |
 | CORS | PASS | Custom app origin receives 200; an unknown origin receives 400 |
+| Authenticated upload | PASS | Student A uploaded one harmless QA PDF through the visible UI; Library and Cloud state survived reload |
+| Visible logout | PASS | The Account control returned to `/#/auth`; direct access to `/#/library` redirected back to Auth |
 | Indexing | DISABLED | `X-Robots-Tag` is `noindex`; `robots.txt` disallows all crawling |
 | Runtime source | CURRENT | API and both Vercel deployments use runtime commit `ca8d49b...`; later local commits are documentation only |
 
@@ -41,6 +43,8 @@ Production checks performed with disposable QA identities and redacted output:
 - Attempting to spoof Teacher role or plan through request headers remains 403.
 - Missing documents and Student B access to a Student A document return the
   same privacy-safe 404.
+- The W7-C upload fixture returns 200 for Student A and privacy-safe 404 for
+  Student B when its exact resource ID is requested directly.
 - Student B has no owned document fixture, so the inverse live document probe
   was not fabricated. Existing remote RLS evidence covers bidirectional owner
   isolation; a fresh inverse live fixture remains optional supporting evidence.
@@ -83,8 +87,8 @@ review on the custom domains.
 | Issue | Severity | Status | Launch blocker | Evidence | Required action |
 | --- | --- | --- | --- | --- | --- |
 | OpenAI production key rotation | P1 | HUMAN ACTION | YES | Rotation has not been attested in W7-C | Human creates a new production key, enters it directly in Render, redeploys, performs one minimal AI request, then revokes the old key |
-| Visible Flutter logout | P1 gate | HUMAN ACTION | YES | API logout passed previously; visible control was not exercised in W7-C | Sign in through the custom app, use the visible logout control and verify protected routes return to Auth |
-| Production document upload | P1 gate | HUMAN ACTION | YES | Upload contract and tests pass; no harmless production fixture was uploaded in W7-C | Upload one harmless QA PDF, verify progress, Library persistence, private ownership and cleanup |
+| Visible Flutter logout | P1 gate | CLOSED | NO | The visible Account action returned to `/#/auth`; a subsequent `/#/library` navigation was redirected to Auth | Preserve this flow in future browser regression coverage |
+| Production document upload | P1 gate | CLOSED | NO | A harmless one-page QA PDF uploaded successfully, produced a truthful summary, persisted in Library/Cloud after reload and remained inaccessible to Student B | The private fixture is intentionally retained under Student A as QA evidence; remove it later only through an explicitly authorized delete action |
 | Responsive human QA | P1 gate | HUMAN ACTION | YES | Automated 390/768/1024/1440 checks pass | Human visual review of Marketing and authenticated Flutter at all required widths |
 | Accessibility human QA | P1 gate | HUMAN ACTION | YES | Axe/component and Flutter widget checks pass | Human keyboard, focus, labels, contrast and screen-reader review |
 | Password reset E2E | P1 gate | HUMAN ACTION | YES | Custom callback is configured; no reset email round trip completed in W7-C | Request one QA reset, follow the custom-domain link, change the password manually and verify old/new behavior without recording tokens |
@@ -92,6 +96,7 @@ review on the custom domains.
 | Legal finalization | P1 | DRAFT | YES | Privacy and account-deletion content still contains unresolved placeholders | Legal/product owner approves entity, contacts, address, jurisdiction, date, retention, age, subscription, cancellation and refund terms |
 | Leaked-password protection | P2 | HUMAN ACTION / PLAN LIMITED | NO with explicit acceptance | Project dashboard reports Free; Supabase limits this feature to Pro and above | Upgrade deliberately and enable it, or record explicit pre-launch P2 risk acceptance |
 | Distributed rate limiting | P2 | ACCEPTED FOR CONTROLLED SINGLE INSTANCE | NO with explicit acceptance | Backend uses per-instance 120 requests/60 seconds per client; disabled contact route uses per-instance 5 attempts/10 minutes | Add shared/distributed enforcement before horizontal scale or meaningful abuse exposure |
+| Initial plan presentation refresh | P2 | OPEN | NO with explicit acceptance | Immediately after interactive login, Account first presented Free although the API subscription was active Student; manual Sync plus route rebuild displayed Student Pro correctly | Make successful plan synchronization notify/rebuild the active account/dashboard state and add a regression test |
 
 ## Human Gate Details
 
@@ -103,9 +108,27 @@ deployed and one minimal production AI request succeeds.
 
 ### Visible Logout And Upload
 
-The custom Auth screen loads correctly. W7-C stopped before transmitting QA
-credentials or a file through the interactive browser. These two checks require
-explicit human authorization and evidence from the visible UI.
+After explicit human authorization, Student A signed in through the custom Auth
+screen and uploaded `studybook-w7c-upload-validation.pdf`, a one-page synthetic
+QA document without personal data or secrets. Processing completed, the active
+document and generated summary matched the fixture, and Library showed four
+documents with the QA resource marked Cloud. Reloading `/#/library` preserved
+the same counts and resource.
+
+An authenticated API probe found exactly one matching QA document. Its owner
+received 200 from `/documents/info/{id}` and Student B received the same
+privacy-safe 404 used for absent documents. The fixture remains private and is
+retained intentionally as evidence; no destructive delete was authorized.
+
+The visible `Cerrar sesion` control returned the browser to `/#/auth`. A direct
+navigation to `/#/library` after logout was redirected to Auth, closing the
+interactive logout gate.
+
+The first Account render after login presented Free even though the backend
+subscription was already active Student. `Sincronizar plan` followed by a route
+rebuild corrected the presentation to Student Pro and updated usage limits. No
+authorization bypass was observed, but the delayed UI refresh is retained as a
+P2 product-quality issue.
 
 ### Password Reset
 
