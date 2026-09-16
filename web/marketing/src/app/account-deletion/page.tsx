@@ -64,7 +64,7 @@ export default function AccountDeletionPage() {
           </p>
 
           <h2>Contacto y vigencia</h2>
-          <p>Las consultas de privacidad, soporte y eliminación se reciben en <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>. La dirección publicable continúa pendiente de revisión jurídica y la fecha efectiva se fijará únicamente al aprobar la publicación final.</p>
+          <p>Las consultas de privacidad, soporte y eliminación se reciben en <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>. El domicilio profesional de contacto autorizado puede consultarse en <a href="/contact">Contacto</a> y no modifica la identidad del operador. La fecha efectiva se fijará únicamente al aprobar la publicación final.</p>
         </div>
       </article>
     </>

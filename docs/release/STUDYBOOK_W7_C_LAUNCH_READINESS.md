@@ -367,10 +367,10 @@ remains disabled and is not presented as operational.
 Operator, age/minors, 30/90-day deletion targets, subscription pricing,
 no-trial position, cancellation, first-payment refund, AI limitations, user
 content, IP, provider and P2 decisions are aligned across the public pages.
-Publishable address remains blocked pending counsel. Effective date is added
-only after final publication approval. Specific venue/court wording remains
-under legal consistency review.
+The approved professional contact domicile is integrated without changing the
+legal operator. Effective date is added only after final publication approval.
+Specific venue/court wording remains under legal consistency review.
 
-Marketing lint, 47 tests, production build, 11-route smoke and 16-link internal
+Marketing lint, 48 tests, production build, 11-route smoke and 15-link internal
 check pass. Public indexing remains disabled. No push or deployment occurred.
 The strict decision remains `NO-GO` pending final text/publication approval.

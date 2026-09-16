@@ -7,13 +7,15 @@ Date: `2026-09-16`
 Source of truth:
 `docs/legal/STUDYBOOKAI_FINAL_HUMAN_APPROVAL_SHEET.md`, section
 `FINAL HUMAN APPROVAL RESPONSE`, as superseded for operator identity by
-`FINAL OPERATOR IDENTITY AMENDMENT`.
+`FINAL OPERATOR IDENTITY AMENDMENT` and for address status by
+`FINAL PUBLISHABLE ADDRESS APPROVAL`.
 
 ## Integrated Decisions
 
 | Field | Integrated state |
 | --- | --- |
 | Legal operator | Welinton Rafael Mejía González |
+| Professional contact address | Bufete Jurídico “MULTISERVICIOS ZORRILLA”, Avenida Sabana Larga, núm. 148, Ensanche Ozama, Santo Domingo Este, República Dominicana; contact domicile only |
 | Support/privacy/deletion/legal/IP contact | `studybookaiapp@gmail.com` |
 | Contact form | Automated delivery remains disabled and is no longer presented as an operational form |
 | Governing law/jurisdiction | Dominican Republic; specific venue/court wording remains under legal review |
@@ -33,7 +35,6 @@ Source of truth:
 
 ## Deliberately Unresolved
 
-- Publishable address: `BLOCKED PENDING COUNSEL`.
 - Specific venue/court/dispute wording: pending legal consistency review.
 - Effective date: set only when final publication is explicitly approved; it
   must not be backdated.
@@ -49,10 +50,11 @@ Source of truth:
 - `web/marketing/src/app/security/page.tsx`
 - `web/marketing/src/app/pricing/page.tsx`
 
-Privacy, Terms and Account Deletion retain page-level `noindex`, explicit final
-draft notices and no fabricated address/effective date. Contact exposes the
-approved monitored email while the disabled automated delivery endpoint
-remains fail-closed.
+Privacy, Terms and Account Deletion retain page-level `noindex` and explicit
+final draft notices. Privacy and Contact publish the approved professional
+contact domicile without presenting its host as the operator. The effective
+date remains pending. Contact exposes the approved monitored email while the
+disabled automated delivery endpoint remains fail-closed.
 
 ## Consistency Result
 
@@ -64,13 +66,13 @@ placeholder remains in the public page sources.
 ## Validation
 
 - Marketing lint: PASS.
-- Marketing tests: `47 passed` across 8 files.
+- Marketing tests: `48 passed` across 8 files.
 - Marketing production build: PASS, 17 routes generated.
 - Local route smoke: 11 required routes PASS.
-- Internal link check: 16 paths checked, 0 broken.
+- Internal link check: 15 paths checked, 0 broken.
 - Built legal-page noindex check: PASS for Privacy, Terms and Account Deletion.
-- Tracked/intended first-party secret scan: PASS; 952 files checked, 0
-  high-confidence or local-private-value matches.
+- Tracked/intended first-party secret scan: PASS; 841 tracked text files
+  checked, 0 high-confidence or local-private-value matches.
 - `git diff --check`: PASS.
 - Public indexing: DISABLED.
 - Deployment: NOT PERFORMED.

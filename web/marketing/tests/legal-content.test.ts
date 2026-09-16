@@ -32,6 +32,25 @@ describe("W7-C5 public legal content", () => {
     expect(terms).toContain("18 años");
   });
 
+  it("publishes the approved professional domicile without changing the operator", () => {
+    const privacy = readPage("privacy");
+    const terms = readPage("terms");
+    const contact = readPage("contact");
+    const deletion = readPage("account-deletion");
+
+    for (const source of [privacy, contact]) {
+      expect(source).toContain("Bufete Jurídico “MULTISERVICIOS ZORRILLA”");
+      expect(source).toContain("Avenida Sabana Larga, núm. 148");
+      expect(source).toContain("Ensanche Ozama, Santo Domingo Este");
+    }
+    for (const source of [privacy, terms, contact]) {
+      expect(source).toContain("Welinton Rafael Mejía González");
+      expect(source).not.toMatch(/dirección publicable.*pendiente/i);
+    }
+    expect(terms).toContain("Ese domicilio no convierte a MULTISERVICIOS ZORRILLA en propietario, operador, responsable del tratamiento");
+    expect(deletion).toContain("no modifica la identidad del operador");
+  });
+
   it("keeps approved billing, cancellation and refund wording aligned", () => {
     const terms = readPage("terms");
     const pricing = readPage("pricing");

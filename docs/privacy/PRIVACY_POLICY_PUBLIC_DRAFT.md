@@ -8,7 +8,11 @@ Operator: `Welinton Rafael Mejía González`
 
 Privacy/support contact: `studybookaiapp@gmail.com`
 
-Publishable address: `BLOCKED PENDING COUNSEL`
+Professional contact address: `Bufete Jurídico “MULTISERVICIOS ZORRILLA”, Avenida Sabana Larga, núm. 148, Ensanche Ozama, Santo Domingo Este, República Dominicana`
+
+Address role: professional contact domicile only; it does not make
+MULTISERVICIOS ZORRILLA the owner, operator, controller or legal entity behind
+StudyBook AI.
 
 The integrated public text is maintained in
 `web/marketing/src/app/privacy/page.tsx`. That implementation is the current
@@ -49,10 +53,9 @@ source for final human review and remains page-level `noindex`.
 
 ## Remaining Publication Decisions
 
-1. Approve a publishable address or counsel-approved omission.
-2. Approve the specific venue/court wording.
-3. Set the effective date only when the final text is approved for publication.
-4. Issue explicit final publication approval.
+1. Approve the specific venue/court wording.
+2. Set the effective date only when the final text is approved for publication.
+3. Issue explicit final publication approval.
 
 Until those steps are complete, the public page remains a final draft and
 public indexing remains disabled.

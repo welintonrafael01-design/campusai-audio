@@ -443,7 +443,7 @@ retention/deletion targets, billing/cancellation/refund terms, AI and user
 content language, provider disclosures and accepted P2 risks. No production
 infrastructure or environment value changed.
 
-Publishable address remains blocked pending counsel, the effective date must be
-set only at final publication, and specific venue wording requires consistency
-review. Public indexing, deployment and launch remain disabled pending explicit
-human approval.
+The approved professional contact domicile is integrated and does not change
+the legal operator. The effective date must be set only at final publication,
+and specific venue wording requires consistency review. Public indexing,
+deployment and launch remain disabled pending explicit human approval.

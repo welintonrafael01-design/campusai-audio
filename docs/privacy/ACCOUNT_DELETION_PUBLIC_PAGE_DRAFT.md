@@ -8,6 +8,8 @@ Operator: `Welinton Rafael Mejía González`
 
 Monitored contact: `studybookaiapp@gmail.com`
 
+Professional contact address: `Bufete Jurídico “MULTISERVICIOS ZORRILLA”, Avenida Sabana Larga, núm. 148, Ensanche Ozama, Santo Domingo Este, República Dominicana`. This is a professional contact domicile only and does not change the legal operator.
+
 Effective date: pending the actual final publication date.
 
 The integrated public text is maintained in
@@ -51,7 +53,6 @@ provider.
 
 ## Remaining Publication Decisions
 
-- Publishable address: `BLOCKED PENDING COUNSEL`.
 - Effective date: set only at final publication approval.
 - Final publication authorization: pending.
 

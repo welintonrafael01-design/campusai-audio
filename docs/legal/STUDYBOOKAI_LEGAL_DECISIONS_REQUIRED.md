@@ -11,6 +11,7 @@ drafts effective.
 | Field | Approved decision |
 | --- | --- |
 | Legal operator | Welinton Rafael Mejía González |
+| Professional contact address | Bufete Jurídico “MULTISERVICIOS ZORRILLA”, Avenida Sabana Larga, núm. 148, Ensanche Ozama, Santo Domingo Este, República Dominicana; professional domicile only, not the operator |
 | Monitored contact | `studybookaiapp@gmail.com` for initial support, privacy, deletion, refund, legal and IP communications |
 | Governing law/jurisdiction | Dominican Republic; specific venue/court wording still requires legal consistency review |
 | Minimum age | 18 for independent individual accounts during the initial controlled launch |
@@ -33,7 +34,6 @@ drafts effective.
 
 | Field | Current status | Required action |
 | --- | --- | --- |
-| Publishable address | `BLOCKED PENDING COUNSEL` | Approve a public address or a counsel-approved lawful omission; do not publish a private address by inference |
 | Specific venue/court/dispute wording | Pending legal consistency review | Approve the exact clause without changing the Product Owner's Dominican Republic law/jurisdiction intent |
 | Effective date | `PENDING FINAL PUBLICATION DATE` | Set the actual date only when Privacy and Terms receive final publication approval; do not backdate |
 | Final legal publication | Not authorized | Review the integrated final drafts and explicitly approve or reject publication |

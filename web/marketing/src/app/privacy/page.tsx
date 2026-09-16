@@ -20,10 +20,18 @@ export default function PrivacyPage() {
         <div className="container prose">
           <aside className="draft-notice" role="note">
             <strong>Todavía no es una política vigente.</strong>
-            <span>La fecha efectiva está pendiente de aprobación final y la dirección publicable continúa pendiente de revisión jurídica. Esta página permanece excluida de indexación.</span>
+            <span>La fecha efectiva está pendiente de aprobación final. Esta página permanece excluida de indexación.</span>
           </aside>
 
           <p><strong>Operador:</strong> Welinton Rafael Mejía González.</p>
+          <p>
+            <strong>Domicilio de contacto profesional:</strong><br />
+            Bufete Jurídico “MULTISERVICIOS ZORRILLA”,<br />
+            Avenida Sabana Larga, núm. 148,<br />
+            Ensanche Ozama, Santo Domingo Este,<br />
+            República Dominicana.
+          </p>
+          <p>Este domicilio se publica únicamente como dirección profesional de contacto de StudyBook AI. MULTISERVICIOS ZORRILLA no es propietario, operador, responsable del tratamiento, entidad jurídica detrás ni titular de StudyBook AI.</p>
           <p><strong>Contacto de privacidad y soporte:</strong> <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>.</p>
           <p><strong>Fecha de vigencia:</strong> pendiente de publicación final; no se aplicará retroactivamente.</p>
 

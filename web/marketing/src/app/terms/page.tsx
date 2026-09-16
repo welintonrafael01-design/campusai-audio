@@ -20,7 +20,7 @@ export default function TermsPage() {
         <div className="container prose">
           <aside className="draft-notice" role="note">
             <strong>Todavía no son términos vigentes.</strong>
-            <span>La fecha efectiva se fijará al aprobar la publicación final. La dirección publicable y la sede o tribunal específicos siguen pendientes de revisión jurídica.</span>
+            <span>La fecha efectiva se fijará al aprobar la publicación final. La sede o tribunal específicos siguen pendientes de revisión jurídica.</span>
           </aside>
 
           <p><strong>Operador:</strong> Welinton Rafael Mejía González.</p>
@@ -99,7 +99,7 @@ export default function TermsPage() {
 
           <h2>13. Contacto y vigencia</h2>
           <p>
-            Para soporte, privacidad, eliminación, reembolsos, asuntos legales o propiedad intelectual, escribe a <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>. La dirección publicable continúa pendiente de revisión jurídica. La fecha de vigencia se fijará únicamente cuando se apruebe la publicación final.
+            Para soporte, privacidad, eliminación, reembolsos, asuntos legales o propiedad intelectual, escribe a <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>. El domicilio profesional de contacto autorizado se publica en <a href="/contact">Contacto</a> y <a href="/privacy">Privacidad</a>. Ese domicilio no convierte a MULTISERVICIOS ZORRILLA en propietario, operador, responsable del tratamiento, entidad jurídica detrás ni titular de StudyBook AI. La fecha de vigencia se fijará únicamente cuando se apruebe la publicación final.
           </p>
         </div>
       </article>

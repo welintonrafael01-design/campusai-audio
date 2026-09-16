@@ -32,20 +32,20 @@ below becomes approved merely because it is listed here.
   channel for initial support, privacy, deletion and legal communications.
 - Privacy, Terms and Account Deletion remain final drafts with page-level
   `noindex`. The effective date is set only at final publication and the
-  publishable address remains blocked pending counsel. Public indexing remains
-  disabled globally.
+  professional contact address is approved in `FINAL PUBLISHABLE ADDRESS
+  APPROVAL`. Public indexing remains disabled globally.
 
 ## Pre-Approval Decision Inventory
 
 This inventory records the questions that preceded the Product Owner response
 later in this document. The `FINAL HUMAN APPROVAL RESPONSE` section supersedes
-resolved rows. Publishable address, effective date and specific venue wording
-remain open exactly as stated there.
+resolved rows. The `FINAL PUBLISHABLE ADDRESS APPROVAL` section resolves the
+address. Effective date and specific venue wording remain open.
 
 | Field | Current status | Proposed text/options | Human decision required | Document affected |
 | --- | --- | --- | --- | --- |
 | Legal operator | Unresolved | Exact registered entity name or exact legal name of the individual operator; do not use the product name alone unless it is the legal operator | Supply the exact publishable legal name and operator type | Privacy, Terms, Contact, deletion |
-| Publishable address | Unresolved | Registered business/service address, another counsel-approved notice address, or no address only if legal review confirms that omission is permissible | Supply the exact public address or explicitly keep launch blocked pending legal review | Privacy, Terms, Contact |
+| Publishable address | Resolved | Professional contact domicile approved in the final address section | No further address decision required | Privacy, Terms, Contact |
 | Support contact | No monitored channel | A real monitored StudyBook AI mailbox or an explicitly approved professional mailbox used temporarily | Supply the exact address and confirm it is monitored | Contact, Terms, pricing/support surfaces |
 | Privacy contact | No monitored channel | Same mailbox as support if explicitly approved, or a separate monitored privacy mailbox | Supply the exact address and confirm the privacy request process | Privacy, deletion, Contact |
 | Governing law | No clause approved | If intended and approved: laws of the Dominican Republic, subject to mandatory consumer rights that cannot be waived; otherwise supply the approved jurisdiction | Approve the jurisdictional intent and final counsel-reviewed clause | Terms |
@@ -76,7 +76,7 @@ Each item requires an explicit `ACCEPT FOR INITIAL CONTROLLED LAUNCH` or
 
 ## Approval Response Template
 
-Complete every value. Use `BLOCKED PENDING COUNSEL` instead of guessing.
+This template records the questions presented before the final decisions below.
 
 ```text
 LEGAL OPERATOR:
@@ -186,10 +186,10 @@ until an actual delivery provider is configured.
 ### PUBLISHABLE ADDRESS
 
 PUBLISHABLE ADDRESS:
-BLOCKED PENDING COUNSEL
+RESOLVED BY FINAL PUBLISHABLE ADDRESS APPROVAL
 
-Do not invent or publish a private residential or business address until
-explicitly approved.
+Use only the authorized professional contact address stated in the final
+address approval section. It does not change the legal operator.
 
 
 ### GOVERNING LAW
@@ -574,7 +574,7 @@ P2 PLAN DISPLAY RISK:
 ACCEPTED
 
 PUBLISHABLE ADDRESS:
-BLOCKED PENDING COUNSEL
+RESOLVED BY FINAL PUBLISHABLE ADDRESS APPROVAL
 
 EFFECTIVE DATE:
 PENDING FINAL PUBLICATION DATE
@@ -638,7 +638,7 @@ JURISDICTION:
 República Dominicana
 
 PUBLISHABLE ADDRESS:
-BLOCKED PENDING COUNSEL
+RESOLVED BY FINAL PUBLISHABLE ADDRESS APPROVAL
 
 EFFECTIVE DATE:
 PENDING FINAL PUBLICATION DATE
@@ -654,3 +654,63 @@ number, or private residential address unless separately and explicitly
 authorized.
 
 This amendment is the current source of truth for the legal operator identity.
+
+---
+
+# FINAL PUBLISHABLE ADDRESS APPROVAL
+
+PUBLISHABLE ADDRESS:
+APPROVED
+
+LEGAL OPERATOR:
+Welinton Rafael Mejía González
+
+PRODUCT / SERVICE:
+StudyBook AI
+
+AUTHORIZED PROFESSIONAL CONTACT ADDRESS:
+Bufete Jurídico "MULTISERVICIOS ZORRILLA"
+Avenida Sabana Larga, núm. 148
+Ensanche Ozama
+Santo Domingo Este
+República Dominicana
+
+PUBLICATION FORM:
+
+Domicilio de contacto profesional:
+Bufete Jurídico “MULTISERVICIOS ZORRILLA”,
+Avenida Sabana Larga, núm. 148,
+Ensanche Ozama, Santo Domingo Este,
+República Dominicana.
+
+IMPORTANT:
+
+The professional address above is authorized for publication as the
+contact/legal domicile used by StudyBook AI.
+
+It does NOT change the legal operator.
+
+The legal operator remains:
+
+Welinton Rafael Mejía González
+
+Do not describe MULTISERVICIOS ZORRILLA as the owner, operator,
+controller, legal entity behind, or proprietor of StudyBook AI.
+
+SUPPORT CONTACT:
+studybookaiapp@gmail.com
+
+PRIVACY CONTACT:
+studybookaiapp@gmail.com
+
+GOVERNING LAW:
+República Dominicana
+
+JURISDICTION:
+República Dominicana
+
+PUBLISHABLE ADDRESS:
+RESOLVED
+
+EFFECTIVE DATE:
+PENDING FINAL PUBLICATION DATE
