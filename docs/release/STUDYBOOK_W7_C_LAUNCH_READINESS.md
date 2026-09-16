@@ -2,11 +2,11 @@
 
 Status: `NO-GO - HUMAN LAUNCH BLOCKERS REMAIN`
 
-Date: `2026-09-15`
+Date: `2026-09-16`
 
-Deployed runtime commit: `ca8d49b2bad7268844fc695776d6d068a5df2d4f`
+Deployed runtime commit: `39a43aadeecd37fb6d6797bd0bce6b609905098d`
 
-W7-C2 local runtime commits (not pushed or deployed):
+W7-C2 runtime commits included in the deployed baseline:
 
 - `be47aa5c8afeb250296ad67d8cd6486e393f147c` - deterministic subscription cache synchronization.
 - `27f69d2` - explicit Web PKCE recovery exchange and guarded password update.
@@ -25,13 +25,13 @@ technical baseline is healthy, but the strict public-launch gate remains
 | Marketing | PASS | `https://studybookai.com` and all 11 required public routes return HTTP 200 |
 | Canonical redirect | PASS | `https://www.studybookai.com` returns 308 to the root without a loop |
 | Flutter Web | PASS | `https://app.studybookai.com` returns 200 and unauthenticated users reach `/#/auth` |
-| API | PASS | `/health` returns 200 and build SHA `ca8d49b...` |
+| API | PASS | `/health` returns 200 and build SHA `39a43aa...` |
 | TLS | PASS | Current certificates validate for root, `www`, `app` and `api` |
 | CORS | PASS | Custom app origin receives 200; an unknown origin receives 400 |
 | Authenticated upload | PASS | Student A uploaded one harmless QA PDF through the visible UI; Library and Cloud state survived reload |
 | Visible logout | PASS | The Account control returned to `/#/auth`; direct access to `/#/library` redirected back to Auth |
 | Indexing | DISABLED | `X-Robots-Tag` is `noindex`; `robots.txt` disallows all crawling |
-| Runtime source | CURRENT | API and both Vercel deployments use runtime commit `ca8d49b...`; later local commits are documentation only |
+| Runtime source | CURRENT | The API and validated Flutter recovery runtime use commit `39a43aa...`; the later local commit is documentation only |
 
 The served Flutter artifact contains the canonical API origin 66 times, no old
 Render API origin, no local port 8000 origin and no service-role marker.
@@ -94,12 +94,12 @@ review on the custom domains.
 
 | Issue | Severity | Status | Launch blocker | Evidence | Required action |
 | --- | --- | --- | --- | --- | --- |
-| OpenAI production key rotation | P1 | HUMAN ACTION | YES | Rotation has not been attested in W7-C | Human creates a new production key, enters it directly in Render, redeploys, performs one minimal AI request, then revokes the old key |
+| OpenAI production key rotation | P1 | CLOSED | NO | The new StudyBook AI project key is active in Render, the restart and minimal document-chat request passed, and the previous production key is inactive | Preserve server-side storage and repeat the controlled rotation procedure for future key changes |
 | Visible Flutter logout | P1 gate | CLOSED | NO | The visible Account action returned to `/#/auth`; a subsequent `/#/library` navigation was redirected to Auth | Preserve this flow in future browser regression coverage |
 | Production document upload | P1 gate | CLOSED | NO | A harmless one-page QA PDF uploaded successfully, produced a truthful summary, persisted in Library/Cloud after reload and remained inaccessible to Student B | The private fixture is intentionally retained under Student A as QA evidence; remove it later only through an explicitly authorized delete action |
 | Responsive human QA | P1 gate | PARTIAL / HUMAN ACTION | YES | Marketing routes and representative authenticated Flutter views were inspected at mobile and desktop widths without document overflow; the complete tablet visual pass is not evidenced | Finish the human tablet and mobile-keyboard matrix |
 | Accessibility human QA | P1 gate | PARTIAL / HUMAN ACTION | YES | Named controls and representative Enter activation passed; full keyboard order, modal focus and screen-reader evidence are incomplete | Complete human keyboard, focus, labels, contrast and screen-reader review |
-| Password reset E2E | P1 gate | FIX DEPLOYED / EMAIL COOLDOWN BLOCKED | YES | QA commit `39a43aa` is deployed and invalid-link UX passes, but Supabase rejected the new reset request under its email security cooldown; no recovery link or credential was reused | After the cooldown expires, request exactly one fresh QA reset in the same browser and verify PKCE exchange, password update, logout, and old/new password behavior |
+| Password reset E2E | P1 gate | CLOSED | NO | A fresh same-browser recovery completed callback, PKCE exchange, password update, post-reset logout, old-password rejection, new-password login and session restore without URL token leakage | Preserve the same-browser PKCE flow in future authentication regression coverage |
 | Contact channel | P1 gate | HUMAN ACTION | YES | Contact provider remains `disabled`; the form fails honestly | Approve a monitored provider or monitored support/privacy contact and validate delivery |
 | Legal finalization | P1 | DRAFT | YES | Privacy and account-deletion content still contains unresolved placeholders | Legal/product owner approves entity, contacts, address, jurisdiction, date, retention, age, subscription, cancellation and refund terms |
 | Leaked-password protection | P2 | HUMAN ACTION / PLAN LIMITED | NO with explicit acceptance | Project dashboard reports Free; Supabase limits this feature to Pro and above | Upgrade deliberately and enable it, or record explicit pre-launch P2 risk acceptance |
@@ -110,9 +110,17 @@ review on the custom domains.
 
 ### OpenAI Rotation
 
-No key value was inspected, printed, copied or changed. Rotation remains a
-human action. The old key must not be revoked until the new Render secret is
-deployed and one minimal production AI request succeeds.
+The human created a new project-scoped StudyBook AI production key and entered
+it directly into Render without exposing its value. The resulting Render
+restart reached `Live`, `/health` returned HTTP 200, the custom app-origin CORS
+preflight returned HTTP 200, and one short document-chat request returned a
+valid AI response. Only after those checks passed was the previous production
+key revoked; OpenAI now reports the previous key inactive and the new key
+active. No key value, prefix or fingerprint is recorded here.
+
+The post-rotation scan checked 947 tracked files and 43 available Web/marketing
+bundle files against nine local private values and high-confidence secret
+patterns. It found no tracked or bundled secret exposure.
 
 ### Visible Logout And Upload
 
