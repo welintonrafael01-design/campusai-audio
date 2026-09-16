@@ -382,3 +382,26 @@ one fresh same-browser link after the cooldown expires.
 Local regression validation remains clean: Flutter analyze reports no issues,
 all 149 Flutter tests pass, and `git diff --check` passes. Public indexing and
 public launch remain disabled.
+
+## W7-C4 UX, Accessibility, Contact And Legal
+
+The custom-domain technical baseline remains healthy. Marketing, Flutter and
+API return HTTP 200; TLS and custom-origin CORS pass; public indexing remains
+disabled at the header, robots and route-metadata layers.
+
+Production visual QA covered all required Marketing routes and authenticated
+Student/Auth views at 390, 768, 1024 and 1440 px. W7-C4 prepared local fixes for
+mobile-menu Escape behavior, localized Auth semantics, AA action-color
+contrast, and the factual `Cuenta` account-deletion navigation wording. The
+Marketing suite reports 42 tests, lint and build passing. Flutter reports 151
+tests, no analyze issues and a successful Web build.
+
+The monitored contact channel, final legal text and an authorized production
+Teacher multi-width visual sample remain human gates. No support/privacy email
+was invented. The disabled contact provider continues to fail explicitly
+rather than discard messages. Full evidence and the human legal decision
+register are in
+`docs/release/STUDYBOOK_W7_C4_UX_ACCESSIBILITY_LEGAL.md`.
+
+No DNS, database, provider configuration, indexing, deployment, release tag or
+remote branch changed during W7-C4.

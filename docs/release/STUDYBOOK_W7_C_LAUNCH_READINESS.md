@@ -175,6 +175,10 @@ cooldown expires.
 
 ## W7-C2.1 QA Deployment Evidence
 
+This section is the historical state captured before the successful W7-C2.3
+human reset closure. The W7-C4 addendum below is authoritative for the current
+password-reset and UX/accessibility status.
+
 - Local and remote QA HEAD: `39a43aadeecd37fb6d6797bd0bce6b609905098d`.
 - Normal QA branch push passed without force or tag operations.
 - Vercel deployment `dpl_7DZzmwNHT6oVMoMnPSge97JwfpDh` is READY and reports
@@ -257,3 +261,50 @@ W7-D may begin only after every launch-blocking row is evidenced as complete
 and an explicit human GO is issued. W7-C performs no indexing activation,
 release tag, public announcement, DNS change, Supabase migration or runtime
 push.
+
+## W7-C4 UX, Accessibility, Contact And Legal Addendum
+
+W7-C4 completed the production Marketing matrix for all 11 public routes at
+390, 768, 1024 and 1440 px, plus authenticated Student views and isolated Auth
+at the same representative breakpoints. No document-level horizontal overflow,
+hidden primary CTA or unreachable Student control was found. At 390 px, Cuenta
+scrolls through plan, preferences, privacy, deletion and the visible logout
+action.
+
+The successful W7-C2.3 human recovery supersedes the cooldown snapshot above:
+a fresh same-browser PKCE link established the recovery session, password
+update passed, post-reset logout passed, the old password was rejected, the new
+password logged in and the session restored without token, auth-code or open-
+redirect leakage.
+
+Three low-risk runtime corrections are prepared locally and validated:
+
+- the Marketing mobile menu closes with Escape and restores focus;
+- Auth fields and the primary submit control expose localized semantics;
+- Flutter action colors now meet 4.5:1 contrast with white text.
+
+Marketing lint, 42 tests and production build pass. Flutter analyze reports no
+issues, all 151 tests pass and the Web build succeeds. These corrections have
+not been pushed or deployed. Production Teacher authorization remains proven
+by existing HTTP and physical evidence; the final W7-C4 multi-width Teacher
+visual sample still requires an authorized QA Teacher login.
+
+Contact remains safe but not launch-ready: disabled delivery returns an honest
+HTTP 503 and does not silently discard messages, but no monitored support or
+privacy address/provider has been approved. Legal pages remain explicit,
+non-indexed drafts. The complete decision package is
+`docs/release/STUDYBOOK_W7_C4_UX_ACCESSIBILITY_LEGAL.md`.
+
+Current strict decision:
+
+```text
+P0: NONE
+P1 TECHNICAL: LOCAL ACCESSIBILITY FIXES REQUIRE QA PUSH/REDEPLOY
+P1 HUMAN: CONTACT CHANNEL AND LEGAL APPROVAL REMAIN OPEN
+RESPONSIVE MARKETING: PASS
+RESPONSIVE FLUTTER STUDENT: PASS
+RESPONSIVE FLUTTER TEACHER: PARTIAL
+PUBLIC INDEXING: DISABLED
+FINAL DECISION: NO-GO
+READY FOR W7-D PUBLIC LAUNCH: NO
+```
