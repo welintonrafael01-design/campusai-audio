@@ -1,20 +1,19 @@
 # StudyBook AI Production Infrastructure
 
-Status: `W7-C2 LOCAL FIXES READY - PUBLIC LAUNCH NO-GO`
+Status: `W7-C4.1 FRONTEND DEPLOYED - PUBLIC LAUNCH NO-GO`
 
-Date: `2026-09-15`
+Date: `2026-09-16`
 
-QA branch deployed commit: `ca8d49b2bad7268844fc695776d6d068a5df2d4f`
+QA branch deployed frontend commit: `9a6515a2333cd1eadf65c47dce9d974f9d20964b`
 
 The authorized QA branch is deployed to persistent Render and Vercel projects.
 The controlled production-domain cutover is complete for Marketing, Flutter
 and API. Public indexing remains disabled and launch is still blocked by key
-rotation, legal approval and remaining human functional gates.
+contact-channel approval and legal decisions.
 
-Two W7-C2 Flutter fixes exist only in the local QA branch: `be47aa5c...`
-serializes subscription cache persistence before Account rendering, and
-`27f69d2` explicitly exchanges the Web password-recovery PKCE code before
-enabling password update. Neither commit has been pushed or deployed.
+The W7-C2 Auth fixes and W7-C4 UX/accessibility corrections are deployed on the
+custom Flutter and Marketing domains. The backend remains on its unchanged
+validated build because W7-C4.1 contains no backend runtime change.
 
 ## Deployment Topology
 
@@ -230,10 +229,11 @@ https://studybook-ai-app.vercel.app/#/reset-password
 ```
 
 All seven previous localhost QA callbacks were retained. Password login and
-authenticated custom-domain lifecycle probes pass. A real password-reset
-callback exposed that the deployed Flutter app does not reliably exchange the
-Web PKCE code before `updateUser`; local commit `27f69d2` fixes that ordering
-and requires authorized deployment plus a fresh human retest.
+authenticated custom-domain lifecycle probes pass. The Web PKCE ordering defect
+found by a real password-reset callback was corrected by commit `27f69d2` and
+is deployed. A fresh same-browser recovery subsequently passed callback, code
+exchange, password update, forced logout, old-password rejection, new-password
+login and session restore without token or open-redirect leakage.
 
 ### W7-B Custom Domain State
 
@@ -318,20 +318,16 @@ foreign denial, missing-resource denial and owner access.
 
 ## Human Gates
 
-1. Rotate the previously exposed OpenAI production key in Render, redeploy and
-   revoke the old key without disclosing either value. This is a launch
-   blocker.
-2. Push and deploy local password-reset fix `27f69d2`, then complete a fresh
-   email round trip on the custom app domain without recording its code.
-3. Manually confirm the visible Flutter logout control and document upload.
-4. Complete broader desktop/mobile responsive, keyboard, focus and basic
-   screen-reader checks on the custom domain.
-5. Select a contact delivery provider and distributed spam control, or retain
-   the explicit unavailable state.
-6. Approve legal entity/contact/address/jurisdiction/effective-date/retention/
+1. Approve and operationally validate a monitored support/privacy channel.
+2. Approve legal entity/contact/address/jurisdiction/effective-date/retention/
    minors/subscription/refund decisions. Legal pages remain drafts.
-7. Review plan-dependent leaked-password protection and replace per-instance
-   rate limiting before horizontal scale.
+3. Record explicit acceptance of the plan-dependent leaked-password protection
+   limitation and controlled single-instance rate limiting, or remediate them
+   before launch. Replace per-instance enforcement before horizontal scale.
+
+Completed technical/human gates include OpenAI key rotation, password-reset
+E2E, visible logout, document upload, responsive visual sampling, keyboard/focus
+spot checks and retained practical TalkBack evidence.
 
 All custom and provider-native deployment surfaces pass their current technical
 smoke tests. W7-B is complete without rollback, but public launch remains
@@ -345,10 +341,10 @@ redirect, health/build identity, exact-origin CORS, Auth roles, Student-to-
 Teacher denial, privacy-safe document access, anonymous database/Storage
 denial, public routes, internal links and current automated suites pass.
 
-The strict launch decision remains `NO-GO`. Visible UI logout and production
-document upload are closed. OpenAI key rotation, completion of the password-
-reset E2E after the Supabase email cooldown, human responsive/accessibility review, a
-monitored contact channel and legal approval remain open. Supabase
+The strict launch decision remains `NO-GO`. Visible UI logout, production
+document upload, OpenAI key rotation, password-reset E2E and practical
+responsive/accessibility review are closed. A monitored contact channel and
+legal approval remain open. Supabase
 leaked-password protection is unavailable on the current Free plan and is
 documented as a P2 requiring upgrade or explicit acceptance.
 Per-instance rate limiting is accepted only for controlled single-instance use
@@ -405,3 +401,32 @@ register are in
 
 No DNS, database, provider configuration, indexing, deployment, release tag or
 remote branch changed during W7-C4.
+
+## W7-C4.1 Frontend Deployment Evidence
+
+The authorized normal QA push advanced the remote branch to
+`9a6515a2333cd1eadf65c47dce9d974f9d20964b`. No force push, tag or other branch
+push was used.
+
+| Surface | Deployment | Source | Result |
+| --- | --- | --- | --- |
+| Flutter Web | `dpl_yjRtT1oMLssvp66NVbDEdxLM866U` | `9a6515a2333cd1eadf65c47dce9d974f9d20964b` | READY |
+| Marketing | `dpl_7N5DXfTSn3c1TbDjUeYeguZYUjLi` | `9a6515a2333cd1eadf65c47dce9d974f9d20964b` | READY |
+| API | unchanged | `39a43aadeecd37fb6d6797bd0bce6b609905098d` | HEALTHY |
+
+Production checks passed for the three custom HTTPS origins, the `www` 308,
+exact-origin CORS, rejected unknown-origin preflight, canonical API references
+and absence of localhost/service-role markers in the Flutter artifact. Public
+indexing remains disabled.
+
+Live accessibility checks passed for localized Auth semantics, deployed AA
+action colors, Marketing Escape/focus restoration and representative Teacher
+keyboard/dialog semantics. Authorized Teacher visual QA passed at 390, 768,
+1024 and 1440 px across the core Teacher areas. Backend entitlement authority
+continued to allow Teacher and deny Student. A transient first-render Teacher
+plan propagation observation remains P2 and did not change authorization.
+
+Contact delivery remains honestly disabled pending an approved monitored
+channel. Legal pages remain drafts pending the decisions recorded in
+`docs/release/STUDYBOOK_W7_C4_UX_ACCESSIBILITY_LEGAL.md`. These human gates keep
+the launch decision at `NO-GO`; there is no additional runtime push required.

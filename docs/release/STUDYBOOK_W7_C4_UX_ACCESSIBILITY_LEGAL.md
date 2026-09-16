@@ -1,6 +1,6 @@
 # StudyBook AI W7-C4 UX, Accessibility, Contact And Legal
 
-Status: `TECHNICAL REVIEW COMPLETE - HUMAN GATES REMAIN`
+Status: `PRODUCTION VALIDATED - HUMAN LEGAL/CONTACT GATES REMAIN`
 
 Date: `2026-09-16`
 
@@ -25,6 +25,18 @@ provider configuration, deployment or remote branch was changed.
 | Password reset | PASS | Fresh PKCE recovery, password update, forced logout, old-password rejection, new-password login and session restore were completed in W7-C2.3 |
 | Student/Teacher authorization | PASS | Existing production evidence retains Student 403 and Teacher 200 for the Educator endpoint |
 | Public indexing | DISABLED | Root `X-Robots-Tag` is `noindex, nofollow, noarchive`; `robots.txt` disallows `/`; legal metadata is `noindex, nofollow` |
+
+## W7-C4.1 Production Deployment
+
+- Remote QA head: `9a6515a2333cd1eadf65c47dce9d974f9d20964b`.
+- Flutter deployment: `dpl_yjRtT1oMLssvp66NVbDEdxLM866U`, READY from the
+  remote QA head above.
+- Marketing deployment: `dpl_7N5DXfTSn3c1TbDjUeYeguZYUjLi`, READY from the
+  remote QA head above.
+- Runtime accessibility commit: `8e1800541cb7f2694740f5614cf53c331fc3a19a`.
+- The custom domains remained attached. The API origin remained
+  `https://api.studybookai.com`; no DNS, provider environment, database or
+  indexing setting changed.
 
 ## Responsive QA
 
@@ -61,12 +73,14 @@ view was also inspected at 390 px.
 | Aprendizaje 390 | PASS | Cards wrap long document names without document-level overflow |
 | Cuenta 390 | PASS | Plan is visible and the page scrolls to privacy, deletion and logout controls |
 | 768 / 1024 / 1440 | PASS | Student layouts retain navigation and no document-level horizontal overflow |
-| Teacher runtime | PARTIAL | Production authorization was already proven; this W7-C4 visual session still requires an authorized Teacher login for the final multi-width human sample |
+| Teacher runtime | PASS | Authorized QA Teacher login resolved to Teacher Pro; Teacher Studio and all required areas were sampled at 390, 768, 1024 and 1440 px |
 
-The automated Teacher regression renders Courses, Students, Attendance,
-Gradebook, Final Report, Teaching Plan, Rubric and Question Bank at 320 px with
-text scale 1.3. It supplements but does not replace the remaining production
-Teacher visual sample.
+The production Teacher sample covered Cursos, Estudiantes, Asistencia,
+Ponderaciones, Calificaciones, Exámenes, Planificación, Rúbricas and Banco de
+preguntas. Forms and primary actions were reachable at 390 px; desktop layouts
+remained usable. Dense content may scroll inside its intended region without
+breaking the page. The existing automated 320 px/text-scale regression remains
+supporting evidence.
 
 ## Accessibility QA
 
@@ -76,16 +90,18 @@ Teacher visual sample.
 | Marketing images | PASS | Informative Booky/product images have meaningful alternatives; decorative artwork is hidden |
 | Marketing controls | PASS | Native links/buttons and FAQ disclosure buttons are keyboard-operable |
 | Marketing focus | PASS | Sampled links and controls show a 3 px cyan focus indicator |
-| Mobile menu Escape | FIXED LOCALLY | Escape now closes the open disclosure and restores focus to its summary |
+| Mobile menu Escape | PASS LIVE | Escape closes the deployed disclosure and restores focus to the named menu summary |
 | Flutter visual focus | PASS | Auth text fields display a clear cyan focus state |
-| Flutter Auth names | FIXED LOCALLY | Email, password and primary submit controls now expose localized semantic labels; widget regression added |
-| Contrast | PASS AFTER LOCAL FIX | Marketing combinations range from 8.24:1 to 17.38:1 in sampled text; Flutter muted text is 5.70:1 or higher and action colors were adjusted to 4.59:1 and 4.66:1 with white |
+| Flutter Auth names | PASS LIVE | The deployed email, password and primary submit controls expose localized semantic labels |
+| Contrast | PASS LIVE | Marketing combinations range from 8.24:1 to 17.38:1 in sampled text; Flutter muted text is 5.70:1 or higher and deployed action colors have tested ratios of 4.59:1 and 4.66:1 with white |
 | Reduced motion | PASS | Marketing disables transitions and animations under `prefers-reduced-motion` |
 | Screen-reader practical | PASS WITH RETAINED EVIDENCE | Prior physical TalkBack traversal covered core Student, Teacher and Account flows; W7-C4 additionally inspected browser semantics. This is practical QA, not WCAG certification |
 
-No keyboard trap or inaccessible critical control was observed. The local
-accessibility fixes require a normal QA-branch push and Flutter/marketing
-redeploy before they become production evidence.
+No keyboard trap or inaccessible critical control was observed. On Teacher
+screens, tab navigation moved between named controls with a visible native
+focus outline. The Attendance date dialog exposed named day, Cancelar and
+ACEPTAR controls and closed without changing data through Cancelar. This is a
+practical accessibility spot check, not a formal WCAG certification.
 
 ## Contact Readiness
 
@@ -174,16 +190,18 @@ position. The existence of drafts does not establish legal compliance.
 | Supabase leaked-password protection unavailable on current plan | P2 ACCEPTABLE ONLY WITH EXPLICIT OWNER ACCEPTANCE | Upgrade and enable before broader exposure when feasible |
 | Per-instance API/contact rate limiting | P2 ACCEPTED FOR CONTROLLED SINGLE INSTANCE | Replace with shared enforcement before horizontal scale or meaningful abuse exposure |
 | Minor subscription restore delay | CLOSED in current production evidence | Preserve fresh-login/reload regression coverage |
+| Teacher entitlement first-render propagation | P2 OBSERVATION | The first Teacher route attempt briefly reflected stale local Free state; backend authority returned active Teacher and the UI self-corrected without privilege escalation |
 
 ## Decision
 
 ```text
 P0: NONE
-P1 TECHNICAL: LOCAL ACCESSIBILITY FIXES REQUIRE DEPLOYMENT
+P1 TECHNICAL: NONE
 P1 HUMAN: MONITORED CONTACT CHANNEL AND LEGAL APPROVAL REMAIN OPEN
 RESPONSIVE MARKETING: PASS
 RESPONSIVE FLUTTER STUDENT: PASS
-RESPONSIVE FLUTTER TEACHER: PARTIAL PENDING AUTHORIZED VISUAL SAMPLE
+RESPONSIVE FLUTTER TEACHER: PASS
+ACCESSIBILITY PRODUCTION SPOT CHECK: PASS
 PUBLIC INDEXING: DISABLED
 FINAL DECISION: NO-GO
 READY FOR HUMAN LEGAL APPROVAL: YES

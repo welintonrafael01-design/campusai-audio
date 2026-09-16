@@ -4,7 +4,9 @@ Status: `NO-GO - HUMAN LAUNCH BLOCKERS REMAIN`
 
 Date: `2026-09-16`
 
-Deployed runtime commit: `39a43aadeecd37fb6d6797bd0bce6b609905098d`
+Deployed frontend QA source: `9a6515a2333cd1eadf65c47dce9d974f9d20964b`
+
+Deployed API build: `39a43aadeecd37fb6d6797bd0bce6b609905098d`
 
 W7-C2 runtime commits included in the deployed baseline:
 
@@ -86,9 +88,10 @@ No P0 or P1 security defect was found in W7-C.
 | Flutter unauthenticated shell support | No document-level horizontal overflow at 390, 768, 1024 and 1440 px |
 | `git diff --check` before documentation | PASS |
 
-Automated responsive and accessibility checks support the release decision but
-do not replace the required human keyboard, screen-reader, text-scale and visual
-review on the custom domains.
+Automated responsive and accessibility checks support the release decision.
+They are supplemented by retained physical TalkBack/text-scale evidence and
+the W7-C4.1 production keyboard, dialog and multi-width visual spot checks;
+none of this is represented as formal WCAG certification.
 
 ## Release Blocker Register
 
@@ -97,8 +100,8 @@ review on the custom domains.
 | OpenAI production key rotation | P1 | CLOSED | NO | The new StudyBook AI project key is active in Render, the restart and minimal document-chat request passed, and the previous production key is inactive | Preserve server-side storage and repeat the controlled rotation procedure for future key changes |
 | Visible Flutter logout | P1 gate | CLOSED | NO | The visible Account action returned to `/#/auth`; a subsequent `/#/library` navigation was redirected to Auth | Preserve this flow in future browser regression coverage |
 | Production document upload | P1 gate | CLOSED | NO | A harmless one-page QA PDF uploaded successfully, produced a truthful summary, persisted in Library/Cloud after reload and remained inaccessible to Student B | The private fixture is intentionally retained under Student A as QA evidence; remove it later only through an explicitly authorized delete action |
-| Responsive human QA | P1 gate | PARTIAL / HUMAN ACTION | YES | Marketing routes and representative authenticated Flutter views were inspected at mobile and desktop widths without document overflow; the complete tablet visual pass is not evidenced | Finish the human tablet and mobile-keyboard matrix |
-| Accessibility human QA | P1 gate | PARTIAL / HUMAN ACTION | YES | Named controls and representative Enter activation passed; full keyboard order, modal focus and screen-reader evidence are incomplete | Complete human keyboard, focus, labels, contrast and screen-reader review |
+| Responsive human QA | P1 gate | CLOSED | NO | Marketing, Student/Auth and Teacher production views passed the required 390, 768, 1024 and 1440 px samples | Preserve the matrix in future release smoke tests |
+| Accessibility human QA | P1 gate | CLOSED AS PRACTICAL QA | NO | Named controls, visible keyboard focus, dialog semantics, reduced motion, deployed contrast checks and retained physical TalkBack evidence pass | Formal WCAG certification remains outside this release gate |
 | Password reset E2E | P1 gate | CLOSED | NO | A fresh same-browser recovery completed callback, PKCE exchange, password update, post-reset logout, old-password rejection, new-password login and session restore without URL token leakage | Preserve the same-browser PKCE flow in future authentication regression coverage |
 | Contact channel | P1 gate | HUMAN ACTION | YES | Contact provider remains `disabled`; the form fails honestly | Approve a monitored provider or monitored support/privacy contact and validate delivery |
 | Legal finalization | P1 | DRAFT | YES | Privacy and account-deletion content still contains unresolved placeholders | Legal/product owner approves entity, contacts, address, jurisdiction, date, retention, age, subscription, cancellation and refund terms |
@@ -143,9 +146,10 @@ interactive logout gate.
 The first Account render after login presented Free even though the backend
 subscription was already active Student. `Sincronizar plan` followed by a route
 rebuild corrected the presentation to Student Pro and updated usage limits. No
-authorization bypass was observed. Local commit `be47aa5c...` removes the
-write-order race and rebuilds Account after manual synchronization; production
-retest remains pending because this commit has not been pushed or deployed.
+authorization bypass was observed. Commit `be47aa5c...` removes the write-order
+race and rebuilds Account after manual synchronization. It is included in the
+deployed QA source. Current Student production evidence shows active Student
+Pro on first observation and after reload.
 
 ### Password Reset
 
@@ -277,17 +281,15 @@ update passed, post-reset logout passed, the old password was rejected, the new
 password logged in and the session restored without token, auth-code or open-
 redirect leakage.
 
-Three low-risk runtime corrections are prepared locally and validated:
+Three low-risk runtime corrections are deployed and validated:
 
 - the Marketing mobile menu closes with Escape and restores focus;
 - Auth fields and the primary submit control expose localized semantics;
 - Flutter action colors now meet 4.5:1 contrast with white text.
 
 Marketing lint, 42 tests and production build pass. Flutter analyze reports no
-issues, all 151 tests pass and the Web build succeeds. These corrections have
-not been pushed or deployed. Production Teacher authorization remains proven
-by existing HTTP and physical evidence; the final W7-C4 multi-width Teacher
-visual sample still requires an authorized QA Teacher login.
+issues, all 151 tests pass and the Web build succeeds. The authorized QA
+Teacher sample subsequently passed the required multi-width production matrix.
 
 Contact remains safe but not launch-ready: disabled delivery returns an honest
 HTTP 503 and does not silently discard messages, but no monitored support or
@@ -299,12 +301,57 @@ Current strict decision:
 
 ```text
 P0: NONE
-P1 TECHNICAL: LOCAL ACCESSIBILITY FIXES REQUIRE QA PUSH/REDEPLOY
+P1 TECHNICAL: NONE
 P1 HUMAN: CONTACT CHANNEL AND LEGAL APPROVAL REMAIN OPEN
 RESPONSIVE MARKETING: PASS
 RESPONSIVE FLUTTER STUDENT: PASS
-RESPONSIVE FLUTTER TEACHER: PARTIAL
+RESPONSIVE FLUTTER TEACHER: PASS
+ACCESSIBILITY PRACTICAL SPOT CHECK: PASS
 PUBLIC INDEXING: DISABLED
 FINAL DECISION: NO-GO
+READY FOR W7-D PUBLIC LAUNCH: NO
+```
+
+## W7-C4.1 Production UX And Teacher Validation
+
+The QA branch was pushed normally at
+`9a6515a2333cd1eadf65c47dce9d974f9d20964b`. Flutter deployment
+`dpl_yjRtT1oMLssvp66NVbDEdxLM866U` and Marketing deployment
+`dpl_7N5DXfTSn3c1TbDjUeYeguZYUjLi` are READY from that exact source. The
+custom domains, canonical API origin and disabled-indexing controls remain
+intact.
+
+The production Auth form exposes localized names for email, password and the
+primary action. The deployed contrast corrections retain tested AA ratios of
+4.59:1 and 4.66:1 with white. At mobile width the Marketing menu closes with
+Escape, visibly restores focus and does not trap keyboard navigation. Privacy
+and account-deletion routes contain the corrected `Cuenta` navigation wording.
+
+An authorized QA Teacher login resolved server-side to the active Teacher plan.
+`/educator/snapshot` returned 200 for Teacher, while an authenticated Student B
+probe returned 403. Teacher Studio was sampled at 390, 768, 1024 and 1440 px.
+Cursos, Estudiantes, Asistencia, Ponderaciones, Calificaciones, Exámenes,
+Planificación, Rúbricas and Banco de preguntas loaded with reachable actions,
+named controls and no layout-breaking overflow. Visible focus and a semantic
+date-dialog spot check passed. A brief stale Free/local state appeared on the
+first Teacher render before backend entitlement propagation; it self-corrected
+and is tracked as P2 because backend authorization remained correct.
+
+The Contact page remains safe but delivery is intentionally disabled. No
+monitored support/privacy channel has been approved. Legal content remains a
+non-indexed draft and the decision register remains ready for human/legal
+closure.
+
+```text
+P0: NONE
+P1 TECHNICAL: NONE
+P1 HUMAN: MONITORED CONTACT CHANNEL AND LEGAL APPROVAL REMAIN OPEN
+RESPONSIVE MARKETING: PASS
+RESPONSIVE FLUTTER STUDENT: PASS
+RESPONSIVE FLUTTER TEACHER: PASS
+ACCESSIBILITY PRACTICAL SPOT CHECK: PASS
+PUBLIC INDEXING: DISABLED
+FINAL DECISION: NO-GO
+READY FOR FINAL HUMAN LAUNCH DECISIONS: YES
 READY FOR W7-D PUBLIC LAUNCH: NO
 ```
