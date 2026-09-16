@@ -29,7 +29,7 @@ describe("public routes and SEO", () => {
     }
   });
 
-  it("publishes canonical sitemap entries and protects legal drafts", () => {
+  it("publishes canonical sitemap entries and protects legal routes", () => {
     const urls = sitemap().map((entry) => entry.url);
     expect(urls).toContain(siteConfig.urls.web);
     expect(urls).toContain(`${siteConfig.urls.web}/features`);
