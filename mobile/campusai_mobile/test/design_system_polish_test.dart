@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:campusai_mobile/theme/app_theme.dart';
 import 'package:campusai_mobile/widgets/section_card.dart';
 import 'package:campusai_mobile/widgets/studybook/studybook_states.dart';
@@ -5,6 +7,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('primary action colors meet AA contrast with white text', () {
+    expect(_contrastRatio(Colors.white, AppTheme.primary),
+        greaterThanOrEqualTo(4.5));
+    expect(
+      _contrastRatio(Colors.white, AppTheme.secondary),
+      greaterThanOrEqualTo(4.5),
+    );
+  });
+
   testWidgets(
     'shared error state stays actionable at 320 px and text scale 1.3',
     (tester) async {
@@ -57,4 +68,22 @@ void main() {
       expect(retryCount, 1);
     },
   );
+}
+
+double _contrastRatio(Color foreground, Color background) {
+  final foregroundLuminance = _relativeLuminance(foreground);
+  final backgroundLuminance = _relativeLuminance(background);
+  final lighter = math.max(foregroundLuminance, backgroundLuminance);
+  final darker = math.min(foregroundLuminance, backgroundLuminance);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+double _relativeLuminance(Color color) {
+  double linearize(double channel) => channel <= 0.04045
+      ? channel / 12.92
+      : math.pow((channel + 0.055) / 1.055, 2.4).toDouble();
+
+  return 0.2126 * linearize(color.r) +
+      0.7152 * linearize(color.g) +
+      0.0722 * linearize(color.b);
 }

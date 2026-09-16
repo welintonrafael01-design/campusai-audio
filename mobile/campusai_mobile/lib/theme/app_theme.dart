@@ -24,8 +24,8 @@ class AppTheme {
   static const Color lightCard = Color(0xFFFFFFFF);
   static const Color lightCardSoft = Color(0xFFE2E8F0);
 
-  static const Color primary = Color(0xFF6366F1);
-  static const Color secondary = Color(0xFF8B5CF6);
+  static const Color primary = Color(0xFF6164EF);
+  static const Color secondary = Color(0xFF8455ED);
   static const Color accent = Color(0xFF22D3EE);
 
   static const Color success = Color(0xFF22C55E);

@@ -25,7 +25,7 @@ export default function AccountDeletionPage() {
           <h2>Eliminar desde la aplicación</h2>
           <ol>
             <li>Inicia sesión en StudyBook AI.</li>
-            <li>Abre Configuración.</li>
+            <li>Abre Cuenta.</li>
             <li>Selecciona “Eliminar mi cuenta”.</li>
             <li>Introduce tu contraseña actual y la frase de confirmación solicitada.</li>
             <li>Confirma la eliminación permanente.</li>

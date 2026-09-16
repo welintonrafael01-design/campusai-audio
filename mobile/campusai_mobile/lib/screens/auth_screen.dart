@@ -263,28 +263,45 @@ class _AuthScreenState extends State<AuthScreen> {
                                 ),
                               ),
                               const SizedBox(height: 18),
-                              TextField(
-                                controller: emailController,
-                                keyboardType: TextInputType.emailAddress,
-                                autofillHints: const [AutofillHints.email],
-                                textInputAction: TextInputAction.next,
-                                decoration: InputDecoration(
-                                  labelText: l10n.emailLabel,
+                              MergeSemantics(
+                                child: Semantics(
+                                  label: l10n.emailLabel,
+                                  textField: true,
+                                  child: TextField(
+                                    controller: emailController,
+                                    keyboardType: TextInputType.emailAddress,
+                                    autofillHints: const [AutofillHints.email],
+                                    textInputAction: TextInputAction.next,
+                                    decoration: InputDecoration(
+                                      label: ExcludeSemantics(
+                                        child: Text(l10n.emailLabel),
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 10),
-                              TextField(
-                                controller: passwordController,
-                                obscureText: true,
-                                autofillHints: [
-                                  isLogin
-                                      ? AutofillHints.password
-                                      : AutofillHints.newPassword,
-                                ],
-                                textInputAction: TextInputAction.done,
-                                onSubmitted: isLoading ? null : (_) => submit(),
-                                decoration: InputDecoration(
-                                  labelText: l10n.passwordLabel,
+                              MergeSemantics(
+                                child: Semantics(
+                                  label: l10n.passwordLabel,
+                                  textField: true,
+                                  child: TextField(
+                                    controller: passwordController,
+                                    obscureText: true,
+                                    autofillHints: [
+                                      isLogin
+                                          ? AutofillHints.password
+                                          : AutofillHints.newPassword,
+                                    ],
+                                    textInputAction: TextInputAction.done,
+                                    onSubmitted:
+                                        isLoading ? null : (_) => submit(),
+                                    decoration: InputDecoration(
+                                      label: ExcludeSemantics(
+                                        child: Text(l10n.passwordLabel),
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
                               if (successMessage.isNotEmpty) ...[
@@ -316,21 +333,31 @@ class _AuthScreenState extends State<AuthScreen> {
                                 ),
                               ],
                               const SizedBox(height: 10),
-                              ElevatedButton(
-                                onPressed: isLoading ? null : submit,
-                                child: isLoading
-                                    ? const SizedBox(
-                                        width: 18,
-                                        height: 18,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : Text(
-                                        isLogin
-                                            ? l10n.loginButton
-                                            : l10n.createAccountButton,
-                                      ),
+                              MergeSemantics(
+                                child: Semantics(
+                                  label: isLogin
+                                      ? l10n.loginButton
+                                      : l10n.createAccountButton,
+                                  button: true,
+                                  child: ElevatedButton(
+                                    onPressed: isLoading ? null : submit,
+                                    child: isLoading
+                                        ? const SizedBox(
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : ExcludeSemantics(
+                                            child: Text(
+                                              isLogin
+                                                  ? l10n.loginButton
+                                                  : l10n.createAccountButton,
+                                            ),
+                                          ),
+                                  ),
+                                ),
                               ),
                               if (isLogin) ...[
                                 const SizedBox(height: 10),

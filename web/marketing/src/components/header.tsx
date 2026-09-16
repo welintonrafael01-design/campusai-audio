@@ -1,9 +1,14 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, Menu } from "lucide-react";
+import { useRef } from "react";
 import { accountLinks, primaryNavigation } from "@/config/site";
 import { Brand } from "./brand";
 
 export function Header() {
+  const mobileNavigationRef = useRef<HTMLDetailsElement>(null);
+
   return (
     <header className="site-header">
       <div className="container header-inner">
@@ -24,7 +29,19 @@ export function Header() {
             <ArrowRight aria-hidden="true" size={16} />
           </a>
         </div>
-        <details className="mobile-nav">
+        <details
+          className="mobile-nav"
+          ref={mobileNavigationRef}
+          onKeyDown={(event) => {
+            if (event.key !== "Escape" || !mobileNavigationRef.current?.open) {
+              return;
+            }
+
+            event.preventDefault();
+            mobileNavigationRef.current.open = false;
+            mobileNavigationRef.current.querySelector("summary")?.focus();
+          }}
+        >
           <summary aria-label="Abrir navegación">
             <Menu aria-hidden="true" size={23} />
           </summary>

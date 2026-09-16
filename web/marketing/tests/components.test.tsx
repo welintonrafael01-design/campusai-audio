@@ -57,6 +57,21 @@ describe("marketing components", () => {
     );
   });
 
+  it("closes the mobile navigation with Escape and restores focus", () => {
+    const { container } = render(<Header />);
+    const details = container.querySelector("details");
+    const summary = screen.getByLabelText("Abrir navegación");
+
+    expect(details).not.toBeNull();
+    fireEvent.click(summary);
+    expect(details).toHaveAttribute("open");
+
+    fireEvent.keyDown(details!, { key: "Escape" });
+
+    expect(details).not.toHaveAttribute("open");
+    expect(summary).toHaveFocus();
+  });
+
   it("presents Booky without exposing implementation placeholders", () => {
     render(<BookyStage />);
 
