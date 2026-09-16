@@ -40,7 +40,8 @@ below becomes approved merely because it is listed here.
 This inventory records the questions that preceded the Product Owner response
 later in this document. The `FINAL HUMAN APPROVAL RESPONSE` section supersedes
 resolved rows. The `FINAL PUBLISHABLE ADDRESS APPROVAL` section resolves the
-address. Effective date and specific venue wording remain open.
+address. The final jurisdiction section resolves the substantive venue rule.
+The effective date remains tied to the actual authorized deployment date.
 
 | Field | Current status | Proposed text/options | Human decision required | Document affected |
 | --- | --- | --- | --- | --- |
@@ -48,8 +49,8 @@ address. Effective date and specific venue wording remain open.
 | Publishable address | Resolved | Professional contact domicile approved in the final address section | No further address decision required | Privacy, Terms, Contact |
 | Support contact | No monitored channel | A real monitored StudyBook AI mailbox or an explicitly approved professional mailbox used temporarily | Supply the exact address and confirm it is monitored | Contact, Terms, pricing/support surfaces |
 | Privacy contact | No monitored channel | Same mailbox as support if explicitly approved, or a separate monitored privacy mailbox | Supply the exact address and confirm the privacy request process | Privacy, deletion, Contact |
-| Governing law | No clause approved | If intended and approved: laws of the Dominican Republic, subject to mandatory consumer rights that cannot be waived; otherwise supply the approved jurisdiction | Approve the jurisdictional intent and final counsel-reviewed clause | Terms |
-| Jurisdiction/venue | No clause approved | Courts of an explicitly named approved venue, arbitration/mediation, or another counsel-approved dispute process, preserving mandatory consumer venue rights | Select the process and exact venue; do not infer Santo Domingo or another city | Terms |
+| Governing law | Resolved | Laws of the Dominican Republic, preserving mandatory consumer rights | No further substantive decision required | Terms |
+| Jurisdiction/venue | Resolved | Competent courts of the Dominican Republic under applicable competence rules; no arbitrary exclusive court or mandatory arbitration | No further substantive decision required | Terms |
 | Effective date | Unresolved | The actual publication/effective date, never backdated | Supply one exact ISO date after final-text approval | Privacy, Terms |
 | Minimum age | Unresolved; no age gate exists | Adult-only; a defined minimum age with guardian consent; or institution/guardian-managed access | Select the minimum age and identify whether a runtime age/consent gate is required | Privacy, Terms, onboarding, stores |
 | Minors/education policy | Unresolved | Do not target minors; guardian consent model; or school/institution-managed model with defined responsibilities | Approve the intended audience, consent model and school/guardian responsibilities | Privacy, Terms, onboarding, stores |
@@ -209,13 +210,14 @@ República Dominicana
 STATUS:
 APPROVED
 
-Final venue/court wording should remain subject to legal consistency review.
+Competent courts are determined under applicable Dominican competence rules,
+without prejudice to consumers' non-waivable rights.
 
 
 ### EFFECTIVE DATE
 
 EFFECTIVE DATE:
-PENDING FINAL PUBLICATION DATE
+PENDING ACTUAL AUTHORIZED DEPLOYMENT DATE
 
 RULE:
 Do not backdate.
@@ -577,7 +579,7 @@ PUBLISHABLE ADDRESS:
 RESOLVED BY FINAL PUBLISHABLE ADDRESS APPROVAL
 
 EFFECTIVE DATE:
-PENDING FINAL PUBLICATION DATE
+PENDING ACTUAL AUTHORIZED DEPLOYMENT DATE
 
 PRIVACY:
 READY FOR FINAL DRAFT INTEGRATION
@@ -641,7 +643,7 @@ PUBLISHABLE ADDRESS:
 RESOLVED BY FINAL PUBLISHABLE ADDRESS APPROVAL
 
 EFFECTIVE DATE:
-PENDING FINAL PUBLICATION DATE
+PENDING ACTUAL AUTHORIZED DEPLOYMENT DATE
 
 IMPORTANT:
 
@@ -713,4 +715,34 @@ PUBLISHABLE ADDRESS:
 RESOLVED
 
 EFFECTIVE DATE:
-PENDING FINAL PUBLICATION DATE
+PENDING ACTUAL AUTHORIZED DEPLOYMENT DATE
+
+---
+
+# FINAL JURISDICTION AND CONSUMER CONTRACT GATE
+
+GOVERNING LAW:
+República Dominicana
+
+FINAL JURISDICTION RULE:
+
+Estos Términos se regirán e interpretarán conforme a las leyes de la República
+Dominicana. Toda controversia relacionada con StudyBook AI será sometida a los
+tribunales competentes de la República Dominicana, conforme a las reglas de
+competencia aplicables, sin perjuicio de los derechos irrenunciables que
+correspondan a los consumidores y usuarios conforme a la legislación vigente.
+
+EFFECTIVE DATE RULE:
+
+The effective date must be the actual date of the authorized legal deployment.
+It must be inserted immediately before that deployment and must never be
+backdated. If deployment is authorized and occurs on 16 September 2026, use
+`16 de septiembre de 2026`. If it occurs later, stop before publication and
+use the actual later date. No legal deployment is authorized by this record.
+
+PRO CONSUMIDOR CONTRACT REVIEW / REGISTRATION:
+READY TO FILE
+
+The consumer Terms submission copy is prepared for human/counsel review. No
+filing, registration or applicability determination has been performed, and no
+registration number is claimed.

@@ -1,8 +1,9 @@
 # StudyBook AI Privacy Policy - Final Public Draft
 
-Status: `PRODUCT OWNER CONTENT APPROVED - FINAL PUBLICATION APPROVAL PENDING`
+Status: `SUBSTANTIVE CONTENT FINAL - ACTUAL DEPLOYMENT DATE PENDING`
 
-Effective date: pending the actual final publication date; do not backdate.
+Effective date: use the actual authorized legal deployment date; insert it
+immediately before deployment and do not backdate.
 
 Operator: `Welinton Rafael Mejía González`
 
@@ -46,16 +47,17 @@ source for final human review and remains page-level `noindex`.
 - Requests are received through the approved monitored contact. A message
   alone does not authorize account deletion; reasonable identity verification
   remains required.
-- Dominican Republic law and jurisdiction are the approved launch intent.
-  Specific venue/court wording remains pending legal consistency review.
+- Dominican Republic law governs. Disputes go to competent Dominican courts
+  under applicable competence rules without prejudice to consumers'
+  non-waivable rights.
 - Security language remains factual and does not promise absolute security,
   zero risk or error-free operation.
 
 ## Remaining Publication Decisions
 
-1. Approve the specific venue/court wording.
-2. Set the effective date only when the final text is approved for publication.
-3. Issue explicit final publication approval.
+1. Insert the actual effective date immediately before authorized deployment.
+2. Issue explicit final publication approval.
+3. Keep public indexing disabled until separately authorized.
 
 Until those steps are complete, the public page remains a final draft and
 public indexing remains disabled.

@@ -1,6 +1,6 @@
 # Delete Your StudyBook AI Account - Final Public Draft
 
-Status: `PRODUCT OWNER CONTENT APPROVED - FINAL PUBLICATION APPROVAL PENDING`
+Status: `SUBSTANTIVE CONTENT FINAL - ACTUAL DEPLOYMENT DATE PENDING`
 
 Public path: `https://studybookai.com/account-deletion`
 
@@ -10,7 +10,8 @@ Monitored contact: `studybookaiapp@gmail.com`
 
 Professional contact address: `Bufete Jurídico “MULTISERVICIOS ZORRILLA”, Avenida Sabana Larga, núm. 148, Ensanche Ozama, Santo Domingo Este, República Dominicana`. This is a professional contact domicile only and does not change the legal operator.
 
-Effective date: pending the actual final publication date.
+Effective date: use the actual authorized legal deployment date; do not
+backdate.
 
 The integrated public text is maintained in
 `web/marketing/src/app/account-deletion/page.tsx` and remains page-level
@@ -53,7 +54,8 @@ provider.
 
 ## Remaining Publication Decisions
 
-- Effective date: set only at final publication approval.
+- Effective date: insert the actual date immediately before authorized legal
+  deployment.
 - Final publication authorization: pending.
 
 Public indexing remains disabled.

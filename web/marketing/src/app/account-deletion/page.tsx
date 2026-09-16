@@ -3,7 +3,7 @@ import { PageHero } from "@/components/page-hero";
 
 export const metadata: Metadata = {
   title: "Eliminar cuenta — borrador final",
-  description: "Proceso de eliminación de cuentas de StudyBook AI pendiente de publicación final.",
+  description: "Proceso de eliminación de cuentas de StudyBook AI preparado para publicación legal.",
   alternates: { canonical: "/account-deletion" },
   robots: { index: false, follow: false },
 };
@@ -20,7 +20,7 @@ export default function AccountDeletionPage() {
         <div className="container prose">
           <aside className="draft-notice" role="note">
             <strong>La publicación final sigue pendiente.</strong>
-            <span>No envíes contraseñas, códigos de acceso ni documentos privados por correo. La fecha efectiva se fijará al aprobar la publicación.</span>
+            <span>No envíes contraseñas, códigos de acceso ni documentos privados por correo. La fecha efectiva será la fecha real del despliegue legal autorizado.</span>
           </aside>
 
           <p><strong>Operador:</strong> Welinton Rafael Mejía González.</p>
@@ -64,7 +64,7 @@ export default function AccountDeletionPage() {
           </p>
 
           <h2>Contacto y vigencia</h2>
-          <p>Las consultas de privacidad, soporte y eliminación se reciben en <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>. El domicilio profesional de contacto autorizado puede consultarse en <a href="/contact">Contacto</a> y no modifica la identidad del operador. La fecha efectiva se fijará únicamente al aprobar la publicación final.</p>
+          <p>Las consultas de privacidad, soporte y eliminación se reciben en <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>. El domicilio profesional de contacto autorizado puede consultarse en <a href="/contact">Contacto</a> y no modifica la identidad del operador. La fecha efectiva será la fecha real del despliegue legal autorizado y no se aplicará retroactivamente.</p>
         </div>
       </article>
     </>

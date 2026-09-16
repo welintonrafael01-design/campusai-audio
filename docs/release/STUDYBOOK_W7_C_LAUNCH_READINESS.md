@@ -103,8 +103,8 @@ none of this is represented as formal WCAG certification.
 | Responsive human QA | P1 gate | CLOSED | NO | Marketing, Student/Auth and Teacher production views passed the required 390, 768, 1024 and 1440 px samples | Preserve the matrix in future release smoke tests |
 | Accessibility human QA | P1 gate | CLOSED AS PRACTICAL QA | NO | Named controls, visible keyboard focus, dialog semantics, reduced motion, deployed contrast checks and retained physical TalkBack evidence pass | Formal WCAG certification remains outside this release gate |
 | Password reset E2E | P1 gate | CLOSED | NO | A fresh same-browser recovery completed callback, PKCE exchange, password update, post-reset logout, old-password rejection, new-password login and session restore without URL token leakage | Preserve the same-browser PKCE flow in future authentication regression coverage |
-| Contact channel | P1 gate | HUMAN ACTION | YES | Contact provider remains `disabled`; the form fails honestly | Approve a monitored provider or monitored support/privacy contact and validate delivery |
-| Legal finalization | P1 | DRAFT | YES | Privacy and account-deletion content still contains unresolved placeholders | Legal/product owner approves entity, contacts, address, jurisdiction, date, retention, age, subscription, cancellation and refund terms |
+| Contact channel | P1 gate | CLOSED | NO | `studybookaiapp@gmail.com` is the approved monitored support/privacy channel; the disabled form is not presented as operational | Preserve monitored mailbox handling and honest form state |
+| Legal finalization | P1 | SUBSTANTIVE CONTENT FINAL / EXTERNAL GATES OPEN | YES | Operator, address, jurisdiction and product terms are integrated; actual deployment date and Pro Consumidor contract action remain open | Insert the real deployment date without backdating and file/review the consumer contract or record counsel's non-applicability determination |
 | Leaked-password protection | P2 | HUMAN ACTION / PLAN LIMITED | NO with explicit acceptance | Project dashboard reports Free; Supabase limits this feature to Pro and above | Upgrade deliberately and enable it, or record explicit pre-launch P2 risk acceptance |
 | Distributed rate limiting | P2 | ACCEPTED FOR CONTROLLED SINGLE INSTANCE | NO with explicit acceptance | Backend uses per-instance 120 requests/60 seconds per client; disabled contact route uses per-instance 5 attempts/10 minutes | Add shared/distributed enforcement before horizontal scale or meaningful abuse exposure |
 | Initial plan presentation refresh | P2 | CLOSED | NO | Fresh production login immediately displayed Student Pro with active, synchronized state; reload preserved Student Pro and manual sync confirmed the same Supabase-backed plan | Preserve fresh-login and reload coverage in future production smoke tests |
@@ -204,21 +204,25 @@ password-reset and UX/accessibility status.
 
 ### Contact
 
-The current contact UI states that it will not transmit until a reviewed secure
-endpoint is enabled. This is honest but not a launch-ready monitored channel.
-No mail DNS records were added or changed.
+The current contact UI honestly states that its automated form is disabled and
+directs users to the approved monitored mailbox
+`studybookaiapp@gmail.com`. No mail DNS records were added or changed.
 
 ### Legal
 
-Legal status remains `DRAFT`. Required approvals include:
+Substantive legal content is final for this gate. The operator, professional
+contact address, monitored contacts, Dominican governing law and competent
+court rule, retention, age, subscription, cancellation, refund and deletion
+terms are integrated consistently.
 
-- legal entity/person and address where required;
-- support and privacy contacts;
-- jurisdiction and effective date;
-- retention schedule and exceptions;
-- minimum age, minors and educational consent treatment;
-- subscription, cancellation and refund terms;
-- account-deletion alternative, verification and response timing.
+The remaining gates are operational/regulatory:
+
+- insert the actual authorized deployment date immediately before deployment;
+- use `16 de septiembre de 2026` only if deployment is authorized and occurs
+  that day; otherwise stop and use the actual later date;
+- submit the consumer Terms for Pro Consumidor review/registration, or record
+  counsel's formal determination that the requirement is not applicable;
+- issue explicit publication and indexing authorization.
 
 The public legal routes may remain available for QA while indexing is disabled,
 but their draft content is not approved for public launch.
@@ -227,17 +231,20 @@ but their draft content is not approved for public launch.
 
 | Field | Current status | Required human decision | Document affected |
 | --- | --- | --- | --- |
-| Legal operator/entity/person | Unresolved | Approve the contracting and data-controlling legal name | Privacy, Terms, Account deletion |
-| Business/contact address | Unresolved | Approve whether an address is legally required and the publishable value | Privacy, Terms |
-| Support contact | Unresolved | Approve a monitored public support channel | Contact, Terms, Account deletion |
-| Privacy contact | Unresolved | Approve a monitored privacy/data-rights channel | Privacy, Account deletion |
-| Governing law/jurisdiction | Unresolved | Obtain legal approval for governing law and venue | Terms |
-| Effective date | Unresolved | Select only after final legal text approval | Privacy, Terms |
-| Data retention | Draft only | Approve periods, deletion triggers and lawful exceptions by data category | Privacy, Account deletion |
-| Minors/age handling | Draft only | Approve minimum age and educational/guardian consent treatment | Privacy, Terms |
-| Subscription/cancellation | Draft only | Approve renewal, cancellation timing and access-after-cancellation language | Terms, Pricing |
-| Refunds and taxes | Draft only | Approve refund eligibility, statutory exceptions and tax treatment | Terms |
-| Account-deletion process | Technical flow exists; public SLA unresolved | Approve alternative verification, response timing and retained-data exceptions | Account deletion, Privacy |
+| Legal operator/entity/person | Final | Welinton Rafael Mejía González | Privacy, Terms, Account deletion |
+| Professional contact address | Final | MULTISERVICIOS ZORRILLA address is a professional domicile only, not the operator | Privacy, Terms, Contact |
+| Support/privacy contact | Final | `studybookaiapp@gmail.com` | Contact, Privacy, Terms, Account deletion |
+| Governing law/jurisdiction | Final | Dominican law; competent Dominican courts under applicable competence rules; non-waivable consumer rights preserved | Privacy, Terms |
+| Effective date | Pending actual deployment | Insert the real authorized legal deployment date immediately before deployment; no backdating | Privacy, Terms |
+| Data retention | Final | 30-day active-system target; residual backups up to 90 days; narrow lawful exceptions | Privacy, Account deletion |
+| Minors/age handling | Final for controlled launch | Minimum age 18 for independent accounts; future minor access requires implemented guardian/institution workflow | Privacy, Terms |
+| Subscription/cancellation | Final | Approved monthly plans, provider-channel cancellation and paid-period access wording | Terms, Pricing |
+| Refunds | Final | First qualifying Student Pro/Teacher Pro payment may be requested within 7 calendar days, once per account | Terms, Pricing |
+| Account-deletion process | Final | Authenticated flow plus verified assistance channel and 30/90-day policy | Account deletion, Privacy |
+| Pro Consumidor contract review/registration | `READY TO FILE` | Human/counsel files the clean Terms copy or records a formal non-applicability determination; no registration number claimed | Consumer Terms submission copy |
+
+Submission copy:
+`docs/legal/STUDYBOOKAI_CONSUMER_TERMS_SUBMISSION_COPY.md`.
 
 ## P2 Risk Position
 
@@ -345,7 +352,7 @@ closure.
 ```text
 P0: NONE
 P1 TECHNICAL: NONE
-P1 HUMAN: MONITORED CONTACT CHANNEL AND LEGAL APPROVAL REMAIN OPEN
+P1 HUMAN: ACTUAL DEPLOYMENT DATE AND PRO CONSUMIDOR CONTRACT GATE REMAIN OPEN
 RESPONSIVE MARKETING: PASS
 RESPONSIVE FLUTTER STUDENT: PASS
 RESPONSIVE FLUTTER TEACHER: PASS
@@ -368,9 +375,13 @@ Operator, age/minors, 30/90-day deletion targets, subscription pricing,
 no-trial position, cancellation, first-payment refund, AI limitations, user
 content, IP, provider and P2 decisions are aligned across the public pages.
 The approved professional contact domicile is integrated without changing the
-legal operator. Effective date is added only after final publication approval.
-Specific venue/court wording remains under legal consistency review.
+legal operator. The final jurisdiction wording uses competent Dominican courts
+under applicable rules and preserves non-waivable consumer rights. The
+effective date must be the actual authorized deployment date and may not be
+backdated. Pro Consumidor contract review/registration is `READY TO FILE` and
+remains a launch gate.
 
-Marketing lint, 48 tests, production build, 11-route smoke and 15-link internal
+Marketing lint, 50 tests, production build, 11-route smoke and 15-link internal
 check pass. Public indexing remains disabled. No push or deployment occurred.
-The strict decision remains `NO-GO` pending final text/publication approval.
+The strict decision remains `NO-GO` pending the actual deployment date, an
+authorized publication decision and the Pro Consumidor contract gate.

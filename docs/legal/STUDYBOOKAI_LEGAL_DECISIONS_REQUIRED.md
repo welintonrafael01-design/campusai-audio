@@ -1,6 +1,6 @@
 # StudyBook AI Legal Decisions Required
 
-Status: `PRODUCT OWNER CONTENT DECISIONS INTEGRATED - COUNSEL/PUBLICATION GATES REMAIN`
+Status: `SUBSTANTIVE CONTENT FINAL - DEPLOYMENT/PRO CONSUMIDOR GATES REMAIN`
 
 This inventory distinguishes approved product decisions from the remaining
 publication decisions. It is not legal advice and does not make the final
@@ -13,7 +13,7 @@ drafts effective.
 | Legal operator | Welinton Rafael Mejía González |
 | Professional contact address | Bufete Jurídico “MULTISERVICIOS ZORRILLA”, Avenida Sabana Larga, núm. 148, Ensanche Ozama, Santo Domingo Este, República Dominicana; professional domicile only, not the operator |
 | Monitored contact | `studybookaiapp@gmail.com` for initial support, privacy, deletion, refund, legal and IP communications |
-| Governing law/jurisdiction | Dominican Republic; specific venue/court wording still requires legal consistency review |
+| Governing law/jurisdiction | Dominican Republic; disputes go to competent Dominican courts under applicable competence rules, preserving consumers' non-waivable rights |
 | Minimum age | 18 for independent individual accounts during the initial controlled launch |
 | Minors | No independent account creation under 18; future guardian or authorized-institution access requires an implemented consent workflow |
 | Active-account retention | Retain information necessary to provide the service |
@@ -34,8 +34,8 @@ drafts effective.
 
 | Field | Current status | Required action |
 | --- | --- | --- |
-| Specific venue/court/dispute wording | Pending legal consistency review | Approve the exact clause without changing the Product Owner's Dominican Republic law/jurisdiction intent |
-| Effective date | `PENDING FINAL PUBLICATION DATE` | Set the actual date only when Privacy and Terms receive final publication approval; do not backdate |
+| Effective date | Pending actual authorized deployment date | Insert the actual publication date immediately before deployment; do not backdate |
+| Pro Consumidor contract review/registration | `READY TO FILE` | Human/counsel submits the clean consumer Terms copy or records a formal non-applicability determination; do not invent a registration number |
 | Final legal publication | Not authorized | Review the integrated final drafts and explicitly approve or reject publication |
 | Public indexing | Disabled | Keep disabled until a separate explicit launch/indexing authorization |
 
@@ -47,6 +47,14 @@ drafts effective.
 - `web/marketing/src/app/contact/page.tsx`
 - `web/marketing/src/app/security/page.tsx`
 - `web/marketing/src/app/pricing/page.tsx`
+
+## Consumer Contract Gate
+
+- Status: `READY TO FILE`.
+- Clean submission copy:
+  `docs/legal/STUDYBOOKAI_CONSUMER_TERMS_SUBMISSION_COPY.md`.
+- No filing or registration has been performed.
+- No registration number is claimed.
 
 The full Product Owner response and risk acceptance record remain in
 `docs/legal/STUDYBOOKAI_FINAL_HUMAN_APPROVAL_SHEET.md`.

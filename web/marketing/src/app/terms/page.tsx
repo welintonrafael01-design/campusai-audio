@@ -14,18 +14,18 @@ export default function TermsPage() {
       <PageHero
         eyebrow="Borrador final para aprobación"
         title="Términos del servicio"
-        description="Este texto integra las decisiones aprobadas para el lanzamiento controlado. La fecha de vigencia y la redacción final de sede continúan pendientes."
+        description="Este texto integra las decisiones aprobadas para el lanzamiento controlado. La fecha de vigencia será la fecha real del despliegue legal autorizado."
       />
       <article className="section legal-page">
         <div className="container prose">
           <aside className="draft-notice" role="note">
             <strong>Todavía no son términos vigentes.</strong>
-            <span>La fecha efectiva se fijará al aprobar la publicación final. La sede o tribunal específicos siguen pendientes de revisión jurídica.</span>
+            <span>No se ha realizado el despliegue legal autorizado. La fecha efectiva será la fecha real de ese despliegue y esta página permanece excluida de indexación.</span>
           </aside>
 
           <p><strong>Operador:</strong> Welinton Rafael Mejía González.</p>
           <p><strong>Contacto:</strong> <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>.</p>
-          <p><strong>Fecha de vigencia:</strong> pendiente de publicación final.</p>
+          <p><strong>Fecha de vigencia:</strong> será la fecha real del despliegue legal autorizado; no se aplicará retroactivamente.</p>
 
           <h2>1. Elegibilidad y cuenta</h2>
           <p>
@@ -94,12 +94,12 @@ export default function TermsPage() {
 
           <h2>12. Ley y jurisdicción</h2>
           <p>
-            La decisión aprobada para el lanzamiento controlado es que estos términos se rijan por las leyes de la República Dominicana y que la jurisdicción sea la República Dominicana, sin excluir derechos imperativos aplicables. La redacción de una sede, tribunal o mecanismo de disputa específico sigue pendiente de revisión jurídica y deberá aprobarse antes de que estos términos entren en vigor.
+            Estos Términos se regirán e interpretarán conforme a las leyes de la República Dominicana. Toda controversia relacionada con StudyBook AI será sometida a los tribunales competentes de la República Dominicana, conforme a las reglas de competencia aplicables, sin perjuicio de los derechos irrenunciables que correspondan a los consumidores y usuarios conforme a la legislación vigente.
           </p>
 
           <h2>13. Contacto y vigencia</h2>
           <p>
-            Para soporte, privacidad, eliminación, reembolsos, asuntos legales o propiedad intelectual, escribe a <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>. El domicilio profesional de contacto autorizado se publica en <a href="/contact">Contacto</a> y <a href="/privacy">Privacidad</a>. Ese domicilio no convierte a MULTISERVICIOS ZORRILLA en propietario, operador, responsable del tratamiento, entidad jurídica detrás ni titular de StudyBook AI. La fecha de vigencia se fijará únicamente cuando se apruebe la publicación final.
+            Para soporte, privacidad, eliminación, reembolsos, asuntos legales o propiedad intelectual, escribe a <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>. El domicilio profesional de contacto autorizado se publica en <a href="/contact">Contacto</a> y <a href="/privacy">Privacidad</a>. Ese domicilio no convierte a MULTISERVICIOS ZORRILLA en propietario, operador, responsable del tratamiento, entidad jurídica detrás ni titular de StudyBook AI. La fecha de vigencia se fijará inmediatamente antes del despliegue legal autorizado y deberá coincidir con la fecha real de publicación.
           </p>
         </div>
       </article>

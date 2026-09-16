@@ -5,6 +5,9 @@ import { describe, expect, it } from "vitest";
 const readPage = (route: string) =>
   readFileSync(join(process.cwd(), "src", "app", route, "page.tsx"), "utf8");
 
+const readLegalDoc = (filename: string) =>
+  readFileSync(join(process.cwd(), "..", "..", "docs", "legal", filename), "utf8");
+
 const legalRoutes = ["privacy", "terms", "account-deletion"] as const;
 
 describe("W7-C5 public legal content", () => {
@@ -26,10 +29,39 @@ describe("W7-C5 public legal content", () => {
       expect(source).toContain("studybookaiapp@gmail.com");
       expect(source).toContain("30 días");
       expect(source).toContain("90 días");
-      expect(source).toContain("pendiente de publicación final");
+      expect(source).toContain("fecha real del despliegue legal autorizado");
     }
     expect(privacy).toContain("18 años");
     expect(terms).toContain("18 años");
+  });
+
+  it("uses the final Dominican jurisdiction rule without an arbitrary venue", () => {
+    const privacy = readPage("privacy");
+    const terms = readPage("terms");
+
+    for (const source of [privacy, terms]) {
+      expect(source).toContain("tribunales competentes de la República Dominicana");
+      expect(source).toContain("reglas de competencia aplicables");
+      expect(source).toContain("derechos irrenunciables");
+      expect(source).not.toMatch(/sede.*pendiente|tribunal.*pendiente/i);
+    }
+  });
+
+  it("keeps the Pro Consumidor contract gate ready but unfiled", () => {
+    const submission = readLegalDoc("STUDYBOOKAI_CONSUMER_TERMS_SUBMISSION_COPY.md");
+
+    expect(submission).toContain("Estado: `READY TO FILE`");
+    expect(submission).toContain("Estado ante Pro Consumidor: no presentado.");
+    expect(submission).toContain("Número de registro: ninguno asignado ni declarado.");
+    expect(submission).toContain("fecha real del despliegue legal autorizado");
+    expect(submission).toContain("Welinton Rafael Mejía González");
+    expect(submission).toContain("Avenida Sabana Larga, núm. 148");
+    expect(submission).toContain("Student Pro: US$6.99 por mes");
+    expect(submission).toContain("Teacher Pro: US$13.99 por mes");
+    expect(submission).toContain("7 días calendario");
+    expect(submission).toContain("30 días");
+    expect(submission).toContain("90 días");
+    expect(submission).toContain("tribunales competentes de la República Dominicana");
   });
 
   it("publishes the approved professional domicile without changing the operator", () => {
