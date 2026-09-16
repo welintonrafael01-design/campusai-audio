@@ -11,7 +11,7 @@ const readLegalDoc = (filename: string) =>
 const legalRoutes = ["privacy", "terms", "account-deletion"] as const;
 
 describe("W7-C5 public legal content", () => {
-  it("keeps legal drafts non-indexed and free of resolved placeholders", () => {
+  it("keeps legal pages non-indexed and free of resolved placeholders", () => {
     for (const route of legalRoutes) {
       const source = readPage(route);
       expect(source).toContain("robots: { index: false, follow: false }");
@@ -29,7 +29,7 @@ describe("W7-C5 public legal content", () => {
       expect(source).toContain("studybookaiapp@gmail.com");
       expect(source).toContain("30 días");
       expect(source).toContain("90 días");
-      expect(source).toContain("fecha real del despliegue legal autorizado");
+      expect(source).toContain("16 de septiembre de 2026");
     }
     expect(privacy).toContain("18 años");
     expect(terms).toContain("18 años");
@@ -47,13 +47,13 @@ describe("W7-C5 public legal content", () => {
     }
   });
 
-  it("keeps the Pro Consumidor contract gate ready but unfiled", () => {
+  it("keeps the deferred Pro Consumidor item honest and unfiled", () => {
     const submission = readLegalDoc("STUDYBOOKAI_CONSUMER_TERMS_SUBMISSION_COPY.md");
 
-    expect(submission).toContain("Estado: `READY TO FILE`");
+    expect(submission).toContain("Estado: `DEFERRED BY PRODUCT OWNER`");
     expect(submission).toContain("Estado ante Pro Consumidor: no presentado.");
     expect(submission).toContain("Número de registro: ninguno asignado ni declarado.");
-    expect(submission).toContain("fecha real del despliegue legal autorizado");
+    expect(submission).toContain("16 de septiembre de 2026");
     expect(submission).toContain("Welinton Rafael Mejía González");
     expect(submission).toContain("Avenida Sabana Larga, núm. 148");
     expect(submission).toContain("Student Pro: US$6.99 por mes");

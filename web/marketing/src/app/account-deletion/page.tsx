@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/page-hero";
 
 export const metadata: Metadata = {
-  title: "Eliminar cuenta — borrador final",
-  description: "Proceso de eliminación de cuentas de StudyBook AI preparado para publicación legal.",
+  title: "Eliminar cuenta",
+  description: "Proceso de eliminación de cuentas de StudyBook AI.",
   alternates: { canonical: "/account-deletion" },
   robots: { index: false, follow: false },
 };
@@ -12,15 +12,15 @@ export default function AccountDeletionPage() {
   return (
     <>
       <PageHero
-        eyebrow="Borrador final para aprobación"
+        eyebrow="Privacidad y control"
         title="Eliminar tu cuenta de StudyBook AI"
         description="Puedes iniciar la eliminación autenticada desde la aplicación. También existe un correo monitoreado para solicitar asistencia si no puedes acceder."
       />
       <article className="section legal-page">
         <div className="container prose">
           <aside className="draft-notice" role="note">
-            <strong>La publicación final sigue pendiente.</strong>
-            <span>No envíes contraseñas, códigos de acceso ni documentos privados por correo. La fecha efectiva será la fecha real del despliegue legal autorizado.</span>
+            <strong>Protege tu cuenta.</strong>
+            <span>No envíes contraseñas, códigos de acceso ni documentos privados por correo.</span>
           </aside>
 
           <p><strong>Operador:</strong> Welinton Rafael Mejía González.</p>
@@ -64,7 +64,7 @@ export default function AccountDeletionPage() {
           </p>
 
           <h2>Contacto y vigencia</h2>
-          <p>Las consultas de privacidad, soporte y eliminación se reciben en <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>. El domicilio profesional de contacto autorizado puede consultarse en <a href="/contact">Contacto</a> y no modifica la identidad del operador. La fecha efectiva será la fecha real del despliegue legal autorizado y no se aplicará retroactivamente.</p>
+          <p>Las consultas de privacidad, soporte y eliminación se reciben en <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>. El domicilio profesional de contacto autorizado puede consultarse en <a href="/contact">Contacto</a> y no modifica la identidad del operador. Esta información entra en vigor el 16 de septiembre de 2026.</p>
         </div>
       </article>
     </>

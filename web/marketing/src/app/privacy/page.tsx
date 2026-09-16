@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/page-hero";
 
 export const metadata: Metadata = {
-  title: "Privacidad — borrador final",
-  description: "Borrador final de la política de privacidad de StudyBook AI.",
+  title: "Privacidad",
+  description: "Política de privacidad de StudyBook AI.",
   alternates: { canonical: "/privacy" },
   robots: { index: false, follow: false },
 };
@@ -12,17 +12,12 @@ export default function PrivacyPage() {
   return (
     <>
       <PageHero
-        eyebrow="Borrador final para aprobación"
+        eyebrow="Información legal"
         title="Política de privacidad"
-        description="Este texto integra las decisiones aprobadas para el lanzamiento controlado. La fecha de vigencia será la fecha real del despliegue legal autorizado."
+        description="Vigente desde el 16 de septiembre de 2026."
       />
       <article className="section legal-page">
         <div className="container prose">
-          <aside className="draft-notice" role="note">
-            <strong>Todavía no es una política vigente.</strong>
-            <span>No se ha realizado el despliegue legal autorizado. La fecha efectiva será la fecha real de ese despliegue y esta página permanece excluida de indexación.</span>
-          </aside>
-
           <p><strong>Operador:</strong> Welinton Rafael Mejía González.</p>
           <p>
             <strong>Domicilio de contacto profesional:</strong><br />
@@ -33,7 +28,7 @@ export default function PrivacyPage() {
           </p>
           <p>Este domicilio se publica únicamente como dirección profesional de contacto de StudyBook AI. MULTISERVICIOS ZORRILLA no es propietario, operador, responsable del tratamiento, entidad jurídica detrás ni titular de StudyBook AI.</p>
           <p><strong>Contacto de privacidad y soporte:</strong> <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>.</p>
-          <p><strong>Fecha de vigencia:</strong> será la fecha real del despliegue legal autorizado; no se aplicará retroactivamente.</p>
+          <p><strong>Fecha de vigencia:</strong> 16 de septiembre de 2026.</p>
 
           <h2>1. Datos que procesamos</h2>
           <p>
@@ -112,7 +107,7 @@ export default function PrivacyPage() {
             Esta Política se regirá e interpretará conforme a las leyes de la República Dominicana. Toda controversia relacionada con StudyBook AI será sometida a los tribunales competentes de la República Dominicana, conforme a las reglas de competencia aplicables, sin perjuicio de los derechos irrenunciables que correspondan a los consumidores y usuarios conforme a la legislación vigente.
           </p>
           <p>
-            La fecha de vigencia se fijará inmediatamente antes del despliegue legal autorizado y deberá coincidir con la fecha real de publicación. Los cambios futuros deberán indicar su fecha y comunicarse de forma apropiada según su relevancia.
+            Esta Política entra en vigor el 16 de septiembre de 2026. Los cambios futuros deberán indicar su fecha y comunicarse de forma apropiada según su relevancia.
           </p>
         </div>
       </article>

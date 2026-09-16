@@ -444,6 +444,25 @@ content language, provider disclosures and accepted P2 risks. No production
 infrastructure or environment value changed.
 
 The approved professional contact domicile is integrated and does not change
-the legal operator. The effective date must be set only at final publication,
-and specific venue wording requires consistency review. Public indexing,
-deployment and launch remain disabled pending explicit human approval.
+the legal operator. The final jurisdiction clause uses competent Dominican
+courts under applicable competence rules and preserves non-waivable consumer
+rights.
+
+## W7-C6 Final Legal Content Deployment Authorization
+
+The Product Owner authorized Marketing-only legal-content deployment on
+16 September 2026. Privacy, Terms and Account Deletion use the effective date
+`16 de septiembre de 2026`. Marketing is the only surface authorized for
+deployment in this gate; API, Flutter, DNS, Supabase and provider configuration
+remain unchanged.
+
+Pro Consumidor review/registration is `DEFERRED BY PRODUCT OWNER`, classified
+as `POST-LAUNCH / COMPLIANCE FOLLOW-UP`. It is not filed, registered, resolved
+or determined inapplicable, and no registration number is claimed. It does not
+block W7-C6 technical/legal-content deployment and remains in internal risk
+tracking.
+
+Public indexing remains disabled. W7-C6 does not authorize a release tag,
+indexing activation or W7-D launch actions. Deployment ID, deployed source SHA
+and live validation evidence are recorded only after the controlled Marketing
+deployment succeeds.

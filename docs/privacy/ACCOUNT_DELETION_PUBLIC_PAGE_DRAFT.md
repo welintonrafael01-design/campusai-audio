@@ -1,6 +1,6 @@
-# Delete Your StudyBook AI Account - Final Public Draft
+# Delete Your StudyBook AI Account
 
-Status: `SUBSTANTIVE CONTENT FINAL - ACTUAL DEPLOYMENT DATE PENDING`
+Status: `FINAL FOR W7-C6 LEGAL DEPLOYMENT - PUBLIC INDEXING DISABLED`
 
 Public path: `https://studybookai.com/account-deletion`
 
@@ -10,8 +10,7 @@ Monitored contact: `studybookaiapp@gmail.com`
 
 Professional contact address: `Bufete Jurídico “MULTISERVICIOS ZORRILLA”, Avenida Sabana Larga, núm. 148, Ensanche Ozama, Santo Domingo Este, República Dominicana`. This is a professional contact domicile only and does not change the legal operator.
 
-Effective date: use the actual authorized legal deployment date; do not
-backdate.
+Effective date: `16 de septiembre de 2026`.
 
 The integrated public text is maintained in
 `web/marketing/src/app/account-deletion/page.tsx` and remains page-level
@@ -52,10 +51,9 @@ Account deletion does not itself cancel Stripe, Google Play or another
 external subscription. The user must manage billing through the original
 provider.
 
-## Remaining Publication Decisions
+## W7-C6 Publication State
 
-- Effective date: insert the actual date immediately before authorized legal
-  deployment.
-- Final publication authorization: pending.
+- Legal-content deployment is authorized for 16 September 2026.
+- Public indexing remains disabled until separately authorized.
 
 Public indexing remains disabled.

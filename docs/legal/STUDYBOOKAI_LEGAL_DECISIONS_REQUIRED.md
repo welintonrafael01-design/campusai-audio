@@ -1,6 +1,6 @@
 # StudyBook AI Legal Decisions Required
 
-Status: `SUBSTANTIVE CONTENT FINAL - DEPLOYMENT/PRO CONSUMIDOR GATES REMAIN`
+Status: `LEGAL CONTENT FINAL FOR W7-C6 DEPLOYMENT - PUBLIC INDEXING DISABLED`
 
 This inventory distinguishes approved product decisions from the remaining
 publication decisions. It is not legal advice and does not make the final
@@ -34,8 +34,8 @@ drafts effective.
 
 | Field | Current status | Required action |
 | --- | --- | --- |
-| Effective date | Pending actual authorized deployment date | Insert the actual publication date immediately before deployment; do not backdate |
-| Pro Consumidor contract review/registration | `READY TO FILE` | Human/counsel submits the clean consumer Terms copy or records a formal non-applicability determination; do not invent a registration number |
+| Effective date | `16 de septiembre de 2026` | Matches the authorized W7-C6 legal deployment date; do not backdate or reuse for a later first publication |
+| Pro Consumidor contract review/registration | `DEFERRED BY PRODUCT OWNER` | Post-launch/compliance follow-up; not filed, registered, resolved or determined inapplicable; no registration number claimed |
 | Final legal publication | Not authorized | Review the integrated final drafts and explicitly approve or reject publication |
 | Public indexing | Disabled | Keep disabled until a separate explicit launch/indexing authorization |
 
@@ -50,10 +50,12 @@ drafts effective.
 
 ## Consumer Contract Gate
 
-- Status: `READY TO FILE`.
+- Status: `DEFERRED BY PRODUCT OWNER`.
+- Classification: `POST-LAUNCH / COMPLIANCE FOLLOW-UP`.
 - Clean submission copy:
   `docs/legal/STUDYBOOKAI_CONSUMER_TERMS_SUBMISSION_COPY.md`.
-- No filing or registration has been performed.
+- No filing or registration has been performed; this item does not block W7-C6
+  technical/legal-content deployment.
 - No registration number is claimed.
 
 The full Product Owner response and risk acceptance record remain in

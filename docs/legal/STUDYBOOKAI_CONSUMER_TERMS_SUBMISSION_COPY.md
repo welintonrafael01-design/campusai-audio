@@ -1,15 +1,16 @@
 # Términos de StudyBook AI - Copia para revisión de contrato de consumo
 
-Estado: `READY TO FILE`
+Estado: `DEFERRED BY PRODUCT OWNER`
+
+Clasificación: `POST-LAUNCH / COMPLIANCE FOLLOW-UP`
 
 Estado ante Pro Consumidor: no presentado.
 
 Número de registro: ninguno asignado ni declarado.
 
-Regla de fecha efectiva: insertar la fecha real del despliegue legal autorizado
-inmediatamente antes de la publicación. Si el despliegue se autoriza y ocurre
-el 16 de septiembre de 2026, usar `16 de septiembre de 2026`. Si ocurre después,
-detener la publicación y usar la fecha real posterior. No retrotraer la fecha.
+Fecha efectiva: `16 de septiembre de 2026`, correspondiente al despliegue legal
+autorizado en W7-C6. No retrotraer ni reutilizar esta fecha para una primera
+publicación posterior.
 
 ## Operador y contacto
 
@@ -155,14 +156,13 @@ y propiedad intelectual se envían a `studybookaiapp@gmail.com`. El domicilio
 profesional de contacto se indica arriba y no modifica la identidad del
 operador.
 
-La fecha de vigencia debe insertarse inmediatamente antes del despliegue legal
-autorizado y debe coincidir con la fecha real de publicación. No puede
-retrotraerse.
+Estos Términos entran en vigor el 16 de septiembre de 2026.
 
 ## Gate de presentación
 
-Esta copia está preparada para revisión humana/jurídica y posible presentación
-ante Pro Consumidor. No ha sido presentada ni registrada. El lanzamiento
-comercial público no debe marcarse como legalmente aprobado hasta que el estado
-pase a `FILED / PENDING`, `REGISTERED` o `COUNSEL DETERMINED NOT APPLICABLE`,
-según corresponda.
+La revisión o registro ante Pro Consumidor fue diferida por el Product Owner y
+se clasifica como seguimiento de cumplimiento posterior al lanzamiento. Esta
+copia no ha sido presentada ni registrada, no se declara que el trámite sea
+inaplicable y no existe un número de registro. El estado diferido no bloquea el
+despliegue técnico y del contenido legal de W7-C6, pero permanece en el registro
+interno de riesgos y cumplimiento.

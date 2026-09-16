@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/page-hero";
 
 export const metadata: Metadata = {
-  title: "Términos — borrador final",
-  description: "Borrador final de los términos del servicio de StudyBook AI.",
+  title: "Términos",
+  description: "Términos del servicio de StudyBook AI.",
   alternates: { canonical: "/terms" },
   robots: { index: false, follow: false },
 };
@@ -12,20 +12,15 @@ export default function TermsPage() {
   return (
     <>
       <PageHero
-        eyebrow="Borrador final para aprobación"
+        eyebrow="Información legal"
         title="Términos del servicio"
-        description="Este texto integra las decisiones aprobadas para el lanzamiento controlado. La fecha de vigencia será la fecha real del despliegue legal autorizado."
+        description="Vigentes desde el 16 de septiembre de 2026."
       />
       <article className="section legal-page">
         <div className="container prose">
-          <aside className="draft-notice" role="note">
-            <strong>Todavía no son términos vigentes.</strong>
-            <span>No se ha realizado el despliegue legal autorizado. La fecha efectiva será la fecha real de ese despliegue y esta página permanece excluida de indexación.</span>
-          </aside>
-
           <p><strong>Operador:</strong> Welinton Rafael Mejía González.</p>
           <p><strong>Contacto:</strong> <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>.</p>
-          <p><strong>Fecha de vigencia:</strong> será la fecha real del despliegue legal autorizado; no se aplicará retroactivamente.</p>
+          <p><strong>Fecha de vigencia:</strong> 16 de septiembre de 2026.</p>
 
           <h2>1. Elegibilidad y cuenta</h2>
           <p>
@@ -99,7 +94,7 @@ export default function TermsPage() {
 
           <h2>13. Contacto y vigencia</h2>
           <p>
-            Para soporte, privacidad, eliminación, reembolsos, asuntos legales o propiedad intelectual, escribe a <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>. El domicilio profesional de contacto autorizado se publica en <a href="/contact">Contacto</a> y <a href="/privacy">Privacidad</a>. Ese domicilio no convierte a MULTISERVICIOS ZORRILLA en propietario, operador, responsable del tratamiento, entidad jurídica detrás ni titular de StudyBook AI. La fecha de vigencia se fijará inmediatamente antes del despliegue legal autorizado y deberá coincidir con la fecha real de publicación.
+            Para soporte, privacidad, eliminación, reembolsos, asuntos legales o propiedad intelectual, escribe a <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>. El domicilio profesional de contacto autorizado se publica en <a href="/contact">Contacto</a> y <a href="/privacy">Privacidad</a>. Ese domicilio no convierte a MULTISERVICIOS ZORRILLA en propietario, operador, responsable del tratamiento, entidad jurídica detrás ni titular de StudyBook AI. Estos Términos entran en vigor el 16 de septiembre de 2026.
           </p>
         </div>
       </article>

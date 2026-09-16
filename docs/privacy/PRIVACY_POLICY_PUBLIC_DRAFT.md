@@ -1,9 +1,8 @@
-# StudyBook AI Privacy Policy - Final Public Draft
+# StudyBook AI Privacy Policy
 
-Status: `SUBSTANTIVE CONTENT FINAL - ACTUAL DEPLOYMENT DATE PENDING`
+Status: `FINAL FOR W7-C6 LEGAL DEPLOYMENT - PUBLIC INDEXING DISABLED`
 
-Effective date: use the actual authorized legal deployment date; insert it
-immediately before deployment and do not backdate.
+Effective date: `16 de septiembre de 2026`.
 
 Operator: `Welinton Rafael Mejía González`
 
@@ -53,11 +52,11 @@ source for final human review and remains page-level `noindex`.
 - Security language remains factual and does not promise absolute security,
   zero risk or error-free operation.
 
-## Remaining Publication Decisions
+## W7-C6 Publication State
 
-1. Insert the actual effective date immediately before authorized deployment.
-2. Issue explicit final publication approval.
-3. Keep public indexing disabled until separately authorized.
+1. Legal-content deployment is authorized for 16 September 2026.
+2. Public indexing remains disabled until separately authorized.
+3. Pro Consumidor contract review/registration is an internal deferred
+   post-launch compliance item and is not published on this page.
 
-Until those steps are complete, the public page remains a final draft and
-public indexing remains disabled.
+Public indexing remains disabled.

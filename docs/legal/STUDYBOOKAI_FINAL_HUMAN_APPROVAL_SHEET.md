@@ -1,6 +1,6 @@
 # StudyBook AI W7-C5 Final Human Approval Sheet
 
-Status: `PRODUCT OWNER DECISIONS APPROVED FOR CONTENT INTEGRATION - FINAL PUBLICATION APPROVAL PENDING`
+Status: `LEGAL CONTENT APPROVED FOR 16 SEPTEMBER 2026 DEPLOYMENT - PUBLIC INDEXING DISABLED`
 
 Date prepared: `2026-09-16`
 
@@ -51,7 +51,7 @@ The effective date remains tied to the actual authorized deployment date.
 | Privacy contact | No monitored channel | Same mailbox as support if explicitly approved, or a separate monitored privacy mailbox | Supply the exact address and confirm the privacy request process | Privacy, deletion, Contact |
 | Governing law | Resolved | Laws of the Dominican Republic, preserving mandatory consumer rights | No further substantive decision required | Terms |
 | Jurisdiction/venue | Resolved | Competent courts of the Dominican Republic under applicable competence rules; no arbitrary exclusive court or mandatory arbitration | No further substantive decision required | Terms |
-| Effective date | Unresolved | The actual publication/effective date, never backdated | Supply one exact ISO date after final-text approval | Privacy, Terms |
+| Effective date | Resolved | 16 September 2026, matching the authorized legal deployment date | No further date decision required for W7-C6 | Privacy, Terms |
 | Minimum age | Unresolved; no age gate exists | Adult-only; a defined minimum age with guardian consent; or institution/guardian-managed access | Select the minimum age and identify whether a runtime age/consent gate is required | Privacy, Terms, onboarding, stores |
 | Minors/education policy | Unresolved | Do not target minors; guardian consent model; or school/institution-managed model with defined responsibilities | Approve the intended audience, consent model and school/guardian responsibilities | Privacy, Terms, onboarding, stores |
 | Retention schedule | No universal schedule | Approve periods or criteria separately for active-account data, deleted-account data, backups, operational/security logs, billing records and support messages | Supply exact periods/criteria and lawful bases; engineering must not invent durations | Privacy, deletion, provider operations |
@@ -217,7 +217,7 @@ without prejudice to consumers' non-waivable rights.
 ### EFFECTIVE DATE
 
 EFFECTIVE DATE:
-PENDING ACTUAL AUTHORIZED DEPLOYMENT DATE
+16 DE SEPTIEMBRE DE 2026
 
 RULE:
 Do not backdate.
@@ -579,7 +579,7 @@ PUBLISHABLE ADDRESS:
 RESOLVED BY FINAL PUBLISHABLE ADDRESS APPROVAL
 
 EFFECTIVE DATE:
-PENDING ACTUAL AUTHORIZED DEPLOYMENT DATE
+16 DE SEPTIEMBRE DE 2026
 
 PRIVACY:
 READY FOR FINAL DRAFT INTEGRATION
@@ -643,7 +643,7 @@ PUBLISHABLE ADDRESS:
 RESOLVED BY FINAL PUBLISHABLE ADDRESS APPROVAL
 
 EFFECTIVE DATE:
-PENDING ACTUAL AUTHORIZED DEPLOYMENT DATE
+16 DE SEPTIEMBRE DE 2026
 
 IMPORTANT:
 
@@ -715,7 +715,7 @@ PUBLISHABLE ADDRESS:
 RESOLVED
 
 EFFECTIVE DATE:
-PENDING ACTUAL AUTHORIZED DEPLOYMENT DATE
+16 DE SEPTIEMBRE DE 2026
 
 ---
 
@@ -734,15 +734,17 @@ correspondan a los consumidores y usuarios conforme a la legislación vigente.
 
 EFFECTIVE DATE RULE:
 
-The effective date must be the actual date of the authorized legal deployment.
-It must be inserted immediately before that deployment and must never be
-backdated. If deployment is authorized and occurs on 16 September 2026, use
-`16 de septiembre de 2026`. If it occurs later, stop before publication and
-use the actual later date. No legal deployment is authorized by this record.
+The authorized W7-C6 legal deployment date is 16 September 2026. Privacy and
+Terms use `16 de septiembre de 2026` consistently. This date must not be reused
+for a later first publication or retroactively applied to content that was not
+deployed in this gate.
 
 PRO CONSUMIDOR CONTRACT REVIEW / REGISTRATION:
-READY TO FILE
+DEFERRED BY PRODUCT OWNER
 
-The consumer Terms submission copy is prepared for human/counsel review. No
-filing, registration or applicability determination has been performed, and no
-registration number is claimed.
+CLASSIFICATION:
+POST-LAUNCH / COMPLIANCE FOLLOW-UP
+
+No filing, registration or applicability determination has been performed, and
+no registration number is claimed. This deferred item does not block W7-C6
+technical/legal-content deployment and must remain in internal risk tracking.

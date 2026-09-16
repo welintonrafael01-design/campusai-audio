@@ -1,6 +1,6 @@
 # StudyBook AI W7-C5 Contact And Legal Finalization
 
-Status: `SUBSTANTIVE LEGAL CONTENT FINAL - DEPLOYMENT/PRO CONSUMIDOR GATES REMAIN`
+Status: `FINAL LEGAL CONTENT APPROVED FOR W7-C6 DEPLOYMENT - NOINDEX`
 
 Date: `2026-09-16`
 
@@ -20,7 +20,7 @@ effective-date and consumer-contract gate.
 | Support/privacy/deletion/legal/IP contact | `studybookaiapp@gmail.com` |
 | Contact form | Automated delivery remains disabled and is no longer presented as an operational form |
 | Governing law/jurisdiction | Dominican Republic; competent Dominican courts under applicable competence rules, preserving consumers' non-waivable rights |
-| Effective-date rule | Use `16 de septiembre de 2026` only if authorized legal deployment occurs that day; otherwise stop and use the actual later deployment date; never backdate |
+| Effective date | `16 de septiembre de 2026`, matching the authorized W7-C6 legal deployment date |
 | Minimum age | 18 for independent individual accounts during the initial controlled launch |
 | Minors | No independent account creation under 18; future guardian/institution access requires an implemented consent workflow |
 | Active-system deletion | Maximum operational target of 30 days after a valid request |
@@ -35,14 +35,13 @@ effective-date and consumer-contract gate.
 | Providers | Supabase, OpenAI, Render, Vercel; Stripe/Google Play/platform speech only when their respective channel is used |
 | P2 risks | All three accepted for the initial controlled launch |
 
-## Remaining Operational/Regulatory Gates
+## Remaining Follow-Up Items
 
-- Effective date: insert the actual authorized legal deployment date
-  immediately before deployment; it must not be backdated.
-- Pro Consumidor contract review/registration: `READY TO FILE`; not filed or
-  registered, and no registration number is claimed.
-- Final legal publication: not yet authorized.
-- Public launch and indexing: not authorized.
+- Pro Consumidor contract review/registration: `DEFERRED BY PRODUCT OWNER`,
+  classified as `POST-LAUNCH / COMPLIANCE FOLLOW-UP`; not filed, registered,
+  resolved or determined inapplicable, and no registration number is claimed.
+- Public indexing: not authorized and remains disabled.
+- W7-D launch/indexing actions: outside W7-C6.
 
 ## Public Content Updated
 
@@ -57,9 +56,9 @@ effective-date and consumer-contract gate.
 Privacy, Terms and Account Deletion retain page-level `noindex` and explicit
 final draft notices. Privacy and Contact publish the approved professional
 contact domicile without presenting its host as the operator. Privacy and
-Terms contain the final Dominican jurisdiction rule. The effective date remains
-tied to the actual deployment date. Contact exposes the approved monitored
-email while the disabled automated delivery endpoint remains fail-closed.
+Terms contain the final Dominican jurisdiction rule and the effective date
+`16 de septiembre de 2026`. Contact exposes the approved monitored email while
+the disabled automated delivery endpoint remains fail-closed.
 
 ## Consistency Result
 
@@ -111,10 +110,11 @@ the public legal page sources.
 CONTACT CHANNEL: READY
 PRIVACY: SUBSTANTIVE CONTENT FINAL
 TERMS: SUBSTANTIVE CONTENT FINAL
-PRO CONSUMIDOR CONTRACT REVIEW / REGISTRATION: READY TO FILE
-LEGAL PUBLICATION: PENDING ACTUAL DEPLOYMENT DATE AND REGULATORY ACTION
+PRO CONSUMIDOR: DEFERRED BY PRODUCT OWNER
+CLASSIFICATION: POST-LAUNCH / COMPLIANCE FOLLOW-UP
+LEGAL PUBLICATION: AUTHORIZED FOR W7-C6 ON 16 SEPTEMBER 2026
 PUBLIC INDEXING: DISABLED
-FINAL DECISION: NO-GO
-READY FOR FINAL TEXT REVIEW: YES
-READY FOR W7-D: NO
+FINAL DECISION: GO FOR W7-C6 DEPLOYMENT
+READY FOR LIVE LEGAL VALIDATION: YES
+READY FOR W7-D: PENDING SUCCESSFUL W7-C6 LIVE VALIDATION
 ```
