@@ -389,3 +389,32 @@ Marketing lint, 50 tests, production build, 11-route smoke and 15-link internal
 check pass. Public indexing remains disabled. No push or deployment occurred.
 The W7-C6 deployment decision is `GO` while public indexing remains disabled.
 W7-D remains pending successful live validation.
+
+## W7-C6 Final Legal Deployment And Live Validation
+
+W7-C6 live validation supersedes the pending state immediately above. The
+authorized normal QA push deployed Marketing source
+`b5f094544ee1170ec5ce51b603642cd886f6bf7f` through Vercel deployment
+`dpl_DW3y83VhZUJwVVBpTGYvrfokZZyn`. The deployment is READY, Current and
+Production on `https://studybookai.com`.
+
+All required public and legal routes returned HTTP 200. Live content matches
+the approved operator, professional address, monitored email, effective date
+and Dominican jurisdiction. Former-operator and unresolved legal-placeholder
+checks are clear. Marketing sends
+`X-Robots-Tag: noindex, nofollow, noarchive`, `robots.txt` disallows `/`, and
+legal page metadata remains noindex.
+
+The Flutter application and API were not deployed or changed; both remained
+healthy over HTTPS, and API `/health` returned `status: ok`. No DNS, Supabase,
+OpenAI/provider, release-tag or indexing action occurred. Pro Consumidor stays
+`DEFERRED BY PRODUCT OWNER` as a P2 post-launch compliance follow-up.
+
+```text
+P0: NONE
+P1: NONE OBSERVED IN W7-C6 LIVE VALIDATION
+W7-C6 LEGAL CONTENT DEPLOYMENT: PASS
+PUBLIC INDEXING: DISABLED
+READY FOR W7-D REVIEW: YES
+W7-D AUTHORIZED: NO
+```

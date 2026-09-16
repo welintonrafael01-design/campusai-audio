@@ -53,8 +53,8 @@ effective-date and consumer-contract gate.
 - `web/marketing/src/app/pricing/page.tsx`
 - `docs/legal/STUDYBOOKAI_CONSUMER_TERMS_SUBMISSION_COPY.md`
 
-Privacy, Terms and Account Deletion retain page-level `noindex` and explicit
-final draft notices. Privacy and Contact publish the approved professional
+Privacy, Terms and Account Deletion retain page-level `noindex` and final
+effective-date presentation. Privacy and Contact publish the approved professional
 contact domicile without presenting its host as the operator. Privacy and
 Terms contain the final Dominican jurisdiction rule and the effective date
 `16 de septiembre de 2026`. Contact exposes the approved monitored email while
@@ -117,4 +117,32 @@ PUBLIC INDEXING: DISABLED
 FINAL DECISION: GO FOR W7-C6 DEPLOYMENT
 READY FOR LIVE LEGAL VALIDATION: YES
 READY FOR W7-D: PENDING SUCCESSFUL W7-C6 LIVE VALIDATION
+```
+
+## W7-C6 Live Deployment Closure
+
+The normal authorized push advanced `origin/qa/studybook-ai-rc1` to
+`b5f094544ee1170ec5ce51b603642cd886f6bf7f`. Vercel deployed only the linked
+`studybook-ai-marketing` project as
+`dpl_DW3y83VhZUJwVVBpTGYvrfokZZyn`; its dashboard reports Production, Current
+and READY from that exact source commit.
+
+Live validation passed for `/`, `/privacy`, `/terms`, `/contact`, `/security`,
+`/account-deletion` and `/pricing`, each returning HTTP 200 and
+`X-Robots-Tag: noindex, nofollow, noarchive`. `robots.txt` disallows `/`.
+Privacy, Terms and Account Deletion expose the approved effective date, and the
+live legal surfaces contain the approved operator, professional contact
+domicile, monitored email and Dominican jurisdiction without former-operator or
+unresolved-placeholder text.
+
+The Flutter application and API remained unchanged and returned HTTP 200 with
+valid TLS; `/health` reported `status: ok`. The canonical `www` redirect remains
+HTTP 308. No tag, DNS, Supabase, provider or indexing change occurred.
+
+```text
+W7-C6 MARKETING DEPLOYMENT: PASS
+LIVE LEGAL VALIDATION: PASS
+PUBLIC INDEXING: DISABLED
+PRO CONSUMIDOR: DEFERRED BY PRODUCT OWNER
+READY FOR W7-D: YES, SUBJECT TO A SEPARATE HUMAN AUTHORIZATION
 ```

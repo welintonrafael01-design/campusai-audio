@@ -463,6 +463,20 @@ block W7-C6 technical/legal-content deployment and remains in internal risk
 tracking.
 
 Public indexing remains disabled. W7-C6 does not authorize a release tag,
-indexing activation or W7-D launch actions. Deployment ID, deployed source SHA
-and live validation evidence are recorded only after the controlled Marketing
-deployment succeeds.
+indexing activation or W7-D launch actions.
+
+The controlled Marketing deployment completed successfully:
+
+| Field | Evidence |
+| --- | --- |
+| Source commit | `b5f094544ee1170ec5ce51b603642cd886f6bf7f` |
+| Vercel deployment | `dpl_DW3y83VhZUJwVVBpTGYvrfokZZyn` |
+| Environment/status | Production / READY |
+| Canonical domain | `https://studybookai.com` |
+| Public legal routes | Privacy, Terms, Contact, Security, Account Deletion and Pricing returned HTTP 200 |
+| Indexing controls | Global `X-Robots-Tag: noindex, nofollow, noarchive`; `robots.txt` disallows `/`; legal page metadata remains noindex |
+| Supporting services | Flutter Web and API returned HTTP 200 with valid TLS; API health reported `status: ok` |
+
+No Flutter, API, DNS, Supabase, OpenAI/provider or indexing configuration was
+changed by this deployment. `www.studybookai.com` continues to redirect to the
+canonical domain with HTTP 308.
