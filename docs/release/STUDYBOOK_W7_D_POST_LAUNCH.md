@@ -1,6 +1,6 @@
 # StudyBook AI W7-D Post-Launch Monitoring
 
-Status: `PREPARED FOR CONTROLLED PUBLIC LAUNCH`
+Status: `PUBLIC LAUNCH COMPLETE - MONITORING ACTIVE`
 
 Public launch date: `16 de septiembre de 2026`
 
@@ -69,6 +69,21 @@ the incident.
 
 ## Launch Evidence
 
-The launch commit, Vercel deployment ID, exact America/Santo_Domingo timestamp,
-live indexing checks and release-tag result must be recorded here only after
-the production deployment and final smoke pass.
+| Field | Result |
+| --- | --- |
+| Launch commit | `f196ec53588724cc27dfda20902b7ff114976264` |
+| Vercel deployment | `dpl_6UUJdYoCLsLg4nRFhzrFphLCPhPe` |
+| Deployment state | Production / Current / READY |
+| Validated launch timestamp | `2026-09-16 13:09:01 AST` (`America/Santo_Domingo`) |
+| Public indexing | ENABLED for normal Marketing product pages |
+| Legal indexing policy | Privacy, Terms and Account Deletion remain noindex |
+| Robots | Allows Marketing crawling and disallows the three legal routes |
+| Sitemap | Canonical Marketing URLs only; no App, API, preview, localhost or legal routes |
+| Release tag | Annotated `v1.0.0`, pushed to `origin`, targeting the launch commit |
+| Marketing/App/API/TLS | PASS |
+| Auth/session restore | PASS |
+| CORS | Official App origin allowed; unknown origin rejected |
+| Secret/source-map check | PASS; no client secret exposure and source map probe not public |
+
+Search Console registration/submission was not performed. No DNS, database,
+backend, Flutter, Supabase or secret change was part of W7-D.

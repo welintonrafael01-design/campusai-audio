@@ -480,3 +480,27 @@ The controlled Marketing deployment completed successfully:
 No Flutter, API, DNS, Supabase, OpenAI/provider or indexing configuration was
 changed by this deployment. `www.studybookai.com` continues to redirect to the
 canonical domain with HTTP 308.
+
+## W7-D Public Launch
+
+Public Marketing indexing was activated through the existing fail-closed
+Production control `ENABLE_PUBLIC_INDEXING=true`. The control still requires
+`VERCEL_ENV=production`, so preview deployments remain noindex. Privacy, Terms
+and Account Deletion preserve explicit noindex metadata and are excluded from
+the sitemap.
+
+| Field | Evidence |
+| --- | --- |
+| Launch source | `f196ec53588724cc27dfda20902b7ff114976264` |
+| Vercel deployment | `dpl_6UUJdYoCLsLg4nRFhzrFphLCPhPe` |
+| Launch timestamp | `2026-09-16 13:09:01 AST` (`America/Santo_Domingo`) |
+| Release tag | `v1.0.0`, annotated and pushed against the launch source |
+| Marketing indexing | Enabled for normal public product pages |
+| Legal route indexing | Disabled for Privacy, Terms and Account Deletion |
+| Canonical/robots/sitemap | PASS |
+| Marketing/App/API/Auth/TLS/CORS | PASS |
+
+No DNS, database, Backend, Flutter, Supabase, OpenAI key or other secret was
+changed. Search Console registration/submission remains a separate post-launch
+action. Operational monitoring is defined in
+`docs/release/STUDYBOOK_W7_D_POST_LAUNCH.md`.

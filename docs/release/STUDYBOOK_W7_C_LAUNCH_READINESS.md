@@ -418,3 +418,37 @@ PUBLIC INDEXING: DISABLED
 READY FOR W7-D REVIEW: YES
 W7-D AUTHORIZED: NO
 ```
+
+## W7-D Public Launch Closure
+
+The Product Owner authorized W7-D and public Marketing indexing. Production
+`ENABLE_PUBLIC_INDEXING` was set to `true`, then Marketing commit
+`f196ec53588724cc27dfda20902b7ff114976264` was redeployed as
+`dpl_6UUJdYoCLsLg4nRFhzrFphLCPhPe`. Vercel reports the deployment as READY,
+Current and Production on `https://studybookai.com`.
+
+Live checks confirm Home, Features, Students, Teachers, Pricing, FAQ, Contact
+and Security are indexable without a global noindex header or metadata.
+Privacy, Terms and Account Deletion remain explicitly noindex. `robots.txt`
+allows Marketing crawling while disallowing those three legal routes, and the
+sitemap contains only canonical `studybookai.com` Marketing URLs.
+
+Marketing, App, API, Auth/session restore, TLS and CORS passed the final smoke.
+The official App origin is allowed by API CORS and an unknown origin is
+rejected. Booky, navigation, App CTA, monitored contact email, effective date
+and operator passed live content checks. No client secret or public source-map
+exposure was found.
+
+The validated public launch timestamp is `2026-09-16 13:09:01 AST` in
+`America/Santo_Domingo`. Annotated tag `v1.0.0` was created and pushed against
+the exact deployed launch commit. Search Console submission was not performed.
+
+```text
+P0: NONE
+P1: NONE
+PUBLIC INDEXING: ENABLED FOR MARKETING PRODUCT PAGES
+LEGAL ROUTES: NOINDEX
+PRO CONSUMIDOR: DEFERRED BY PRODUCT OWNER
+PUBLIC LAUNCH: GO
+FINAL DECISION: LAUNCHED
+```
