@@ -23,7 +23,7 @@ export default function PrivacyPage() {
             <span>La fecha efectiva está pendiente de aprobación final y la dirección publicable continúa pendiente de revisión jurídica. Esta página permanece excluida de indexación.</span>
           </aside>
 
-          <p><strong>Operador:</strong> Arca Legal.</p>
+          <p><strong>Operador:</strong> Welinton Rafael Mejía González.</p>
           <p><strong>Contacto de privacidad y soporte:</strong> <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>.</p>
           <p><strong>Fecha de vigencia:</strong> pendiente de publicación final; no se aplicará retroactivamente.</p>
 

@@ -6,13 +6,14 @@ Date: `2026-09-16`
 
 Source of truth:
 `docs/legal/STUDYBOOKAI_FINAL_HUMAN_APPROVAL_SHEET.md`, section
-`FINAL HUMAN APPROVAL RESPONSE`.
+`FINAL HUMAN APPROVAL RESPONSE`, as superseded for operator identity by
+`FINAL OPERATOR IDENTITY AMENDMENT`.
 
 ## Integrated Decisions
 
 | Field | Integrated state |
 | --- | --- |
-| Legal operator | Arca Legal |
+| Legal operator | Welinton Rafael Mejía González |
 | Support/privacy/deletion/legal/IP contact | `studybookaiapp@gmail.com` |
 | Contact form | Automated delivery remains disabled and is no longer presented as an operational form |
 | Governing law/jurisdiction | Dominican Republic; specific venue/court wording remains under legal review |

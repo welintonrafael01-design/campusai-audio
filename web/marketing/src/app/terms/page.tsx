@@ -23,7 +23,7 @@ export default function TermsPage() {
             <span>La fecha efectiva se fijará al aprobar la publicación final. La dirección publicable y la sede o tribunal específicos siguen pendientes de revisión jurídica.</span>
           </aside>
 
-          <p><strong>Operador:</strong> Arca Legal.</p>
+          <p><strong>Operador:</strong> Welinton Rafael Mejía González.</p>
           <p><strong>Contacto:</strong> <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>.</p>
           <p><strong>Fecha de vigencia:</strong> pendiente de publicación final.</p>
 
@@ -74,7 +74,7 @@ export default function TermsPage() {
 
           <h2>8. Propiedad intelectual</h2>
           <p>
-            Arca Legal conserva, en la medida legalmente aplicable, los derechos sobre el software, diseño del producto, marca StudyBook AI y materiales originales de la plataforma. No se afirma que una marca, obra u otro derecho esté registrado salvo que esa inscripción haya sido verificada. Las consultas de propiedad intelectual pueden enviarse a <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>.
+            Welinton Rafael Mejía González conserva, en la medida legalmente aplicable, los derechos sobre el software, diseño del producto, marca StudyBook AI y materiales originales de la plataforma. No se afirma que una marca, obra u otro derecho esté registrado salvo que esa inscripción haya sido verificada. Las consultas de propiedad intelectual pueden enviarse a <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>.
           </p>
 
           <h2>9. Proveedores externos</h2>

@@ -4,7 +4,7 @@ Status: `PRODUCT OWNER CONTENT APPROVED - FINAL PUBLICATION APPROVAL PENDING`
 
 Public path: `https://studybookai.com/account-deletion`
 
-Operator: `Arca Legal`
+Operator: `Welinton Rafael Mejía González`
 
 Monitored contact: `studybookaiapp@gmail.com`
 

@@ -26,7 +26,7 @@ export default function ContactPage() {
             <strong>Formulario Web no habilitado.</strong>
             <span>El formulario automatizado continúa desactivado hasta configurar y verificar un proveedor de entrega. Ningún mensaje se descarta silenciosamente.</span>
           </aside>
-          <p>Operador: Arca Legal. La dirección publicable continúa pendiente de revisión jurídica.</p>
+          <p>Operador: Welinton Rafael Mejía González. La dirección publicable continúa pendiente de revisión jurídica.</p>
         </div>
       </section>
     </>

@@ -4,7 +4,7 @@ Status: `PRODUCT OWNER CONTENT APPROVED - FINAL PUBLICATION APPROVAL PENDING`
 
 Effective date: pending the actual final publication date; do not backdate.
 
-Operator: `Arca Legal`
+Operator: `Welinton Rafael Mejía González`
 
 Privacy/support contact: `studybookaiapp@gmail.com`
 

@@ -22,7 +22,7 @@ describe("W7-C5 public legal content", () => {
     const deletion = readPage("account-deletion");
 
     for (const source of [privacy, terms, deletion]) {
-      expect(source).toContain("Arca Legal");
+      expect(source).toContain("Welinton Rafael Mejía González");
       expect(source).toContain("studybookaiapp@gmail.com");
       expect(source).toContain("30 días");
       expect(source).toContain("90 días");

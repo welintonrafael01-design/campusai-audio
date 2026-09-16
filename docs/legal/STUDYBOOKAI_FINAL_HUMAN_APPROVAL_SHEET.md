@@ -149,14 +149,14 @@ Final legal publication remains subject to final consistency review.
 ### LEGAL OPERATOR
 
 LEGAL OPERATOR:
-Arca Legal
+Welinton Rafael Mejía González
 
 STATUS:
 APPROVED
 
 NOTE:
-Use "Arca Legal" exactly as approved by the Product Owner unless a more
-specific registered legal name is later required for final legal publication.
+Use "Welinton Rafael Mejía González" exactly as approved by the Product Owner
+unless a future explicit human decision changes this instruction.
 
 
 ### CONTACT CHANNEL
@@ -598,3 +598,59 @@ Terms of Service, Contact, Account Deletion and related public legal content.
 Codex must then perform a final cross-document consistency review and return
 the resulting legal text for final human approval before deployment or
 public indexing.
+
+---
+
+# FINAL OPERATOR IDENTITY AMENDMENT
+
+## Superseding Human Decision
+
+The prior operator identity decision is hereby superseded.
+
+LEGAL OPERATOR:
+Welinton Rafael Mejía González
+
+PRODUCT / SERVICE NAME:
+StudyBook AI
+
+STATUS:
+APPROVED FOR FINAL LEGAL DRAFT
+
+PUBLIC LEGAL IDENTIFICATION:
+
+StudyBook AI is a technology service operated by
+Welinton Rafael Mejía González in the Dominican Republic.
+
+PRIVACY RESPONSIBLE PARTY:
+
+Welinton Rafael Mejía González, operator of StudyBook AI.
+
+SUPPORT CONTACT:
+studybookaiapp@gmail.com
+
+PRIVACY CONTACT:
+studybookaiapp@gmail.com
+
+GOVERNING LAW:
+República Dominicana
+
+JURISDICTION:
+República Dominicana
+
+PUBLISHABLE ADDRESS:
+BLOCKED PENDING COUNSEL
+
+EFFECTIVE DATE:
+PENDING FINAL PUBLICATION DATE
+
+IMPORTANT:
+
+Do not identify any commercial name as the operator of StudyBook AI in the
+final public legal documents unless a future explicit human decision changes
+this instruction.
+
+Do not publish a personal identification number, tax identifier, national ID
+number, or private residential address unless separately and explicitly
+authorized.
+
+This amendment is the current source of truth for the legal operator identity.

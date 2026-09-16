@@ -10,7 +10,7 @@ drafts effective.
 
 | Field | Approved decision |
 | --- | --- |
-| Legal operator | Arca Legal |
+| Legal operator | Welinton Rafael Mejía González |
 | Monitored contact | `studybookaiapp@gmail.com` for initial support, privacy, deletion, refund, legal and IP communications |
 | Governing law/jurisdiction | Dominican Republic; specific venue/court wording still requires legal consistency review |
 | Minimum age | 18 for independent individual accounts during the initial controlled launch |
@@ -25,7 +25,7 @@ drafts effective.
 | Refund | First Student Pro/Teacher Pro payment may be requested within 7 calendar days once per account; renewals are not automatically refundable solely for non-use; enumerated billing/service/legal exceptions remain reviewable |
 | AI | Educational assistance may contain errors and requires review before high-impact reliance |
 | User content | User retains lawful rights and grants only limited, non-exclusive processing permission needed for requested services |
-| IP | StudyBook AI/Arca Legal retains applicable software, design, brand and original-material rights without unverified registration claims |
+| IP | Welinton Rafael Mejía González retains applicable software, design, brand and original-material rights without unverified registration claims |
 | Providers | Supabase, OpenAI, Render and Vercel; Stripe when Web billing is used; Google Play only when Play billing is active; platform speech when voice recognition is used |
 | P2 risks | Leaked-password protection limitation, per-instance rate limiting and temporary visual plan propagation accepted for initial controlled launch |
 

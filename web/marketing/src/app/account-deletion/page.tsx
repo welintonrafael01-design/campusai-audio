@@ -23,7 +23,7 @@ export default function AccountDeletionPage() {
             <span>No envíes contraseñas, códigos de acceso ni documentos privados por correo. La fecha efectiva se fijará al aprobar la publicación.</span>
           </aside>
 
-          <p><strong>Operador:</strong> Arca Legal.</p>
+          <p><strong>Operador:</strong> Welinton Rafael Mejía González.</p>
           <p><strong>Contacto monitoreado:</strong> <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>.</p>
 
           <h2>Eliminar desde la aplicación</h2>
