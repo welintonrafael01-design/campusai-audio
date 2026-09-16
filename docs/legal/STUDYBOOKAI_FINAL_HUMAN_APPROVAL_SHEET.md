@@ -1,6 +1,6 @@
 # StudyBook AI W7-C5 Final Human Approval Sheet
 
-Status: `HUMAN DECISIONS REQUIRED - NOT LEGAL APPROVAL`
+Status: `PRODUCT OWNER DECISIONS APPROVED FOR CONTENT INTEGRATION - FINAL PUBLICATION APPROVAL PENDING`
 
 Date prepared: `2026-09-16`
 
@@ -28,12 +28,19 @@ below becomes approved merely because it is listed here.
   is deleted last. Partial failure is reported for retry. External billing is
   not automatically canceled by account deletion.
 - The public Contact form is intentionally disabled and returns an honest
-  unavailable response. No monitored address is approved in tracked project
-  configuration.
-- Privacy, Terms and Account Deletion remain visible drafts with page-level
-  `noindex`. Public indexing remains disabled globally.
+  unavailable response. `studybookaiapp@gmail.com` is the approved monitored
+  channel for initial support, privacy, deletion and legal communications.
+- Privacy, Terms and Account Deletion remain final drafts with page-level
+  `noindex`. The effective date is set only at final publication and the
+  publishable address remains blocked pending counsel. Public indexing remains
+  disabled globally.
 
-## Final Unanswered Decisions
+## Pre-Approval Decision Inventory
+
+This inventory records the questions that preceded the Product Owner response
+later in this document. The `FINAL HUMAN APPROVAL RESPONSE` section supersedes
+resolved rows. Publishable address, effective date and specific venue wording
+remain open exactly as stated there.
 
 | Field | Current status | Proposed text/options | Human decision required | Document affected |
 | --- | --- | --- | --- | --- |
@@ -63,9 +70,9 @@ Each item requires an explicit `ACCEPT FOR INITIAL CONTROLLED LAUNCH` or
 
 | Risk | Current state | Human decision |
 | --- | --- | --- |
-| P2-A leaked-password protection | Supabase leaked-password protection is unavailable on the current Free plan | `PENDING` |
-| P2-B rate limiting | API/contact throttling is per instance rather than distributed | `PENDING` |
-| P2-C plan display propagation | A stale plan may appear briefly while backend authorization remains authoritative | `PENDING` |
+| P2-A leaked-password protection | Supabase leaked-password protection is unavailable on the current Free plan | `ACCEPTED FOR INITIAL CONTROLLED LAUNCH` |
+| P2-B rate limiting | API/contact throttling is per instance rather than distributed | `ACCEPTED FOR INITIAL CONTROLLED LAUNCH` |
+| P2-C plan display propagation | A stale plan may appear briefly while backend authorization remains authoritative | `ACCEPTED FOR INITIAL CONTROLLED LAUNCH` |
 
 ## Approval Response Template
 
@@ -124,8 +131,470 @@ APPROVAL DATE:
 
 Until the completed sheet is explicitly approved:
 
-- Contact remains `HUMAN ACTION` and delivery remains disabled.
-- Privacy and Terms remain `DRAFT`.
+- Contact uses the approved monitored email; automated form delivery remains disabled.
+- Privacy and Terms remain final drafts pending publication approval.
 - Public indexing remains disabled.
 - No legal/contact runtime content is pushed or deployed.
 - W7-C5 remains `NO-GO`.
+
+---
+
+# FINAL HUMAN APPROVAL RESPONSE
+## StudyBook AI — Initial Controlled Launch
+
+Approval authority: Product Owner
+Decision status: APPROVED FOR CONTENT INTEGRATION
+Final legal publication remains subject to final consistency review.
+
+### LEGAL OPERATOR
+
+LEGAL OPERATOR:
+Arca Legal
+
+STATUS:
+APPROVED
+
+NOTE:
+Use "Arca Legal" exactly as approved by the Product Owner unless a more
+specific registered legal name is later required for final legal publication.
+
+
+### CONTACT CHANNEL
+
+CONTACT CHANNEL:
+READY
+
+APPROVED CONTACT:
+studybookaiapp@gmail.com
+
+SUPPORT CONTACT:
+studybookaiapp@gmail.com
+
+PRIVACY CONTACT:
+studybookaiapp@gmail.com
+
+STATUS:
+APPROVED
+
+The same monitored email may be used initially for support, privacy,
+account-deletion and legal communications.
+
+The currently disabled contact form must not be represented as operational
+until an actual delivery provider is configured.
+
+
+### PUBLISHABLE ADDRESS
+
+PUBLISHABLE ADDRESS:
+BLOCKED PENDING COUNSEL
+
+Do not invent or publish a private residential or business address until
+explicitly approved.
+
+
+### GOVERNING LAW
+
+GOVERNING LAW:
+República Dominicana
+
+STATUS:
+APPROVED
+
+
+### JURISDICTION
+
+JURISDICTION:
+República Dominicana
+
+STATUS:
+APPROVED
+
+Final venue/court wording should remain subject to legal consistency review.
+
+
+### EFFECTIVE DATE
+
+EFFECTIVE DATE:
+PENDING FINAL PUBLICATION DATE
+
+RULE:
+Do not backdate.
+
+Use the actual date on which the final Privacy Policy and Terms of Service
+are approved for public publication.
+
+
+### MINIMUM AGE
+
+MINIMUM AGE:
+18 years
+
+STATUS:
+APPROVED FOR INITIAL CONTROLLED LAUNCH
+
+Individual users must be at least 18 years old to independently create and
+contract an individual StudyBook AI account during the initial launch phase.
+
+
+### MINORS POLICY
+
+MINORS POLICY:
+APPROVED FOR INITIAL CONTROLLED LAUNCH
+
+Persons under 18 may not independently create or contract an individual
+StudyBook AI account during the initial launch phase.
+
+Future access for minors may be enabled through:
+
+- an authorized educational institution; or
+- a parent or legal guardian with an appropriate consent mechanism.
+
+Until StudyBook AI implements a specific parental/institutional consent
+workflow, direct individual account creation is restricted to users
+18 years of age or older.
+
+
+### DATA RETENTION
+
+DATA RETENTION:
+APPROVED FOR INITIAL CONTROLLED LAUNCH
+
+While an account remains active, StudyBook AI may retain the information
+necessary to provide the service.
+
+After a valid account-deletion request:
+
+- personal data and user content should be deleted or anonymized from active
+  production systems within a maximum operational target of 30 days;
+
+- residual copies contained in backups may remain for up to 90 days before
+  normal overwrite or deletion;
+
+- records strictly required for security, fraud prevention, legal,
+  accounting, tax, dispute-resolution or defense-of-rights purposes may be
+  retained for the period legitimately required for those purposes.
+
+StudyBook AI must not promise immediate deletion from every technical backup.
+
+
+### ACCOUNT DELETION
+
+ACCOUNT DELETION:
+APPROVED FOR INITIAL CONTROLLED LAUNCH
+
+The user may initiate account deletion through the Account section where
+supported by the product.
+
+After confirmed deletion:
+
+1. access to the account is disabled as applicable;
+2. deletion or anonymization from active systems begins;
+3. the operational target for active-system deletion is a maximum of 30 days;
+4. residual backup copies may remain for up to 90 days;
+5. limited records may be retained when legitimately required for security,
+   billing, legal obligations, claims or defense of rights.
+
+Public legal text must remain consistent with actual backend behavior.
+
+
+### BILLING AND RENEWAL
+
+BILLING / RENEWAL:
+APPROVED PRODUCT FACTS
+
+Plans:
+
+- Free: US$0
+- Student Pro: US$6.99/month
+- Teacher Pro: US$13.99/month
+- Institution: Contact
+
+There is no US$1 trial.
+
+Paid subscription renewal language must match the actual payment provider and
+checkout implementation before public billing is activated.
+
+
+### CANCELLATION
+
+CANCELLATION:
+APPROVED FOR INITIAL CONTROLLED LAUNCH
+
+Student Pro and Teacher Pro subscriptions may be cancelled at any time.
+
+Cancellation:
+
+- prevents the next renewal;
+- does not immediately terminate an already-paid billing period;
+- allows access to paid features until the end of the current paid period,
+  subject to the actual billing-provider behavior;
+- returns the account to the Free plan after the paid period ends unless the
+  account is otherwise closed.
+
+No separate cancellation penalty will be imposed by StudyBook AI.
+
+Institution plans may also be governed by their applicable institutional
+agreement.
+
+
+### REFUND POLICY
+
+REFUND POLICY:
+APPROVED FOR INITIAL CONTROLLED LAUNCH
+
+FIRST PAID SUBSCRIPTION:
+
+A user may request a refund of the first Student Pro or Teacher Pro payment
+within 7 calendar days following that initial charge.
+
+This commercial first-payment refund benefit is intended to apply once per
+user/account.
+
+RENEWALS:
+
+Ordinary renewal charges are not automatically refundable solely because the
+service was not used when the service remained available and the renewal
+occurred under the disclosed subscription terms.
+
+Refund review remains available for situations including:
+
+- duplicate charges;
+- billing errors attributable to StudyBook AI;
+- unauthorized or unrecognized charges, subject to verification;
+- material service failure;
+- inability to provide the purchased service;
+- circumstances where applicable law requires a refund or other remedy.
+
+Refund/contact requests should initially be sent to:
+
+studybookaiapp@gmail.com
+
+
+### TRIAL POLICY
+
+TRIAL POLICY:
+APPROVED
+
+No US$1 trial.
+
+No other free or paid trial should be advertised unless later expressly
+approved and implemented.
+
+
+### AI-GENERATED CONTENT
+
+AI DISCLAIMER:
+APPROVED PRINCIPLE
+
+StudyBook AI uses artificial intelligence to generate educational and study
+content.
+
+AI-generated content may contain errors, omissions or inaccurate information.
+
+Users should review important output before relying on it for academic,
+professional, legal, medical, financial or other high-impact decisions.
+
+StudyBook AI must not advertise AI output as guaranteed to be accurate,
+complete or error-free.
+
+
+### USER CONTENT
+
+USER CONTENT:
+APPROVED PRINCIPLE
+
+Users retain the rights they lawfully hold in content they upload.
+
+StudyBook AI should receive only the permissions reasonably necessary to:
+
+- store;
+- process;
+- analyze;
+- transform;
+- generate study materials from;
+
+user-provided content for the purpose of delivering the requested service.
+
+The legal text must not unnecessarily transfer ownership of user content to
+StudyBook AI.
+
+
+### INTELLECTUAL PROPERTY / COPYRIGHT
+
+IP / COPYRIGHT:
+APPROVED PRINCIPLE
+
+StudyBook AI retains rights in its software, product design, branding and
+original platform materials to the extent legally applicable.
+
+No trademark-registration, copyright-registration or similar registration
+claim may be published unless that registration has actually been verified.
+
+Copyright and intellectual-property inquiries may initially be directed to:
+
+studybookaiapp@gmail.com
+
+
+### THIRD-PARTY PROVIDERS
+
+THIRD-PARTY DISCLOSURES:
+APPROVED FOR FACTUAL DISCLOSURE
+
+Production providers currently relevant for legal/privacy review include:
+
+- OpenAI
+- Supabase
+- Render
+- Vercel
+
+Only providers actually active in production should appear in final public
+legal documents.
+
+A payment processor should be identified only when the production billing
+flow is actually active and its use has been confirmed.
+
+
+### SECURITY LANGUAGE
+
+SECURITY LANGUAGE:
+APPROVED
+
+StudyBook AI may describe its technical and organizational security measures.
+
+Do not make absolute claims such as:
+
+- 100% secure
+- unhackable
+- zero risk
+- guaranteed security
+
+Security language must remain factual and non-absolute.
+
+
+# P2 RISK ACCEPTANCE
+
+## P2-A — LEAKED PASSWORD PROTECTION
+
+DECISION:
+ACCEPT FOR INITIAL CONTROLLED LAUNCH
+
+The current Supabase Free configuration does not include leaked-password
+protection.
+
+This additional protection is accepted as a post-launch infrastructure
+improvement.
+
+It should be reevaluated when the Supabase plan is upgraded or when risk,
+scale or product requirements justify the change.
+
+
+## P2-B — PER-INSTANCE RATE LIMITING
+
+DECISION:
+ACCEPT FOR INITIAL CONTROLLED LAUNCH
+
+The current backend rate limiting is per instance rather than distributed.
+
+This is accepted for the initial controlled deployment operating with a
+limited production footprint.
+
+Distributed rate limiting should be implemented when scaling to multiple
+instances or when traffic/security requirements justify centralized state.
+
+
+## P2-C — TEMPORARY PLAN DISPLAY PROPAGATION
+
+DECISION:
+ACCEPT FOR INITIAL CONTROLLED LAUNCH
+
+A temporary visual delay may occur while subscription state is synchronized.
+
+Backend authorization remains the source of truth.
+
+Testing did not demonstrate privilege escalation or unauthorized Teacher
+access.
+
+This is accepted as a non-blocking UX P2 for initial launch.
+
+
+# FINAL STATUS OF THIS APPROVAL RESPONSE
+
+LEGAL OPERATOR:
+APPROVED
+
+CONTACT CHANNEL:
+READY
+
+SUPPORT CONTACT:
+APPROVED
+
+PRIVACY CONTACT:
+APPROVED
+
+GOVERNING LAW:
+APPROVED
+
+JURISDICTION:
+APPROVED
+
+MINIMUM AGE:
+APPROVED
+
+MINORS POLICY:
+APPROVED
+
+DATA RETENTION:
+APPROVED
+
+ACCOUNT DELETION:
+APPROVED
+
+CANCELLATION:
+APPROVED
+
+REFUND POLICY:
+APPROVED
+
+AI DISCLAIMER:
+APPROVED PRINCIPLE
+
+USER CONTENT:
+APPROVED PRINCIPLE
+
+THIRD-PARTY DISCLOSURES:
+APPROVED PRINCIPLE
+
+P2 LEAKED PASSWORD RISK:
+ACCEPTED
+
+P2 RATE LIMITING RISK:
+ACCEPTED
+
+P2 PLAN DISPLAY RISK:
+ACCEPTED
+
+PUBLISHABLE ADDRESS:
+BLOCKED PENDING COUNSEL
+
+EFFECTIVE DATE:
+PENDING FINAL PUBLICATION DATE
+
+PRIVACY:
+READY FOR FINAL DRAFT INTEGRATION
+
+TERMS:
+READY FOR FINAL DRAFT INTEGRATION
+
+PUBLIC INDEXING:
+DISABLED
+
+PUBLIC LAUNCH:
+NOT YET AUTHORIZED
+
+NEXT ACTION:
+Codex may integrate these approved decisions into the Privacy Policy,
+Terms of Service, Contact, Account Deletion and related public legal content.
+
+Codex must then perform a final cross-document consistency review and return
+the resulting legal text for final human approval before deployment or
+public indexing.

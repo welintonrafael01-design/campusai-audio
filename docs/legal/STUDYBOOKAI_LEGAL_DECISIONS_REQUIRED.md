@@ -1,56 +1,52 @@
 # StudyBook AI Legal Decisions Required
 
-Status: `HUMAN LEGAL AND PRODUCT APPROVAL REQUIRED`
+Status: `PRODUCT OWNER CONTENT DECISIONS INTEGRATED - COUNSEL/PUBLICATION GATES REMAIN`
 
-This inventory separates facts verified in the repository from decisions that
-engineering cannot make. It is not legal advice and does not make the current
-public drafts effective.
+This inventory distinguishes approved product decisions from the remaining
+publication decisions. It is not legal advice and does not make the final
+drafts effective.
 
-## Technically Derivable Facts
+## Approved And Integrated
 
-| Field | Verified implementation fact | Where used |
+| Field | Approved decision |
+| --- | --- |
+| Legal operator | Arca Legal |
+| Monitored contact | `studybookaiapp@gmail.com` for initial support, privacy, deletion, refund, legal and IP communications |
+| Governing law/jurisdiction | Dominican Republic; specific venue/court wording still requires legal consistency review |
+| Minimum age | 18 for independent individual accounts during the initial controlled launch |
+| Minors | No independent account creation under 18; future guardian or authorized-institution access requires an implemented consent workflow |
+| Active-account retention | Retain information necessary to provide the service |
+| Active-system deletion | Maximum operational target of 30 days after a valid request |
+| Backup retention | Residual copies may remain up to 90 days |
+| Retention exceptions | Narrow security, fraud, legal, accounting, tax, dispute and defense-of-rights purposes for the legitimately required period |
+| Plans | Free US$0; Student Pro US$6.99/month; Teacher Pro US$13.99/month; Institution Contact |
+| Trial | No US$1 or other trial is approved |
+| Cancellation | Cancel through the original provider; avoid next renewal; paid access continues through the current paid period subject to provider behavior; no StudyBook AI cancellation penalty |
+| Refund | First Student Pro/Teacher Pro payment may be requested within 7 calendar days once per account; renewals are not automatically refundable solely for non-use; enumerated billing/service/legal exceptions remain reviewable |
+| AI | Educational assistance may contain errors and requires review before high-impact reliance |
+| User content | User retains lawful rights and grants only limited, non-exclusive processing permission needed for requested services |
+| IP | StudyBook AI/Arca Legal retains applicable software, design, brand and original-material rights without unverified registration claims |
+| Providers | Supabase, OpenAI, Render and Vercel; Stripe when Web billing is used; Google Play only when Play billing is active; platform speech when voice recognition is used |
+| P2 risks | Leaked-password protection limitation, per-instance rate limiting and temporary visual plan propagation accepted for initial controlled launch |
+
+## Remaining Human/Legal Decisions
+
+| Field | Current status | Required action |
 | --- | --- | --- |
-| Public domains | Marketing, app and API are configured for `studybookai.com`, `app.studybookai.com` and `api.studybookai.com` | Marketing metadata, CTAs and release configuration |
-| Account data | Supabase Auth identity, role/app metadata and subscription state support authentication and entitlements | Auth, billing and route authorization |
-| Private content | Documents and generated artifacts use owner-scoped records/private Storage in production | Library, RAG, AudioBook and Academic Engine |
-| AI processors | Selected document excerpts, prompts, embeddings, transcripts or TTS text can be processed by OpenAI | Summary, chat, generation, RAG and speech |
-| Voice | Voice Tutor can use platform speech recognition; StudyBook does not intentionally persist raw microphone recordings in that flow | Voice Tutor |
-| Payments | Web billing uses Stripe; Android billing supports Google Play; account deletion does not itself cancel an external subscription | Billing and account deletion |
-| Account deletion | Authenticated deletion inventories owner data and deletes Auth last; partial failure remains retryable | Settings and `DELETE /account/me` |
+| Publishable address | `BLOCKED PENDING COUNSEL` | Approve a public address or a counsel-approved lawful omission; do not publish a private address by inference |
+| Specific venue/court/dispute wording | Pending legal consistency review | Approve the exact clause without changing the Product Owner's Dominican Republic law/jurisdiction intent |
+| Effective date | `PENDING FINAL PUBLICATION DATE` | Set the actual date only when Privacy and Terms receive final publication approval; do not backdate |
+| Final legal publication | Not authorized | Review the integrated final drafts and explicitly approve or reject publication |
+| Public indexing | Disabled | Keep disabled until a separate explicit launch/indexing authorization |
 
-## Human Decisions
+## Current Public Drafts
 
-| Field | Why required | Where used | Recommended options to evaluate | Product/technical consequence |
-| --- | --- | --- | --- | --- |
-| Legal entity and registered address | Identifies controller/contracting party | Privacy, Terms, receipts, stores | Approved company/legal name and service address | Replace draft placeholders consistently |
-| Governing law, jurisdiction and dispute process | Defines contractual venue and required notices | Terms | Counsel-approved jurisdiction and dispute model | Terms cannot become effective before approval |
-| Effective date and versioning | Establishes applicability and change history | Privacy and Terms | Launch date plus revision process | Publish versioned pages and retain change log |
-| Privacy contact | Required for rights/privacy requests | Privacy, deletion and contact routing | Monitored role address or verified portal | Configure provider route and operational SLA |
-| Support and sales contacts | Establishes monitored customer channels | Contact, stores and billing support | Separate or shared monitored queues | Configure delivery routing; do not publish inactive addresses |
-| Retention schedule | Defines how long each data class and operational log remains | Privacy, deletion, backup/log operations | Category-by-category schedule with legal exceptions | Implement provider/storage lifecycle policies and evidence |
-| Age/minor scope and parental consent | Determines eligibility and educational safeguards | Privacy, Terms, onboarding and stores | Adult-only, minimum age, or verified guardian/institution model | May require age gate, consent and restricted processing |
-| Refund/cancellation policy | Required for paid subscriptions | Terms, pricing support, Stripe/Play | Provider-aligned counsel-approved terms | Product copy and support process must match |
-| Subscription terms | Defines renewal, taxes, trial behavior and termination | Terms and checkout | Monthly terms aligned to actual catalog/providers | Billing disclosures and receipts must be consistent |
-| AI disclosure and acceptable reliance | Describes limitations and prohibited/high-risk use | Privacy and Terms | Counsel/product-approved educational assistance language | UI warnings and policy enforcement may need updates |
-| Rights/DSAR workflow | Operationalizes access, correction, deletion and objections | Privacy and contact | Verified in-app plus monitored alternate channel | Identity verification, tracking and response process required |
+- `web/marketing/src/app/privacy/page.tsx`
+- `web/marketing/src/app/terms/page.tsx`
+- `web/marketing/src/app/account-deletion/page.tsx`
+- `web/marketing/src/app/contact/page.tsx`
+- `web/marketing/src/app/security/page.tsx`
+- `web/marketing/src/app/pricing/page.tsx`
 
-## Age And Minors Inventory
-
-- **Current technical state:** no age gate, guardian-consent flow or verified
-  minor-specific processing mode was found in the audited marketing, Flutter or
-  backend paths.
-- **Current legal copy:** public drafts state that age scope and consent remain
-  unresolved and do not claim the product is directed to children.
-- **Missing decision:** approved minimum age, target audience, school/guardian
-  responsibility and consent model for each launch jurisdiction.
-- **Product options for review:** adult-only access; a defined minimum-age model;
-  or an institution/guardian-managed model. Engineering must not select one
-  without product and legal approval because each option changes onboarding,
-  store declarations, data handling and support obligations.
-
-## Publication Rule
-
-`/privacy`, `/terms` and `/account-deletion` must remain visibly marked as
-drafts and excluded from indexing until the applicable rows above are resolved,
-reviewed and approved. Enabling general production indexing does not override
-their page-level `noindex` protection.
+The full Product Owner response and risk acceptance record remain in
+`docs/legal/STUDYBOOKAI_FINAL_HUMAN_APPROVAL_SHEET.md`.

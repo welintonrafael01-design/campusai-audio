@@ -62,7 +62,7 @@ export default function SecurityPage() {
           <div className="prose compact-prose">
             <p>Usa una contraseña única, protege el acceso a tu correo y cierra sesión en dispositivos compartidos.</p>
             <p>Sube únicamente contenido que tengas autorización para utilizar y evita incluir secretos innecesarios.</p>
-            <p>La información pública de contacto para reportes de seguridad debe aprobarse antes del lanzamiento.</p>
+            <p>Para reportar un problema de seguridad, escribe a <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a> sin incluir contraseñas, tokens ni documentos privados.</p>
           </div>
         </div>
       </section>

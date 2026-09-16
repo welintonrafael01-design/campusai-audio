@@ -430,3 +430,20 @@ Contact delivery remains honestly disabled pending an approved monitored
 channel. Legal pages remain drafts pending the decisions recorded in
 `docs/release/STUDYBOOK_W7_C4_UX_ACCESSIBILITY_LEGAL.md`. These human gates keep
 the launch decision at `NO-GO`; there is no additional runtime push required.
+
+## W7-C5 Contact And Legal Content State
+
+The Product Owner approved `studybookaiapp@gmail.com` as the initial monitored
+support, privacy, deletion, refund, legal and IP channel. Automated contact
+delivery remains disabled and fail-closed; the public Contact page directs
+users to the monitored mailbox instead of presenting the form as operational.
+
+The final legal drafts now include the approved operator, age/minors policy,
+retention/deletion targets, billing/cancellation/refund terms, AI and user
+content language, provider disclosures and accepted P2 risks. No production
+infrastructure or environment value changed.
+
+Publishable address remains blocked pending counsel, the effective date must be
+set only at final publication, and specific venue wording requires consistency
+review. Public indexing, deployment and launch remain disabled pending explicit
+human approval.

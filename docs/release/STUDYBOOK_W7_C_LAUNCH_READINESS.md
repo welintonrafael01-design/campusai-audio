@@ -355,3 +355,22 @@ FINAL DECISION: NO-GO
 READY FOR FINAL HUMAN LAUNCH DECISIONS: YES
 READY FOR W7-D PUBLIC LAUNCH: NO
 ```
+
+## W7-C5 Contact And Legal Final Draft
+
+The Product Owner decisions recorded in
+`docs/legal/STUDYBOOKAI_FINAL_HUMAN_APPROVAL_SHEET.md` were integrated into
+Privacy, Terms, Contact, Account Deletion, Security and Pricing. The approved
+monitored channel is `studybookaiapp@gmail.com`; the automated contact provider
+remains disabled and is not presented as operational.
+
+Operator, age/minors, 30/90-day deletion targets, subscription pricing,
+no-trial position, cancellation, first-payment refund, AI limitations, user
+content, IP, provider and P2 decisions are aligned across the public pages.
+Publishable address remains blocked pending counsel. Effective date is added
+only after final publication approval. Specific venue/court wording remains
+under legal consistency review.
+
+Marketing lint, 47 tests, production build, 11-route smoke and 16-link internal
+check pass. Public indexing remains disabled. No push or deployment occurred.
+The strict decision remains `NO-GO` pending final text/publication approval.

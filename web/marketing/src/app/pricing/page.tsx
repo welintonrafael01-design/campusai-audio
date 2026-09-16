@@ -21,8 +21,14 @@ export default function PricingPage() {
           <h2 className="visually-hidden" id="pricing-list-title">Catálogo de planes</h2>
           <PricingGrid />
           <p className="pricing-disclaimer">
-            Precios mensuales de referencia comercial para esta fase. Impuestos,
-            disponibilidad y condiciones pueden variar según plataforma y país.
+            No existe una prueba de US$1 ni otra prueba aprobada. Student Pro y
+            Teacher Pro pueden cancelarse antes de la siguiente renovación; el
+            acceso continúa hasta el final del periodo pagado, sujeto al proveedor.
+            El primer pago puede solicitarse en reembolso dentro de 7 días calendario.
+            Consulta los <a href="/terms">Términos</a> o escribe a{" "}
+            <a href="mailto:studybookaiapp@gmail.com">studybookaiapp@gmail.com</a>.
+            Impuestos, disponibilidad y condiciones pueden variar según plataforma
+            y país y se muestran antes de confirmar una compra.
           </p>
         </div>
       </section>
