@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'plan_guard_service.dart';
 import 'security/user_scoped_storage.dart';
+import 'student_dashboard_session_isolation.dart';
 import 'usage_limit_service.dart';
 
 enum PasswordRecoveryStatus {
@@ -219,6 +220,7 @@ class AuthService {
   }
 
   static Future<void> signOut() async {
+    StudentDashboardSessionIsolation.invalidateAuthenticatedState();
     await _client.auth.signOut();
 
     await const PlanGuardService().resetToFree();
@@ -239,6 +241,7 @@ class AuthService {
   }
 
   static Future<void> clearAfterAccountDeletion() async {
+    StudentDashboardSessionIsolation.invalidateAuthenticatedState();
     final userScope = currentUser?.id.trim() ?? '';
     if (userScope.isNotEmpty) {
       await UserScopedStorage.clearUserScope(userScope);

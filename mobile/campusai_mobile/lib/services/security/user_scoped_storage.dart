@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -5,8 +7,23 @@ class UserScopedStorage {
   const UserScopedStorage._();
 
   static String? _debugUserScopeOverride;
+  static final Object _asyncScopeKey = Object();
+
+  static String get currentAuthenticatedUserId {
+    final override = _debugUserScopeOverride?.trim();
+    if (override != null && override.isNotEmpty) return override;
+
+    try {
+      return Supabase.instance.client.auth.currentUser?.id.trim() ?? '';
+    } catch (_) {
+      return '';
+    }
+  }
 
   static String get currentUserScope {
+    final asyncScope = Zone.current[_asyncScopeKey]?.toString().trim();
+    if (asyncScope != null && asyncScope.isNotEmpty) return asyncScope;
+
     final override = _debugUserScopeOverride?.trim();
     if (override != null && override.isNotEmpty) return override;
 
@@ -22,6 +39,14 @@ class UserScopedStorage {
     } catch (_) {}
 
     return 'guest';
+  }
+
+  static T runWithUserScope<T>(String userScope, T Function() action) {
+    final scope = userScope.trim();
+    if (scope.isEmpty || scope == 'guest') {
+      throw ArgumentError.value(userScope, 'userScope');
+    }
+    return runZoned(action, zoneValues: {_asyncScopeKey: scope});
   }
 
   static String key(String baseKey) => '${baseKey}_$currentUserScope';

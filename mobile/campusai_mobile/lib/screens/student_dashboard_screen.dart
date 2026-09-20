@@ -23,6 +23,7 @@ import '../services/launch/user_feedback_service.dart';
 import '../services/marketplace/marketplace_models.dart';
 import '../services/plan_guard_service.dart';
 import '../services/student_dashboard_controller.dart';
+import '../services/student_dashboard_session_isolation.dart';
 import '../theme/app_theme.dart';
 import '../widgets/accessibility_card.dart';
 import '../widgets/accessibility_toggle_tile.dart';
@@ -63,7 +64,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   bool isLoading = true;
   bool isRefreshing = false;
   bool isLaunchLoading = true;
-  bool isDashboardLoadInFlight = false;
+  StudentDashboardSessionToken? dashboardLoadSession;
   String errorMessage = '';
   final Set<String> processingActionIds = {};
   final progressSectionKey = GlobalKey();
@@ -106,8 +107,18 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   }
 
   Future<void> loadStudentDashboard({bool refresh = false}) async {
-    if (isDashboardLoadInFlight) return;
-    isDashboardLoadInFlight = true;
+    late final StudentDashboardSessionToken session;
+    try {
+      session = dashboardController.captureSession();
+    } on StaleStudentDashboardSession {
+      return;
+    }
+    final activeSession = dashboardLoadSession;
+    if (activeSession != null &&
+        dashboardController.isSessionCurrent(activeSession)) {
+      return;
+    }
+    dashboardLoadSession = session;
     setState(() {
       if (refresh) {
         isRefreshing = true;
@@ -119,21 +130,36 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     });
 
     try {
-      final loaded = await dashboardController.load(refresh: refresh);
-      final loadedLaunchReport = await launchReadinessService.buildReport();
-      final loadedAccessibilityPreferences =
-          await accessibilityPreferencesService.load();
-      final loadedFtueProgress = await ftueService.load(FtueUserPath.student);
-      final synchronizedFtueProgress =
-          await ftueService.synchronizeStudentActivity(
-        loadedFtueProgress,
-        hasAudioBook: loaded.continueLearning.hasProgress ||
-            loaded.analytics.audiobooksStarted > 0,
-        hasQuiz: loaded.analytics.quizCompleted > 0,
-        hasLearningActivity: loaded.analytics.sessions > 0,
+      final loaded = await dashboardController.load(
+        refresh: refresh,
+        session: session,
+      );
+      final supplemental = await dashboardController.runForSession(
+        session,
+        () async {
+          final results = await Future.wait<Object>([
+            launchReadinessService.buildReport(),
+            accessibilityPreferencesService.load(),
+            ftueService.load(FtueUserPath.student),
+          ]);
+          final loadedFtueProgress = results[2] as FtueProgress;
+          final synchronizedFtueProgress =
+              await ftueService.synchronizeStudentActivity(
+            loadedFtueProgress,
+            hasAudioBook: loaded.continueLearning.hasProgress ||
+                loaded.analytics.audiobooksStarted > 0,
+            hasQuiz: loaded.analytics.quizCompleted > 0,
+            hasLearningActivity: loaded.analytics.sessions > 0,
+          );
+          return (
+            launchReport: results[0] as LaunchReadinessReport,
+            accessibilityPreferences: results[1] as AccessibilityPreferences,
+            ftueProgress: synchronizedFtueProgress,
+          );
+        },
       );
 
-      if (!mounted) return;
+      if (!mounted || !dashboardController.isSessionCurrent(session)) return;
 
       setState(() {
         analytics = loaded.analytics;
@@ -158,17 +184,19 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         marketplaceSuggestions = loaded.marketplaceSuggestions;
         notificationHistory = loaded.notificationHistory;
         autonomousActionPlan = loaded.autonomousActionPlan;
-        launchReport = loadedLaunchReport;
+        launchReport = supplemental.launchReport;
         recentSessions = loaded.recentSessions;
-        accessibilityPreferences = loadedAccessibilityPreferences;
-        ftueProgress = synchronizedFtueProgress;
+        accessibilityPreferences = supplemental.accessibilityPreferences;
+        ftueProgress = supplemental.ftueProgress;
         ftueSteps = ftueService.stepsForPath(FtueUserPath.student);
         isLoading = false;
         isRefreshing = false;
         isLaunchLoading = false;
       });
+    } on StaleStudentDashboardSession {
+      return;
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted || !dashboardController.isSessionCurrent(session)) return;
 
       setState(() {
         errorMessage = 'No se pudo cargar tu panel de aprendizaje.';
@@ -177,7 +205,9 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         isLaunchLoading = false;
       });
     } finally {
-      isDashboardLoadInFlight = false;
+      if (identical(dashboardLoadSession, session)) {
+        dashboardLoadSession = null;
+      }
     }
   }
 

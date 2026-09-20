@@ -10,9 +10,15 @@ import 'package:flutter/foundation.dart';
 class AuthRouteRefreshNotifier extends ChangeNotifier {
   StreamSubscription<Object?>? _subscription;
 
-  Future<void> bind(Stream<Object?> authStateChanges) async {
+  Future<void> bind(
+    Stream<Object?> authStateChanges, {
+    void Function(Object? event)? onAuthStateChange,
+  }) async {
     await _subscription?.cancel();
-    _subscription = authStateChanges.listen((_) => notifyListeners());
+    _subscription = authStateChanges.listen((event) {
+      onAuthStateChange?.call(event);
+      notifyListeners();
+    });
     notifyListeners();
   }
 

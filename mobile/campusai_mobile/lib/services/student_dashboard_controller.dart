@@ -29,9 +29,14 @@ import 'learning_engine/streak_service.dart';
 import 'learning_engine/student_intelligence_service.dart';
 import 'marketplace/marketplace_models.dart';
 import 'marketplace/marketplace_service.dart';
-import 'production/enterprise_cache_service.dart';
 import 'release_candidate/rc_models.dart';
 import 'release_candidate/rc_readiness_service.dart';
+import 'security/user_scoped_storage.dart';
+import 'student_dashboard_session_isolation.dart';
+
+typedef StudentDashboardDataLoader = Future<StudentDashboardData> Function(
+  bool refresh,
+);
 
 class StudentDashboardData {
   final LearningAnalytics analytics;
@@ -90,7 +95,10 @@ class StudentDashboardData {
     required this.loadedAt,
   });
 
-  static StudentDashboardData empty() => StudentDashboardData(
+  static StudentDashboardData empty({
+    List<Map<String, dynamic>> recentSessions = const [],
+  }) =>
+      StudentDashboardData(
         analytics: LearningAnalytics.empty,
         continueLearning: ContinueLearningItem.empty,
         streak: LearningStreak.empty,
@@ -115,15 +123,12 @@ class StudentDashboardData {
         notificationHistory: const NotificationHistory(),
         autonomousActionPlan: AutonomousActionPlan.empty(),
         rcReport: null,
-        recentSessions: const [],
+        recentSessions: recentSessions,
         loadedAt: DateTime.fromMillisecondsSinceEpoch(0),
       );
 }
 
 class StudentDashboardController {
-  static StudentDashboardData? _cachedData;
-  static DateTime? _cachedAt;
-
   final LearningAnalyticsService analyticsService;
   final StreakService streakService;
   final RecommendationEngine recommendationEngine;
@@ -149,7 +154,7 @@ class StudentDashboardController {
   final EnterpriseNotificationCenter notificationCenter;
   final AutonomousActionEngine autonomousActionEngine;
   final RcReadinessService rcReadinessService;
-  final EnterpriseCacheService cacheService;
+  final StudentDashboardDataLoader? dataLoader;
 
   const StudentDashboardController({
     this.analyticsService = const LearningAnalyticsService(),
@@ -178,19 +183,68 @@ class StudentDashboardController {
     this.notificationCenter = const EnterpriseNotificationCenter(),
     this.autonomousActionEngine = const AutonomousActionEngine(),
     this.rcReadinessService = const RcReadinessService(),
-    this.cacheService = const EnterpriseCacheService(),
+    this.dataLoader,
   });
 
-  Future<StudentDashboardData> load({bool refresh = false}) async {
-    final cached = _cachedData;
-    final cachedAt = _cachedAt;
-    if (!refresh &&
-        cached != null &&
-        cachedAt != null &&
-        DateTime.now().difference(cachedAt) < const Duration(minutes: 5)) {
-      return cached;
-    }
+  StudentDashboardSessionToken captureSession() {
+    return StudentDashboardSessionIsolation.capture(
+      UserScopedStorage.currentAuthenticatedUserId,
+    );
+  }
 
+  bool isSessionCurrent(StudentDashboardSessionToken session) {
+    return StudentDashboardSessionIsolation.isCurrent(
+      session,
+      UserScopedStorage.currentAuthenticatedUserId,
+    );
+  }
+
+  Future<T> runForSession<T>(
+    StudentDashboardSessionToken session,
+    Future<T> Function() action,
+  ) async {
+    if (!isSessionCurrent(session)) {
+      throw const StaleStudentDashboardSession();
+    }
+    return UserScopedStorage.runWithUserScope(session.ownerUserId, () async {
+      final value = await action();
+      if (!isSessionCurrent(session)) {
+        throw const StaleStudentDashboardSession();
+      }
+      return value;
+    });
+  }
+
+  Future<StudentDashboardData> load({
+    bool refresh = false,
+    StudentDashboardSessionToken? session,
+  }) async {
+    final loadSession = session ?? captureSession();
+    return runForSession(loadSession, () async {
+      final cached =
+          StudentDashboardSessionIsolation.read<StudentDashboardData>(
+        loadSession,
+        UserScopedStorage.currentAuthenticatedUserId,
+      );
+      if (!refresh && cached != null) return cached;
+
+      final loaded = dataLoader == null
+          ? await _buildDashboardData(refresh: refresh)
+          : await dataLoader!(refresh);
+      if (!StudentDashboardSessionIsolation.write(
+        loadSession,
+        UserScopedStorage.currentAuthenticatedUserId,
+        loaded,
+      )) {
+        throw const StaleStudentDashboardSession();
+      }
+      return loaded;
+    });
+  }
+
+  Future<StudentDashboardData> _buildDashboardData({
+    required bool refresh,
+  }) async {
     final core = await _loadCore();
     final enterprise = await _loadEnterprise(core);
     final autonomousActionPlan = await autonomousActionEngine.generatePlan(
@@ -206,7 +260,7 @@ class StudentDashboardController {
       streak: core.streak,
       refresh: refresh,
     );
-    final data = StudentDashboardData(
+    return StudentDashboardData(
       analytics: core.analytics,
       continueLearning: core.continueLearning,
       streak: core.streak,
@@ -234,15 +288,10 @@ class StudentDashboardController {
       rcReport: enterprise.rcReport,
       loadedAt: DateTime.now(),
     );
-    _cachedData = data;
-    _cachedAt = DateTime.now();
-    cacheService.putDashboard('student_dashboard_latest', data);
-    return data;
   }
 
   void invalidateCache() {
-    _cachedData = null;
-    _cachedAt = null;
+    StudentDashboardSessionIsolation.clearCache();
   }
 
   Future<_CoreDashboardData> _loadCore() async {

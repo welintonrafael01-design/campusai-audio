@@ -14,6 +14,7 @@ import 'l10n/app_localizations.dart';
 import 'services/local_storage_service.dart';
 import 'services/billing_service.dart';
 import 'services/auth_service.dart';
+import 'services/student_dashboard_session_isolation.dart';
 import 'platform/auth_callback_url.dart';
 
 Future<void> main() async {
@@ -44,6 +45,11 @@ Future<void> main() async {
     }
     await authRouteRefreshNotifier.bind(
       Supabase.instance.client.auth.onAuthStateChange,
+      onAuthStateChange: (_) {
+        StudentDashboardSessionIsolation.synchronizeAuthenticatedUser(
+          AuthService.currentUser?.id,
+        );
+      },
     );
   }
 

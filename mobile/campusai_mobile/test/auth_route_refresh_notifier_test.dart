@@ -45,4 +45,22 @@ void main() {
     await first.close();
     await second.close();
   });
+
+  test('forwards auth changes to the session isolation hook', () async {
+    final authStates = StreamController<Object?>();
+    final notifier = AuthRouteRefreshNotifier();
+    final observedEvents = <Object?>[];
+
+    await notifier.bind(
+      authStates.stream,
+      onAuthStateChange: observedEvents.add,
+    );
+    authStates.add('signedIn:user_a');
+    authStates.add('signedOut');
+    await Future<void>.delayed(Duration.zero);
+
+    expect(observedEvents, ['signedIn:user_a', 'signedOut']);
+    notifier.dispose();
+    await authStates.close();
+  });
 }
